@@ -7,7 +7,11 @@ import {
   TableHead,
   TableRow,
   TableCell,
-  Paper
+  Paper,
+  FormControl,
+  Select,
+  MenuItem,
+  Button,
 } from "@mui/material";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
@@ -109,27 +113,17 @@ const YearPanel = () => {
 
   const handleCloseSnackbar = () => setSnackbar((prev) => ({ ...prev, open: false }));
 
-  // 🔒 Disable Right-Click & DevTools
-  useEffect(() => {
-    const handleContextMenu = (e) => e.preventDefault();
-    const handleKeyDown = (e) => {
-      const blocked =
-        e.key === "F12" ||
-        e.key === "F11" ||
-        (e.ctrlKey && e.shiftKey && ["i", "j"].includes(e.key.toLowerCase())) ||
-        (e.ctrlKey && ["u", "p"].includes(e.key.toLowerCase()));
-      if (blocked) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    };
-    document.addEventListener("contextmenu", handleContextMenu);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("contextmenu", handleContextMenu);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 20;
+
+  const totalPages = Math.ceil(filteredYears.length / rowsPerPage);
+
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+
+  const paginatedYears = filteredYears.slice(startIndex, endIndex);
+
+
 
   if (loading || hasAccess === null) return <LoadingOverlay open={loading} message="Loading..." />;
   if (!hasAccess) return <Unauthorized />;
@@ -147,7 +141,10 @@ const YearPanel = () => {
           placeholder="Search Year..."
           size="small"
           value={yearSearchQuery}
-          onChange={(e) => setYearSearchQuery(e.target.value)}
+          onChange={(e) => {
+            setYearSearchQuery(e.target.value);
+            setCurrentPage(1);
+          }}
           sx={{
             width: 450,
             backgroundColor: "#fff",
@@ -162,137 +159,456 @@ const YearPanel = () => {
         />
       </Box>
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+
       <br />
-      <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, mb: "40px" }}>
+      <br />
+
+
+      <TableContainer component={Paper} sx={{ width: '100%', }}>
+        <Table size="small">
+          <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
+            <TableRow>
+              <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                  {/* Left: Total Count */}
+                  <Typography fontSize="14px" fontWeight="bold" color="white">
+                    Total Year Panel: {filteredYears.length}
+                  </Typography>
+
+                  {/* Right: Pagination Controls */}
+                  <Box display="flex" alignItems="center" gap={1}>
+                    {/* First & Prev */}
+                    <Button
+                      onClick={() => setCurrentPage(1)}
+                      disabled={currentPage === 1}
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        minWidth: 80,
+                        color: "white",
+                        borderColor: "white",
+                        backgroundColor: "transparent",
+                        '&:hover': {
+                          borderColor: 'white',
+                          backgroundColor: 'rgba(255,255,255,0.1)',
+                        },
+                        '&.Mui-disabled': {
+                          color: "white",
+                          borderColor: "white",
+                          backgroundColor: "transparent",
+                          opacity: 1,
+                        }
+                      }}
+                    >
+                      First
+                    </Button>
+
+                    <Button
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        minWidth: 80,
+                        color: "white",
+                        borderColor: "white",
+                        backgroundColor: "transparent",
+                        '&:hover': {
+                          borderColor: 'white',
+                          backgroundColor: 'rgba(255,255,255,0.1)',
+                        },
+                        '&.Mui-disabled': {
+                          color: "white",
+                          borderColor: "white",
+                          backgroundColor: "transparent",
+                          opacity: 1,
+                        }
+                      }}
+                    >
+                      Prev
+                    </Button>
+
+
+                    {/* Page Dropdown */}
+                    <FormControl size="small" sx={{ minWidth: 80 }}>
+                      <Select
+                        value={currentPage}
+                        onChange={(e) => setCurrentPage(Number(e.target.value))}
+                        displayEmpty
+                        sx={{
+                          fontSize: '12px',
+                          height: 36,
+                          color: 'white',
+                          border: '1px solid white',
+                          backgroundColor: 'transparent',
+                          '.MuiOutlinedInput-notchedOutline': {
+                            borderColor: 'white',
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: 'white',
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: 'white',
+                          },
+                          '& svg': {
+                            color: 'white', // dropdown arrow icon color
+                          }
+                        }}
+                        MenuProps={{
+                          PaperProps: {
+                            sx: {
+                              maxHeight: 200,
+                              backgroundColor: '#fff', // dropdown background
+                            }
+                          }
+                        }}
+                      >
+                        {Array.from({ length: totalPages }, (_, i) => (
+                          <MenuItem key={i + 1} value={i + 1}>
+                            Page {i + 1}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+
+                    <Typography fontSize="11px" color="white">
+                      of {totalPages} page{totalPages > 1 ? 's' : ''}
+                    </Typography>
+
+
+                    {/* Next & Last */}
+                    <Button
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        minWidth: 80,
+                        color: "white",
+                        borderColor: "white",
+                        backgroundColor: "transparent",
+                        '&:hover': {
+                          borderColor: 'white',
+                          backgroundColor: 'rgba(255,255,255,0.1)',
+                        },
+                        '&.Mui-disabled': {
+                          color: "white",
+                          borderColor: "white",
+                          backgroundColor: "transparent",
+                          opacity: 1,
+                        }
+                      }}
+                    >
+                      Next
+                    </Button>
+
+                    <Button
+                      onClick={() => setCurrentPage(totalPages)}
+                      disabled={currentPage === totalPages}
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        minWidth: 80,
+                        color: "white",
+                        borderColor: "white",
+                        backgroundColor: "transparent",
+                        '&:hover': {
+                          borderColor: 'white',
+                          backgroundColor: 'rgba(255,255,255,0.1)',
+                        },
+                        '&.Mui-disabled': {
+                          color: "white",
+                          borderColor: "white",
+                          backgroundColor: "transparent",
+                          opacity: 1,
+                        }
+                      }}
+                    >
+                      Last
+                    </Button>
+                  </Box>
+                </Box>
+              </TableCell>
+            </TableRow>
+          </TableHead>
+        </Table>
+      </TableContainer>
+
+      <table
+        className="w-full border border-gray-300"
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          border: `2px solid ${borderColor}`,
+          textAlign: "center",
+        }}
+      >
+        <thead>
+          <tr style={{ color: "#000" }}>
+            <th style={{ border: `2px solid ${borderColor}`, padding: "10px", backgroundColor: "#f5f5f5", color: "#000" }}>Year</th>
+            <th style={{ border: `2px solid ${borderColor}`, padding: "10px", backgroundColor: "#f5f5f5", color: "#000" }}>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredYears.length > 0 ? (
+            paginatedYears.map((year) => (
+
+              <tr
+                key={year.year_id}
+                style={{
+                  backgroundColor: year.status === 1 ? "#d4edda" : "transparent", // ✅ light green if active
+                  color: year.status === 1 ? "#155724" : "inherit", // dark green text for contrast
+                  fontWeight: year.status === 1 ? "bold" : "normal",
+                }}
+              >
+                <td style={{ border: `2px solid ${borderColor}`, padding: "8px" }}>
+                  {year.year_description}
+                </td>
+                <td style={{ border: `2px solid ${borderColor}`, padding: "8px" }}>
+                  {year.status === 1 ? "Active" : "Inactive"}
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="2" style={{ padding: "15px", color: "#777" }}>
+                No year records found.
+              </td>
+            </tr>
+          )}
+        </tbody>
+
+      </table>
+
+      <TableContainer component={Paper} sx={{ width: '100%', }}>
+        <Table size="small">
+          <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
+            <TableRow>
+              <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                  {/* Left: Total Count */}
+                  <Typography fontSize="14px" fontWeight="bold" color="white">
+                    Total Year Panel: {filteredYears.length}
+                  </Typography>
+
+                  {/* Right: Pagination Controls */}
+                  <Box display="flex" alignItems="center" gap={1}>
+                    {/* First & Prev */}
+                    <Button
+                      onClick={() => setCurrentPage(1)}
+                      disabled={currentPage === 1}
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        minWidth: 80,
+                        color: "white",
+                        borderColor: "white",
+                        backgroundColor: "transparent",
+                        '&:hover': {
+                          borderColor: 'white',
+                          backgroundColor: 'rgba(255,255,255,0.1)',
+                        },
+                        '&.Mui-disabled': {
+                          color: "white",
+                          borderColor: "white",
+                          backgroundColor: "transparent",
+                          opacity: 1,
+                        }
+                      }}
+                    >
+                      First
+                    </Button>
+
+                    <Button
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        minWidth: 80,
+                        color: "white",
+                        borderColor: "white",
+                        backgroundColor: "transparent",
+                        '&:hover': {
+                          borderColor: 'white',
+                          backgroundColor: 'rgba(255,255,255,0.1)',
+                        },
+                        '&.Mui-disabled': {
+                          color: "white",
+                          borderColor: "white",
+                          backgroundColor: "transparent",
+                          opacity: 1,
+                        }
+                      }}
+                    >
+                      Prev
+                    </Button>
+
+
+                    {/* Page Dropdown */}
+                    <FormControl size="small" sx={{ minWidth: 80 }}>
+                      <Select
+                        value={currentPage}
+                        onChange={(e) => setCurrentPage(Number(e.target.value))}
+                        displayEmpty
+                        sx={{
+                          fontSize: '12px',
+                          height: 36,
+                          color: 'white',
+                          border: '1px solid white',
+                          backgroundColor: 'transparent',
+                          '.MuiOutlinedInput-notchedOutline': {
+                            borderColor: 'white',
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: 'white',
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: 'white',
+                          },
+                          '& svg': {
+                            color: 'white', // dropdown arrow icon color
+                          }
+                        }}
+                        MenuProps={{
+                          PaperProps: {
+                            sx: {
+                              maxHeight: 200,
+                              backgroundColor: '#fff', // dropdown background
+                            }
+                          }
+                        }}
+                      >
+                        {Array.from({ length: totalPages }, (_, i) => (
+                          <MenuItem key={i + 1} value={i + 1}>
+                            Page {i + 1}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+
+                    <Typography fontSize="11px" color="white">
+                      of {totalPages} page{totalPages > 1 ? 's' : ''}
+                    </Typography>
+
+
+                    {/* Next & Last */}
+                    <Button
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        minWidth: 80,
+                        color: "white",
+                        borderColor: "white",
+                        backgroundColor: "transparent",
+                        '&:hover': {
+                          borderColor: 'white',
+                          backgroundColor: 'rgba(255,255,255,0.1)',
+                        },
+                        '&.Mui-disabled': {
+                          color: "white",
+                          borderColor: "white",
+                          backgroundColor: "transparent",
+                          opacity: 1,
+                        }
+                      }}
+                    >
+                      Next
+                    </Button>
+
+                    <Button
+                      onClick={() => setCurrentPage(totalPages)}
+                      disabled={currentPage === totalPages}
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        minWidth: 80,
+                        color: "white",
+                        borderColor: "white",
+                        backgroundColor: "transparent",
+                        '&:hover': {
+                          borderColor: 'white',
+                          backgroundColor: 'rgba(255,255,255,0.1)',
+                        },
+                        '&.Mui-disabled': {
+                          color: "white",
+                          borderColor: "white",
+                          backgroundColor: "transparent",
+                          opacity: 1,
+                        }
+                      }}
+                    >
+                      Last
+                    </Button>
+                  </Box>
+                </Box>
+              </TableCell>
+            </TableRow>
+          </TableHead>
+        </Table>
+      </TableContainer>
+      <br />
+      <br />
+
+
+      <TableContainer component={Paper} sx={{ width: '50%', border: `2px solid ${borderColor}`, }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
-              <TableCell sx={{ color: 'white', textAlign: "Center" }}>Year Panel</TableCell>
+              <TableCell sx={{ color: 'white', textAlign: "Center" }}>Create Year Panel</TableCell>
             </TableRow>
           </TableHead>
         </Table>
       </TableContainer>
       {/* Panel Layout */}
+
       <Box
         sx={{
-          display: "flex",
-          flexDirection: { xs: "column", md: "row" },
-          gap: 3,
-          alignItems: "flex-start",
+          flex: 1,
+          border: `2px solid ${borderColor}`,
+          backgroundColor: "#fff",
+          width: "50%",
+          boxShadow: "0 3px 10px rgba(0,0,0,0.1)",
+          p: 3,
         }}
       >
-        {/* Form Card */}
-        <Box
-          sx={{
-            flex: 1,
-            border: `2px solid ${borderColor}`,
-            backgroundColor: "#fff",
-            boxShadow: "0 3px 10px rgba(0,0,0,0.1)",
-            p: 3,
+        <Typography fontWeight={500}>Year Panel:</Typography>
+        <input
+          type="text"
+          placeholder="Enter year (e.g., 2026)"
+          value={yearDescription}
+          onChange={(e) => setYearDescription(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "12px",
+            borderRadius: "6px",
+            border: "1px solid #ccc",
+            marginBottom: "15px",
+            fontSize: "16px",
           }}
-        >
-           <Typography variant="h6" gutterBottom textAlign="left" style={{ color: subtitleColor, fontWeight: "bold" }} >
-           Add New Year
-          </Typography>
-          <Typography fontWeight={500}>Year Panel:</Typography>
-          <input
-            type="text"
-            placeholder="Enter year (e.g., 2026)"
-            value={yearDescription}
-            onChange={(e) => setYearDescription(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "12px",
-              borderRadius: "6px",
-              border: "1px solid #ccc",
-              marginBottom: "15px",
-              fontSize: "16px",
-            }}
-          />
-          <button
-            onClick={handleSubmit}
-            style={{
-              width: "100%",
-              padding: "12px",
-              backgroundColor: "#1976d2",
-              color: "white",
-              fontSize: "16px",
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontWeight: "bold",
-              transition: "0.3s",
-            }}
-
-          >
-            Save Year
-          </button>
-        </Box>
-
-
-        <Box
-          sx={{
-            flex: 1,
-            border: `2px solid ${borderColor}`,
-
-            backgroundColor: "#fff",
-            boxShadow: "0 3px 10px rgba(0,0,0,0.1)",
-            p: 3,
-            maxHeight: 750, overflowY: "auto"
+        />
+        <button
+          onClick={handleSubmit}
+          style={{
+            width: "100%",
+            padding: "12px",
+            backgroundColor: "#1976d2",
+            color: "white",
+            fontSize: "16px",
+            border: "none",
+            borderRadius: "6px",
+            cursor: "pointer",
+            fontWeight: "bold",
+            transition: "0.3s",
           }}
+
         >
-         <Typography variant="h6" gutterBottom textAlign="left" style={{ color: subtitleColor, fontWeight: "bold" }} >
-          Saved Year
-          </Typography>
-
-
-          <table
-            className="w-full border border-gray-300"
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              border: `2px solid ${borderColor}`,
-              textAlign: "center",
-            }}
-          >
-            <thead>
-              <tr style={{ backgroundColor: settings?.header_color || "#1976d2", color: "#fff" }}>
-                <th style={{ border: `2px solid ${borderColor}`, padding: "10px" }}>Year</th>
-                <th style={{ border: `2px solid ${borderColor}`, padding: "10px" }}>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredYears.length > 0 ? (
-                filteredYears.map((year) => (
-
-                  <tr
-                    key={year.year_id}
-                    style={{
-                      backgroundColor: year.status === 1 ? "#d4edda" : "transparent", // ✅ light green if active
-                      color: year.status === 1 ? "#155724" : "inherit", // dark green text for contrast
-                      fontWeight: year.status === 1 ? "bold" : "normal",
-                    }}
-                  >
-                    <td style={{ border: `2px solid ${borderColor}`, padding: "8px" }}>
-                      {year.year_description}
-                    </td>
-                    <td style={{ border: `2px solid ${borderColor}`, padding: "8px" }}>
-                      {year.status === 1 ? "Active" : "Inactive"}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="2" style={{ padding: "15px", color: "#777" }}>
-                    No year records found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-
-          </table>
-        </Box>
+          Save Year
+        </button>
       </Box>
+
 
       {/* Snackbar */}
       <Snackbar

@@ -338,91 +338,98 @@ const DepartmentRegistration = () => {
           </TableHead>
         </Table>
       </TableContainer>
-      <br />
-      <br />
+     
+      <Paper
+        elevation={3}
+        sx={{
+          p: 3,
+          border: `2px solid ${borderColor}`,
 
-      <Grid container spacing={2}>
-        {departmentList.map((department) => (
-          <Grid item xs={12} sm={6} md={3} key={department.dprtmnt_id}>
-            <Card
-              elevation={0}
-              sx={{
-                border: `1px solid ${borderColor}`,
-                borderRadius: 3,
-                transition: "all 0.2s ease",
-                "&:hover": {
-                  boxShadow: 4,
-                  transform: "translateY(-4px)",
-                },
-                height: "100%",
-              }}
-            >
-              <CardContent
+        }}
+      >
+
+        <Grid container spacing={2}>
+          {departmentList.map((department) => (
+            <Grid item xs={12} sm={6} md={3} key={department.dprtmnt_id}>
+              <Card
+                elevation={0}
                 sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
+                  border: `1px solid ${borderColor}`,
+                  borderRadius: 3,
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    boxShadow: 4,
+                    transform: "translateY(-4px)",
+                  },
                   height: "100%",
                 }}
               >
-                <Box>
-                  <Typography variant="h6" fontWeight={600}>
-                    {department.dprtmnt_name}
-                  </Typography>
+                <CardContent
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    height: "100%",
+                  }}
+                >
+                  <Box>
+                    <Typography variant="h6" fontWeight={600}>
+                      {department.dprtmnt_name}
+                    </Typography>
 
-                  <Typography variant="subtitle" sx={{ color: subtitleColor }}>
-                    Code: {department.dprtmnt_code}
-                  </Typography>
-                </Box>
+                    <Typography variant="subtitle" sx={{ color: subtitleColor }}>
+                      Code: {department.dprtmnt_code}
+                    </Typography>
+                  </Box>
 
-                <Box mt={2} display="flex" justifyContent="flex-end" gap={1}>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    sx={{
-                      backgroundColor: "green",
-                      color: "white",
-                      borderRadius: "5px",
-                      padding: "8px 14px",
-                      width: "100px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "5px",
-                    }}
+                  <Box mt={2} display="flex" justifyContent="flex-end" gap={1}>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      sx={{
+                        backgroundColor: "green",
+                        color: "white",
+                        borderRadius: "5px",
+                        padding: "8px 14px",
+                        width: "100px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "5px",
+                      }}
 
-                    onClick={() => handleEdit(department)}
-                  >
-                    <EditIcon fontSize="small" /> Edit
-                  </Button>
+                      onClick={() => handleEdit(department)}
+                    >
+                      <EditIcon fontSize="small" /> Edit
+                    </Button>
 
-                  <Button
-                    variant="contained"
-                    size="small"
-                    sx={{
-                      backgroundColor: "#9E0000",
-                      color: "white",
-                      borderRadius: "5px",
-                      padding: "8px 14px",
-                      width: "100px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "5px",
-                    }}
-                    onClick={() =>
-                      handleDelete(department.dprtmnt_id)
-                    }
-                  >
-                    <DeleteIcon fontSize="small" /> Delete
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-
+                    <Button
+                      variant="contained"
+                      size="small"
+                      sx={{
+                        backgroundColor: "#9E0000",
+                        color: "white",
+                        borderRadius: "5px",
+                        padding: "8px 14px",
+                        width: "100px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "5px",
+                      }}
+                      onClick={() =>
+                        handleDelete(department.dprtmnt_id)
+                      }
+                    >
+                      <DeleteIcon fontSize="small" /> Delete
+                    </Button>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Paper>
 
       <Dialog open={openModal} onClose={() => setOpenModal(false)} fullWidth maxWidth="sm">
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

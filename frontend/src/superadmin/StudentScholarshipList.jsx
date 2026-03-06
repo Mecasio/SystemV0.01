@@ -49,6 +49,7 @@ const StudentScholarshipList = () => {
   const [companyName, setCompanyName] = useState("");
   const [shortTerm, setShortTerm] = useState("");
   const [campusAddress, setCampusAddress] = useState("");
+  const [branches, setBranches] = useState([]);
 
   useEffect(() => {
     if (!settings) return;
@@ -58,8 +59,8 @@ const StudentScholarshipList = () => {
     if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
     if (settings.border_color) setBorderColor(settings.border_color);
     if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
-    if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);   // ✅ NEW
-    if (settings.stepper_color) setStepperColor(settings.stepper_color);           // ✅ NEW
+    if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);
+    if (settings.stepper_color) setStepperColor(settings.stepper_color);
 
     // 🏫 Logo
     if (settings.logo_url) {
@@ -68,10 +69,26 @@ const StudentScholarshipList = () => {
       setFetchedLogo(EaristLogo);
     }
 
-    // 🏷️ School Information
+    // 🏷️ School Info
     if (settings.company_name) setCompanyName(settings.company_name);
     if (settings.short_term) setShortTerm(settings.short_term);
     if (settings.campus_address) setCampusAddress(settings.campus_address);
+
+    // ✅ Branches (JSON stored in DB)
+    if (settings?.branches) {
+      try {
+        const parsed =
+          typeof settings.branches === "string"
+            ? JSON.parse(settings.branches)
+            : settings.branches;
+
+        setBranches(parsed);
+      } catch (err) {
+        console.error("Failed to parse branches:", err);
+        setBranches([]);
+      }
+    }
+
 
   }, [settings]);
 
@@ -394,16 +411,64 @@ const StudentScholarshipList = () => {
       <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
         <TableContainer component={Paper}>
           <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell><b>Student Number</b></TableCell>
-                <TableCell><b>Last Name</b></TableCell>
-                <TableCell><b>First Name</b></TableCell>
-                <TableCell><b>Middle Name</b></TableCell>
-                <TableCell><b>Extension</b></TableCell>
-                <TableCell><b>Program Code</b></TableCell>
-                <TableCell><b>Program Description</b></TableCell>
-                <TableCell><b>Major</b></TableCell>
+            <TableHead >
+              <TableRow >
+                <TableCell sx={{
+                  border: `2px solid ${borderColor}`,
+                  padding: "10px",
+                  color: "white",
+                  backgroundColor: settings?.header_color || "#1976d2",
+                }}
+                >Student Number</TableCell>
+                <TableCell sx={{
+                  border: `2px solid ${borderColor}`,
+                  padding: "10px",
+                  color: "white",
+                  backgroundColor: settings?.header_color || "#1976d2",
+                }}
+                >Last Name</TableCell>
+                <TableCell sx={{
+                  border: `2px solid ${borderColor}`,
+                  padding: "10px",
+                  color: "white",
+                  backgroundColor: settings?.header_color || "#1976d2",
+                }}
+                >First Name</TableCell>
+                <TableCell sx={{
+                  border: `2px solid ${borderColor}`,
+                  padding: "10px",
+                  color: "white",
+                  backgroundColor: settings?.header_color || "#1976d2",
+                }}
+                > Middle Name</TableCell>
+                <TableCell sx={{
+                  border: `2px solid ${borderColor}`,
+                  padding: "10px",
+                  color: "white",
+                  backgroundColor: settings?.header_color || "#1976d2",
+                }}
+                >Extension</TableCell>
+                <TableCell sx={{
+                  border: `2px solid ${borderColor}`,
+                  padding: "10px",
+                  color: "white",
+                  backgroundColor: settings?.header_color || "#1976d2",
+                }}
+                >Program Code</TableCell>
+                <TableCell sx={{
+                  border: `2px solid ${borderColor}`,
+                  padding: "10px",
+                  color: "white",
+                  backgroundColor: settings?.header_color || "#1976d2",
+                }}
+                >Program Descriptio</TableCell>
+                <TableCell sx={{
+                  border: `2px solid ${borderColor}`,
+                  padding: "10px",
+                  color: "white",
+                  backgroundColor: settings?.header_color || "#1976d2",
+                }}
+                >Major</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -452,14 +517,14 @@ const StudentScholarshipList = () => {
           Certificate of Registration - {selectedCorStudentNumber}
         </DialogTitle>
         <DialogContent dividers>
-            <Box sx={{marginTop:"4rem"}}>
-                {selectedCorStudentNumber && (
-                    <CertificateOfRegistration
-                      student_number={selectedCorStudentNumber}
-                      onSaved={handleCorSaved}
-                    />
-                )}
-            </Box>
+          <Box sx={{ marginTop: "4rem" }}>
+            {selectedCorStudentNumber && (
+              <CertificateOfRegistration
+                student_number={selectedCorStudentNumber}
+                onSaved={handleCorSaved}
+              />
+            )}
+          </Box>
         </DialogContent>
       </Dialog>
 

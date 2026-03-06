@@ -26,6 +26,7 @@ import {
   DialogActions,
 } from "@mui/material";
 import Unauthorized from "../components/Unauthorized";
+import DeleteIcon from "@mui/icons-material/Delete";
 import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
 const RequirementsForm = () => {
@@ -293,9 +294,7 @@ const RequirementsForm = () => {
         style={{ border: `2px solid ${borderColor}`, }}
         className=" bg-gray-50 p-6  shadow-sm max-h-100 overflow-y-auto"
       >
-        <h3 style={{ color: subtitleColor, }} className="text-xl font-semibold mb-4">
-          Saved Requirements
-        </h3>
+      
 
         {Object.keys(groupedRequirements).map((cat) => (
           <div key={cat}>
@@ -312,14 +311,24 @@ const RequirementsForm = () => {
                     size="small"
                     sx={{
                       backgroundColor: "#9E0000",
-                      color: "white",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "5px",
+                            padding: "8px 14px",
+                            cursor: "pointer",
+                            width: "100px",
+                            height: "40px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "5px",
                     }}
                     onClick={() => {
                       setRequirementToDelete(req);
                       setOpenDeleteDialog(true);
                     }}
                   >
-                    Delete
+                     <DeleteIcon fontSize="small" /> Delete
                   </Button>
 
 
@@ -347,9 +356,7 @@ const RequirementsForm = () => {
         style={{ border: `2px solid ${borderColor}`, width: "50%"}}
         className=" bg-gray-50 p-6 shadow-sm"
       >
-        <h3 style={{ color: subtitleColor, }} className="text-xl font-semibold mb-4">
-          Add a New Requirement
-        </h3>
+    
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <Typography fontWeight={500}>Requirements Description:</Typography>

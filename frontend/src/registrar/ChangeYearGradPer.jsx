@@ -125,15 +125,8 @@ const ChangeGradingPeriod = () => {
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
-      <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, mb: "40px" }}>
-        <Table>
-          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
-            <TableRow>
-              <TableCell sx={{ color: 'white', textAlign: "Center" }}>Change Grading Period</TableCell>
-            </TableRow>
-          </TableHead>
-        </Table>
-      </TableContainer>
+      <br />
+      
 
 
       <Box sx={{ mt: 3 }}>

@@ -309,30 +309,16 @@ export default function EmailTemplateManager() {
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
       <br />
-      <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
-        <Table>
-          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
-            <TableRow>
-              <TableCell sx={{ color: 'white', textAlign: "Center" }}>Existing Email Accounts</TableCell>
-            </TableRow>
-          </TableHead>
-        </Table>
-      </TableContainer>
+   
       {/* ✅ Table Section */}
       <Grid item xs={12} md={7}>
-        <Paper
-          elevation={3}
-          sx={{ p: 3, border: `2px solid ${borderColor}`, }}
-        >
-          <Typography variant="h6" sx={{ mb: 2, color: subtitleColor, }}>
-            Registered Templates
-          </Typography>
-
+ 
           <Box
             sx={{
               maxHeight: 400,
               overflowY: "auto",
-              backgroundColor: settings?.table_bg_color || "#ffffff", // Table container bg
+              backgroundColor: "#f5f5f5", // Table container bg
+              color: "black",
               border: `2px solid ${borderColor}`, // Outer border
               borderRadius: 1, // optional: rounded corners
             }}
@@ -426,13 +412,13 @@ export default function EmailTemplateManager() {
             </Table>
           </Box>
 
-        </Paper>
+      
 
       </Grid>
 
       <br />
       <br />
-      <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+      <TableContainer component={Paper} sx={{ width: '50%', border: `2px solid ${borderColor}`, }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
@@ -449,11 +435,9 @@ export default function EmailTemplateManager() {
 
         <Paper
           elevation={3}
-          sx={{ p: 3, border: `2px solid ${borderColor}`, }}
+          sx={{ p: 3, border: `2px solid ${borderColor}`, width: "50%" }}
         >
-          <Typography variant="h6" sx={{ mb: 2, color: subtitleColor, }}>
-            {editing ? "Edit Email Template" : "Register New Template"}
-          </Typography>
+      
 
           <Typography fontWeight={500}>Sender Name:</Typography>
           <TextField

@@ -18,9 +18,11 @@ import {
   MenuItem,
   Select,
   Table,
+  Paper,
   TableBody,
   TableCell,
   TableHead,
+  TableContainer,
   TableRow,
   Typography,
   IconButton,
@@ -29,6 +31,9 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
+import EditIcon from "@mui/icons-material/Edit";
+
+
 
 
 export default function DepartmentCurriculumPanel() {
@@ -319,83 +324,101 @@ export default function DepartmentCurriculumPanel() {
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
 
       <br />
+      <br />
+      <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+        <Table>
+          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
+            <TableRow>
+              <TableCell sx={{ color: 'white', textAlign: "Center" }}>Select Department Curriculum Panel</TableCell>
+            </TableRow>
+          </TableHead>
+        </Table>
+      </TableContainer>
+      <Paper
+        elevation={3}
+        sx={{
+          p: 3,
+          border: `2px solid ${borderColor}`,
 
+        }}
+      >
 
-      <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
-        <Grid item>
-          <Typography variant="body1" fontWeight="bold">
-            Select Department:
-          </Typography>
-        </Grid>
+        <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
+          <Grid item>
+            <Typography variant="body1" fontWeight="bold">
+              Select Department:
+            </Typography>
+          </Grid>
 
-        <Grid item>
-          <FormControl size="small" sx={{ minWidth: 240 }}>
-            <InputLabel>Department</InputLabel>
-            <Select
-              label="Department"
-              value={selectedDept}
-              onChange={(e) => setSelectedDept(e.target.value)}
-            >
-              <MenuItem value="">
-                <em>Choose department</em>
-              </MenuItem>
-              {departments.map((d) => (
-                <MenuItem key={d.dprtmnt_id} value={d.dprtmnt_id}>
-                  {d.dprtmnt_name} ({d.dprtmnt_code})
+          <Grid item>
+            <FormControl size="small" sx={{ minWidth: 240 }}>
+              <InputLabel>Department</InputLabel>
+              <Select
+                label="Department"
+                value={selectedDept}
+                onChange={(e) => setSelectedDept(e.target.value)}
+              >
+                <MenuItem value="">
+                  <em>Choose department</em>
                 </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
-
-        <Grid item>
-          <Typography variant="body1" fontWeight="bold">
-            Select Curriculum:
-          </Typography>
-        </Grid>
-
-        <Grid item>
-          <FormControl size="small" sx={{ minWidth: 420 }}>
-            <InputLabel>Curriculum (Year - Program)</InputLabel>
-            <Select
-              label="Curriculum"
-              value={selectedCurr}
-              onChange={(e) => setSelectedCurr(e.target.value)}
-            >
-              <MenuItem value="">
-                <em>Choose curriculum</em>
-              </MenuItem>
-              {curriculums.map((c) => {
-                const programLabel = c.program_description || c.program_code || `program ${c.program_id}`;
-
-                return (
-                  <MenuItem key={c.curriculum_id} value={c.curriculum_id}>
-                    {formatSchoolYear(c.year_description)}:{" "}
-                    {`(${c.program_code}): ${c.program_description}${c.major ? ` (${c.major})` : ""
-                      } (${Number(c.components) === 1
-                        ? "Manila Campus"
-                        : Number(c.components) === 2
-                          ? "Cavite Campus"
-                          : "—"
-                      })`}
+                {departments.map((d) => (
+                  <MenuItem key={d.dprtmnt_id} value={d.dprtmnt_id}>
+                    {d.dprtmnt_name} ({d.dprtmnt_code})
                   </MenuItem>
-                );
-              })}
-            </Select>
-          </FormControl>
-        </Grid>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
 
-        <Grid item>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleAddMapping}
-            disabled={!selectedDept || !selectedCurr || adding}
-          >
-            {adding ? <CircularProgress size={18} /> : "Add"}
-          </Button>
+          <Grid item>
+            <Typography variant="body1" fontWeight="bold">
+              Select Curriculum:
+            </Typography>
+          </Grid>
+
+          <Grid item>
+            <FormControl size="small" sx={{ minWidth: 420 }}>
+              <InputLabel>Curriculum (Year - Program)</InputLabel>
+              <Select
+                label="Curriculum"
+                value={selectedCurr}
+                onChange={(e) => setSelectedCurr(e.target.value)}
+              >
+                <MenuItem value="">
+                  <em>Choose curriculum</em>
+                </MenuItem>
+                {curriculums.map((c) => {
+                  const programLabel = c.program_description || c.program_code || `program ${c.program_id}`;
+
+                  return (
+                    <MenuItem key={c.curriculum_id} value={c.curriculum_id}>
+                      {formatSchoolYear(c.year_description)}:{" "}
+                      {`(${c.program_code}): ${c.program_description}${c.major ? ` (${c.major})` : ""
+                        } (${Number(c.components) === 1
+                          ? "Manila Campus"
+                          : Number(c.components) === 2
+                            ? "Cavite Campus"
+                            : "—"
+                        })`}
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid item>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleAddMapping}
+              disabled={!selectedDept || !selectedCurr || adding}
+            >
+              {adding ? <CircularProgress size={18} /> : "Add"}
+            </Button>
+          </Grid>
         </Grid>
-      </Grid>
+      </Paper>
 
 
       <Box>
@@ -445,31 +468,55 @@ export default function DepartmentCurriculumPanel() {
                       </TableCell>
 
                       {/* Actions */}
-                      <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
-                        <Button
-                          variant="contained"
-                          size="small"
+                      <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center", width: "250px" }}>
+                        <Box
                           sx={{
-                            backgroundColor: "green",
-                            color: "white",
-                            mr: 1,
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            gap: 1
                           }}
-                          onClick={() => openEditDialog(m)}
                         >
-                          Edit
-                        </Button>
 
-                        <Button
-                          variant="contained"
-                          size="small"
-                          sx={{
-                            backgroundColor: "#9E0000",
-                            color: "white",
-                          }}
-                          onClick={() => openDeleteDialog(m.dprtmnt_curriculum_id)}
-                        >
-                          Delete
-                        </Button>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            sx={{
+                              backgroundColor: "green",
+                              color: "white",
+                              borderRadius: "5px",
+                              padding: "8px",
+                              width: "100px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: "5px",
+                            }}
+                            onClick={() => openEditDialog(m)}
+                          >
+                            <EditIcon fontSize="small" /> Edit
+                          </Button>
+
+                          <Button
+                            variant="contained"
+                            size="small"
+                            sx={{
+                              backgroundColor: "#9E0000",
+                              color: "white",
+                              borderRadius: "5px",
+                              padding: "8px",
+                              width: "100px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: "5px",
+                            }}
+                            onClick={() => openDeleteDialog(m.dprtmnt_curriculum_id)}
+                          >
+                            <DeleteIcon fontSize="small" /> Delete
+                          </Button>
+
+                        </Box>
                       </TableCell>
 
 

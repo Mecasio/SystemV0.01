@@ -247,7 +247,7 @@ const DepartmentRoom = () => {
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
 
-      <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, mb: "40px" }}>
+      <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
@@ -257,59 +257,72 @@ const DepartmentRoom = () => {
         </Table>
       </TableContainer>
 
-      <Box display="flex" gap={2} alignItems="flex-start" mb={4}>
-        <Box width="50%">
-          <Typography variant="h6" gutterBottom textAlign="left" style={{ color: subtitleColor, fontWeight: "bold" }} >
-            Room Available
-          </Typography>
-          <Select
-            name="room_id"
-            value={room.room_id}
-            onChange={handleChange}
-            displayEmpty
-            fullWidth
-          >
-            <MenuItem value="">Select Available Room</MenuItem>
-            {roomList
-              .filter((room) => !assignedRoomIds.includes(room.room_id))
-              .map((room) => (
-                <MenuItem key={room.room_id} value={room.room_id}>
-                  {room.room_description}
+      <Paper
+        elevation={3}
+        sx={{
+          p: 3,
+          border: `2px solid ${borderColor}`,
+
+        }}
+      >
+        <Box display="flex" gap={2} alignItems="flex-start" mb={4}>
+          <Box width="50%">
+            <Typography variant="body1" fontWeight="bold">
+              Select Room:
+            </Typography>
+            <Select
+              name="room_id"
+              value={room.room_id}
+              onChange={handleChange}
+              displayEmpty
+              fullWidth
+            >
+              <MenuItem value="">Select Available Room</MenuItem>
+              {roomList
+                .filter((room) => !assignedRoomIds.includes(room.room_id))
+                .map((room) => (
+                  <MenuItem key={room.room_id} value={room.room_id}>
+                    {room.room_description}
+                  </MenuItem>
+                ))}
+            </Select>
+          </Box>
+
+          <Box width="50%">
+            <Typography variant="body1" fontWeight="bold">
+              Select Department:
+            </Typography>
+            <Select
+              name="dprtmnt_id"
+              value={room.dprtmnt_id}
+              onChange={handleChange}
+              displayEmpty
+              fullWidth
+            >
+              <MenuItem value="">Select Department</MenuItem>
+              {departmentList.map((dept) => (
+                <MenuItem key={dept.dprtmnt_id} value={dept.dprtmnt_id}>
+                  {dept.dprtmnt_name}
                 </MenuItem>
               ))}
-          </Select>
-        </Box>
+            </Select>
+          </Box>
 
-        <Box width="50%">
-          <Typography variant="h6" gutterBottom textAlign="left" style={{ color: subtitleColor, fontWeight: "bold" }} >
-            Choose Department
-          </Typography>
-          <Select
-            name="dprtmnt_id"
-            value={room.dprtmnt_id}
-            onChange={handleChange}
-            displayEmpty
-            fullWidth
+          <Button
+            variant="contained"
+            style={{ backgroundColor: "#primary", color: "#fff", width: "200px" }}
+            onClick={handleAssignRoom}
+            disabled={!room.room_id || !room.dprtmnt_id}
+            sx={{ height: 56, alignSelf: "flex-end" }}
           >
-            <MenuItem value="">Select Department</MenuItem>
-            {departmentList.map((dept) => (
-              <MenuItem key={dept.dprtmnt_id} value={dept.dprtmnt_id}>
-                {dept.dprtmnt_name}
-              </MenuItem>
-            ))}
-          </Select>
+            Save
+          </Button>
         </Box>
+      </Paper>
+      
 
-        <Button
-          variant="contained"
-          style={{ backgroundColor: "#primary", color: "#fff", width: "200px" }}
-          onClick={handleAssignRoom}
-          disabled={!room.room_id || !room.dprtmnt_id}
-          sx={{ height: 56, alignSelf: "flex-end" }}
-        >
-          Save
-        </Button>
-      </Box>
+      <br/>
+      <br/>
 
       <Typography variant="h6" gutterBottom>
         Department Room Assignments

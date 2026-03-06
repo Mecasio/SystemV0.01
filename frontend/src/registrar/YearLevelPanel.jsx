@@ -151,69 +151,71 @@ const YearLevelPanel = () => {
       </Box>
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
+      <br />
 
-      <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, mb: "40px" }}>
+      <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
-              <TableCell sx={{ color: 'white', textAlign: "Center" }}>Year Level Panel</TableCell>
+              <TableCell sx={{ color: 'white', textAlign: "Center" }}>Existing Year Level</TableCell>
             </TableRow>
           </TableHead>
         </Table>
       </TableContainer>
 
 
-
-      <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 4, mt: 4 }}>
-        {/* Form Section */}
-        <Box sx={{ flex: 1, p: 3, bgcolor: "#fff", border: `2px solid ${borderColor}`, boxShadow: 2, }}>
-          <Typography variant="h6" gutterBottom textAlign="center" style={{ color: subtitleColor, fontWeight: "bold" }} >
-            Add Year Level
-          </Typography>
-          <Typography fontWeight={500}>Year Level Description:</Typography>
-          <TextField
-            fullWidth
-            label="Year Level Description"
-            value={yearLevelDescription}
-            onChange={(e) => setYearLevelDescription(e.target.value)}
-            margin="normal"
-          />
-          <Button
-            fullWidth
-            variant="contained"
-            sx={{ mt: 2, backgroundColor: "#1967d2", ":hover": { bgcolor: "#000000" } }}
-            onClick={handleAddYearLevel}
-          >
-            Save
-          </Button>
-        </Box>
-
-        {/* Display Section */}
-        <Box sx={{ flex: 1, p: 3, bgcolor: "#fff", boxShadow: 2, border: `2px solid ${borderColor}`, overflowY: "auto", maxHeight: 500 }}>
-
-          <Typography variant="h6" gutterBottom textAlign="center" style={{ color: subtitleColor, fontWeight: "bold" }} >
-            Registered Year Levels
-          </Typography>
-          <Box sx={{ overflowY: "auto", maxHeight: 400 }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ backgroundColor: settings?.header_color || "#1976d2", color: "#ffffff", border: `2px solid ${borderColor}` }}>
-                  <th style={styles.tableCell}>Year Level ID</th>
-                  <th style={styles.tableCell}>Year Level Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                {yearLevelList.map((level, index) => (
-                  <tr key={index}>
-                    <td style={styles.tableCell}>{level.year_level_id}</td>
-                    <td style={styles.tableCell}>{level.year_level_description}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Box>
-        </Box>
+      <Box sx={{ overflowY: "auto", maxHeight: 400 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr style={{ backgroundColor: "#F5F5F5", color: "#000", border: `2px solid ${borderColor}` }}>
+              <th style={styles.tableCell}>Year Level ID</th>
+              <th style={styles.tableCell}>Year Level Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            {yearLevelList.map((level, index) => (
+              <tr key={index}>
+                <td style={styles.tableCell}>{level.year_level_id}</td>
+                <td style={styles.tableCell}>{level.year_level_description}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </Box>
+      <br />
+      <br />
+
+
+      <TableContainer component={Paper} sx={{ width: '50%', border: `2px solid ${borderColor}`, }}>
+        <Table>
+          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
+            <TableRow>
+              <TableCell sx={{ color: 'white', textAlign: "Center" }}>Create Year Level</TableCell>
+            </TableRow>
+          </TableHead>
+        </Table>
+      </TableContainer>
+      <Box sx={{ flex: 1, p: 3, width: "50%", bgcolor: "#fff", border: `2px solid ${borderColor}`, boxShadow: 2, }}>
+
+        <Typography fontWeight={500}>Year Level Description:</Typography>
+        <TextField
+          fullWidth
+          label="Year Level Description"
+          value={yearLevelDescription}
+          onChange={(e) => setYearLevelDescription(e.target.value)}
+          margin="normal"
+        />
+        <Button
+          fullWidth
+          variant="contained"
+          sx={{ mt: 2, backgroundColor: "#1967d2", ":hover": { bgcolor: "#000000" } }}
+          onClick={handleAddYearLevel}
+        >
+          Save
+        </Button>
+      </Box>
+
+
 
       {/* Snackbar */}
       <Snackbar
