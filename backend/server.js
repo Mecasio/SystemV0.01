@@ -5452,7 +5452,7 @@ WHERE proctor LIKE ?
         );
       } else {
         await db3.query(
-          `UPDATE user_accounts SET email = ?, password = ?, role = 'student' WHERE person_id = ?`,
+          `UPDATE user_accounts SET email = ?, password = ?, role = 'student', status = 1 WHERE person_id = ?`,
           [person_data.emailAddress, hashedPassword, person_id],
         );
       }

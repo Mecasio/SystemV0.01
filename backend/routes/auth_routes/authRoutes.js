@@ -84,11 +84,13 @@ router.post("/register", async (req, res) => {
       return res.json({ success: false, message: "Email is already registered" });
     }
 
+    
+
     // ⭐⭐⭐ FIX: STORE EMAIL INTO person_table.emailAddress ⭐⭐⭐
     const [personResult] = await db.query(
       `INSERT INTO person_table 
 (campus, emailAddress, first_name, middle_name, last_name, birthOfDate, academicProgram, termsOfAgreement, current_step)
-VALUES (?, ?, ?, ?, ?, ?, ?, 1, 1)`,
+VALUES (?, ?, ?, ?, ?, ?, ?, 0, 1)`,
       [
         campus,
         email.trim().toLowerCase(),

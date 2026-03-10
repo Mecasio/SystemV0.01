@@ -1425,7 +1425,7 @@ const StudentDashboard1 = () => {
                             >
                                 {person.profile_img && person.profile_img !== "" ? (
                                     <img
-                                        src={`${API_BASE_URL}/uploads/Applicant1by1/${person.profile_img}?t=${Date.now()}`}
+                                        src={`${API_BASE_URL}/uploads/Student1by1/${person.profile_img}?t=${Date.now()}`}
                                         alt="Profile"
                                         style={{
                                             width: "100%",

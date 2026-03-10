@@ -190,7 +190,7 @@ router.post("/add-applicant", async (req, res) => {
     const [personResult] = await db.query(
       `INSERT INTO person_table
       (campus, emailAddress, first_name, middle_name, last_name, birthOfDate, academicProgram, applyingAs, termsOfAgreement, current_step)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, 1)`,
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 1)`,
       [
         campus || 1,
         email.trim().toLowerCase(),
