@@ -1463,6 +1463,8 @@ th, td {
   const [selectedApplicants, setSelectedApplicants] = useState(new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [emailSender, setEmailSender] = useState("");
+  const [dprtmntName, setDepartmentName] = useState("");
+
 
   useEffect(() => {
     const fetchActiveSenders = async () => {
@@ -1482,6 +1484,19 @@ th, td {
 
     fetchActiveSenders();
   }, [user, adminData.dprtmnt_id]);
+
+  useEffect(() => {
+    const fetchDepartment = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/dprtmnt_curriculum/${adminData.dprtmnt_id}`);
+        setDepartmentName(res.data[0]?.dprtmnt_name);
+      } catch (err) {
+        console.error("Error fetching active senders:", err);
+      }
+    }
+
+    fetchDepartment();
+  }, [adminData.dprtmnt_id]);
 
   const [emailMessage, setEmailMessage] = useState("");
 
@@ -1510,7 +1525,7 @@ Please follow the steps below to complete your Admission process:
    - Bring and present your Admission Form Process so they can verify if you're eligible to take the Medical Examination.
 
 2. After completing your Medical Examination, proceed to the Registrar’s Office to submit your Original Documents within 7 days.  
-   - Submissions are accepted only during working hours, Monday to Friday, from 7:00 AM to 4:00 PM.
+   - Submissions are accepted only during working hours, Monday to Friday, from 8:00 AM to 5:00 PM.
 
 3. Please note that failure to comply within 7 days may result in your slot being given to another applicant.
 
@@ -1549,7 +1564,7 @@ Please follow the steps below to complete your Admission process:
    - Bring and present your Admission Form Process so they can verify if you're eligible to take the Medical Examination.
 
 2. After completing your Medical Examination, proceed to the Registrar’s Office to submit your Original Documents within 7 days.  
-   - Submissions are accepted only during working hours, Monday to Friday, from 7:00 AM to 4:00 PM.
+   - Submissions are accepted only during working hours, Monday to Friday, from 8:00 AM to 5:00 PM.
 
 3. Please note that failure to comply within 7 days may result in your slot being given to another applicant.
 
@@ -1579,6 +1594,17 @@ Thank you, best regards
       return;
     }
 
+    const loggedInPersonId = localStorage.getItem("person_id");
+    if (!emailSender) {
+      setLoading2(false);
+      setSnack({
+        open: true,
+        message: "No active sender account is assigned for this department.",
+        severity: "warning",
+      });
+      return;
+    }
+
     let successCount = 0;
 
     for (const applicant of targets) {
@@ -1600,6 +1626,7 @@ Thank you, best regards
           subject: emailSubject,
           html: emailMessage.replace(/\n/g, "<br/>"),
           senderName: emailSender,
+          user_person_id: loggedInPersonId,
         });
 
         // Mark as emailed
@@ -3262,7 +3289,7 @@ Thank you, best regards
           {/* Sender */}
           <TextField
             label="Sender"
-            value={emailSender}
+            value={dprtmntName}
             fullWidth
             InputProps={{ readOnly: true }}
             sx={{ mb: 3 }}

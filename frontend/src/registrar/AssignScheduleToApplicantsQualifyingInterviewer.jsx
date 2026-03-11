@@ -211,22 +211,15 @@ const AssignScheduleToApplicantsInterviewer = () => {
     }, [user, adminData.dprtmnt_id]);
 
     const tabs = [
-
         { label: "Qualifying / Interview Room Assignment", to: "/assign_qualifying_interview_exam", icon: <MeetingRoomIcon fontSize="large" /> },
         { label: "Qualifying / Interview Schedule Management", to: "/assign_schedule_applicants_qualifying_interview", icon: <ScheduleIcon fontSize="large" /> },
         { label: "Qualifying / Interviewer Applicant's List", to: "/enrollment_schedule_room_list", icon: <PeopleIcon fontSize="large" /> },
-
-
-
-
     ];
 
     const handleStepClick = (index, to) => {
         setActiveStep(index);
         navigate(to); // this will actually change the page
     };
-
-
 
     const location = useLocation();
     const navigate = useNavigate();
@@ -267,7 +260,6 @@ const AssignScheduleToApplicantsInterviewer = () => {
         };
         fetchCurriculums();
     }, [adminData.dprtmnt_id]);
-
 
     useEffect(() => {
         axios.get(`${API_BASE_URL}/api/applied_program`)
@@ -813,6 +805,17 @@ Thank you and good luck!`
             });
 
             if (emailRes.success) {
+                if (Array.isArray(emailRes.sent) && emailRes.sent.length > 0) {
+                    Promise.all(
+                        emailRes.sent.map((applicantId) =>
+                            axios.put(
+                                `${API_BASE_URL}/api/interview_applicants/${applicantId}/action`,
+                            ),
+                        ),
+                    ).catch((err) => {
+                        console.error("Failed to update interview_status:", err);
+                    });
+                }
                 fetchAllApplicants();
             }
 
@@ -1931,7 +1934,7 @@ Thank you and good luck!`
                     {/* Sender */}
                     <TextField
                         label="Sender"
-                        value={emailSender}
+                        value={department[0]?.dprtmnt_name}
                         fullWidth
                         InputProps={{ readOnly: true }}
                         sx={{ mb: 3 }}

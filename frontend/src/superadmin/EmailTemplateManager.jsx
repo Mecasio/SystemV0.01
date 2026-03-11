@@ -38,10 +38,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 
 
 export default function EmailTemplateManager() {
-
-
   const settings = useContext(SettingsContext);
-
   const [titleColor, setTitleColor] = useState("#000000");
   const [subtitleColor, setSubtitleColor] = useState("#555555");
   const [borderColor, setBorderColor] = useState("#000000");
@@ -88,9 +85,7 @@ export default function EmailTemplateManager() {
   const [hasAccess, setHasAccess] = useState(null);
   const [loading, setLoading] = useState(false);
 
-
   const pageId = 67;
-
   const [employeeID, setEmployeeID] = useState("");
 
   useEffect(() => {
@@ -136,13 +131,13 @@ export default function EmailTemplateManager() {
     }
   };
 
-
-
-
-
-
   const [rows, setRows] = useState([]);
-  const [form, setForm] = useState({ sender_name: "", is_active: true });
+  const [form, setForm] = useState({
+    sender_name: "",
+    department_id: "",
+    employee_id: "",
+    is_active: true,
+  });
   const [editing, setEditing] = useState(null);
   const [snack, setSnack] = useState({
     open: false,
@@ -178,7 +173,7 @@ export default function EmailTemplateManager() {
     try {
       await axios.post(API, form);
       showSnack("Template successfully added", "success");
-      setForm({ sender_name: "", is_active: true });
+      setForm({ sender_name: "", department_id: "", employee_id: "", is_active: true });
       loadTemplates();
     } catch (err) {
       console.error("Error adding template:", err);
@@ -189,7 +184,12 @@ export default function EmailTemplateManager() {
   // ✅ Edit template
   const handleEdit = (row) => {
     setEditing(row.template_id);
-    setForm({ sender_name: row.sender_name, is_active: !!row.is_active });
+    setForm({
+      sender_name: row.sender_name || "",
+      department_id: row.department_id || "",
+      employee_id: row.employee_id || "",
+      is_active: !!row.is_active,
+    });
   };
 
   // ✅ Update template
@@ -200,7 +200,7 @@ export default function EmailTemplateManager() {
       await axios.put(`${API}/${editing}`, form);
       showSnack("Template updated successfully", "success");
       setEditing(null);
-      setForm({ sender_name: "", is_active: true });
+      setForm({ sender_name: "", department_id: "", employee_id: "", is_active: true });
       loadTemplates();
     } catch (err) {
       console.error("Error updating template:", err);
@@ -254,11 +254,6 @@ export default function EmailTemplateManager() {
     fetchDepartments();
   }, []);
 
-
-
-
-
-
   // Put this at the very bottom before the return 
   if (loading || hasAccess === null) {
     return <LoadingOverlay open={loading} message="Loading..." />;
@@ -270,12 +265,6 @@ export default function EmailTemplateManager() {
     );
   }
 
-
-
-
-
-
-
   return (
     <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
       {/* Header */}
@@ -285,9 +274,7 @@ export default function EmailTemplateManager() {
           justifyContent: "space-between",
           alignItems: "center",
           flexWrap: "wrap",
-
           mb: 2,
-
         }}
       >
         <Typography
@@ -368,7 +355,6 @@ export default function EmailTemplateManager() {
                     >
                       Prev
                     </Button>
-
 
                     {/* Page Dropdown */}
                     <FormControl size="small" sx={{ minWidth: 80 }}>
@@ -475,10 +461,8 @@ export default function EmailTemplateManager() {
         </Table>
       </TableContainer>
 
-
       {/* ✅ Table Section */}
       <Grid item xs={12} md={7}>
-
         <Box
           sx={{
             maxHeight: 400,
@@ -499,6 +483,7 @@ export default function EmailTemplateManager() {
                 <TableCell sx={{ border: `2px solid ${borderColor}`, backgroundColor: "#F5F5F5", color: "#000" }}>#</TableCell>
                 <TableCell sx={{ border: `2px solid ${borderColor}`, backgroundColor: "#F5F5F5", color: "#000" }}>Gmail Account</TableCell>
                 <TableCell sx={{ border: `2px solid ${borderColor}`, backgroundColor: "#F5F5F5", color: "#000" }}>Department</TableCell>
+                <TableCell sx={{ border: `2px solid ${borderColor}`, backgroundColor: "#F5F5F5", color: "#000" }}>Employee ID</TableCell>
                 <TableCell sx={{ border: `2px solid ${borderColor}`, backgroundColor: "#F5F5F5", color: "#000" }}>Active</TableCell>
                 <TableCell sx={{ width: "150px", border: `2px solid ${borderColor}`, backgroundColor: "#F5F5F5", color: "#000", textAlign: "center" }}>Actions</TableCell>
               </TableRow>
@@ -507,7 +492,7 @@ export default function EmailTemplateManager() {
             <TableBody>
               {rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} align="center" sx={{ border: `2px solid ${borderColor}` }}>
+                  <TableCell colSpan={6} align="center" sx={{ border: `2px solid ${borderColor}` }}>
                     No templates found.
                   </TableCell>
                 </TableRow>
@@ -517,6 +502,7 @@ export default function EmailTemplateManager() {
                     <TableCell sx={{ border: `2px solid ${borderColor}` }}>{(currentPage - 1) * rowsPerPage + index + 1}</TableCell>
                     <TableCell sx={{ border: `2px solid ${borderColor}` }}>{r.sender_name}</TableCell>
                     <TableCell sx={{ border: `2px solid ${borderColor}` }}>{r.department_name || "N/A"}</TableCell>
+                    <TableCell sx={{ border: `2px solid ${borderColor}` }}>{r.employee_id || "N/A"}</TableCell>
                     <TableCell sx={{ border: `2px solid ${borderColor}` }}>{r.is_active ? "Yes" : "No"}</TableCell>
                     <TableCell sx={{ width: "150px", border: `2px solid ${borderColor}` }}>
                       <Box sx={{ display: "flex", gap: 1 }}>
@@ -577,11 +563,8 @@ export default function EmailTemplateManager() {
             </TableBody>
           </Table>
         </Box>
-
-
-
-
       </Grid>
+
       <TableContainer component={Paper} sx={{ width: '100%', }}>
         <Table size="small">
           <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
@@ -803,6 +786,18 @@ export default function EmailTemplateManager() {
               </option>
             ))}
           </TextField>
+
+          <Typography fontWeight={500}>Employee ID:</Typography>
+          <TextField
+            fullWidth
+            label="Employee ID"
+            variant="outlined"
+            value={form.employee_id || ""}
+            onChange={(e) =>
+              setForm({ ...form, employee_id: e.target.value })
+            }
+            sx={{ mb: 2 }}
+          />
 
 
           <FormControlLabel

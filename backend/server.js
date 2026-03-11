@@ -35,11 +35,11 @@ app.use("/assets", express.static(path.join(__dirname, "assets")));
 const allowedOrigins = [
   'http://localhost:5173',
   'http://192.168.50.77:5173',
-  'http://192.168.50.58:5173',
+  'http://192.168.50.62:5173',
   'http://192.168.50.211:5173',
-  'http://136.239.248.58:5173',
-  'http://192.168.50.58:5173',
-  'http://192.168.50.58:5173',
+  'http://136.239.248.62:5173',
+  'http://192.168.50.62:5173',
+  'http://192.168.50.62:5173',
 ];
 
 app.use(
@@ -1397,13 +1397,13 @@ app.post("/api/interview/save", async (req, res) => {
 
     // Upsert
     await db.query(
-      `INSERT INTO person_status_table (person_id, qualifying_result, interview_result, exam_result)
-       VALUES (?, ?, ?, ?)
+      `INSERT INTO person_status_table (person_id, interview_status, qualifying_result, interview_result, exam_result)
+       VALUES (?, ?, ?, ?, ?)
        ON DUPLICATE KEY UPDATE
          qualifying_result = VALUES(qualifying_result),
          interview_result = VALUES(interview_result),
          exam_result = VALUES(exam_result)`,
-      [personId, qExam, qInterview, totalAve],
+      [personId, 1, qExam, qInterview, totalAve],
     );
 
     // Get actor info
@@ -5879,8 +5879,6 @@ io.on("connection", (socket) => {
           [schedule_id, applicant_numbers]
         );
 
-
-
         if (rows.length === 0) {
           return socket.emit("send_schedule_emails_result", {
             success: false,
@@ -5888,32 +5886,32 @@ io.on("connection", (socket) => {
           });
         }
 
-        // 🔹 Get SHORT TERM (EARIST)
         const [[company]] = await db.query(
           "SELECT short_term FROM company_settings WHERE id = 1"
         );
 
         const shortTerm = company?.short_term || "EARIST";
 
-        const finalSubjectComputed = rows[0]?.dprtmnt_name || "Interview Schedule";
+        const finalSubjectComputed =
+          finalSubject || rows[0]?.dprtmnt_name || "Interview Schedule";
 
 
         // ✅ Use db3 (enrollment) → user_accounts instead of prof
         const [actorRows] = await db3.query(
           `SELECT
-     email AS actor_email,
-     role,
-     employee_id,
-     last_name,
-     first_name,
-     middle_name
-   FROM user_accounts
-   WHERE person_id = ?
-   LIMIT 1`,
+            email AS actor_email,
+            role,
+            employee_id,
+            last_name,
+            first_name,
+            middle_name
+          FROM user_accounts
+          WHERE person_id = ?
+          LIMIT 1`,
           [user_person_id],
         );
 
-        const actor = actorRows[0];
+        const actor = actorRows[0] || null;
 
         // ✅ Format: ROLE (EMPLOYEE_ID) - LastName, FirstName MiddleName
         const actorEmail = actor?.actor_email || "earistmis@gmail.com";
@@ -5924,64 +5922,73 @@ io.on("connection", (socket) => {
         const sent = [];
         const failed = [];
 
+        const [userEmail] = await db.query(
+          `SELECT sender_name FROM email_templates WHERE employee_id = ?`,
+          [actor?.employee_id || null],
+        );
+
+        if (userEmail.length === 0) {
+          throw new Error("User not assigned to college email.");
+        }
+
+        const user = userEmail[0];
+
+        const senderAccountMap = {
+          CCS_EMAIL_USER1: {
+            user: process.env.CCS_EMAIL_USER1,
+            pass: process.env.CCS_EMAIL_PASS1,
+          },
+          CCS_EMAIL_USER2: {
+            user: process.env.CCS_EMAIL_USER2,
+            pass: process.env.CCS_EMAIL_PASS2,
+          },
+        };
+
+        const senderAccount =
+          senderAccountMap[user.sender_name] || {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+          };
+
+        if (!senderAccount.user || !senderAccount.pass) {
+          throw new Error("Email sender account is not configured.");
+        }
+
+        const transporter = nodemailer.createTransport({
+          service: "gmail",
+          auth: senderAccount,
+        });
+
         for (const row of rows) {
           if (!row.emailAddress) {
             failed.push(row.applicant_number);
             continue;
           }
 
-          const formattedStart = new Date(
-            `1970-01-01T${row.start_time}`,
-          ).toLocaleTimeString("en-US", {
-            hour: "numeric",
-            minute: "2-digit",
-            hour12: true,
-          });
-
-          const formattedEnd = new Date(
-            `1970-01-01T${row.end_time}`,
-          ).toLocaleTimeString("en-US", {
-            hour: "numeric",
-            minute: "2-digit",
-            hour12: true,
-          });
+          const formattedStart = formatTime(row.start_time);
+          const formattedEnd = formatTime(row.end_time);
 
           const personalizedMsg = message
-            .replace("{first_name}", row.first_name || "")
-            .replace("{middle_name}", row.middle_name || "")
-            .replace("{last_name}", row.last_name || "")
-            .replace("{applicant_number}", row.applicant_number)
-            .replace("{day}", row.day_description)
-            .replace("{room}", row.room_description)
-            .replace("{start_time}", formattedStart)
-            .replace("{end_time}", formattedEnd);
+            .replace(/{first_name}/g, row.first_name || "")
+            .replace(/{middle_name}/g, row.middle_name || "")
+            .replace(/{last_name}/g, row.last_name || "")
+            .replace(/{applicant_number}/g, row.applicant_number)
+            .replace(/{day}/g, row.day_description)
+            .replace(/{room}/g, row.room_description)
+            .replace(/{start_time}/g, formattedStart)
+            .replace(/{end_time}/g, formattedEnd);
 
-          console.log("Email Sender: ", senderName)
           const mailOptions = {
-            from: `${shortTerm} - ${rows.dprtmnt_name} <${senderName}>`,
+            from: `${shortTerm} - ${row.dprtmnt_name} <${senderAccount.user}>`,
             to: row.emailAddress,
             subject: finalSubjectComputed,
             text: personalizedMsg,
           };
 
+          await transporter.sendMail(mailOptions);
+
           try {
-            const transporter = nodemailer.createTransport({
-              service: "gmail",
-              auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS,
-              },
-            });
-
-            transporter.verify((error, success) => {
-              if (error) {
-                console.error("❌ Email transporter error:", error);
-              } else {
-                console.log("✅ Email transporter is ready");
-              }
-            });
-
-            await transporter.sendMail(mailOptions);
+           
 
             // Mark applicant email sent
             await db.query(
@@ -12690,6 +12697,11 @@ app.put("/api/interview_applicants/:applicant_id/action", async (req, res) => {
       return res.status(404).json({ message: "Applicant not found" });
     }
 
+    await db.execute(
+      "UPDATE admission.person_status_table SET interview_status = 1 WHERE applicant_id = ?",
+      [applicant_id],
+    );
+
     res.json({ success: true, message: "Applicant marked as emailed" });
   } catch (err) {
     console.error("❌ Error updating action:", err);
@@ -12698,21 +12710,97 @@ app.put("/api/interview_applicants/:applicant_id/action", async (req, res) => {
 });
 
 app.post("/api/send-email", async (req, res) => {
-  const { to, subject, html, senderName } = req.body;
+  const { to, subject, html, senderName, user_person_id } = req.body;
 
   if (!to || !subject || !html) {
     return res.status(400).json({ message: "Missing email fields" });
   }
 
   try {
+    const [actorRows] = await db3.query(
+      `SELECT
+        role,
+        employee_id,
+        last_name,
+        first_name,
+        middle_name
+      FROM user_accounts
+      WHERE person_id = ?
+      LIMIT 1`,
+      [user_person_id]
+    );
+
+    const actor = actorRows[0];
+    console.log("actor", actor)
+    if (!actor) {
+      return res.status(404).json({ message: "User account not found" });
+    }
+
+    const [[company]] = await db.query(
+      "SELECT short_term FROM company_settings WHERE id = 1"
+    );
+
+    const shortTerm = company?.short_term || "EARIST";
+
+    const [userEmailRows] = await db.query(
+      `SELECT sender_name, department_id 
+       FROM email_templates 
+       WHERE employee_id = ?`,
+      [actor.employee_id]
+    );
+
+    const templateRow = userEmailRows[0];
+
+    if (!templateRow) {
+      return res.status(404).json({ message: "Email template not found" });
+    }
+
+    const senderAccountKey = templateRow.sender_name || senderName;
+
+    const [depRows] = await db3.query(
+      `SELECT dprtmnt_name 
+       FROM dprtmnt_table 
+       WHERE dprtmnt_id = ?`,
+      [templateRow.dprtmnt_id]
+    );
+
+    const depName = depRows.length > 0 ? depRows[0].dprtmnt_name : "Department";
+
+    const senderAccountMap = {
+      CCS_EMAIL_USER1: {
+        user: process.env.CCS_EMAIL_USER1,
+        pass: process.env.CCS_EMAIL_PASS1,
+      },
+      CCS_EMAIL_USER2: {
+        user: process.env.CCS_EMAIL_USER2,
+        pass: process.env.CCS_EMAIL_PASS2,
+      },
+    };
+
+    const senderAccount =
+      senderAccountMap[senderAccountKey] || {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      };
+
+    if (!senderAccount.user || !senderAccount.pass) {
+      throw new Error("Email sender account is not configured.");
+    }
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: senderAccount,
+    });
+
     await transporter.sendMail({
-      from: `"${senderName || "Enrollment Office"}" <${process.env.EMAIL_USER}>`, // ✅ Neutral name + dynamic email
+      from: `${shortTerm} - ${depName} <${senderAccount.user}>`,
       to,
       subject,
       html,
     });
 
     res.json({ success: true, message: "Email sent successfully" });
+
   } catch (err) {
     console.error("❌ Error sending email:", err);
     res.status(500).json({ success: false, message: "Failed to send email" });
@@ -12772,15 +12860,15 @@ app.get("/api/college/persons", async (req, res) => {
   try {
     // STEP 1: Get all eligible persons (from ENROLLMENT DB)
     const [persons] = await db.execute(`
-      SELECT p.*, SUBSTRING(a.applicant_number, 5, 1) AS middle_code, pt.*
-      FROM admission.person_table p
-      JOIN admission.person_status_table ps ON p.person_id = ps.person_id
-      LEFT JOIN admission.applicant_numbering_table AS a
-        ON p.person_id = a.person_id
-      INNER JOIN enrollment.curriculum_table ct ON p.program = ct.curriculum_id
-      INNER JOIN enrollment.program_table pt ON ct.program_id = pt.program_id
-      WHERE ps.student_registration_status = 0
-      AND p.person_id NOT IN (SELECT person_id FROM enrollment.student_numbering_table);
+        SELECT p.*, SUBSTRING(a.applicant_number, 5, 1) AS middle_code, pt.*
+        FROM admission.person_table p
+        JOIN admission.person_status_table ps ON p.person_id = ps.person_id
+        LEFT JOIN admission.applicant_numbering_table AS a
+          ON p.person_id = a.person_id
+        INNER JOIN enrollment.curriculum_table ct ON p.program = ct.curriculum_id
+        INNER JOIN enrollment.program_table pt ON ct.program_id = pt.program_id
+        WHERE ps.student_registration_status = 0 AND ps.exam_status = 1 AND ps.interview_status = 1
+        AND p.person_id NOT IN (SELECT person_id FROM enrollment.student_numbering_table);
     `);
 
     if (persons.length === 0) return res.json([]);
