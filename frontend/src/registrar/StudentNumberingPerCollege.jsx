@@ -431,7 +431,6 @@ const StudentNumbering = () => {
     };
 
     const buildAcceptanceEmailPreview = () => {
-        const companyShort = shortTerm || "SCHOOL";
         const schoolName = companyName || "our school";
         const firstName = selectedPerson?.first_name || "";
         const middleName = selectedPerson?.middle_name || "";
@@ -440,29 +439,23 @@ const StudentNumbering = () => {
         const loginUrl =
             typeof window !== "undefined" ? `${window.location.origin}/login` : "/login";
 
-        const senderEmail =
-            (typeof import.meta !== "undefined" && import.meta.env?.VITE_EMAIL_USER) ||
-            "EMAIL_USER";
+        return `
+            Hi, ${firstName} ${middleName || ""} ${lastName},
 
-        return `from: "${companyShort} Enrollment Office" <${senderEmail}>
-to: ${emailAddress}
-subject: 🎓 Welcome to ${schoolName} - Acceptance Confirmation
+            🎉 Congratulations! You are now officially accepted and part of the ${schoolName} community.
 
-Hi, ${firstName} ${middleName || ""} ${lastName},
+            Please visit your respective college offices to tag your schedule to your account and obtain your class schedule.
 
-🎉 Congratulations! You are now officially accepted and part of the ${schoolName} community.
+            Your Student Number is: [Assigned after confirmation]
+            Your Email Address is: ${emailAddress}
 
-Please visit your respective college offices to tag your schedule to your account and obtain your class schedule.
+            Your temporary password is: [Generated automatically]
 
-Your Student Number is: [Assigned after confirmation]
-Your Email Address is: ${emailAddress}
+            You may change your password and keep it secure.
 
-Your temporary password is: [Generated automatically]
-
-You may change your password and keep it secure.
-
-👉 Click the link below to log in:
-${loginUrl}`;
+            👉 Click the link below to log in:
+            ${loginUrl}
+        `;
     };
 
     const [userEmail, setUserEmail] = useState("");

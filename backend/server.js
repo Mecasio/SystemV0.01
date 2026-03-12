@@ -1399,13 +1399,13 @@ app.post("/api/interview/save", async (req, res) => {
 
     // Upsert
     await db.query(
-      `INSERT INTO person_status_table (person_id, interview_status, qualifying_result, interview_result, exam_result)
-       VALUES (?, ?, ?, ?, ?)
+      `INSERT INTO person_status_table (person_id, qualifying_result, interview_result, exam_result)
+       VALUES (?, ?, ?, ?)
        ON DUPLICATE KEY UPDATE
          qualifying_result = VALUES(qualifying_result),
          interview_result = VALUES(interview_result),
          exam_result = VALUES(exam_result)`,
-      [personId, 1, qExam, qInterview, totalAve],
+      [personId, qExam, qInterview, totalAve],
     );
 
     // Get actor info
@@ -5240,16 +5240,22 @@ WHERE proctor LIKE ?
         [person_id],
       );
 
+      const [studentFuturePI] = await db3.query(
+        `SELECT MAX(person_id) AS latest_person_id FROM user_accounts;`
+      );
+
+      const personIdForStudent = studentFuturePI[0].latest_person_id;
+      
       // ✅ Save to student_numbering_table
       await db3.query(
         `INSERT INTO student_numbering_table (student_number, person_id) VALUES (?, ?)`,
-        [student_number, person_id],
+        [student_number, personIdForStudent],
       );
 
       await db3.query(
         `INSERT INTO person_status_table (person_id, exam_status, requirements, residency, student_registration_status, exam_result, hs_ave)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [person_id, 0, 0, 0, 0, 0, 0],
+        [personIdForStudent, 0, 0, 0, 0, 0, 0],
       );
 
       // ✅ Copy requirements to db3
@@ -5260,7 +5266,7 @@ WHERE proctor LIKE ?
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             req.requirements_id,
-            req.person_id,
+            personIdForStudent,
             req.submitted_documents,
             req.file_path,
             req.original_name,
@@ -5284,16 +5290,17 @@ WHERE proctor LIKE ?
       // ✅ Update registration status
       await db3.query(
         `UPDATE person_status_table SET student_registration_status = 1 WHERE person_id = ?`,
-        [person_id],
+        [personIdForStudent],
       );
 
       await db3.query(
         `
-      INSERT INTO person_table (person_id, profile_img, campus, academicProgram, classifiedAs, applyingAs, program, program2, program3, yearLevel, last_name, first_name, middle_name, extension, nickname, height, weight, lrnNumber, nolrnNumber, gender, pwdMember, pwdType, pwdId, birthOfDate, age, birthPlace, languageDialectSpoken, citizenship, religion, civilStatus, tribeEthnicGroup, cellphoneNumber, emailAddress, presentStreet, presentBarangay, presentZipCode, presentRegion, presentProvince, presentMunicipality, presentDswdHouseholdNumber, sameAsPresentAddress, permanentStreet, permanentBarangay, permanentZipCode, permanentRegion, permanentProvince, permanentMunicipality, permanentDswdHouseholdNumber, solo_parent, father_deceased, father_family_name, father_given_name, father_middle_name, father_ext, father_nickname, father_education, father_education_level, father_last_school, father_course, father_year_graduated, father_school_address, father_contact, father_occupation, father_employer, father_income, father_email, mother_deceased, mother_family_name, mother_given_name, mother_middle_name, mother_ext, mother_nickname, mother_education, mother_education_level, mother_last_school, mother_course, mother_year_graduated, mother_school_address, mother_contact, mother_occupation, mother_employer, mother_income, mother_email, guardian, guardian_family_name, guardian_given_name, guardian_middle_name, guardian_ext, guardian_nickname, guardian_address, guardian_contact, guardian_email, annual_income, schoolLevel, schoolLastAttended, schoolAddress, courseProgram, honor, generalAverage, yearGraduated, schoolLevel1, schoolLastAttended1, schoolAddress1, courseProgram1, honor1, generalAverage1, yearGraduated1, strand, cough, colds, fever, asthma, faintingSpells, heartDisease, tuberculosis, frequentHeadaches, hernia, chronicCough, headNeckInjury, hiv, highBloodPressure, diabetesMellitus, allergies, cancer, smokingCigarette, alcoholDrinking, hospitalized, hospitalizationDetails, medications, hadCovid, covidDate, vaccine1Brand, vaccine1Date, vaccine2Brand, vaccine2Date, booster1Brand, booster1Date, booster2Brand, booster2Date, chestXray, cbc, urinalysis, otherworkups, symptomsToday, remarks, termsOfAgreement, created_at, current_step)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO person_table (person_id, student_number, profile_img, campus, academicProgram, classifiedAs, applyingAs, program, program2, program3, yearLevel, last_name, first_name, middle_name, extension, nickname, height, weight, lrnNumber, nolrnNumber, gender, pwdMember, pwdType, pwdId, birthOfDate, age, birthPlace, languageDialectSpoken, citizenship, religion, civilStatus, tribeEthnicGroup, cellphoneNumber, emailAddress, presentStreet, presentBarangay, presentZipCode, presentRegion, presentProvince, presentMunicipality, presentDswdHouseholdNumber, sameAsPresentAddress, permanentStreet, permanentBarangay, permanentZipCode, permanentRegion, permanentProvince, permanentMunicipality, permanentDswdHouseholdNumber, solo_parent, father_deceased, father_family_name, father_given_name, father_middle_name, father_ext, father_nickname, father_education, father_education_level, father_last_school, father_course, father_year_graduated, father_school_address, father_contact, father_occupation, father_employer, father_income, father_email, mother_deceased, mother_family_name, mother_given_name, mother_middle_name, mother_ext, mother_nickname, mother_education, mother_education_level, mother_last_school, mother_course, mother_year_graduated, mother_school_address, mother_contact, mother_occupation, mother_employer, mother_income, mother_email, guardian, guardian_family_name, guardian_given_name, guardian_middle_name, guardian_ext, guardian_nickname, guardian_address, guardian_contact, guardian_email, annual_income, schoolLevel, schoolLastAttended, schoolAddress, courseProgram, honor, generalAverage, yearGraduated, schoolLevel1, schoolLastAttended1, schoolAddress1, courseProgram1, honor1, generalAverage1, yearGraduated1, strand, cough, colds, fever, asthma, faintingSpells, heartDisease, tuberculosis, frequentHeadaches, hernia, chronicCough, headNeckInjury, hiv, highBloodPressure, diabetesMellitus, allergies, cancer, smokingCigarette, alcoholDrinking, hospitalized, hospitalizationDetails, medications, hadCovid, covidDate, vaccine1Brand, vaccine1Date, vaccine2Brand, vaccine2Date, booster1Brand, booster1Date, booster2Brand, booster2Date, chestXray, cbc, urinalysis, otherworkups, symptomsToday, remarks, termsOfAgreement, created_at, current_step)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
         [
-          person_data.person_id,
+          personIdForStudent,
+          student_number,
           studentProfileImg,
           person_data.campus,
           person_data.academicProgram,
@@ -5447,18 +5454,18 @@ WHERE proctor LIKE ?
       // ✅ Insert login credentials (or update if existing)
       const [existingUser] = await db3.query(
         `SELECT * FROM user_accounts WHERE person_id = ?`,
-        [person_id],
+        [personIdForStudent],
       );
 
       if (existingUser.length === 0) {
         await db3.query(
           `INSERT INTO user_accounts (person_id, email, password, role) VALUES (?, ?, ?, 'student')`,
-          [person_id, person_data.emailAddress, hashedPassword],
+          [personIdForStudent, person_data.emailAddress, hashedPassword],
         );
       } else {
         await db3.query(
           `UPDATE user_accounts SET email = ?, password = ?, role = 'student', status = 1 WHERE person_id = ?`,
-          [person_data.emailAddress, hashedPassword, person_id],
+          [person_data.emailAddress, hashedPassword, personIdForStudent],
         );
       }
 
@@ -12700,11 +12707,6 @@ app.put("/api/interview_applicants/:applicant_id/action", async (req, res) => {
       return res.status(404).json({ message: "Applicant not found" });
     }
 
-    await db.execute(
-      "UPDATE admission.person_status_table SET interview_status = 1 WHERE applicant_id = ?",
-      [applicant_id],
-    );
-
     res.json({ success: true, message: "Applicant marked as emailed" });
   } catch (err) {
     console.error("❌ Error updating action:", err);
@@ -12794,6 +12796,17 @@ app.post("/api/send-email", async (req, res) => {
       service: "gmail",
       auth: senderAccount,
     });
+
+    const [applicantPersonRows] = await db.query(
+      `SELECT person_id FROM person_table WHERE emailAddress = ?`, [to]
+    );
+
+    const personIds = applicantPersonRows.map(row => row.person_id);
+
+    await db.query(
+      `UPDATE person_status_table SET interview_status = 1 WHERE person_id = ?`,
+      [personIds]
+    )
 
     await transporter.sendMail({
       from: `${shortTerm} - ${depName} <${senderAccount.user}>`,

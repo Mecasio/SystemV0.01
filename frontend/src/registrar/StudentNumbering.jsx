@@ -524,7 +524,6 @@ const StudentNumbering = () => {
     };
 
     const buildAcceptanceEmailPreview = () => {
-        const companyShort = shortTerm || "SCHOOL";
         const schoolName = companyName || "our school";
         const firstName = selectedPerson?.first_name || "";
         const middleName = selectedPerson?.middle_name || "";
@@ -537,9 +536,7 @@ const StudentNumbering = () => {
             (typeof import.meta !== "undefined" && import.meta.env?.VITE_EMAIL_USER) ||
             "EMAIL_USER";
 
-        return `from: "${companyShort} Enrollment Office" <${senderEmail}>
-to: ${emailAddress}
-subject: 🎓 Welcome to ${schoolName} - Acceptance Confirmation
+        return `
 
 Hi, ${firstName} ${middleName || ""} ${lastName},
 

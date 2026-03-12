@@ -3089,7 +3089,7 @@ Thank you, best regards
                       }}
                     >
                       {person.interview_status === "Accepted" ? (
-                        person.action === 1 && person.email_sent === 1 ? (
+                        person.interview_status === 1 ? (
                           <Button
                             variant="contained"
                             disabled

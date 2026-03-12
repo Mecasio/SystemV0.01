@@ -58,6 +58,12 @@ const UserPageAccess = () => {
   const [accessDescription, setAccessDescription] = useState("");
   const [createPageAccess, setCreatePageAccess] = useState({});
   const [createPages, setCreatePages] = useState([]);
+  const [accessLevels, setAccessLevels] = useState([]);
+  const [openEditAccessModal, setOpenEditAccessModal] = useState(false);
+  const [editAccessId, setEditAccessId] = useState("");
+  const [editAccessDescription, setEditAccessDescription] = useState("");
+  const [editPageAccess, setEditPageAccess] = useState({});
+  const [editPages, setEditPages] = useState([]);
 
   const [snack, setSnack] = useState({
     open: false,
@@ -234,11 +240,164 @@ const UserPageAccess = () => {
     }
   };
 
+  const normalizeAccessPage = (value) => {
+    if (!value) return [];
+    if (Array.isArray(value)) return value.map((v) => Number(v));
+    if (typeof value === "string") {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) return parsed.map((v) => Number(v));
+      } catch {
+        return value
+          .split(",")
+          .map((v) => Number(v.trim()))
+          .filter((v) => !Number.isNaN(v));
+      }
+    }
+    return [];
+  };
+
+  const openEditAccessLevelModal = async () => {
+    try {
+      const [accessRes, pagesRes] = await Promise.all([
+        axios.get(`${API_BASE_URL}/api/access_table`),
+        axios.get(`${API_BASE_URL}/api/pages`),
+      ]);
+
+      const levels = accessRes.data || [];
+      const pagesData = pagesRes.data || [];
+
+      const defaultAccess = {};
+      pagesData.forEach((p) => {
+        defaultAccess[p.id] = false;
+      });
+
+      setAccessLevels(levels);
+      setEditPages(pagesData);
+      setEditPageAccess(defaultAccess);
+      setEditAccessId("");
+      setEditAccessDescription("");
+      setOpenEditAccessModal(true);
+    } catch (err) {
+      console.error(err);
+      setSnack({
+        open: true,
+        severity: "error",
+        message: "Failed to load access levels",
+      });
+    }
+  };
+
   const handleCreateToggle = (pageId) => {
     setCreatePageAccess((prev) => ({
       ...prev,
       [pageId]: !prev[pageId],
     }));
+  };
+
+  const handleCreateAssignAll = () => {
+    const allAccess = {};
+    createPages.forEach((p) => {
+      allAccess[p.id] = true;
+    });
+    setCreatePageAccess(allAccess);
+  };
+
+  const handleSelectAccessLevel = (accessId) => {
+    setEditAccessId(accessId);
+    const selected = accessLevels.find(
+      (level) => Number(level.access_id) === Number(accessId),
+    );
+    const selectedPages = normalizeAccessPage(selected?.access_page);
+
+    const nextAccess = {};
+    editPages.forEach((p) => {
+      nextAccess[p.id] = selectedPages.includes(Number(p.id));
+    });
+
+    setEditAccessDescription(selected?.access_description || "");
+    setEditPageAccess(nextAccess);
+  };
+
+  const handleEditToggle = (pageId) => {
+    setEditPageAccess((prev) => ({
+      ...prev,
+      [pageId]: !prev[pageId],
+    }));
+  };
+
+  const handleEditSelectAll = () => {
+    const allAccess = {};
+    editPages.forEach((p) => {
+      allAccess[p.id] = true;
+    });
+    setEditPageAccess(allAccess);
+  };
+
+  const handleEditClearAll = () => {
+    const allAccess = {};
+    editPages.forEach((p) => {
+      allAccess[p.id] = false;
+    });
+    setEditPageAccess(allAccess);
+  };
+
+  const saveEditedAccess = async () => {
+    if (!editAccessId) {
+      setSnack({
+        open: true,
+        severity: "warning",
+        message: "Please select an access level",
+      });
+      return;
+    }
+
+    if (!editAccessDescription.trim()) {
+      setSnack({
+        open: true,
+        severity: "warning",
+        message: "Description is required",
+      });
+      return;
+    }
+
+    try {
+      const selectedPages = Object.keys(editPageAccess)
+        .filter((key) => editPageAccess[key])
+        .map((id) => Number(id));
+
+      await axios.put(`${API_BASE_URL}/api/access/${editAccessId}`, {
+        access_description: editAccessDescription,
+        access_page: selectedPages,
+      });
+
+      setAccessLevels((prev) =>
+        prev.map((level) =>
+          Number(level.access_id) === Number(editAccessId)
+            ? {
+                ...level,
+                access_description: editAccessDescription,
+                access_page: selectedPages,
+              }
+            : level,
+        ),
+      );
+
+      setSnack({
+        open: true,
+        severity: "success",
+        message: "Access level updated successfully",
+      });
+
+      setOpenEditAccessModal(false);
+    } catch (err) {
+      console.error(err);
+      setSnack({
+        open: true,
+        severity: "error",
+        message: "Failed to update access level",
+      });
+    }
   };
 
   const saveAccess = async () => {
@@ -566,6 +725,14 @@ const UserPageAccess = () => {
                       onClick={openCreateAccessModal}
                     >
                       Create Access
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="info"
+                      size="small"
+                      onClick={openEditAccessLevelModal}
+                    >
+                      Edit Access Level
                     </Button>
                   </Box>
                 </Box>
@@ -1075,6 +1242,15 @@ const UserPageAccess = () => {
         <DialogTitle sx={{ fontWeight: "bold" }}>Create New Access</DialogTitle>
 
         <DialogContent dividers>
+          <Box display="flex" gap={2} mb={2}>
+            <Button
+              variant="contained"
+              color="success"
+              onClick={handleCreateAssignAll}
+            >
+              Assign All
+            </Button>
+          </Box>
           <TextField
             label="Description"
             fullWidth
@@ -1160,6 +1336,150 @@ const UserPageAccess = () => {
 
           <Button variant="contained" color="success" onClick={saveAccess}>
             Save Access
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openEditAccessModal}
+        onClose={() => setOpenEditAccessModal(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: "bold" }}>
+          Edit Access Level
+        </DialogTitle>
+
+        <DialogContent dividers>
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel id="edit-access-level-select-label">
+              Access Level
+            </InputLabel>
+            <Select
+              labelId="edit-access-level-select-label"
+              value={editAccessId}
+              label="Access Level"
+              onChange={(e) => handleSelectAccessLevel(e.target.value)}
+            >
+              <MenuItem value="">Select Access Level</MenuItem>
+              {accessLevels.map((access) => (
+                <MenuItem key={access.access_id} value={access.access_id}>
+                  {access.access_description}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <TextField
+            label="Description"
+            fullWidth
+            value={editAccessDescription}
+            onChange={(e) => setEditAccessDescription(e.target.value)}
+            sx={{ mb: 3 }}
+            disabled={!editAccessId}
+          />
+
+          <Box display="flex" gap={2} mb={2}>
+            <Button
+              variant="contained"
+              color="success"
+              onClick={handleEditSelectAll}
+              disabled={!editAccessId}
+            >
+              Select All
+            </Button>
+            <Button
+              variant="contained"
+              color="warning"
+              onClick={handleEditClearAll}
+              disabled={!editAccessId}
+            >
+              Clear All
+            </Button>
+          </Box>
+
+          <Paper sx={{ border: `2px solid ${borderColor}` }}>
+            <TableContainer>
+              <Table>
+                <TableHead
+                  sx={{ backgroundColor: settings?.header_color || "#1976d2" }}
+                >
+                  <TableRow>
+                    <TableCell
+                      sx={{
+                        color: "white",
+                        textAlign: "center",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      #
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        color: "white",
+                        textAlign: "center",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Page Description
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        color: "white",
+                        textAlign: "center",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Page Group
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        color: "white",
+                        textAlign: "center",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Access
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+
+                <TableBody>
+                  {editPages.map((p, i) => (
+                    <TableRow key={p.id}>
+                      <TableCell align="center">{i + 1}</TableCell>
+                      <TableCell align="center">{p.page_description}</TableCell>
+                      <TableCell align="center">{p.page_group}</TableCell>
+                      <TableCell align="center">
+                        <Switch
+                          checked={editPageAccess[p.id] || false}
+                          onChange={() => handleEditToggle(p.id)}
+                          disabled={!editAccessId}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        </DialogContent>
+
+        <DialogActions>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => setOpenEditAccessModal(false)}
+          >
+            Cancel
+          </Button>
+
+          <Button
+            variant="contained"
+            color="success"
+            onClick={saveEditedAccess}
+          >
+            Save Changes
           </Button>
         </DialogActions>
       </Dialog>
