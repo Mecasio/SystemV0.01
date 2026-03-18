@@ -38,7 +38,7 @@ const allowedOrigins = [
   "http://192.168.50.62:5173",
   "http://192.168.50.211:5173",
   "http://136.239.248.62:5173",
-  "http://192.168.0.180:5173",
+  "http://192.168.50.44:5173",
   "http://192.168.50.54:5173",
 ];
 
@@ -114,7 +114,9 @@ const accessRoutes = require("./routes/auth_routes/accessRoute");
 const userPageAccess = require("./routes/auth_routes/userPageAccessRoute");
 const dprtmntCurriculum = require("./routes/system_routes/dprtmntCurriculum");
 const section = require("./routes/system_routes/section");
+const emailTemplate = require("./routes/system_routes/emailTemplate");
 
+app.use("/", emailTemplate);
 app.use("/", userPageAccess);
 app.use("/", programRoute);
 app.use("/auth/", authRoute);
@@ -1665,6 +1667,8 @@ app.put("/uploads/status/:upload_id", async (req, res) => {
   const { upload_id } = req.params;
   const { status, user_id } = req.body;
 
+  console.log("User Id: ", user_id)
+
   try {
     await db.query(
       `UPDATE requirement_uploads
@@ -2419,8 +2423,20 @@ app.get("/api/all-applicants", async (req, res) => {
 // ================= VERIFIED & ECAT APPLICANTS =================
 app.get("/api/verified-ecat-applicants", async (req, res) => {
   try {
+    const [categoryCount] = await db.query(
+      `SELECT COUNT(*) AS count
+       FROM admission.requirements_table 
+       WHERE category = 'Main'`
+    );
+
+    if(categoryCount.length === 0) {
+      return res.status(404).json({ message: "requirements not found" });
+    }
+
+    const totalMain = categoryCount[0].count;
+
     const [rows] = await db.execute(`
-      SELECT DISTINCT
+      SELECT
         p.person_id,
         p.last_name,
         p.campus,
@@ -2451,18 +2467,20 @@ app.get("/api/verified-ecat-applicants", async (req, res) => {
       WHERE p.person_id IN (
         SELECT ru.person_id
         FROM admission.requirement_uploads ru
+        INNER JOIN admission.requirements_table rt
+          ON ru.requirements_id = rt.id
         WHERE ru.document_status = 'Documents Verified & ECAT'
-          AND ru.requirements_id IN (1,2,3,4)
+          AND rt.category = 'Main'
         GROUP BY ru.person_id
-        HAVING COUNT(DISTINCT ru.requirements_id) = 4
+        HAVING COUNT(DISTINCT ru.requirements_id) = ?
       )
-      AND (ea.email_sent IS NULL OR ea.email_sent = 0)   -- â¬…ï¸ only show those not yet emailed
+      AND (ea.email_sent IS NULL OR ea.email_sent = 0)
       ORDER BY p.last_name ASC, p.first_name ASC;
-    `);
+    `, [totalMain]);
 
     res.json(rows);
   } catch (err) {
-    console.error("âŒ Error fetching verified ECAT applicants:", err);
+    console.error("❌ Error fetching verified ECAT applicants:", err);
     res.status(500).send("Server error");
   }
 });
@@ -2850,15 +2868,14 @@ app.get("/api/person_with_applicant/:id", async (req, res) => {
         rt.id                 AS requirement_id,
         ua.email              AS evaluator_email,
         ua.role               AS evaluator_role,
-        pr.fname              AS evaluator_fname,
-        pr.mname              AS evaluator_mname,
-        pr.lname              AS evaluator_lname,
+        ua.first_name              AS evaluator_fname,
+        ua.middle_name              AS evaluator_mname,
+        ua.last_name              AS evaluator_lname,
         ru.created_at,
         ru.last_updated_by
       FROM requirement_uploads AS ru
       LEFT JOIN requirements_table AS rt ON ru.requirements_id = rt.id
       LEFT JOIN enrollment.user_accounts ua ON ru.last_updated_by = ua.person_id
-      LEFT JOIN enrollment.prof_table pr   ON ua.person_id = pr.person_id
       WHERE ru.person_id = ?
       ORDER BY ru.created_at DESC
       LIMIT 1
@@ -12217,30 +12234,17 @@ app.get("/api/student_data_as_applicant/:id", async (req, res) => {
       return res.status(404).json({ message: "Person not found" });
     }
 
-    // Get applicant number
-    const [[applicant]] = await db.query(
-      `
-      SELECT applicant_number
-      FROM applicant_numbering_table
-      WHERE person_id = ?
-      `,
-      [person.person_id],
-    );
-
-    // Merge applicant_number into person object
-    person.applicant_number = applicant ? applicant.applicant_number : null;
-
     // Get latest document status + evaluator
-    const [rows] = await db.query(
+    const [rows] = await db3.query(
       `
       SELECT
         ru.document_status AS upload_document_status,
         rt.id AS requirement_id,
         ua.email AS evaluator_email,
         ua.role AS evaluator_role,
-        pr.fname AS evaluator_fname,
-        pr.mname AS evaluator_mname,
-        pr.lname AS evaluator_lname,
+        ua.first_name AS evaluator_fname,
+        ua.middle_name AS evaluator_mname,
+        ua.last_name AS evaluator_lname,
         ru.created_at,
         ru.last_updated_by
       FROM enrollment.requirement_uploads AS ru
@@ -12248,11 +12252,8 @@ app.get("/api/student_data_as_applicant/:id", async (req, res) => {
         ON ru.requirements_id = rt.id
       LEFT JOIN enrollment.user_accounts ua 
         ON ru.last_updated_by = ua.person_id
-      LEFT JOIN enrollment.prof_table pr   
-        ON ua.person_id = pr.person_id
       WHERE ru.person_id = ?
       ORDER BY ru.created_at DESC
-      LIMIT 1
       `,
       [person.person_id],
     );

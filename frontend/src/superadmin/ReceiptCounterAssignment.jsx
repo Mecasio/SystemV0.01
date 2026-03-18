@@ -37,7 +37,61 @@ const getFirstFour = (value) => String(value ?? "").slice(0, 4);
 
 const ReceiptCounterAssignment = () => {
     const settings = useContext(SettingsContext);
-    const [titleColor, setTitleColor] = useState("#6D2323");
+
+    const [titleColor, setTitleColor] = useState("#000000");
+    const [subtitleColor, setSubtitleColor] = useState("#555555");
+    const [borderColor, setBorderColor] = useState("#000000");
+    const [mainButtonColor, setMainButtonColor] = useState("#1976d2");
+    const [subButtonColor, setSubButtonColor] = useState("#ffffff");   // ✅ NEW
+    const [stepperColor, setStepperColor] = useState("#000000");       // ✅ NEW
+
+    const [fetchedLogo, setFetchedLogo] = useState(null);
+    const [companyName, setCompanyName] = useState("");
+    const [shortTerm, setShortTerm] = useState("");
+    const [campusAddress, setCampusAddress] = useState("");
+    const [branches, setBranches] = useState([]);
+
+    useEffect(() => {
+        if (!settings) return;
+
+        // 🎨 Colors
+        if (settings.title_color) setTitleColor(settings.title_color);
+        if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
+        if (settings.border_color) setBorderColor(settings.border_color);
+        if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
+        if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);
+        if (settings.stepper_color) setStepperColor(settings.stepper_color);
+
+        // 🏫 Logo
+        if (settings.logo_url) {
+            setFetchedLogo(`${API_BASE_URL}${settings.logo_url}`);
+        } else {
+            setFetchedLogo(EaristLogo);
+        }
+
+        // 🏷️ School Info
+        if (settings.company_name) setCompanyName(settings.company_name);
+        if (settings.short_term) setShortTerm(settings.short_term);
+        if (settings.campus_address) setCampusAddress(settings.campus_address);
+
+        // ✅ Branches (JSON stored in DB)
+        if (settings?.branches) {
+            try {
+                const parsed =
+                    typeof settings.branches === "string"
+                        ? JSON.parse(settings.branches)
+                        : settings.branches;
+
+                setBranches(parsed);
+            } catch (err) {
+                console.error("Failed to parse branches:", err);
+                setBranches([]);
+            }
+        }
+
+
+    }, [settings]);
+
     const [loading, setLoading] = useState(false);
     const [hasAccess, setHasAccess] = useState(null);
     const pageId = 122;
@@ -380,7 +434,7 @@ const ReceiptCounterAssignment = () => {
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
 
-            <TableContainer component={Paper} sx={{ width: '100%', mt: 1 }}>
+            <TableContainer component={Paper} sx={{ width: '100%', mt: 1, border: `2px solid ${borderColor}` }}>
                 <Table size="small">
                     <TableHead sx={{ backgroundColor: settings?.header_color || '#6D2323', color: "white" }}>
                         <TableRow>
@@ -392,7 +446,7 @@ const ReceiptCounterAssignment = () => {
                 </Table>
             </TableContainer>
 
-            <Paper sx={{ mt: 1, p: 2 }}>
+            <Paper sx={{ p: 2, border: `2px solid ${borderColor}` }}>
                 <Box display="flex" justifyContent="space-between" alignItems="flex-end" flexWrap="wrap" gap={2}>
                     <Box sx={{ minWidth: 220 }}>
                         <FormControl size="small" fullWidth>
@@ -431,7 +485,10 @@ const ReceiptCounterAssignment = () => {
                 </Box>
             </Paper>
 
-            <TableContainer component={Paper} sx={{ width: '100%', mt: 1 }}>
+            <br/>
+            <br/>
+
+            <TableContainer component={Paper} sx={{ width: '100%',  border: `2px solid ${borderColor}` }}>
                 <Table size="small">
                     <TableHead sx={{ backgroundColor: settings?.header_color || '#6D2323', color: "white" }}>
                         <TableRow>
@@ -585,15 +642,15 @@ const ReceiptCounterAssignment = () => {
                 </Table>
             </TableContainer>
 
-            <TableContainer component={Paper} sx={{ mt: 2 }}>
+            <TableContainer component={Paper}>
                 <Table>
                     <TableHead sx={{ background: 'maroon' }}>
                         <TableRow>
-                            <TableCell sx={{ color: 'white' }}><strong>Employee ID</strong></TableCell>
-                            <TableCell sx={{ color: 'white', textAlign: 'center' }}><strong>Name</strong></TableCell>
-                            <TableCell sx={{ color: 'white', textAlign: 'center' }}><strong>Email Address</strong></TableCell>
-                            <TableCell sx={{ color: 'white' }}><strong>Position</strong></TableCell>
-                            <TableCell sx={{ color: 'white', textAlign: 'center' }}><strong>Action</strong></TableCell>
+                            <TableCell sx={{ color: 'black', border: `2px solid ${borderColor}`, backgroundColor: "#f5f5f5" }}><strong>Employee ID</strong></TableCell>
+                            <TableCell sx={{ color: 'black', border: `2px solid ${borderColor}` , textAlign: 'center',  backgroundColor: "#f5f5f5" }}><strong>Name</strong></TableCell>
+                            <TableCell sx={{ color: 'black', border: `2px solid ${borderColor}` , textAlign: 'center',  backgroundColor: "#f5f5f5" }}><strong>Email Address</strong></TableCell>
+                            <TableCell sx={{ color: 'black', border: `2px solid ${borderColor}`,  backgroundColor: "#f5f5f5"  }}><strong>Position</strong></TableCell>
+                            <TableCell sx={{ color: 'black', border: `2px solid ${borderColor}` , textAlign: 'center',  backgroundColor: "#f5f5f5" }}><strong>Action</strong></TableCell>
                         </TableRow>
                     </TableHead>
 
@@ -604,25 +661,26 @@ const ReceiptCounterAssignment = () => {
 
                             return (
                                 <TableRow key={employee.id}>
-                                    <TableCell>{employee.employee_id}</TableCell>
-                                    <TableCell>
+                                    <TableCell sx= {{ border: `2px solid ${borderColor}`}}>{employee.employee_id}</TableCell>
+                                    <TableCell sx= {{ border: `2px solid ${borderColor}`}}>
                                         {`${capitalize(employee.first_name)}
                                         ${employee.middle_name ? `${employee.middle_name.charAt(0).toUpperCase()}.` : ""}
                                         ${capitalize(employee.last_name)}`}
                                     </TableCell>
-                                    <TableCell>{employee.email}</TableCell>
-                                    <TableCell>{employee.position}</TableCell>
-                                    <TableCell sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                                    <TableCell sx= {{ border: `2px solid ${borderColor}`}}>{employee.email}</TableCell>
+                                    <TableCell sx= {{ border: `2px solid ${borderColor}`}}>{employee.position}</TableCell>
+                                    <TableCell sx={{ display: 'flex', borderRight: `2px solid ${borderColor}`, borderTop: `1px solid ${borderColor}`, borderBottom: `2px solid ${borderColor}`,   alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                                         <Button
                                             variant='contained'
                                             onClick={() => isAssigned ? openEditDialog(employee, assignment) : openAssignDialog(employee)}
-                                            sx={{ background: 'maroon', width: '150px' }}
+                                            sx={{  width: '150px' }}
                                         >
                                             {isAssigned ? "EDIT COUNTER" : "ASSIGN"}
                                         </Button>
                                         <Button
                                             variant='contained'
                                             color="error"
+                                            sx={{  width: '150px' }}
                                             disabled={!isAssigned}
                                             onClick={() => {
                                                 setSelectedEmployee(employee);

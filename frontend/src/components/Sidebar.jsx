@@ -30,9 +30,11 @@ import AddCircleIcon from "@mui/icons-material/AddCircle";
 import API_BASE_URL from "../apiConfig";
 import EaristLogo from "../assets/EaristLogo.png";
 
-/* ─────────────────────────────────────────────
-   Dynamic styles — re-injected when settings change
-───────────────────────────────────────────── */
+const GLOBAL_PAGE_IDS = [13, 15, 17, 38, 39, 40, 41, 42, 50, 56, 59, 62, 73, 80, 92, 96, 101, 104, 105, 106, 117];
+const GLOBAL_ACCESS_THRESHOLD = 10;
+const CLASS_ROSTER_DEPT = "/class_roster_enrollment";
+const CLASS_ROSTER_GLOBAL = "/class_roster";
+
 function buildSidebarStyles(s = {}, hasDepartment = true) {
   const accent = s.main_button_color || "#7c3aed";
   const border = s.border_color || "#e8e8e8";
@@ -42,77 +44,44 @@ function buildSidebarStyles(s = {}, hasDepartment = true) {
   const subBtnColor = s.sub_button_color || "#f5f5f5";
   const profileBg = s.header_color ? `${s.header_color}18` : "#f7f7f7";
 
-  /* Profile card styles differ based on whether the user has a department */
   const profileCardStyles = hasDepartment
     ? `
-  /* ── Profile card (with department) ── */
   .sb-profile {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 14px 18px;
-    margin: 12px 12px 12px;
-    background: ${profileBg};
-    border-radius: 10px;
-    position: relative;
-    flex-shrink: 0;
+    display: flex; align-items: center; gap: 15px;
+    padding: 14px 18px; margin: 12px 12px 12px;
+    background: ${profileBg}; border-radius: 10px;
+    position: relative; flex-shrink: 0;
   }
   .sb-profile-info { overflow: hidden; }
   .sb-profile-name {
-    font-size: 15px;
-    font-weight: 600;
-    color: ${titleColor};
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 160px;
+    font-size: 15px; font-weight: 600; color: ${titleColor};
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;
   }
   .sb-profile-role {
-    font-size: 12.5px;
-    color: ${subColor};
-    white-space: nowrap;
-    overflow: hidden;
-    margin-top: -5px;
-    text-overflow: ellipsis;
-    min-width: 180px;
+    font-size: 12.5px; color: ${subColor};
+    white-space: nowrap; overflow: hidden; margin-top: -5px;
+    text-overflow: ellipsis; min-width: 180px;
   }
   .sb-profile-dprtmnt {
-    font-size: 11.5px;
-    color: ${subColor};
-    opacity: 0.9;
-    margin-top: -3px;
-    font-style: italic;
+    font-size: 18px; color: ${subColor};
+    opacity: 0.9; margin-top: -3px; font-style: italic;
   }`
     : `
-  /* ── Profile card (no department) ── */
   .sb-profile {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    padding: 14px 18px;
-    margin: 12px 12px 12px;
-    background: ${profileBg};
-    border-radius: 10px;
-    position: relative;
-    flex-shrink: 0;
+    display: flex; align-items: center; gap: 11px;
+    padding: 14px 18px; margin: 12px 12px 12px;
+    background: ${profileBg}; border-radius: 10px;
+    position: relative; flex-shrink: 0;
   }
   .sb-profile-info { overflow: hidden; }
   .sb-profile-name {
-    font-size: 15px;
-    font-weight: 600;
-    color: ${titleColor};
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 160px;
+    font-size: 15px; font-weight: 600; color: ${titleColor};
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;
   }
   .sb-profile-role {
-    font-size: 12.5px;
-    color: ${subColor};
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    min-width: 180px;
+    font-size: 12.5px; color: ${subColor};
+    white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; min-width: 180px;
   }
   .sb-profile-dprtmnt { display: none; }`;
 
@@ -121,89 +90,48 @@ function buildSidebarStyles(s = {}, hasDepartment = true) {
 
   .sb-root {
     font-family: 'Poppins', sans-serif;
-    width: 290px;
-    height: calc(100vh - 64px - 42px);
-    background: #ffffff;
-    display: flex;
-    flex-direction: column;
+    width: 290px; height: calc(100vh - 64px - 42px);
+    background: #ffffff; display: flex; flex-direction: column;
     border-right: 1px solid ${border};
-    position: fixed;
-    top: 64px;
-    bottom: 42px;
-    left: 0;
-    z-index: 100;
-    overflow: hidden;
+    position: fixed; top: 64px; bottom: 42px; left: 0;
+    z-index: 100; overflow: hidden;
   }
 
   ${profileCardStyles}
 
-  .sb-avatar-wrap {
-    position: relative;
-    flex-shrink: 0;
-  }
+  .sb-avatar-wrap { position: relative; flex-shrink: 0; }
   .sb-upload-btn {
-    position: absolute;
-    bottom: -3px;
-    right: -3px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #fff;
-    border-radius: 50%;
-    width: 18px;
-    height: 18px;
+    position: absolute; bottom: -3px; right: -3px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    background: #fff; border-radius: 50%; width: 18px; height: 18px;
     box-shadow: 0 1px 4px rgba(0,0,0,.15);
   }
 
-  /* ── Scroll area ── */
   .sb-scroll {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
+    flex: 1; overflow-y: auto; overflow-x: hidden;
     padding: 10px 10px 0;
-    scrollbar-width: thin;
-    scrollbar-color: ${border} transparent;
+    scrollbar-width: thin; scrollbar-color: ${border} transparent;
   }
   .sb-scroll::-webkit-scrollbar { width: 4px; }
   .sb-scroll::-webkit-scrollbar-track { background: transparent; }
   .sb-scroll::-webkit-scrollbar-thumb { background: ${border}; border-radius: 4px; }
 
-  /* ── Section label ── */
   .sb-section-label {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .08em;
-    color: #000;
-    padding: 10px 8px 4px;
+    font-size: 14px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; color: #000; padding: 10px 8px 4px;
   }
 
-  /* ── Nav item ── */
   .sb-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 9px 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    color: black;
-    font-size: 11.5px;
-    font-weight: 400;
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px; border-radius: 8px; cursor: pointer;
+    color: black; font-size: 18px; font-weight: 400;
     transition: background .15s, color .15s;
-    text-decoration: none;
-    margin-bottom: 1px;
-    white-space: nowrap;
-    overflow: hidden;
-    line-height: 1;
+    text-decoration: none; margin-bottom: 1px;
+    white-space: nowrap; overflow: hidden; line-height: 1;
   }
   .sb-item .sb-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    opacity: .75;
-    color: ${mainButtonColor}
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; opacity: .75; color: ${mainButtonColor};
   }
   .sb-item:hover { background: ${mainButtonColor}; color: white; }
   .sb-item:hover .sb-icon { background: ${mainButtonColor}; color: white; }
@@ -212,64 +140,31 @@ function buildSidebarStyles(s = {}, hasDepartment = true) {
   .sb-item.active .sb-icon { opacity: 1; color: #fff !important; }
   .sb-item-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 
-  /* ── Group toggle ── */
   .sb-group-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-    padding: 8px 10px;
-    border-radius: 8px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    color: black;
-    font-size: 11.5px;
-    font-weight: 400;
-    font-family: 'Poppins', sans-serif;
-    transition: background .15s;
-    text-align: left;
-    margin-bottom: 1px;
-    line-height: 1;
-    vertical-align: middle;
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; padding: 8px 10px; border-radius: 8px;
+    border: none; background: transparent; cursor: pointer;
+    color: black; font-size: 18px; font-weight: 400;
+    font-family: 'Poppins', sans-serif; transition: background .15s;
+    text-align: left; margin-bottom: 1px; line-height: 1; vertical-align: middle;
   }
   .sb-group-btn .sb-icon { color: ${titleColor}; }
   .sb-group-btn:hover { background: ${mainButtonColor}; color: white; }
   .sb-group-btn:hover .sb-icon { color: white; }
-  .sb-group-btn.open { color: ${accent}; background: ${subBtnColor} }
-  .sb-group-btn.open .sb-icon { color: ${titleColor} }
+  .sb-group-btn.open { color: ${accent}; background: ${subBtnColor}; }
+  .sb-group-btn.open .sb-icon { color: ${titleColor}; }
   .sb-group-label { flex: 1; }
   .sb-group-chevron { flex-shrink: 0; opacity: .5; }
   .sb-group-chevron svg { font-size: 16px !important; }
 
-  /* Sub-items indent */
-  .sb-sub-item {
-    padding-left: 22px;
-  }
+  .sb-sub-item { padding-left: 22px; }
+  .sb-divider { height: 1px; background: #f0f0f0; margin: 8px 0; }
 
-  /* ── Divider ── */
-  .sb-divider {
-    height: 1px;
-    background: #f0f0f0;
-    margin: 8px 0;
-  }
-
-  /* ── Footer (logout) ── */
-  .sb-footer {
-    padding: 10px;
-    border-top: 1px solid #f0f0f0;
-    flex-shrink: 0;
-  }
+  .sb-footer { padding: 10px; border-top: 1px solid #f0f0f0; flex-shrink: 0; }
   .sb-logout {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 12.5px;
-    font-weight: 500;
-    color: ${mainButtonColor};
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 8px; cursor: pointer;
+    font-size: 12.5px; font-weight: 500; color: ${mainButtonColor};
     transition: background .15s;
   }
   .sb-footer .sb-logout:hover { background: ${mainButtonColor}; color: white; }
@@ -286,13 +181,9 @@ function injectStyles(settings, hasDepartment) {
   tag.textContent = buildSidebarStyles(settings, hasDepartment);
 }
 
-/* ─────────────────────────────────────────────
-   Small reusable pieces
-───────────────────────────────────────────── */
 function NavItem({ to, icon: Icon, label, active, onClick, sub = false }) {
   const cls = ["sb-item", active ? "active" : "", sub ? "sb-sub-item" : ""]
-    .filter(Boolean)
-    .join(" ");
+    .filter(Boolean).join(" ");
 
   if (onClick) {
     return (
@@ -302,7 +193,6 @@ function NavItem({ to, icon: Icon, label, active, onClick, sub = false }) {
       </div>
     );
   }
-
   return (
     <Link to={to} className={cls}>
       {Icon && <span className="sb-icon"><Icon sx={{ fontSize: 18 }} /></span>}
@@ -313,50 +203,29 @@ function NavItem({ to, icon: Icon, label, active, onClick, sub = false }) {
 
 function GroupToggle({ label, icon: Icon, open, onToggle }) {
   return (
-    <button
-      type="button"
-      className={`sb-group-btn ${open ? "open" : ""}`}
-      onClick={onToggle}
-    >
+    <button type="button" className={`sb-group-btn ${open ? "open" : ""}`} onClick={onToggle}>
       {Icon && (
         <span className="sb-icon" style={{ opacity: 1, display: "flex", alignItems: "center" }}>
           <Icon sx={{ fontSize: 18 }} />
         </span>
       )}
       <span className="sb-group-label">{label}</span>
-      <span className="sb-group-chevron">
-        {open ? <ExpandLess /> : <ExpandMore />}
-      </span>
+      <span className="sb-group-chevron">{open ? <ExpandLess /> : <ExpandMore />}</span>
     </button>
   );
 }
 
 function ProfileUploadInput({ id, onChange }) {
-  return (
-    <input
-      id={id}
-      type="file"
-      accept="image/*"
-      onChange={onChange}
-      style={{ display: "none" }}
-    />
-  );
+  return <input id={id} type="file" accept="image/*" onChange={onChange} style={{ display: "none" }} />;
 }
 
-/* ─────────────────────────────────────────────
-   Main SideBar
-───────────────────────────────────────────── */
 const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
   const settings = useContext(SettingsContext);
   const navigate = useNavigate();
 
-  // ── theme ──
   const accentColor = settings?.main_button_color || "#7c3aed";
-
-  // ── school info ──
   const shortTerm = settings?.short_term || "EARIST";
 
-  // ── user state ──
   const [role, setRole] = useState("");
   const [userRole, setUserRole] = useState("");
   const [employeeID, setEmployeeID] = useState("");
@@ -364,20 +233,16 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
   const [userAccessList, setUserAccessList] = useState({});
   const [accessDescription, setAccessDescription] = useState("");
   const [dir, setDir] = useState("Admin1by1");
+  const [classRosterScope, setClassRosterScope] = useState(null);
+  const [globalAccessCount, setGlobalAccessCount] = useState(0);
 
   const [groupOpen, setGroupOpen] = useState({});
   const toggleGroup = (key) => setGroupOpen((p) => ({ ...p, [key]: !p[key] }));
   const isGroupOpen = (key) => groupOpen[key] === true;
 
-  // ── derived: does the user have a department? ──
   const hasDepartment = !!(personData?.dprtmnt_code);
 
-  // ── inject styles whenever settings or department status changes ──
-  useEffect(() => {
-    injectStyles(settings, hasDepartment);
-  }, [settings, hasDepartment]);
-
-  // ── auth check ──
+  useEffect(() => { injectStyles(settings, hasDepartment); }, [settings, hasDepartment]);
   useEffect(() => {
     const token = localStorage.getItem("token");
     const savedRole = localStorage.getItem("role");
@@ -405,7 +270,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
     }
   }, []);
 
-  // ── access ──
+  // ── access + scope ──
   useEffect(() => {
     const email = localStorage.getItem("email");
     const r = localStorage.getItem("role");
@@ -417,13 +282,46 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
     if (!empID) { window.location.href = "/login"; return; }
     setEmployeeID(empID);
     fetchUserAccessList(empID);
+
+    // ── Determine Class Roster scope for this user ──────────────────────────
+    // We also need the admin's department info to apply Rule 2.
+    const determineScope = async (empId) => {
+      try {
+        // 1. Full page-access list (uses existing /api/employee/:id endpoint)
+        const accessRes = await axios.get(`${API_BASE_URL}/api/employee/${empId}`);
+        const accessList = accessRes.data?.accessList ?? [];
+        const matchCount = accessList.filter((pid) => GLOBAL_PAGE_IDS.includes(pid)).length;
+        setGlobalAccessCount(matchCount);
+
+        if (matchCount > GLOBAL_ACCESS_THRESHOLD) {
+          // Rule 1 — broad access → Global
+          setClassRosterScope("GLOBAL");
+          return;
+        }
+
+        // 2. Admin profile → check for dprtmnt_id
+        const userEmail = localStorage.getItem("email");
+        const adminRes = await axios.get(`${API_BASE_URL}/api/admin_data/${userEmail}`);
+        const deptId = adminRes.data?.dprtmnt_id;
+
+        if (deptId) {
+          setClassRosterScope("DEPARTMENT");
+        } else {
+          setClassRosterScope("GLOBAL");
+        }
+      } catch {
+        setClassRosterScope("GLOBAL"); // safe fallback
+      }
+    };
+
+    determineScope(empID);
   }, []);
 
   useEffect(() => {
     if (!employeeID) return;
     axios.get(`${API_BASE_URL}/api/access_level/${employeeID}`)
       .then((res) => setAccessDescription(res.data?.access_description || ""))
-      .catch(() => {});
+      .catch(() => { });
   }, [employeeID]);
 
   useEffect(() => {
@@ -435,7 +333,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/person_data/${person_id}/${r}`);
       setPersonData(res.data);
-    } catch {}
+    } catch { }
   };
 
   const fetchUserAccessList = async (empID) => {
@@ -446,7 +344,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
         return acc;
       }, {});
       setUserAccessList(map);
-    } catch {}
+    } catch { }
   };
 
   const Logout = () => {
@@ -455,7 +353,6 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
     navigate("/");
   };
 
-  // ── profile upload handler factory ──
   const makeUploadHandler = (endpoint, uploadDir) => async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -470,7 +367,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
       const updated = await axios.get(`${API_BASE_URL}/api/person_data/${person_id}/${r}`);
       setPersonData(updated.data);
       setProfileImage(`${API_BASE_URL}/uploads/${uploadDir}/${updated.data.profile_image}?t=${Date.now()}`);
-    } catch {}
+    } catch { }
   };
 
   const uploadHandlers = {
@@ -480,12 +377,12 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
     student: makeUploadHandler("/student/update_student", "Student1by1"),
   };
 
-  // ── helpers ──
   function accessObjToSet(list) {
     const s = new Set();
     for (const k in list) { if (list[k]) s.add(Number(k)); }
     return s;
   }
+
   function getRegistrarDashboard(accessSet) {
     if (accessSet.has(101)) return "/registrar_dashboard";
     if (accessSet.has(102)) return "/enrollment_officer_dashboard";
@@ -496,15 +393,15 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
   const loc = typeof window !== "undefined" ? window.location.pathname : "";
   const isActive = (path) => loc === path;
   const isActivePrefix = (prefix) => loc.startsWith(prefix);
+  const isClassRosterActive = (linkPath) => loc === linkPath;
 
-  // ── profile avatar ── 
   const avatarSrc = profileImage || (personData?.profile_image
     ? `${API_BASE_URL}/uploads/${dir}/${personData.profile_image}?t=${Date.now()}`
     : null);
-
   const showUploadFor = ["registrar", "applicant", "faculty", "student"].includes(role);
+  const classRosterEnrollmentLink = CLASS_ROSTER_DEPT;
+  const classRosterRegistrarLink = CLASS_ROSTER_GLOBAL;
 
-  // ── menu data ──
   const admissionMenuGroups = [
     {
       key: "admissionOffice", label: "Admission Office", icon: AdminPanelSettings, items: [
@@ -528,12 +425,19 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
       key: "enrollmentOfficer", label: "Enrollment Officer", icon: AssignmentIndIcon, items: [
         { title: "Applicant List", link: "/applicant_list", icon: ListAlt, page_id: 6 },
         { title: "Applicant Profile", link: "/registrar_dashboard1", icon: AccountCircle, page_id: 43 },
-        { title: "Student Profile", link: "/official_student_dashboard1", icon: AccountCircle, page_id: 43 },
-        { title: "Documents Submitted", link: "/registrar_requirements", icon: FolderCopy, page_id: 49 },
+        { title: "Applicant Online Requirements", link: "/registrar_requirements", icon: FolderCopy, page_id: 49 },
         { title: "Qualifying / Interview Scores", link: "/qualifying_interview_exam_scores", icon: Assessment, page_id: 37 },
         { title: "Student Numbering", link: "/student_numbering_per_college", icon: FormatListNumbered, page_id: 60 },
+       
+        { title: "Student List", link: "/student_list_for_enrollment", icon: ListAlt, page_id: 104 },
+        { title: "Student Profile", link: "/official_student_dashboard1", icon: AccountCircle, page_id: 43 },
+        { title: "Student Online Requirements", link: "/student_official_requirements", icon: FolderCopy, page_id: 124 },
         { title: "Course Tagging", link: "/course_tagging_for_college", icon: Class, page_id: 124 },
         { title: "Search COR", link: "/search_cor_for_college", icon: Search, page_id: 125 },
+        {title: "Class List", link: classRosterEnrollmentLink, icon: Class, page_id: 15, activeCheck: () => isClassRosterActive(classRosterEnrollmentLink)
+        },
+
+
         { title: "Qualifying Room Mgmt", link: "/assign_qualifying_interview_exam", icon: MeetingRoom, page_id: 10 },
         { title: "Qualifying Schedule Mgmt", link: "/assign_schedule_applicants_qualifying_interview", icon: EditCalendar, page_id: 12 },
         { title: "Interviewer Applicant List", link: "/enrollment_schedule_room_list", icon: People, page_id: 36 },
@@ -546,7 +450,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
       key: "medicalDental", label: "Medical & Dental", icon: MedicalServices, items: [
         { title: "Applicant List", link: "/medical_applicant_list", icon: ListAltOutlined, page_id: 24 },
         { title: "Student Profile", link: "/medical_dashboard1", icon: AccountCircle, page_id: 25 },
-        { title: "Documents Submitted", link: "/medical_requirements", icon: Description, page_id: 30 },
+        { title: "Documents Submitted", link: "/medical_requirements", icon: FolderCopy, page_id: 30 },
         { title: "Medical Requirements", link: "/medical_requirements_form", icon: MedicalServices, page_id: 31 },
         { title: "Dental Assessment", link: "/dental_assessment", icon: HealthAndSafety, page_id: 19 },
         { title: "Physical & Neuro Exam", link: "/physical_neuro_exam", icon: Psychology, page_id: 32 },
@@ -564,8 +468,11 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
         { title: "Course Tagging", link: "/course_tagging", icon: Class, page_id: 17 },
         { title: "Student List", link: "/student_list", icon: ListAltOutlined, page_id: 104 },
         { title: "Student Profile", link: "/readmission_dashboard1", icon: AccountCircle, page_id: 38 },
-        { title: "Submitted Documents", link: "/submitted_documents", icon: Description, page_id: 106 },
-        { title: "Class List", link: "/class_roster", icon: Class, page_id: 15 },
+        { title: "Submitted Documents", link: "/submitted_documents", icon: FolderCopy, page_id: 106 },
+        {
+          title: "Class List", link: classRosterRegistrarLink, icon: Class, page_id: 15,
+          activeCheck: () => isClassRosterActive(classRosterRegistrarLink)
+        },
         { title: "Search COR", link: "/search_cor", icon: Search, page_id: 56 },
         { title: "Report of Grades", link: "/report_of_grades", icon: Assessment, page_id: 50 },
         { title: "Transcript of Records", link: "/transcript_of_records", icon: HistoryEdu, page_id: 62 },
@@ -711,6 +618,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
 
   return (
     <div className="sb-root hidden-print">
+
       {/* ── Profile ── */}
       <Tooltip arrow>
         <div className="sb-profile">
@@ -746,11 +654,8 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
                       ? role.charAt(0).toUpperCase() + role.slice(1)
                       : ""}
             </div>
-            {/* ── Only show department line if the user has one ── */}
             {hasDepartment && (
-              <div className="sb-profile-dprtmnt">
-                {personData.dprtmnt_code} Department
-              </div>
+              <div className="sb-profile-dprtmnt">{personData.dprtmnt_code} Department</div>
             )}
           </div>
         </div>
@@ -770,22 +675,18 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
               if (!userAccessList[item.page_id]) return null;
               const groups = sectionMenus[item.key];
 
-              // ── Skip entire block if no sub-items are accessible ──
               const hasVisibleItems = groups
                 ? groups.some((group) =>
-                    group.items.some((si) => si.page_id === undefined || userAccessList[si.page_id])
-                  )
+                  group.items.some((si) => si.page_id === undefined || userAccessList[si.page_id])
+                )
                 : true;
-
               if (!hasVisibleItems) return null;
 
-              // ── For "account" key: check if ONLY the "accountSettings" group is visible ──
-              // If so, render its items as flat NavItems (like Dashboard) instead of a GroupToggle
               const isAccountSection = item.key === "account";
               const visibleGroups = groups
                 ? groups.filter((group) =>
-                    group.items.some((si) => si.page_id === undefined || userAccessList[si.page_id])
-                  )
+                  group.items.some((si) => si.page_id === undefined || userAccessList[si.page_id])
+                )
                 : [];
               const onlySettingsGroup =
                 isAccountSection &&
@@ -796,7 +697,6 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
                 <div key={item.key}>
                   <div className="sb-section-label">{item.title}</div>
 
-                  {/* ── Flat mode: only "Settings" group visible in Account Management ── */}
                   {onlySettingsGroup ? (
                     visibleGroups[0].items
                       .filter((si) => si.page_id === undefined || userAccessList[si.page_id])
@@ -806,11 +706,10 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
                           to={si.link}
                           icon={si.icon}
                           label={si.title}
-                          active={isActive(si.link)}
+                          active={si.activeCheck ? si.activeCheck() : isActive(si.link)}
                         />
                       ))
                   ) : groups ? (
-                    /* ── Normal grouped mode ── */
                     groups.map((group) => {
                       const visibleItems = group.items.filter(
                         (si) => si.page_id === undefined || userAccessList[si.page_id]
@@ -832,7 +731,8 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
                               to={si.link}
                               icon={si.icon}
                               label={si.title}
-                              active={isActive(si.link)}
+                              // ── Per-item active override for Class Roster ──
+                              active={si.activeCheck ? si.activeCheck() : isActive(si.link)}
                               sub
                             />
                           ))}
@@ -910,7 +810,6 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
           </>
         )}
 
-        {/* bottom padding */}
         <div style={{ height: 12 }} />
       </div>
 

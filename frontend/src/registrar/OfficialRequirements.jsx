@@ -20,64 +20,82 @@ import {
     TableRow,
     MenuItem
 } from '@mui/material';
-import Search from '@mui/icons-material/Search';
 import API_BASE_URL from "../apiConfig";
+import Search from '@mui/icons-material/Search';
 import { Link, useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import { io } from "socket.io-client";
 import { Snackbar, Alert } from "@mui/material";
-import SchoolIcon from "@mui/icons-material/School";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import AssignmentIcon from "@mui/icons-material/Assignment";
-import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
-import ScheduleIcon from "@mui/icons-material/Schedule";
-import PersonSearchIcon from "@mui/icons-material/PersonSearch";
-import PeopleIcon from "@mui/icons-material/People";
-import FactCheckIcon from "@mui/icons-material/FactCheck";
+import SearchIcon from "@mui/icons-material/Search";
+import SchoolIcon from '@mui/icons-material/School';
+import ListAltIcon from "@mui/icons-material/ListAlt";
+import PersonIcon from "@mui/icons-material/Person";
+import DescriptionIcon from "@mui/icons-material/Description";
+import PsychologyIcon from "@mui/icons-material/Psychology";
+import HowToRegIcon from '@mui/icons-material/HowToReg';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
-import KeyIcon from "@mui/icons-material/Key";
-import CampaignIcon from '@mui/icons-material/Campaign';
-import ScoreIcon from '@mui/icons-material/Score';
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import MenuBookIcon from '@mui/icons-material/MenuBook';
-import SearchIcon from '@mui/icons-material/Search';
-import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
+import PersonSearchIcon from "@mui/icons-material/PersonSearch";
 
-const tabs = [
-    {
-        label: "Admission Process For College",
-        to: "/applicant_list",
-        icon: <SchoolIcon fontSize="large" />,
-      },
-      {
-        label: "Applicant Form",
-        to: "/registrar_dashboard1",
-        icon: <AssignmentIcon fontSize="large" />,
-      },
-      {
-        label: "Student Requirements",
-        to: "/registrar_requirements",
-        icon: <AssignmentTurnedInIcon fontSize="large" />,
-      },
-      {
-        label: "Qualifying / Interview Exam Score",
-        to: "/qualifying_interview_exam_scores",
-        icon: <ScoreIcon fontSize="large" />,
-      },
-      {
-        label: "Student Numbering",
-        to: "/student_numbering_per_college",
-        icon: <DashboardIcon fontSize="large" />,
-      },
-    
-
+const tabs1 = [
+          { label: "Student List", to: "/student_list_for_enrollment", icon: <ListAltIcon /> },
+      { label: "Applicant Form", to: "/official_student_dashboard1", icon: <PersonAddIcon /> },
+      { label: "Submitted Documents", to: "/student_official_requirements", icon: <UploadFileIcon /> },
+      { label: "Course Tagging", to: "/course_tagging_for_college", icon: <UploadFileIcon /> },
+      { label: "Search COR", to: "/search_cor_for_college", icon: <MenuBookIcon /> },
+  
+      { label: "Class List", to: "/class_roster_enrollment", icon: <PersonSearchIcon /> },
 ];
 
 
-const RegistrarRequirements = () => {
+const OfficialRequirements = () => {
+    const settings = useContext(SettingsContext);
+
+    const [titleColor, setTitleColor] = useState("#000000");
+    const [subtitleColor, setSubtitleColor] = useState("#555555");
+    const [borderColor, setBorderColor] = useState("#000000");
+    const [mainButtonColor, setMainButtonColor] = useState("#1976d2");
+    const [subButtonColor, setSubButtonColor] = useState("#ffffff");   // ✅ NEW
+    const [stepperColor, setStepperColor] = useState("#000000");       // ✅ NEW
+
+    const [fetchedLogo, setFetchedLogo] = useState(null);
+    const [companyName, setCompanyName] = useState("");
+    const [shortTerm, setShortTerm] = useState("");
+    const [campusAddress, setCampusAddress] = useState("");
+
+    useEffect(() => {
+        if (!settings) return;
+
+        // 🎨 Colors
+        if (settings.title_color) setTitleColor(settings.title_color);
+        if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
+        if (settings.border_color) setBorderColor(settings.border_color);
+        if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
+        if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);   // ✅ NEW
+        if (settings.stepper_color) setStepperColor(settings.stepper_color);           // ✅ NEW
+
+        // 🏫 Logo
+        if (settings.logo_url) {
+            setFetchedLogo(`${API_BASE_URL}${settings.logo_url}`);
+        } else {
+            setFetchedLogo(EaristLogo);
+        }
+
+        // 🏷️ School Information
+        if (settings.company_name) setCompanyName(settings.company_name);
+        if (settings.short_term) setShortTerm(settings.short_term);
+        if (settings.campus_address) setCampusAddress(settings.campus_address);
+
+    }, [settings]);
+
     const navigate = useNavigate();
     const [activeStep, setActiveStep] = useState(2);
-    const [clickedSteps, setClickedSteps] = useState(Array(tabs.length).fill(false));
+    const [clickedSteps, setClickedSteps] = useState(Array(tabs1.length).fill(false));
+    const socketRef = useRef(null);
 
 
     // ------------------------------------
@@ -108,35 +126,59 @@ const RegistrarRequirements = () => {
 
     const [explicitSelection, setExplicitSelection] = useState(false);
 
-    const fetchByPersonId = async (personID) => {
-        try {
-            const res = await axios.get(`${API_BASE_URL}/api/person_with_applicant/${personID}`);
-            setPerson(res.data);
-            setSelectedPerson(res.data);
-            if (res.data?.applicant_number) {
-                await fetchUploadsByApplicantNumber(res.data.applicant_number);
-            }
-        } catch (err) {
-            console.error("❌ person_with_applicant failed:", err);
-        }
-    };
 
+    const location = useLocation();
 
+    useEffect(() => {
+        const queryParams = new URLSearchParams(location.search);
+        const personIdFromUrl = queryParams.get("person_id");
+
+        if (!personIdFromUrl) return;
+
+        // fetch info of that person
+        axios
+            .get(`${API_BASE_URL}api/person_with_applicant/${personIdFromUrl}`)
+            .then((res) => {
+                if (res.data?.student_number) {
+
+                    // AUTO-INSERT applicant_number into search bar
+                    setSearchQuery(res.data.student_number);
+
+                    // If you have a fetchUploads() or fetchExamScore() — call it
+                    if (typeof fetchUploadsByApplicantNumber === "function") {
+                        fetchUploadsByApplicantNumber(res.data.student_number);
+                    }
+
+                    if (typeof fetchApplicants === "function") {
+                        fetchApplicants();
+                    }
+                }
+            })
+            .catch((err) => console.error("Auto search failed:", err));
+    }, [location.search]);
 
     const handleStepClick = (index, to) => {
         setActiveStep(index);
-        const pid = sessionStorage.getItem("admin_edit_person_id");
+        const pid = sessionStorage.getItem("edit_person_id");
+        const sn = sessionStorage.getItem("edit_student_number");
 
-        if (pid && to !== "/applicant_list_admin") {
+        if (pid) {
             navigate(`${to}?person_id=${pid}`);
+        } else if (sn) {
+            navigate(`${to}?student_number=${sn}`);
         } else {
-            navigate(to);
+            navigate(to); // no id → open without query
         }
     };
 
+    useEffect(() => {
+        const storedId = sessionStorage.getItem("edit_student_number");
 
+        if (storedId) {
+            setSearchQuery(storedId);
+        }
+    }, []);
 
-    const location = useLocation();
     const [uploads, setUploads] = useState([]);
     const [persons, setPersons] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -156,85 +198,19 @@ const RegistrarRequirements = () => {
         first_name: "",
         middle_name: "",
         extension: "",
-        applicant_number: "",
+        student_number: "",
     });
-
-    useEffect(() => {
-        const queryParams = new URLSearchParams(location.search);
-        const personIdFromUrl = queryParams.get("person_id");
-
-        if (!personIdFromUrl) return;
-
-        // fetch info of that person
-        axios
-            .get(`${API_BASE_URL}/api/person_with_applicant/${personIdFromUrl}`)
-            .then((res) => {
-                if (res.data?.applicant_number) {
-
-                    // AUTO-INSERT applicant_number into search bar
-                    setSearchQuery(res.data.applicant_number);
-
-                    // If you have a fetchUploads() or fetchExamScore() — call it
-                    if (typeof fetchUploadsByApplicantNumber === "function") {
-                        fetchUploadsByApplicantNumber(res.data.applicant_number);
-                    }
-
-                    if (typeof fetchApplicants === "function") {
-                        fetchApplicants();
-                    }
-                }
-            })
-            .catch((err) => console.error("Auto search failed:", err));
-    }, [location.search]);
-
-
     const [editingRemarkId, setEditingRemarkId] = useState(null);
     const [newRemarkMode, setNewRemarkMode] = useState({}); // { [upload_id]: true|false }
     const [documentStatus, setDocumentStatus] = useState("");
 
-    const settings = useContext(SettingsContext);
 
-    const [titleColor, setTitleColor] = useState("#000000");
-    const [subtitleColor, setSubtitleColor] = useState("#555555");
-    const [borderColor, setBorderColor] = useState("#000000");
-    const [mainButtonColor, setMainButtonColor] = useState("#1976d2");
-    const [subButtonColor, setSubButtonColor] = useState("#ffffff");   // ✅ NEW
-    const [stepperColor, setStepperColor] = useState("#000000");       // ✅ NEW
-
-    const [fetchedLogo, setFetchedLogo] = useState(null);
-    const [companyName, setCompanyName] = useState("");
-    const [shortTerm, setShortTerm] = useState("");
-    const [campusAddress, setCampusAddress] = useState("");
-
-    useEffect(() => {
-        if (!settings) return;
-
-        // 🎨 Colors
-        if (settings.title_color) setTitleColor(settings.title_color);
-        if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
-        if (settings.border_color) setBorderColor(settings.border_color);
-        if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
-        if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);   // ✅ NEW
-        if (settings.stepper_color) setStepperColor(settings.stepper_color);           // ✅ NEW
-
-        // 🏫 Logo
-        if (settings.logo_url) {
-            setFetchedLogo(`${API_BASE_URL}/${settings.logo_url}`);
-        } else {
-            setFetchedLogo(EaristLogo);
-        }
-
-        // 🏷️ School Information
-        if (settings.company_name) setCompanyName(settings.company_name);
-        if (settings.short_term) setShortTerm(settings.short_term);
-        if (settings.campus_address) setCampusAddress(settings.campus_address);
-
-    }, [settings]);
 
     const [hasAccess, setHasAccess] = useState(null);
     const [loading, setLoading] = useState(false);
 
-    const pageId = 49;
+
+    const pageId = 30;
 
     const [employeeID, setEmployeeID] = useState("");
 
@@ -285,6 +261,7 @@ const RegistrarRequirements = () => {
 
 
 
+
     useEffect(() => {
         const storedUser = localStorage.getItem("email");
         const storedRole = localStorage.getItem("role");
@@ -313,43 +290,9 @@ const RegistrarRequirements = () => {
     }, []);
 
 
+
     const queryParams = new URLSearchParams(location.search);
     const queryPersonId = queryParams.get("person_id")?.trim() || "";
-
-    useEffect(() => {
-        const storedUser = localStorage.getItem("email");
-        const storedRole = localStorage.getItem("role");
-        const loggedInPersonId = localStorage.getItem("person_id");
-
-        if (!storedUser || !storedRole || !loggedInPersonId) {
-            window.location.href = "/login";
-            return;
-        }
-
-        setUser(storedUser);
-        setUserRole(storedRole);
-
-        const allowedRoles = ["registrar", "applicant", "superadmin"];
-        if (!allowedRoles.includes(storedRole)) {
-            window.location.href = "/login";
-            return;
-        }
-
-        const lastSelected = sessionStorage.getItem("admin_edit_person_id");
-
-        // ⭐ CASE 1: URL HAS ?person_id=
-        if (queryPersonId !== "") {
-            sessionStorage.setItem("admin_edit_person_id", queryPersonId);
-            setUserID(queryPersonId);
-            return;
-        }
-
-
-        // ⭐ CASE 3: No URL ID and no last selected → start blank
-        setUserID("");
-    }, [queryPersonId]);
-
-
 
     useEffect(() => {
         let consumedFlag = false;
@@ -362,12 +305,12 @@ const RegistrarRequirements = () => {
                 return;
             }
 
-            // fallback only if it's a fresh selection from Applicant List
+            // fallback only if it's a fresh selection from Student List
             const source = sessionStorage.getItem("admin_edit_person_id_source");
             const tsStr = sessionStorage.getItem("admin_edit_person_id_ts");
             const id = sessionStorage.getItem("admin_edit_person_id");
             const ts = tsStr ? parseInt(tsStr, 10) : 0;
-            const isFresh = source === "applicant_list" && Date.now() - ts < 5 * 60 * 1000;
+            const isFresh = source === "Student_list" && Date.now() - ts < 5 * 60 * 1000;
 
             if (id && isFresh) {
                 await fetchByPersonId(id);
@@ -425,16 +368,16 @@ const RegistrarRequirements = () => {
 
 
 
-    const fetchUploadsByApplicantNumber = async (applicant_number) => {
-        if (!applicant_number) return;
+    const fetchUploadsByStudentNumber = async (student_number) => {
+        if (!student_number) return;
         try {
-            const res = await axios.get(`${API_BASE_URL}/uploads/by-applicant/${applicant_number}`);
+            const res = await axios.get(`${API_BASE_URL}/uploads/by-student/${student_number}`);
             setUploads(res.data);
 
 
         } catch (err) {
             console.error('Fetch uploads failed:', err);
-            console.log("Fetching for applicant number:", applicant_number);
+            console.log("Fetching for Student number:", student_number);
         }
     };
 
@@ -445,7 +388,7 @@ const RegistrarRequirements = () => {
             return;
         }
         try {
-            const res = await axios.get(`${API_BASE_URL}/api/person_with_applicant/${personID}`);
+            const res = await axios.get(`${API_BASE_URL}/api/student_data_as_applicant/${personID}`);
             const safePerson = {
                 ...res.data,
                 document_status: res.data.document_status || "",
@@ -457,9 +400,9 @@ const RegistrarRequirements = () => {
         }
     };
 
-    const fetchDocumentStatus = async (applicant_number) => {
+    const fetchDocumentStatus = async (student_number) => {
         try {
-            const response = await axios.get(`${API_BASE_URL}/api/document_status/${applicant_number}`);
+            const response = await axios.get(`${API_BASE_URL}/api/document_status/${student_number}`);
             setDocumentStatus(response.data.document_status);
             setPerson((prev) => ({
                 ...prev,
@@ -471,10 +414,10 @@ const RegistrarRequirements = () => {
     };
 
     useEffect(() => {
-        if (person.applicant_number) {
-            fetchDocumentStatus(person.applicant_number); // <-- pass the param
+        if (person.student_number) {
+            fetchDocumentStatus(person.student_number); // <-- pass the param
         }
-    }, [person.applicant_number]);
+    }, [person.student_number]);
 
 
     useEffect(() => {
@@ -510,14 +453,14 @@ const RegistrarRequirements = () => {
         if (explicitSelection) setExplicitSelection(false);
 
         const match = persons.find((p) =>
-            `${p.first_name} ${p.middle_name} ${p.last_name} ${p.emailAddress} ${p.applicant_number || ""}`
+            `${p.first_name} ${p.middle_name} ${p.last_name} ${p.emailAddress} ${p.student_number || ""}`
                 .toLowerCase()
                 .includes(searchQuery.toLowerCase())
         );
 
         if (match) {
             setSelectedPerson(match);
-            fetchUploadsByApplicantNumber(match.applicant_number);
+            fetchUploadsByStudentNumber(match.student_number);
         } else {
             setSelectedPerson(null);
             setUploads([]);
@@ -538,32 +481,39 @@ const RegistrarRequirements = () => {
 
     const fetchPersons = async () => {
         try {
-            const res = await axios.get(`${API_BASE_URL}/api/upload_documents`);
+            const res = await axios.get(`${API_BASE_URL}/api/student_upload_documents_data`);
+
             setPersons(res.data);
         } catch (err) {
             console.error('Error fetching persons:', err);
         }
     };
 
+
     const handleStatusChange = async (uploadId, remarkValue) => {
+        const remarks = remarksMap[uploadId] || "";
+
         try {
-            await axios.put(`${API_BASE_URL}/uploads/status/${uploadId}`, {
+            await axios.put(`${API_BASE_URL}/uploads/student/remarks/${uploadId}`, {
                 status: remarkValue,
+                remarks,
                 user_id: userID,
             });
 
-            // ✅ Optimistic update for UI
+            // ✅ Optimistically update uploads state
             setUploads((prev) =>
                 prev.map((u) =>
                     u.upload_id === uploadId
-                        ? { ...u, status: parseInt(remarkValue, 10) }
+                        ? { ...u, status: parseInt(remarkValue, 10), remarks }
                         : u
                 )
             );
 
-            // ✅ Refresh from backend to ensure sync
-            if (selectedPerson?.applicant_number) {
-                await fetchUploadsByApplicantNumber(selectedPerson.applicant_number);
+            setEditingRemarkId(null);
+
+            // still fetch to keep in sync with backend
+            if (selectedPerson?.student_number) {
+                fetchUploadsByStudentNumber(selectedPerson.student_number);
             }
         } catch (err) {
             console.error("Error updating Status:", err);
@@ -576,7 +526,7 @@ const RegistrarRequirements = () => {
 
         try {
             await axios.put(
-                `${API_BASE_URL}/api/document_status/${person.applicant_number}`,
+                `${API_BASE_URL}/api/document_status/${person.student_number}`,
                 {
                     document_status: newStatus,
                     user_id: localStorage.getItem("person_id"),
@@ -584,11 +534,11 @@ const RegistrarRequirements = () => {
             );
 
             // ✅ Refresh evaluator and document status
-            await fetchDocumentStatus(person.applicant_number);
+            await fetchDocumentStatus(person.student_number);
 
             // ✅ Also refresh uploads list to update row values in the table
-            if (person.applicant_number) {
-                await fetchUploadsByApplicantNumber(person.applicant_number);
+            if (person.student_number) {
+                await fetchUploadsByStudentNumber(person.student_number);
             }
 
             console.log("Document status updated and UI refreshed!");
@@ -617,7 +567,7 @@ const RegistrarRequirements = () => {
             formData.append("person_id", selectedPerson.person_id);
             formData.append("remarks", selectedFiles.remarks || "");
 
-            await axios.post(`${API_BASE_URL}/api/upload`, formData, {
+            await axios.post(`${API_BASE_URL}/api/student/upload`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                     "x-person-id": localStorage.getItem("person_id"), // ✅ now inside headers
@@ -628,8 +578,8 @@ const RegistrarRequirements = () => {
             showSnackbar("✅ Upload successful!", "success");
 
             setSelectedFiles({});
-            if (selectedPerson?.applicant_number) {
-                fetchUploadsByApplicantNumber(selectedPerson.applicant_number);
+            if (selectedPerson?.student_number) {
+                fetchUploadsByStudentNumber(selectedPerson.student_number);
             }
         } catch (error) {
             console.error("Upload failed:", error);
@@ -648,8 +598,8 @@ const RegistrarRequirements = () => {
                 withCredentials: true,
             });
 
-            if (selectedPerson?.applicant_number) {
-                fetchUploadsByApplicantNumber(selectedPerson.applicant_number);
+            if (selectedPerson?.student_number) {
+                fetchUploadsByStudentNumber(selectedPerson.student_number);
             }
         } catch (err) {
             console.error('Delete error:', err);
@@ -658,9 +608,9 @@ const RegistrarRequirements = () => {
 
 
 
- const renderRow = (doc) => {
-  const uploaded = uploads.find((u) => u.description === doc.label);
-  const uploadId = uploaded?.upload_id;
+    const renderRow = (doc) => {
+        const uploaded = uploads.find((u) => u.description === doc.label);
+        const uploadId = uploaded?.upload_id;
 
         const buttonStyle = {
             minWidth: 120,
@@ -670,28 +620,22 @@ const RegistrarRequirements = () => {
             textTransform: 'none',
         };
 
-
-
-
-
-
         return (
             <TableRow key={doc.key}>
                 <TableCell sx={{ fontWeight: 'bold', width: '20%', border: `2px solid ${borderColor}` }}>
                     {doc.label}
                     {Number(doc.is_optional) === 1 && (
-                        <span style={{ marginLeft: 2 }}>
+                             <span style={{ marginLeft: 2 }}>
                             (Optional)
                         </span>
                     )}
                 </TableCell>
+
                 <TableCell sx={{ width: '20%', border: `2px solid ${borderColor}` }}>
                     {uploadId && editingRemarkId === uploadId ? (
                         // 🔥 TEXTFIELD ONLY
                         <TextField
-                            InputProps={{
-                                readOnly: true,
-                            }}
+                            disabled
                             size="small"
                             fullWidth
                             autoFocus
@@ -703,7 +647,7 @@ const RegistrarRequirements = () => {
                             onBlur={async () => {
                                 const finalRemark = (remarksMap[uploadId] || "").trim();
 
-                                await axios.put(`${API_BASE_URL}/uploads/remarks/${uploadId}`, {
+                                await axios.put(`${API_BASE_URL}uploads/remarks/${uploadId}`, {
                                     remarks: finalRemark,
                                     status: uploads.find((u) => u.upload_id === uploadId)?.status || "0",
                                     user_id: userID,
@@ -720,7 +664,7 @@ const RegistrarRequirements = () => {
                                     e.preventDefault();
                                     const finalRemark = (remarksMap[uploadId] || "").trim();
 
-                                    await axios.put(`${API_BASE_URL}/uploads/remarks/${uploadId}`, {
+                                    await axios.put(`${API_BASE_URL}uploads/remarks/${uploadId}`, {
                                         remarks: finalRemark,
                                         status: uploads.find((u) => u.upload_id === uploadId)?.status || "0",
                                         user_id: userID,
@@ -737,7 +681,6 @@ const RegistrarRequirements = () => {
                     ) : (
                         // 📌 DISPLAY MODE with GRAY BORDER (click to edit)
                         <Box
-                            disabled
                             onClick={() => {
                                 if (!uploadId) return;
                                 setEditingRemarkId(uploadId);
@@ -746,7 +689,6 @@ const RegistrarRequirements = () => {
                                     [uploadId]: uploaded?.remarks ?? "",
                                 }));
                             }}
-
                             sx={{
                                 cursor: uploadId ? "pointer" : "default",
                                 fontStyle: uploaded?.remarks ? "normal" : "italic",
@@ -766,10 +708,6 @@ const RegistrarRequirements = () => {
                         </Box>
                     )}
                 </TableCell>
-
-
-
-
 
                 <TableCell align="center" sx={{ width: '15%', border: `2px solid ${borderColor}` }}>
                     {uploaded ? (
@@ -840,8 +778,8 @@ const RegistrarRequirements = () => {
                 </TableCell>
 
                 <TableCell style={{ border: `2px solid ${borderColor}` }}>
-                    {(selectedPerson?.applicant_number || person?.applicant_number)
-                        ? `[${selectedPerson?.applicant_number || person?.applicant_number}] ${(selectedPerson?.last_name || person?.last_name || "").toUpperCase()}, ${(selectedPerson?.first_name || person?.first_name || "").toUpperCase()} ${(selectedPerson?.middle_name || person?.middle_name || "").toUpperCase()} ${(selectedPerson?.extension || person?.extension || "").toUpperCase()}`
+                    {(selectedPerson?.student_number || person?.student_number)
+                        ? `[${selectedPerson?.student_number || person?.student_number}] ${(selectedPerson?.last_name || person?.last_name || "").toUpperCase()}, ${(selectedPerson?.first_name || person?.first_name || "").toUpperCase()} ${(selectedPerson?.middle_name || person?.middle_name || "").toUpperCase()} ${(selectedPerson?.extension || person?.extension || "").toUpperCase()}`
                         : ""}
                 </TableCell>
 
@@ -881,8 +819,6 @@ const RegistrarRequirements = () => {
                                     Preview
                                 </Button>
 
-
-
                                 <Button
                                     disabled
                                     onClick={() => handleConfirmDelete(uploaded)}
@@ -898,6 +834,7 @@ const RegistrarRequirements = () => {
                                     Delete
                                 </Button>
 
+
                             </>
                         ) : null}
                     </Box>
@@ -908,9 +845,6 @@ const RegistrarRequirements = () => {
         );
     };
 
-
-
-    // Put this at the very bottom before the return 
     if (loading || hasAccess === null) {
         return <LoadingOverlay open={loading} message="Loading..." />;
     }
@@ -921,10 +855,9 @@ const RegistrarRequirements = () => {
         );
     }
 
-
-
     return (
         <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
+
 
             {/* Top header: DOCUMENTS SUBMITTED + Search */}
             <Box
@@ -951,7 +884,7 @@ const RegistrarRequirements = () => {
 
                 <TextField
                     variant="outlined"
-                    placeholder="Search Applicant Name / Email / Applicant ID"
+                    placeholder="Search Student Name / Email / Student ID"
                     size="small"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -982,12 +915,12 @@ const RegistrarRequirements = () => {
                     gap: 2,
                 }}
             >
-                {tabs.map((tab, index) => (
+                {tabs1.map((tab, index) => (
                     <Card
                         key={index}
                         onClick={() => handleStepClick(index, tab.to)}
                         sx={{
-                            flex: `1 1 ${100 / tabs.length}%`, // evenly divide row
+                            flex: `1 1 ${100 / tabs1.length}%`, // evenly divide row
                             height: 135,
                             display: "flex",
                             alignItems: "center",
@@ -1006,6 +939,7 @@ const RegistrarRequirements = () => {
                                 backgroundColor: activeStep === index ? "#000000" : "#f5d98f",
                             },
                         }}
+
                     >
                         <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                             <Box sx={{ fontSize: 40, mb: 1 }}>{tab.icon}</Box>
@@ -1017,28 +951,26 @@ const RegistrarRequirements = () => {
                 ))}
             </Box>
 
-            <div style={{ height: "40px" }}></div>
-
-
-            {/* Applicant ID and Name */}
+            <br />
+            {/* Student ID and Name */}
             <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}` }}>
                 <Table>
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
                         <TableRow>
-                            {/* Left cell: Applicant ID */}
-                            <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: 'Arial Black', }}>
-                                Applicant ID:&nbsp;
+                            {/* Left cell: Student ID */}
+                            <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: 'Arial Black', border: 'none' }}>
+                                Student ID:&nbsp;
                                 <span style={{ fontFamily: "Arial", fontWeight: "normal", textDecoration: "underline" }}>
-                                    {selectedPerson?.applicant_number || person?.applicant_number || "N/A"}
+                                    {selectedPerson?.student_number || person?.student_number || "N/A"}
                                 </span>
                             </TableCell>
 
-                            {/* Right cell: Applicant Name, right-aligned */}
+                            {/* Right cell: Student Name, right-aligned */}
                             <TableCell
                                 align="right"
-                                sx={{ color: 'white', fontSize: '20px', fontFamily: 'Arial Black', }}
+                                sx={{ color: 'white', fontSize: '20px', fontFamily: 'Arial Black', border: 'none' }}
                             >
-                                Applicant Name:&nbsp;
+                                Student Name:&nbsp;
                                 <span style={{ fontFamily: "Arial", fontWeight: "normal", textDecoration: "underline" }}>
                                     {(selectedPerson?.last_name || person?.last_name || "").toUpperCase()},
                                     &nbsp;{(selectedPerson?.first_name || person?.first_name || "").toUpperCase()}{" "}
@@ -1052,8 +984,8 @@ const RegistrarRequirements = () => {
             </TableContainer>
 
 
-            <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}` }}>
-                {/* SHS GWA and Height row below Applicant Name */}
+            <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+                {/* SHS GWA and Height row below Student Name */}
                 <Box sx={{ px: 2, mb: 2, mt: 2 }}>
                     {/* SHS GWA Field */}
                     <Box sx={{ display: "flex", alignItems: "center", mb: 1, }}>
@@ -1069,6 +1001,7 @@ const RegistrarRequirements = () => {
                             SHS GWA:
                         </Typography>
                         <TextField
+                            readOnly
                             size="small"
                             name="generalAverage1"
                             value={person.generalAverage1 || ""}
@@ -1099,6 +1032,7 @@ const RegistrarRequirements = () => {
                             Height:
                         </Typography>
                         <TextField
+                            readOnly
                             size="small"
                             name="height"
                             value={person.height || ""}
@@ -1165,7 +1099,7 @@ const RegistrarRequirements = () => {
                                 <MenuItem value="ALS Passer">ALS (Alternative Learning System) Passer</MenuItem>
                                 <MenuItem value="Transferee">Transferee from other University/College</MenuItem>
                                 <MenuItem value="Cross Enrolee">Cross Enrolee Student</MenuItem>
-                                <MenuItem value="Foreign Applicant">Foreign Applicant/Student</MenuItem>
+                                <MenuItem value="Foreign Student">Foreign Student/Student</MenuItem>
                                 <MenuItem value="Baccalaureate Graduate">Baccalaureate Graduate</MenuItem>
                                 <MenuItem value="Master Degree Graduate">Master Degree Graduate</MenuItem>
                             </TextField>
@@ -1392,7 +1326,6 @@ const RegistrarRequirements = () => {
 
                                 {/* 🟢 Submit Button */}
                                 <Button
-                                    disabled
                                     variant="contained"
                                     color="success"
                                     sx={{
@@ -1402,7 +1335,7 @@ const RegistrarRequirements = () => {
                                         width: 250
                                     }}
                                     onClick={() => handleConfirmUpload({ label: "New Document" })}
-
+                                    disabled={!selectedFiles.file}
                                 >
                                     Submit Documents
                                 </Button>
@@ -1434,6 +1367,7 @@ const RegistrarRequirements = () => {
 
 
 
+
             <>
                 <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}` }}>
                     <Table>
@@ -1447,7 +1381,7 @@ const RegistrarRequirements = () => {
                                 <TableCell sx={{ color: 'white', textAlign: "Center", border: `2px solid ${borderColor}` }}>Action</TableCell>
                             </TableRow>
                         </TableHead>
-                        <TableBody sx={{ border: `2px solid ${borderColor}` }}>
+                        <TableBody>
                             {requirements.map((doc) =>
                                 renderRow({
                                     label: doc.description,
@@ -1501,9 +1435,9 @@ const RegistrarRequirements = () => {
 
             </>
 
+        </Box>
 
-        </Box >
     );
 };
 
-export default RegistrarRequirements;
+export default OfficialRequirements;

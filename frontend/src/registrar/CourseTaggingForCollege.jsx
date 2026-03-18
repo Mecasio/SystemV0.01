@@ -39,6 +39,10 @@ import SearchIcon from '@mui/icons-material/Search';
 import API_BASE_URL from "../apiConfig";
 import { useNavigate } from "react-router-dom";
 import ScoreIcon from '@mui/icons-material/Score';
+import ListAltIcon from '@mui/icons-material/ListAlt';
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
+
 const CourseTaggingForCollege = () => {
   const settings = useContext(SettingsContext);
 
@@ -146,27 +150,19 @@ const CourseTaggingForCollege = () => {
   };
 
   const tabs = [
-    { label: "Admission Process For College", to: "/applicant_list", icon: <SchoolIcon fontSize="large" /> },
-    { label: "Applicant Form", to: "/registrar_dashboard1", icon: <AssignmentIcon fontSize="large" /> },
-    { label: "Student Requirements", to: "/registrar_requirements", icon: <AssignmentTurnedInIcon fontSize="large" /> },
-    { label: "Qualifying / Interview Exam Score", to: "/qualifying_interview_exam_scores", icon: <ScoreIcon fontSize="large" /> },
-    { label: "Student Numbering", to: "/student_numbering_per_college", icon: <DashboardIcon fontSize="large" /> },
-    { label: "Course Tagging", to: "/course_tagging_for_college", icon: <MenuBookIcon fontSize="large" /> },
-    {
-      label: (
-        <>
-          Certificate of <br />
-          Registration
-        </>
-      ),
-      to: "/search_cor_for_college",
-      icon: <SearchIcon fontSize="large" />,
-    },
+       { label: "Student List", to: "/student_list_for_enrollment", icon: <ListAltIcon /> },
+    { label: "Applicant Form", to: "/official_student_dashboard1", icon: <PersonAddIcon /> },
+    { label: "Submitted Documents", to: "/student_official_requirements", icon: <UploadFileIcon /> },
+    { label: "Course Tagging", to: "/course_tagging_for_college", icon: <UploadFileIcon /> },
+    { label: "Search COR", to: "/search_cor_for_college", icon: <MenuBookIcon /> },
+
+    { label: "Class List", to: "/class_roster_enrollment", icon: <PersonSearchIcon /> },
+
 
   ];
 
   const navigate = useNavigate();
-  const [activeStep, setActiveStep] = useState(5);
+  const [activeStep, setActiveStep] = useState(3);
   const [clickedSteps, setClickedSteps] = useState(
     Array(tabs.length).fill(false)
   );
@@ -362,7 +358,7 @@ const CourseTaggingForCollege = () => {
       const courseRes = await axios.get(
         `${API_BASE_URL}/api/search-student/${sectionId}`
       );
-      
+
       if (courseRes.data.length > 0) {
         setCurr(courseRes.data[0].curriculum_id);
         setCourseCode(courseRes.data[0].program_code);
@@ -914,7 +910,7 @@ const CourseTaggingForCollege = () => {
         (activeSemesterId ? c.semester_id === activeSemesterId : true),
     );
     if (newCourses.length === 0) return;
-    
+
     console.log("Hello: ", newCourses);
 
     const coursesWithPrereq = newCourses.filter((c) => hasCoursePrereq(c));

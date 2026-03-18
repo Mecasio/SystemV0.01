@@ -178,16 +178,7 @@ const ApplicantList = () => {
       to: "/student_numbering_per_college",
       icon: <DashboardIcon fontSize="large" />,
     },
-    {
-      label: "Course Tagging",
-      to: "/course_tagging",
-      icon: <MenuBookIcon fontSize="large" />,
-    },
-    {
-      label: "Certificate of Registration",
-      to: "/search_cor_for_college",
-      icon: <SearchIcon fontSize="large" />,
-    },
+  
   ];
 
   const navigate = useNavigate();

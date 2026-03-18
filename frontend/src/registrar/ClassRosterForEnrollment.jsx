@@ -32,6 +32,9 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
+import PersonSearchIcon from "@mui/icons-material/PersonSearch";
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 
 const GLOBAL_PAGE_IDS = [13,15,17,38,39,40,41,42,50,56,59,62,73,80,92,96,101,104,105,106,117];
 const GLOBAL_ACCESS_THRESHOLD = 10; // strictly more than 10
@@ -103,18 +106,19 @@ const ClassRoster = () => {
 
   // If the current URL is in URL_SCOPE_MAP the scope is pinned — no API call needed.
   const urlForcedScope = URL_SCOPE_MAP[location.pathname] ?? null;
-  const [activeStep, setActiveStep] = useState(2);
+  const [activeStep, setActiveStep] = useState(5);
 
   const remarksMap = { 0: "Ongoing", 1: "Passed", 2: "Failed", 3: "Incomplete", 4: "Drop" };
 
   const tabs1 = [
-    { label: "Applicant List",                    to: "/super_admin_applicant_list",  icon: <ListAltIcon /> },
-    { label: "Applicant Form",                    to: "/readmission_dashboard1",       icon: <PersonAddIcon /> },
-    { label: "Class List",                        to: "/class_roster",                 icon: <ClassIcon /> },
-    { label: "Search Certificate of Registration",to: "/search_cor",                  icon: <SearchIcon /> },
-    { label: "Student Numbering",                 to: "/student_numbering",            icon: <ConfirmationNumberIcon /> },
-    { label: "Report of Grades",                  to: "/report_of_grades",             icon: <GradeIcon /> },
-    { label: "Transcript of Records",             to: "/transcript_of_records",        icon: <SchoolIcon /> },
+        { label: "Student List", to: "/student_list_for_enrollment", icon: <ListAltIcon /> },
+    { label: "Applicant Form", to: "/official_student_dashboard1", icon: <PersonAddIcon /> },
+    { label: "Submitted Documents", to: "/student_official_requirements", icon: <UploadFileIcon /> },
+    { label: "Course Tagging", to: "/course_tagging_for_college", icon: <UploadFileIcon /> },
+    { label: "Search COR", to: "/search_cor_for_college", icon: <MenuBookIcon /> },
+
+    { label: "Class List", to: "/class_roster_enrollment", icon: <PersonSearchIcon /> },
+
   ];
 
   // ─────────────────────────────────────────────────────────────────────────────

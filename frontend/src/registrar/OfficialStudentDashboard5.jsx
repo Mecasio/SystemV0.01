@@ -2,8 +2,8 @@ import React, { useState, useEffect, useContext, useRef } from "react";
 import { SettingsContext } from "../App";
 
 import axios from "axios";
-import { Button, Box, TextField, Container, Card, TableContainer, Paper, Table, TableHead, TableRow, Modal, TableCell, Typography, FormControl, FormHelperText, InputLabel, Select, MenuItem, Checkbox, FormControlLabel } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Button, Box, TextField, Container, Typography, Card, TableContainer, Paper, Table, TableHead, TableRow, TableCell, FormHelperText, FormControl, InputLabel, Select, MenuItem, Modal, FormControlLabel, Checkbox, Snackbar, Alert } from "@mui/material";
+import { Link, useLocation } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
 import FamilyRestroomIcon from "@mui/icons-material/FamilyRestroom";
 import SchoolIcon from "@mui/icons-material/School";
@@ -12,24 +12,23 @@ import InfoIcon from "@mui/icons-material/Info";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import FolderIcon from '@mui/icons-material/Folder';
 import ErrorIcon from '@mui/icons-material/Error';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion } from "framer-motion";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import AssignmentIcon from "@mui/icons-material/Assignment";
-import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
-import ScheduleIcon from "@mui/icons-material/Schedule";
-import PersonSearchIcon from "@mui/icons-material/PersonSearch";
-import PeopleIcon from "@mui/icons-material/People";
 import ExamPermit from "../applicant/ExamPermit";
-import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
+import ListAltIcon from "@mui/icons-material/ListAlt";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import ClassIcon from "@mui/icons-material/Class";
+import SearchIcon from "@mui/icons-material/Search";
+import ConfirmationNumberIcon from "@mui/icons-material/ConfirmationNumber";
+import GradeIcon from "@mui/icons-material/Grade";
 import API_BASE_URL from "../apiConfig";
-import MenuBookIcon from '@mui/icons-material/MenuBook';
-import ScoreIcon from '@mui/icons-material/Score';
-import SearchIcon from '@mui/icons-material/Search';
-const RegistrarDashboard5 = () => {
+import UploadFileIcon from '@mui/icons-material/UploadFile';
+import PersonSearchIcon from "@mui/icons-material/PersonSearch";
+
+const OfficialStudentDashboard5 = () => {
 
     const settings = useContext(SettingsContext);
 
@@ -70,51 +69,32 @@ const RegistrarDashboard5 = () => {
 
     }, [settings]);
 
-
     const stepsData = [
-     {
-         label: "Admission Process For College",
-         to: "/applicant_list",
-         icon: <SchoolIcon fontSize="large" />,
-       },
-       {
-         label: "Applicant Form",
-         to: "/registrar_dashboard1",
-         icon: <AssignmentIcon fontSize="large" />,
-       },
-       {
-         label: "Student Requirements",
-         to: "/registrar_requirements",
-         icon: <AssignmentTurnedInIcon fontSize="large" />,
-       },
-       {
-         label: "Qualifying / Interview Exam Score",
-         to: "/qualifying_interview_exam_scores",
-         icon: <ScoreIcon fontSize="large" />,
-       },
-       {
-         label: "Student Numbering",
-         to: "/student_numbering_per_college",
-         icon: <DashboardIcon fontSize="large" />,
-       },
-     
-
+     { label: "Student List", to: "/student_list_for_enrollment", icon: <ListAltIcon /> },
+     { label: "Applicant Form", to: "/official_student_dashboard1", icon: <PersonAddIcon /> },
+     { label: "Submitted Documents", to: "/student_official_requirements", icon: <UploadFileIcon /> },
+     { label: "Course Tagging", to: "/course_tagging_for_college", icon: <UploadFileIcon /> },
+     { label: "Search COR", to: "/search_cor_for_college", icon: <MenuBookIcon /> },
+ 
+     { label: "Class List", to: "/class_roster_enrollment", icon: <PersonSearchIcon /> },
+ 
     ];
 
     const [currentStep, setCurrentStep] = useState(1);
     const [visitedSteps, setVisitedSteps] = useState(Array(stepsData.length).fill(false));
 
-    const fetchByPersonId = async (personID) => {
-        try {
-            const res = await axios.get(`${API_BASE_URL}/api/person_with_applicant/${personID}`);
-            setPerson(res.data);
-            setSelectedPerson(res.data);
-            if (res.data?.applicant_number) {
-            }
-        } catch (err) {
-            console.error("❌ person_with_applicant failed:", err);
-        }
-    };
+
+
+
+    const navigate = useNavigate();
+    const [userID, setUserID] = useState("");
+    const [user, setUser] = useState("");
+    const [userRole, setUserRole] = useState("");
+    const [snack, setSnack] = useState({ open: false, message: "", severity: "info" });
+    const [person, setPerson] = useState({
+        termsOfAgreement: "",
+    });
+
 
     const handleNavigateStep = (index, to) => {
         setCurrentStep(index);
@@ -127,23 +107,11 @@ const RegistrarDashboard5 = () => {
         }
     };
 
-
-    const navigate = useNavigate();
-    const [explicitSelection, setExplicitSelection] = useState(false);
-
-    const [userID, setUserID] = useState("");
-    const [user, setUser] = useState("");
-    const [userRole, setUserRole] = useState("");
-    const [selectedPerson, setSelectedPerson] = useState(null);
-
-
-
-
     const [hasAccess, setHasAccess] = useState(null);
     const [loading, setLoading] = useState(false);
 
 
-    const pageId = 47;
+    const pageId = 135;
 
     const [employeeID, setEmployeeID] = useState("");
 
@@ -192,14 +160,6 @@ const RegistrarDashboard5 = () => {
 
 
 
-
-
-
-    const [person, setPerson] = useState({
-        termsOfAgreement: "",
-    });
-
-
     const location = useLocation();
 
     const queryParams = new URLSearchParams(location.search);
@@ -243,85 +203,86 @@ const RegistrarDashboard5 = () => {
         setUserID("");
     }, [queryPersonId]);
 
+    const [studentData, setStudentData] = useState(null);
 
+    const params = new URLSearchParams(location.search);
+
+    const person_id = params.get("person_id");
+    const student_number = params.get("student_number");
 
     useEffect(() => {
-        let consumedFlag = false;
-
-        const tryLoad = async () => {
-            if (queryPersonId) {
-                await fetchByPersonId(queryPersonId);
-                setExplicitSelection(true);
-                consumedFlag = true;
-                return;
-            }
-
-            // fallback only if it's a fresh selection from Applicant List
-            const source = sessionStorage.getItem("admin_edit_person_id_source");
-            const tsStr = sessionStorage.getItem("admin_edit_person_id_ts");
-            const id = sessionStorage.getItem("admin_edit_person_id");
-            const ts = tsStr ? parseInt(tsStr, 10) : 0;
-            const isFresh = source === "applicant_list" && Date.now() - ts < 5 * 60 * 1000;
-
-            if (id && isFresh) {
-                await fetchByPersonId(id);
-                setExplicitSelection(true);
-                consumedFlag = true;
+        const fetchStudent = async () => {
+            try {
+                const res = await axios.get(`${API_BASE_URL}/api/student-info`, {
+                    params: { person_id, student_number }
+                });
+                setStudentData(res.data);
+            } catch (err) {
+                console.error(err);
             }
         };
 
-        tryLoad().finally(() => {
-            // consume the freshness so it won't auto-load again later
-            if (consumedFlag) {
-                sessionStorage.removeItem("admin_edit_person_id_source");
-                sessionStorage.removeItem("admin_edit_person_id_ts");
-            }
-        });
-    }, [queryPersonId]);
+        if (person_id || student_number) fetchStudent();
+    }, [person_id, student_number]);
 
 
+    const [selectedPerson, setSelectedPerson] = useState(null);
 
 
-    const steps = person.person_id
-        ? [
-            { label: "Personal Information", icon: <PersonIcon />, path: `/registrar_dashboard1?person_id=${userID}` },
-            { label: "Family Background", icon: <FamilyRestroomIcon />, path: `/registrar_dashboard2?person_id=${userID}` },
-            { label: "Educational Attainment", icon: <SchoolIcon />, path: `/registrar_dashboard3?person_id=${userID}` },
-            { label: "Health Medical Records", icon: <HealthAndSafetyIcon />, path: `/registrar_dashboard4?person_id=${userID}` },
-            { label: "Other Information", icon: <InfoIcon />, path: `/registrar_dashboard5?person_id=${userID}` },
-        ]
-        : [];
 
 
     const [activeStep, setActiveStep] = useState(4);
+    const [clickedSteps, setClickedSteps] = useState([]);
+
+    const steps = [
+        { label: "Personal Information", icon: <PersonIcon />, path: "/readmission_dashboard1" },
+        { label: "Family Background", icon: <FamilyRestroomIcon />, path: "/readmission_dashboard2" },
+        { label: "Educational Attainment", icon: <SchoolIcon />, path: "/readmission_dashboard3" },
+        { label: "Health Medical Records", icon: <HealthAndSafetyIcon />, path: "/readmission_dashboard4" },
+        { label: "Other Information", icon: <InfoIcon />, path: "/readmission_dashboard5" },
+    ];
+
+    const handleStepClick = (index) => {
+        setActiveStep(index);
+        setClickedSteps((prev) => [...new Set([...prev, index])]);
+        navigate(steps[index].path); // Go to the clicked step’s page
+    };
+
+
 
     // Do not alter
-    const fetchPersonData = async (id) => {
-        try {
-            const res = await axios.get(`${API_BASE_URL}/api/person/${id}`);
-            setPerson(res.data);
-        } catch (error) { }
-    };
-    // Do not alter
-    const handleUpdate = async (updatedData) => {
-        if (!person || !person.person_id) return;
+    const handleUpdate = async () => {
+        const currentDate = new Date();
+        const formattedDate = currentDate.toLocaleDateString('en-GB'); // Format: DD/MM/YYYY
 
-        try {
-            await axios.put(`${API_BASE_URL}/api/person/${person.person_id}`, updatedData);
-            console.log("✅ Auto-saved successfully");
-        } catch (error) {
-            console.error("❌ Auto-save failed:", error);
-        }
-    };
-    // Real-time save on every character typed
-    const handleChange = (e) => {
-        const { name, type, checked, value } = e.target;
         const updatedPerson = {
             ...person,
-            [name]: type === "checkbox" ? (checked ? 1 : 0) : value,
+            created_at: person.created_at || formattedDate // Only add if not already set
         };
+
+        try {
+            await axios.put(`${API_BASE_URL}/api/person/${userID}`, updatedPerson);
+            console.log("Auto-saved with created_at:", updatedPerson.created_at);
+        } catch (error) {
+            console.error("Auto-save failed:", error);
+        }
+    };
+
+
+    // ⌨️ Triggered on every character change
+    const handleChange = (e) => {
+        const { name, type, checked, value } = e.target;
+        const updatedValue = type === "checkbox" ? (checked ? 1 : 0) : value;
+
+        const updatedPerson = { ...person, [name]: updatedValue };
+
+        // Auto-update dependent fields
+        if (name === "classifiedAs" && value === "Freshman (First Year)") {
+            updatedPerson.yearLevel = "First Year";
+        }
+
         setPerson(updatedPerson);
-        handleUpdate(updatedPerson); // No delay, real-time save
+        handleUpdate(updatedPerson); // 🔥 Real-time save to ENROLLMENT
     };
 
 
@@ -407,30 +368,15 @@ const RegistrarDashboard5 = () => {
         }
     };
 
+
     const [errors, setErrors] = useState({});
-    const isFormValid = () => {
-        let newErrors = {};
-        let isValid = true;
 
-        if (person.termsOfAgreement !== 1) {
-            newErrors.termsOfAgreement = true;
-            isValid = false;
-        }
 
-        setErrors(newErrors);
-        return isValid;
+
+    const handleClose = (_, reason) => {
+        if (reason === 'clickaway') return;
+        setSnack(prev => ({ ...prev, open: false }));
     };
-
-
-    const [clickedSteps, setClickedSteps] = useState(Array(steps.length).fill(false));
-
-    const handleStepClick = (index) => {
-        setActiveStep(index);
-        const newClickedSteps = [...clickedSteps];
-        newClickedSteps[index] = true;
-        setClickedSteps(newClickedSteps);
-    };
-
 
     const divToPrintRef = useRef();
     const [showPrintView, setShowPrintView] = useState(false);
@@ -482,29 +428,6 @@ const RegistrarDashboard5 = () => {
         setExamPermitError("");
     };
 
-    const handleExamPermitClick = async () => {
-        try {
-            const res = await axios.get(`${API_BASE_URL}/api/verified-exam-applicants`);
-            const verified = res.data.some(a => a.person_id === parseInt(userID));
-
-            if (!verified) {
-                setExamPermitError("❌ You cannot print the Exam Permit until all required documents are verified.");
-                setExamPermitModalOpen(true);
-                return;
-            }
-
-            // ✅ Render permit and print
-            setShowPrintView(true);
-            setTimeout(() => {
-                printDiv();
-                setShowPrintView(false);
-            }, 500);
-        } catch (err) {
-            console.error("Error verifying exam permit eligibility:", err);
-            setExamPermitError("⚠️ Unable to check document verification status right now.");
-            setExamPermitModalOpen(true);
-        }
-    };
 
     const links = [
         {
@@ -524,10 +447,8 @@ const RegistrarDashboard5 = () => {
             label: `Application For ${shortTerm ? shortTerm.toUpperCase() : ""} College Admission`,
         },
         { to: "/admission_services", label: "Application/Student Satisfactory Survey" },
-        { label: "Examination Permit", onClick: handleExamPermitClick },
+
     ];
-
-
 
 
 
@@ -542,6 +463,21 @@ const RegistrarDashboard5 = () => {
             });
     }, [userID]);
 
+
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchError, setSearchError] = useState("");
+
+    useEffect(() => {
+        const savedPerson = sessionStorage.getItem("admin_edit_person_data");
+        if (savedPerson) {
+            try {
+                const parsed = JSON.parse(savedPerson);
+                setPerson(parsed);
+            } catch (err) {
+                console.error("Failed to parse saved person:", err);
+            }
+        }
+    }, []);
 
 
     // Put this at the very bottom before the return 
@@ -566,6 +502,8 @@ const RegistrarDashboard5 = () => {
             )}
 
 
+
+            {/* Top header: DOCUMENTS SUBMITTED + Search */}
             <Box
                 sx={{
                     display: 'flex',
@@ -587,10 +525,14 @@ const RegistrarDashboard5 = () => {
                 >
                     APPLICANT FORM - OTHER INFORMATION
                 </Typography>
+
+
             </Box>
+
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
             <br />
+
 
 
             <Box
@@ -610,7 +552,7 @@ const RegistrarDashboard5 = () => {
                             onClick={() => handleNavigateStep(index, step.to)}
                             sx={{
                                 flex: `1 1 ${100 / stepsData.length}%`, // evenly divide width
-                                height: 140,
+                                height: 120,
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
@@ -662,30 +604,27 @@ const RegistrarDashboard5 = () => {
                 ))}
             </Box>
 
-
-            <div style={{ height: "40px" }}></div>
-
+            <br />
 
 
             <TableContainer component={Paper} sx={{ width: '100%', mb: 1 }}>
                 <Table>
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `2px solid ${borderColor}`, }}>
                         <TableRow>
-                            {/* Left cell: Applicant ID */}
+                            {/* Left cell: Student Number */}
                             <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: 'Arial Black', border: 'none' }}>
-                                Applicant ID:&nbsp;
+                                Student Number:&nbsp;
                                 <span style={{ fontFamily: "Arial", fontWeight: "normal", textDecoration: "underline" }}>
-                                    {person?.applicant_number || "N/A"}
-
+                                    {person?.student_number || "N/A"}
                                 </span>
                             </TableCell>
 
-                            {/* Right cell: Applicant Name */}
+                            {/* Right cell: Student Name */}
                             <TableCell
                                 align="right"
                                 sx={{ color: 'white', fontSize: '20px', fontFamily: 'Arial Black', border: 'none' }}
                             >
-                                Applicant Name:&nbsp;
+                                Student Name:&nbsp;
                                 <span style={{ fontFamily: "Arial", fontWeight: "normal", textDecoration: "underline" }}>
                                     {person?.last_name?.toUpperCase()}, {person?.first_name?.toUpperCase()}{" "}
                                     {person?.middle_name?.toUpperCase()} {person?.extension?.toUpperCase() || ""}
@@ -695,8 +634,6 @@ const RegistrarDashboard5 = () => {
                     </TableHead>
                 </Table>
             </TableContainer>
-
-
 
             <Box
                 sx={{
@@ -853,6 +790,7 @@ const RegistrarDashboard5 = () => {
 
             <Container maxWidth="lg">
 
+
                 <Container>
                     <h1
                         style={{
@@ -882,68 +820,68 @@ const RegistrarDashboard5 = () => {
                 </Container>
 
                 <br />
-                {person.person_id && (
-                    <Box sx={{ display: "flex", justifyContent: "center", width: "100%", px: 4 }}>
-                        {steps.map((step, index) => (
-                            <React.Fragment key={index}>
-                                {/* Wrap the step with Link for routing */}
-                                <Link to={step.path} style={{ textDecoration: "none" }}>
+                <Box sx={{ display: "flex", justifyContent: "center", width: "100%", px: 4 }}>
+                    {steps.map((step, index) => (
+                        <React.Fragment key={index}>
+                            {/* Wrap the step with Link for routing */}
+                            <Link to={step.path} style={{ textDecoration: "none" }}>
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        alignItems: "center",
+                                        cursor: "pointer",
+                                    }}
+                                    onClick={() => handleStepClick(index)}
+                                >
+                                    {/* Step Icon */}
                                     <Box
                                         sx={{
+                                            width: 50,
+                                            height: 50,
+                                            borderRadius: "50%",
+                                            border: `2px solid ${borderColor}`,
+                                            backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
+                                            color: activeStep === index ? "#fff" : "#000",
                                             display: "flex",
-                                            flexDirection: "column",
                                             alignItems: "center",
-                                            cursor: "pointer",
+                                            justifyContent: "center",
                                         }}
-                                        onClick={() => handleStepClick(index)}
                                     >
-                                        {/* Step Icon */}
-                                        <Box
-                                            sx={{
-                                                width: 50,
-                                                height: 50,
-                                                borderRadius: "50%",
-                                                border: `2px solid ${borderColor}`,
-                                                backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
-                                                color: activeStep === index ? "#fff" : "#000",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                            }}
-                                        >
-                                            {step.icon}
-                                        </Box>
-
-                                        {/* Step Label */}
-                                        <Typography
-                                            sx={{
-                                                mt: 1,
-                                                color: activeStep === index ? "#6D2323" : "#000",
-                                                fontWeight: activeStep === index ? "bold" : "normal",
-                                                fontSize: 14,
-                                            }}
-                                        >
-                                            {step.label}
-                                        </Typography>
+                                        {step.icon}
                                     </Box>
-                                </Link>
 
-                                {/* Connector Line */}
-                                {index < steps.length - 1 && (
-                                    <Box
+                                    {/* Step Label */}
+                                    <Typography
                                         sx={{
-                                            height: "2px",
-                                            backgroundColor: mainButtonColor,
-                                            flex: 1,
-                                            alignSelf: "center",
-                                            mx: 2,
+                                            mt: 1,
+                                            color: activeStep === index ? "#6D2323" : "#000",
+                                            fontWeight: activeStep === index ? "bold" : "normal",
+                                            fontSize: 14,
                                         }}
-                                    />
-                                )}
-                            </React.Fragment>
-                        ))}
-                    </Box>
-                )}
+                                    >
+                                        {step.label}
+                                    </Typography>
+                                </Box>
+                            </Link>
+
+                            {/* Connector Line */}
+                            {index < steps.length - 1 && (
+                                <Box
+                                    sx={{
+                                        height: "2px",
+                                        backgroundColor: mainButtonColor,
+                                        flex: 1,
+                                        alignSelf: "center",
+                                        mx: 2,
+                                    }}
+                                />
+                            )}
+                        </React.Fragment>
+                    ))}
+                </Box>
+
+
                 <br />
                 <form>
                     <Container maxWidth="100%" sx={{ backgroundColor: settings?.header_color || "#1976d2", border: "2px solid black", color: "white", borderRadius: 2, boxShadow: 3, padding: "4px" }}>
@@ -989,7 +927,6 @@ const RegistrarDashboard5 = () => {
                             the University.
                         </Typography>
 
-
                         <Typography style={{ fontSize: "12px", fontFamily: "Arial", textAlign: "Left" }}>
                             4. In order to promote efficient management of the organization’s records, I authorize the University to manage my data for data sharing with industry partners, government agencies/embassies, other educational institutions, and other offices for the university for employment, statistics, immigration, transfer credentials, and other legal purposes that may serve me best.
                         </Typography>
@@ -1007,9 +944,10 @@ const RegistrarDashboard5 = () => {
                         <FormControl required error={!!errors.termsOfAgreement} component="fieldset" sx={{ mb: 2 }}>
                             <FormControlLabel
                                 control={
+
                                     <Checkbox
-                                        name="termsOfAgreement"
                                         disabled
+                                        name="termsOfAgreement"
                                         checked={person.termsOfAgreement === 1}
                                         onChange={handleChange}
                                         onBlur={handleBlur}
@@ -1021,7 +959,6 @@ const RegistrarDashboard5 = () => {
                                 <FormHelperText>This field is required.</FormHelperText>
                             )}
                         </FormControl>
-
 
                         <Modal
                             open={examPermitModalOpen}
@@ -1072,8 +1009,7 @@ const RegistrarDashboard5 = () => {
                             <Button
                                 variant="contained"
                                 component={Link}
-                                to={`/registrar_dashboard4?person_id=${userID}`}
-
+                                to={`/official_student_dashboard4?person_id=${userID}`}
                                 startIcon={
                                     <ArrowBackIcon
                                         sx={{
@@ -1090,6 +1026,7 @@ const RegistrarDashboard5 = () => {
                                     color: "#000",
                                     "&:hover": {
                                         backgroundColor: "#000000",
+
                                         color: "#fff",
                                         "& .MuiSvgIcon-root": {
                                             color: "#fff",
@@ -1103,25 +1040,37 @@ const RegistrarDashboard5 = () => {
                             <Button
                                 disabled
                                 variant="contained"
-                                onClick={(e) => {
-                                    handleUpdate(); // Save data
+                                onClick={async () => {
 
-                                    if (isFormValid()) {
-                                        navigate("/student_requirements"); // Proceed only if valid
-                                    } else {
-                                        alert("Please complete all required fields before submitting.");
+
+                                    try {
+                                        await axios.post(`${API_BASE_URL}/api/notify-submission`, {
+                                            person_id: userID,
+                                        });
+
+                                        setSnack({
+                                            open: true,
+                                            message:
+                                                "Your account has been successfully registered! Wait for further announcement. Please upload your documents.",
+                                            severity: "success",
+                                        });
+
+                                        setTimeout(() => {
+                                            navigate("/requirements_uploader");
+                                        }, 2000);
+                                    } catch (error) {
+                                        console.error("Notification failed:", error);
                                     }
                                 }}
                                 endIcon={
                                     <FolderIcon
                                         sx={{
-                                            color: '#fff',
-                                            transition: 'color 0.3s',
+                                            color: "#fff",
+                                            transition: "color 0.3s",
                                         }}
                                     />
                                 }
                                 sx={{
-
                                     backgroundColor: mainButtonColor,
                                     border: `2px solid ${borderColor}`,
                                     color: '#fff',
@@ -1134,12 +1083,21 @@ const RegistrarDashboard5 = () => {
                                     },
                                 }}
                             >
-
                                 Submit (Save Information)
                             </Button>
 
 
                         </Box>
+                        <Snackbar
+                            open={snack.open}
+                            autoHideDuration={5000}
+                            onClose={handleClose}
+                            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                        >
+                            <Alert severity={snack.severity} onClose={handleClose} sx={{ width: '100%' }}>
+                                {snack.message}
+                            </Alert>
+                        </Snackbar>
 
 
                     </Container>
@@ -1155,4 +1113,4 @@ const RegistrarDashboard5 = () => {
 };
 
 
-export default RegistrarDashboard5;
+export default OfficialStudentDashboard5;

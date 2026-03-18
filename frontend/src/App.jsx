@@ -23,17 +23,20 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import axios from "axios";
 import "./App.css";
+import Clock from "./components/Clock";
 
 // COMPONENTS FOLDER
 import ProtectedRoute, { isTokenValid } from "./components/ProtectedRoute";
 
 import API_BASE_URL from "./apiConfig";
+import StudentListForEnrollment from "./registrar/StudentListForEnrollment";
 
 // ✅ Create a Context so all components can access settings
 export const SettingsContext = createContext(null);
 
 const Unauthorized = lazy(() => import("./components/Unauthorized"));
 const Register = lazy(() => import("./components/Register"));
+// const AdminRegistrationControl = lazy(() => import("./components/AdminRegistrationControl"));
 const Login = lazy(() => import("./components/Login"));
 const LoginEnrollment = lazy(() => import("./components/LoginEnrollment"));
 const ApplicantForgotPassword = lazy(
@@ -151,6 +154,7 @@ const AssignScheduleToApplicantsQualifyingInterviewer = lazy(
   () => import("./registrar/AssignScheduleToApplicantsQualifyingInterviewer"),
 );
 const ClassRoster = lazy(() => import("./registrar/ClassRoster"));
+const ClassRosterForEnrollment = lazy(() => import("./registrar/ClassRosterForEnrollment"));
 const DepartmentRegistration = lazy(
   () => import("./registrar/DprtmntRegistration"),
 );
@@ -400,10 +404,31 @@ const SearchCorForCollege = lazy(
 const CertificateOfRegistrationForCollege = lazy(
   () => import("./registrar/CertificateOfRegistrationForCollege"),
 );
+const OfficialStudentDashboard1 = lazy(
+  () => import("./registrar/OfficialStudentDashboard1"),
+);
+const OfficialStudentDashboard2 = lazy(
+  () => import("./registrar/OfficialStudentDashboard2"),
+);
+const OfficialStudentDashboard3 = lazy(
+  () => import("./registrar/OfficialStudentDashboard3"),
+);
+const OfficialStudentDashboard4 = lazy(
+  () => import("./registrar/OfficialStudentDashboard4"),
+);
+const OfficialStudentDashboard5 = lazy(
+  () => import("./registrar/OfficialStudentDashboard5"),
+);
+const OfficialRequirements = lazy(
+  () => import("./registrar/OfficialRequirements"),
+);
+
 const CourseTaggingForCollege = lazy(
   () => import("./registrar/CourseTaggingForCollege"),
 );
 const LoadingOverlay = lazy(() => import("./components/LoadingOverlay"));
+
+
 
 function App() {
   const getCachedSettings = () => {
@@ -534,6 +559,8 @@ function App() {
     setIsAuthenticated(false);
   }, []);
 
+
+
   // ✅ Listen for custom 'settingsUpdated' event
   useEffect(() => {
     const handleSettingsUpdate = () => fetchSettings();
@@ -608,37 +635,45 @@ function App() {
                       bgcolor: settings?.header_color || "#1976d2",
                     }}
                   >
-                    <Toolbar>
-                      {settings?.logo_url && (
-                        <img
-                          src={`${API_BASE_URL}${settings.logo_url}?t=${Date.now()}`}
-                          alt="Logo"
-                          style={{
-                            height: "55px",
-                            width: "55px",
-                            borderRadius: "50%",
-                            objectFit: "cover",
-                            marginRight: "12px",
-                            cursor: "pointer",
-                            border: "2px solid white",
-                          }}
-                          onClick={() => window.location.reload()}
-                        />
-                      )}
-                      <Typography variant="h5" sx={{ fontWeight: "bold" }}>
-                        <span
-                          style={{
-                            fontFamily: "Monotype Corsiva",
-                            fontSize: "34px",
-                          }}
-                        >
-                          {settings?.short_term || "SCHOOL NAME"} -
-                        </span>{" "}
-                        <span style={{ fontFamily: "Arial", fontSize: "24px" }}>
-                          {" "}
-                          {settings?.company_name || "SCHOOL NAME"}
-                        </span>
-                      </Typography>
+                    <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+
+                      {/* LEFT SIDE (logo + title) */}
+                      <Box sx={{ display: "flex", alignItems: "center" }}>
+                        {settings?.logo_url && (
+                          <img
+                            src={`${API_BASE_URL}${settings.logo_url}?t=${Date.now()}`}
+                            alt="Logo"
+                            style={{
+                              height: "55px",
+                              width: "55px",
+                              borderRadius: "50%",
+                              objectFit: "cover",
+                              marginRight: "12px",
+                              cursor: "pointer",
+                              border: "2px solid white",
+                            }}
+                            onClick={() => window.location.reload()}
+                          />
+                        )}
+
+                        <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+                          <span style={{ fontFamily: "Poppins", fontSize: "28px" }}>
+                            {settings?.short_term || "SCHOOL NAME"} -
+                          </span>{" "}
+                          <span style={{ fontFamily: "Poppins", fontSize: "24px" }}>
+                            {settings?.company_name || "SCHOOL NAME"}
+                          </span>
+                        </Typography>
+                      </Box>
+
+                      {/* RIGHT SIDE (TIME + DATE) */}
+                      <Box sx={{ textAlign: "right" }}>
+
+                        <Typography sx={{ fontSize: "14px" }}>
+                          <Clock />
+                        </Typography>
+                      </Box>
+
                     </Toolbar>
                   </AppBar>
 
@@ -676,6 +711,7 @@ function App() {
                         }
                       />
                       <Route path="/register" element={<Register />} />
+
                       <Route
                         path="/announcement_slider"
                         element={<AnnouncementSlider />}
@@ -684,6 +720,14 @@ function App() {
                         path="/applicant_forgot_password"
                         element={<ApplicantForgotPassword />}
                       />
+                      {/* <Route
+                        path="/admin_registration_control"
+                        element={
+                          <ProtectedRoute>
+                            <AdminRegistrationControl />
+                          </ProtectedRoute>
+                        }
+                      /> */}
                       <Route
                         path="/applicant_reset_password"
                         element={
@@ -1237,6 +1281,14 @@ function App() {
                         element={
                           <ProtectedRoute>
                             <StudentList />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/student_list_for_enrollment"
+                        element={
+                          <ProtectedRoute>
+                            <StudentListForEnrollment />
                           </ProtectedRoute>
                         }
                       />
@@ -1959,6 +2011,14 @@ function App() {
                         }
                       />
                       <Route
+                        path="/class_roster_enrollment"
+                        element={
+                          <ProtectedRoute>
+                            <ClassRosterForEnrollment />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
                         path="/transcript_of_records"
                         element={
                           <ProtectedRoute>
@@ -2183,6 +2243,55 @@ function App() {
                           </ProtectedRoute>
                         }
                       />
+                      <Route
+                        path="/official_student_dashboard1"
+                        element={
+                          <ProtectedRoute>
+                            <OfficialStudentDashboard1 />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/official_student_dashboard2"
+                        element={
+                          <ProtectedRoute>
+                            <OfficialStudentDashboard2 />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/official_student_dashboard3"
+                        element={
+                          <ProtectedRoute>
+                            <OfficialStudentDashboard3 />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/official_student_dashboard4"
+                        element={
+                          <ProtectedRoute>
+                            <OfficialStudentDashboard4 />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/official_student_dashboard5"
+                        element={
+                          <ProtectedRoute>
+                            <OfficialStudentDashboard5 />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/student_official_requirements"
+                        element={
+                          <ProtectedRoute>
+                            <OfficialRequirements />
+                          </ProtectedRoute>
+                        }
+                      />
+
                     </Routes>
                   </main>
                 </div>

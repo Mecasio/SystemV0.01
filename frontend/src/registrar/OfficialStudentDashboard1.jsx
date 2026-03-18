@@ -1,44 +1,46 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
 import { SettingsContext } from "../App";
+
 import axios from "axios";
 import { Button, Box, TextField, Container, Typography, Card, TableContainer, Paper, Table, TableHead, TableRow, TableCell, FormHelperText, FormControl, InputLabel, Select, MenuItem, Modal, FormControlLabel, Checkbox, IconButton } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import PersonIcon from "@mui/icons-material/Person";
 import FamilyRestroomIcon from "@mui/icons-material/FamilyRestroom";
+import SchoolIcon from "@mui/icons-material/School";
 import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
 import InfoIcon from "@mui/icons-material/Info";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import CloseIcon from "@mui/icons-material/Close";
 import ErrorIcon from "@mui/icons-material/Error";
-import Search from '@mui/icons-material/Search';
 import regions from "../data/region.json";
 import provinces from "../data/province.json";
 import cities from "../data/city.json";
 import barangays from "../data/barangay.json";
 import { useNavigate } from 'react-router-dom';
-import { useLocation } from "react-router-dom";
+import Search from '@mui/icons-material/Search';
 import { motion } from "framer-motion";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
-import PersonIcon from "@mui/icons-material/Person";
-import SchoolIcon from "@mui/icons-material/School";
-import ExamPermit from "../applicant/ExamPermit";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import AssignmentIcon from "@mui/icons-material/Assignment";
-import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
+import { FaFileExcel } from "react-icons/fa";
 import API_BASE_URL from "../apiConfig";
-import ScheduleIcon from "@mui/icons-material/Schedule";
-import PersonSearchIcon from "@mui/icons-material/PersonSearch";
-import PeopleIcon from "@mui/icons-material/People";
-import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
+import ExamPermit from "../applicant/ExamPermit";
+import { Snackbar, Alert } from '@mui/material';
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
+import ListAltIcon from "@mui/icons-material/ListAlt";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import ClassIcon from "@mui/icons-material/Class";
 import SearchIcon from "@mui/icons-material/Search";
-import MenuBookIcon from '@mui/icons-material/MenuBook';
+import ConfirmationNumberIcon from "@mui/icons-material/ConfirmationNumber";
+import GradeIcon from "@mui/icons-material/Grade";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import ScoreIcon from '@mui/icons-material/Score';
+
+import PersonSearchIcon from "@mui/icons-material/PersonSearch";
 
 
-const RegistrarDashboard1 = () => {
+const OfficialStudentDashboard1 = () => {
 
     const settings = useContext(SettingsContext);
 
@@ -90,33 +92,13 @@ const RegistrarDashboard1 = () => {
     }, [settings]);
 
     const stepsData = [
-      {
-      label: "Admission Process For College",
-      to: "/applicant_list",
-      icon: <SchoolIcon fontSize="large" />,
-    },
-    {
-      label: "Applicant Form",
-      to: "/registrar_dashboard1",
-      icon: <AssignmentIcon fontSize="large" />,
-    },
-    {
-      label: "Student Requirements",
-      to: "/registrar_requirements",
-      icon: <AssignmentTurnedInIcon fontSize="large" />,
-    },
-    {
-      label: "Qualifying / Interview Exam Score",
-      to: "/qualifying_interview_exam_scores",
-      icon: <ScoreIcon fontSize="large" />,
-    },
-    {
-      label: "Student Numbering",
-      to: "/student_numbering_per_college",
-      icon: <DashboardIcon fontSize="large" />,
-    },
-  
+      { label: "Student List", to: "/student_list_for_enrollment", icon: <ListAltIcon /> },
+    { label: "Applicant Form", to: "/official_student_dashboard1", icon: <PersonAddIcon /> },
+    { label: "Submitted Documents", to: "/student_official_requirements", icon: <UploadFileIcon /> },
+    { label: "Course Tagging", to: "/course_tagging_for_college", icon: <UploadFileIcon /> },
+    { label: "Search COR", to: "/search_cor_for_college", icon: <MenuBookIcon /> },
 
+    { label: "Class List", to: "/class_roster_enrollment", icon: <PersonSearchIcon /> },
 
     ];
 
@@ -124,45 +106,13 @@ const RegistrarDashboard1 = () => {
     const [visitedSteps, setVisitedSteps] = useState(Array(stepsData.length).fill(false));
 
 
+    const [snack, setSnack] = useState({ open: false, message: '', severity: 'info' });
     const navigate = useNavigate();
-    const [explicitSelection, setExplicitSelection] = useState(false);
-
-    const fetchByPersonId = async (personID) => {
-        try {
-            const res = await axios.get(`${API_BASE_URL}/api/person_with_applicant/${personID}`);
-            setPerson(res.data);
-            setSelectedPerson(res.data);
-            if (res.data?.applicant_number) {
-            }
-        } catch (err) {
-            console.error("❌ person_with_applicant failed:", err);
-        }
-    };
-
-
-
-    const handleNavigateStep = (index, to) => {
-        setCurrentStep(index);
-
-        const pid = sessionStorage.getItem("admin_edit_person_id");
-        if (pid) {
-            navigate(`${to}?person_id=${pid}`);
-        } else {
-            navigate(to);
-        }
-    };
-
-
-
-
     const [userID, setUserID] = useState("");
     const [user, setUser] = useState("");
-
-    const location = useLocation();
-    const [selectedPerson, setSelectedPerson] = useState(null);
-    const [persons, setPersons] = useState([]);
     const [userRole, setUserRole] = useState("");
     const [person, setPerson] = useState({
+        student_number: "",
         profile_img: "",
         campus: "",
         academicProgram: "",
@@ -227,11 +177,22 @@ const RegistrarDashboard1 = () => {
     }, []);
 
 
+    const handleNavigateStep = (index, to) => {
+        setCurrentStep(index);
+
+        const pid = sessionStorage.getItem("admin_edit_person_id");
+        if (pid) {
+            navigate(`${to}?person_id=${pid}`);
+        } else {
+            navigate(to);
+        }
+    };
+
     const [hasAccess, setHasAccess] = useState(null);
     const [loading, setLoading] = useState(false);
 
 
-    const pageId = 43;
+    const pageId = 131;
 
     const [employeeID, setEmployeeID] = useState("");
 
@@ -279,7 +240,8 @@ const RegistrarDashboard1 = () => {
     };
 
 
-
+    // do not alter
+    const location = useLocation();
 
     const queryParams = new URLSearchParams(location.search);
     const queryPersonId = queryParams.get("person_id")?.trim() || "";
@@ -317,116 +279,16 @@ const RegistrarDashboard1 = () => {
         setUserID("");
     }, [queryPersonId]);
 
-
-
-
-
-    useEffect(() => {
-        let consumedFlag = false;
-
-        const tryLoad = async () => {
-            if (queryPersonId) {
-                await fetchByPersonId(queryPersonId);
-                setExplicitSelection(true);
-                consumedFlag = true;
-                return;
-            }
-
-            // fallback only if it's a fresh selection from Applicant List
-            const source = sessionStorage.getItem("admin_edit_person_id_source");
-            const tsStr = sessionStorage.getItem("admin_edit_person_id_ts");
-            const id = sessionStorage.getItem("admin_edit_person_id");
-            const ts = tsStr ? parseInt(tsStr, 10) : 0;
-            const isFresh = source === "applicant_list" && Date.now() - ts < 5 * 60 * 1000;
-
-            if (id && isFresh) {
-                await fetchByPersonId(id);
-                setExplicitSelection(true);
-                consumedFlag = true;
-            }
-        };
-
-        tryLoad().finally(() => {
-            // consume the freshness so it won't auto-load again later
-            if (consumedFlag) {
-                sessionStorage.removeItem("admin_edit_person_id_source");
-                sessionStorage.removeItem("admin_edit_person_id_ts");
-            }
-        });
-    }, [queryPersonId]);
-
-
-
-    // Fetch person by ID (when navigating with ?person_id=... or sessionStorage)
-    useEffect(() => {
-        const fetchPersonById = async () => {
-            if (!userID) return;
-
-            try {
-                const res = await axios.get(`${API_BASE_URL}/api/person_with_applicant/${userID}`);
-                if (res.data) {
-                    setPerson(res.data);
-                    setSelectedPerson(res.data);
-                } else {
-                    console.warn("⚠️ No person found for ID:", userID);
-                }
-            } catch (err) {
-                console.error("❌ Failed to fetch person by ID:", err);
-            }
-        };
-
-        fetchPersonById();
-    }, [userID]);
-
-
-
-
-
-    useEffect(() => {
-        const fetchPersons = async () => {
-            try {
-                const res = await axios.get(`${API_BASE_URL}/api/upload_documents`);
-                setPersons(res.data);
-            } catch (err) {
-                console.error("❌ Failed to fetch persons list", err);
-            }
-        };
-
-        fetchPersons();
-    }, []);
-
-
-
-
-
-
-    const steps = person.person_id
-        ? [
-            { label: "Personal Information", icon: <PersonIcon />, path: `/registrar_dashboard1?person_id=${userID}` },
-            { label: "Family Background", icon: <FamilyRestroomIcon />, path: `/registrar_dashboard2?person_id=${userID}` },
-            { label: "Educational Attainment", icon: <SchoolIcon />, path: `/registrar_dashboard3?person_id=${userID}` },
-            { label: "Health Medical Records", icon: <HealthAndSafetyIcon />, path: `/registrar_dashboard4?person_id=${userID}` },
-            { label: "Other Information", icon: <InfoIcon />, path: `/registrar_dashboard5?person_id=${userID}` },
-        ]
-        : [];
-
-
     const [activeStep, setActiveStep] = useState(0);
-    const [clickedSteps, setClickedSteps] = useState(Array(steps.length).fill(false));
+    const [clickedSteps, setClickedSteps] = useState([]);
 
-    const handleStepClick = (index, to) => {
-        setActiveStep(index);
-
-        const pid = sessionStorage.getItem("admin_edit_person_id");
-        if (pid) {
-            navigate(`${to}?person_id=${pid}`);
-        } else {
-            navigate(to);
-        }
-    };
-
-
-    // dot not alter
+    const steps = [
+        { label: "Personal Information", icon: <PersonIcon />, path: "/official_student_dashboard1" },
+        { label: "Family Background", icon: <FamilyRestroomIcon />, path: "/official_student_dashboard2" },
+        { label: "Educational Attainment", icon: <SchoolIcon />, path: "/official_student_dashboard3" },
+        { label: "Health Medical Records", icon: <HealthAndSafetyIcon />, path: "/official_student_dashboard4" },
+        { label: "Other Information", icon: <InfoIcon />, path: "/official_student_dashboard5" },
+    ];
 
 
 
@@ -562,6 +424,7 @@ const RegistrarDashboard1 = () => {
     };
 
 
+
     // 🧩 Real-time handleChange with Manila-based age + filtering reset
     const handleChange = (e) => {
         const target = e && e.target ? e.target : {};
@@ -592,6 +455,7 @@ const RegistrarDashboard1 = () => {
         setPerson(updatedPerson);
         handleUpdate(updatedPerson); // real-time save
     };
+
 
 
 
@@ -776,32 +640,50 @@ const RegistrarDashboard1 = () => {
         const validTypes = ["image/jpeg", "image/jpg", "image/png"];
         const maxSizeInBytes = 2 * 1024 * 1024; // 2MB
 
-        // Check file type
+        // ❌ Invalid file type
         if (!validTypes.includes(file.type)) {
-            alert("Invalid file type. Please select a JPEG or PNG file.");
+            setSnack({
+                open: true,
+                message: "Invalid file type. Please select a JPEG or PNG file.",
+                severity: "error",
+            });
             setSelectedFile(null);
             setPreview(null);
             return;
         }
 
-        // Check file size
+        // ❌ File too large
         if (file.size > maxSizeInBytes) {
-            alert("File is too large. Maximum allowed size is 2MB.");
+            setSnack({
+                open: true,
+                message: "File is too large. Maximum allowed size is 2MB.",
+                severity: "warning",
+            });
             setSelectedFile(null);
             setPreview(null);
             return;
         }
 
-        // If valid, set file and preview
+        // ✅ Valid file — set file and preview
         setSelectedFile(file);
         const reader = new FileReader();
         reader.onloadend = () => setPreview(reader.result);
         reader.readAsDataURL(file);
+
+        setSnack({
+            open: true,
+            message: "✅ File selected successfully.",
+            severity: "success",
+        });
     };
 
     const handleUpload = async () => {
         if (!selectedFile) {
-            alert("Please select a file first.");
+            setSnack({
+                open: true,
+                message: "⚠️ Please select a file first.",
+                severity: "warning",
+            });
             return;
         }
 
@@ -827,16 +709,26 @@ const RegistrarDashboard1 = () => {
             };
 
             setPerson(updatedPerson);
-            await handleUpdate(updatedPerson); // ✅ this pushes the profile_img change into DB
-
+            await handleUpdate(updatedPerson); // push to DB
             setUploadedImage(`${API_BASE_URL}/uploads/${fileName}`);
-            alert("Upload successful!");
+
+            setSnack({
+                open: true,
+                message: "✅ Upload successful!",
+                severity: "success",
+            });
+
             handleClose();
         } catch (error) {
             console.error("Upload failed:", error);
-            alert("Upload failed.");
+            setSnack({
+                open: true,
+                message: "❌ Upload failed. Please try again.",
+                severity: "error",
+            });
         }
     };
+
 
     const [isLrnNA, setIsLrnNA] = useState(false);
 
@@ -1008,45 +900,214 @@ const RegistrarDashboard1 = () => {
     });
 
 
-
-
-
     const [errors, setErrors] = useState({});
-
-
-
-
     const [searchQuery, setSearchQuery] = useState("");
     const [searchError, setSearchError] = useState("");
-
     useEffect(() => {
         const delayDebounce = setTimeout(async () => {
-            if (searchQuery.trim() === "") return; // Don't search empty
+            if (searchQuery.trim() === "") return;
 
             try {
-                const res = await axios.get(`${API_BASE_URL}/api/search-person`, {
+                const res = await axios.get(`${API_BASE_URL}/api/search-person-student`, {
                     params: { query: searchQuery }
                 });
 
-                if (res.data && res.data.person_id) {
-                    const details = await axios.get(`${API_BASE_URL}/api/person_with_applicant/${res.data.person_id}`);
-                    setPerson(details.data);
+                console.log("Search result data:", res.data);
+                setPerson(res.data);
 
-                    sessionStorage.setItem("admin_edit_person_id", details.data.person_id);
-                    setUserID(details.data.person_id);
-                    setSearchError("");
-                } else {
-                    console.error("No valid person ID found in search result");
+                const idToStore = res.data.person_id || res.data.id;
+                if (!idToStore) {
                     setSearchError("Invalid search result");
+                    return;
                 }
+
+                sessionStorage.setItem("admin_edit_person_id", idToStore);
+                sessionStorage.setItem("admin_edit_person_data", JSON.stringify(res.data)); // ✅ added
+                setUserID(idToStore);
+                setSearchError("");
             } catch (err) {
                 console.error("Search failed:", err);
-                setSearchError("Applicant not found");
+                setSearchError("Student not found");
             }
-        }, 500); // debounce
+        }, 500);
 
         return () => clearTimeout(delayDebounce);
     }, [searchQuery]);
+
+
+    const [selectedPerson, setSelectedPerson] = useState(null);
+    const [persons, setPersons] = useState([]);
+
+    useEffect(() => {
+        if (!searchQuery.trim()) {
+            // 🔹 If search is empty, clear everything
+            setSelectedPerson(null);
+            setPerson({
+                profile_img: "",
+                generalAverage1: "",
+                height: "",
+                applyingAs: "",
+                document_status: "",
+                last_name: "",
+                first_name: "",
+                middle_name: "",
+                extension: "",
+            });
+            return;
+        }
+
+        // 🔹 Try to find a matching applicant from the list
+        const match = persons.find((p) =>
+            `${p.first_name} ${p.middle_name} ${p.last_name} ${p.emailAddress} ${p.student_number || ''}`
+                .toLowerCase()
+                .includes(searchQuery.toLowerCase())
+        );
+
+        if (match) {
+            // ✅ If found, set this as the "selectedPerson"
+            setSelectedPerson(match);
+        } else {
+            // ❌ If not found, clear again
+            setSelectedPerson(null);
+            setPerson({
+                profile_img: "",
+                generalAverage1: "",
+                height: "",
+                applyingAs: "",
+                document_status: "",
+                last_name: "",
+                first_name: "",
+                middle_name: "",
+                extension: "",
+            });
+        }
+    }, [searchQuery, persons]);
+
+
+
+    const [studentData, setStudentData] = useState(null);
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+
+    const [selectedStudent, setSelectedStudent] = useState(null);
+    const [studentDetails, setStudentDetails] = useState([]);
+
+    useEffect(() => {
+        if (!searchQuery || searchQuery.length < 9) {
+            setSelectedStudent(null);
+            setStudentData([]);
+            return;
+        }
+
+        const fetchStudent = async () => {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/program_evaluation/${searchQuery}`);
+                const data = await res.json();
+
+
+                if (data) {
+                    setSelectedStudent(data);
+                    setStudentData(data);
+
+                    if (searchQuery) {
+                        localStorage.setItem("admin_edit_person_id", searchQuery);
+                    }
+
+                    const detailsRes = await fetch(`${API_BASE_URL}/api/program_evaluation/details/${searchQuery}`);
+                    const detailsData = await detailsRes.json();
+                    if (Array.isArray(detailsData) && detailsData.length > 0) {
+                        setStudentDetails(detailsData);
+                    } else {
+                        setStudentDetails([]);
+                        setSnackbarMessage("No enrolled subjects found for this student.");
+                        setOpenSnackbar(true);
+                    }
+                } else {
+                    setSelectedStudent(null);
+                    setStudentData([]);
+                    setStudentDetails([]);
+                    setSnackbarMessage("No student data found.");
+                    setOpenSnackbar(true);
+                }
+            } catch (err) {
+                console.error("Error fetching student", err);
+                setSnackbarMessage("Server error. Please try again.");
+                localStorage.removeItem("admin_edit_person_id");
+                setOpenSnackbar(true);
+            }
+        };
+
+        fetchStudent();
+    }, [searchQuery]);
+
+    useEffect(() => {
+        const queryParams = new URLSearchParams(location.search);
+        const personIdFromUrl = queryParams.get("person_id");
+
+        if (!personIdFromUrl) return;
+
+        // fetch info of that person
+        axios
+            .get(`${API_BASE_URL}api/person_with_applicant/${personIdFromUrl}`)
+            .then((res) => {
+                if (res.data?.student_number) {
+
+                    // AUTO-INSERT applicant_number into search bar
+                    setSearchQuery(res.data.student_number);
+
+                    // If you have a fetchUploads() or fetchExamScore() — call it
+                    if (typeof fetchUploadsByApplicantNumber === "function") {
+                        fetchUploadsByApplicantNumber(res.data.student_number);
+                    }
+
+                    if (typeof fetchApplicants === "function") {
+                        fetchApplicants();
+                    }
+                }
+            })
+            .catch((err) => console.error("Auto search failed:", err));
+    }, [location.search]);
+
+    const handleStepClick = (index, to) => {
+        setActiveStep(index);
+        const pid = sessionStorage.getItem("edit_person_id");
+        const sn = sessionStorage.getItem("edit_student_number");
+
+        if (pid) {
+            navigate(`${to}?person_id=${pid}`);
+        } else if (sn) {
+            navigate(`${to}?student_number=${sn}`);
+        } else {
+            navigate(to); // no id → open without query
+        }
+    };
+
+    useEffect(() => {
+        const storedId = sessionStorage.getItem("edit_student_number");
+
+        if (storedId) {
+            setSearchQuery(storedId);
+        }
+    }, []);
+
+    const [studentNumber, setStudentNumber] = useState(() => {
+        return localStorage.getItem("studentNumberForCOR") || localStorage.getItem("admin_edit_person_id") || "";
+    });
+
+    const [debouncedStudentNumber, setDebouncedStudentNumber] = useState("");
+
+
+
+
+    // ✅ For Excel Import
+    const [excelFile, setExcelFile] = useState(null);
+
+
+
+    const handleSnackClose = (_, reason) => {
+        if (reason === 'clickaway') return;
+        setSnack({ ...snack, open: false });
+    };
 
     const divToPrintRef = useRef();
     const [showPrintView, setShowPrintView] = useState(false);
@@ -1098,30 +1159,6 @@ const RegistrarDashboard1 = () => {
         setExamPermitError("");
     };
 
-    const handleExamPermitClick = async () => {
-        try {
-            const res = await axios.get(`${API_BASE_URL}/api/verified-exam-applicants`);
-            const verified = res.data.some(a => a.person_id === parseInt(userID));
-
-            if (!verified) {
-                setExamPermitError("❌ You cannot print the Exam Permit until all required documents are verified.");
-                setExamPermitModalOpen(true);
-                return;
-            }
-
-            // ✅ Render permit and print
-            setShowPrintView(true);
-            setTimeout(() => {
-                printDiv();
-                setShowPrintView(false);
-            }, 500);
-        } catch (err) {
-            console.error("Error verifying exam permit eligibility:", err);
-            setExamPermitError("⚠️ Unable to check document verification status right now.");
-            setExamPermitModalOpen(true);
-        }
-    };
-
 
 
     const links = [
@@ -1142,9 +1179,8 @@ const RegistrarDashboard1 = () => {
             label: `Application For ${shortTerm ? shortTerm.toUpperCase() : ""} College Admission`,
         },
         { to: "/admission_services", label: "Application/Student Satisfactory Survey" },
-        { label: "Examination Permit", onClick: handleExamPermitClick },
-    ];
 
+    ];
 
 
 
@@ -1159,7 +1195,6 @@ const RegistrarDashboard1 = () => {
                 setCanPrintPermit(verified);
             });
     }, [userID]);
-
 
 
 
@@ -1184,13 +1219,13 @@ const RegistrarDashboard1 = () => {
             )}
 
 
-            {/* Top header: DOCUMENTS SUBMITTED + Search */}
+            {/* Top header: DOCUMENTS SUBMITTED + Search + Import */}
             <Box
                 sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    flexWrap: "wrap",
 
                     mb: 2,
 
@@ -1199,46 +1234,51 @@ const RegistrarDashboard1 = () => {
                 <Typography
                     variant="h4"
                     sx={{
-                        fontWeight: 'bold',
+                        fontWeight: "bold",
                         color: titleColor,
-                        fontSize: '36px',
+                        fontSize: "36px",
                     }}
                 >
                     APPLICANT FORM - PERSONAL INFORMATION
                 </Typography>
 
-                <TextField
-                    size="small"
+                {/* ✅ Right side: Search + Excel Import side by side */}
+                <Box display="flex" alignItems="center" gap={2}>
+                    <TextField
+                        size="small"
+                        placeholder="Search Student Name / Email / Student Number"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        sx={{
+                            width: 450,
+                            backgroundColor: "#fff",
+                            borderRadius: 1,
+                            "& .MuiOutlinedInput-root": {
+                                borderRadius: "10px",
+                            },
+                        }}
+                        InputProps={{
+                            startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
+                        }}
+                    />
 
-                    placeholder="Search Applicant Name / Email / Applicant ID"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    sx={{
-                        width: 450,
-                        backgroundColor: "#fff",
-                        borderRadius: 1,
-                        "& .MuiOutlinedInput-root": {
-                            borderRadius: "10px",
-                        },
-                    }}
-                    InputProps={{
-                        startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
-                    }}
-                />
+
+                </Box>
             </Box>
+
             {searchError && <Typography color="error">{searchError}</Typography>}
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
+
             <br />
-
-
             <Box
                 sx={{
                     display: "flex",
                     justifyContent: "space-between",
+                    alignItems: "center",
                     flexWrap: "nowrap", // prevent wrapping
                     width: "100%",
-                    mt: 3,
+                    mt: 2,
 
                 }}
             >
@@ -1248,7 +1288,8 @@ const RegistrarDashboard1 = () => {
                         <Card
                             onClick={() => handleNavigateStep(index, step.to)}
                             sx={{
-                                flex: `1 1 ${100 / stepsData.length}%`, // evenly divide width
+                                flex: 1,
+                                maxWidth: `${100 / stepsData.length}%`,
                                 height: 140,
                                 display: "flex",
                                 alignItems: "center",
@@ -1264,7 +1305,7 @@ const RegistrarDashboard1 = () => {
                                         : "0px 2px 6px rgba(0,0,0,0.15)",
                                 transition: "0.3s ease",
                                 "&:hover": {
-                                    backgroundColor: currentStep === index ? "#000" : "#f5d98f",
+                                    backgroundColor: currentStep === index ? "#000000" : "#f5d98f",
                                 },
                             }}
                         >
@@ -1275,7 +1316,7 @@ const RegistrarDashboard1 = () => {
                                     alignItems: "center",
                                 }}
                             >
-                                <Box sx={{ fontSize: 40, mb: 1 }}>{step.icon}</Box>
+                                <Box sx={{ fontSize: 32, mb: 0.5 }}>{step.icon}</Box>
                                 <Typography
                                     sx={{
                                         fontSize: 14,
@@ -1292,7 +1333,7 @@ const RegistrarDashboard1 = () => {
                         {index < stepsData.length - 1 && (
                             <Box
                                 sx={{
-                                    flex: 0.05,
+                                    flex: 0.1,
                                     mx: 1, // spacing between cards
                                 }}
                             />
@@ -1300,31 +1341,25 @@ const RegistrarDashboard1 = () => {
                     </React.Fragment>
                 ))}
             </Box>
-
-            <div style={{ height: "40px" }}></div>
-
-
-
-
+            <br />
             <TableContainer component={Paper} sx={{ width: '100%', mb: 1 }}>
                 <Table>
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `2px solid ${borderColor}`, }}>
                         <TableRow>
-                            {/* Left cell: Applicant ID */}
+                            {/* Left cell: Student Number */}
                             <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: 'Arial Black', border: 'none' }}>
-                                Applicant ID:&nbsp;
+                                Student Number:&nbsp;
                                 <span style={{ fontFamily: "Arial", fontWeight: "normal", textDecoration: "underline" }}>
-                                    {person?.applicant_number || "N/A"}
-
+                                    {person?.student_number || "N/A"}
                                 </span>
                             </TableCell>
 
-                            {/* Right cell: Applicant Name */}
+                            {/* Right cell: Student Name */}
                             <TableCell
                                 align="right"
                                 sx={{ color: 'white', fontSize: '20px', fontFamily: 'Arial Black', border: 'none' }}
                             >
-                                Applicant Name:&nbsp;
+                                Student Name:&nbsp;
                                 <span style={{ fontFamily: "Arial", fontWeight: "normal", textDecoration: "underline" }}>
                                     {person?.last_name?.toUpperCase()}, {person?.first_name?.toUpperCase()}{" "}
                                     {person?.middle_name?.toUpperCase()} {person?.extension?.toUpperCase() || ""}
@@ -1334,9 +1369,6 @@ const RegistrarDashboard1 = () => {
                     </TableHead>
                 </Table>
             </TableContainer>
-
-
-
             <Box
                 sx={{
                     display: "flex",
@@ -1411,89 +1443,92 @@ const RegistrarDashboard1 = () => {
 
 
 
-            {/* Cards Section */}
+            <Container>
 
-            <Box
-                sx={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: 2,
-                    mt: 2,
-                    pb: 1,
-                    justifyContent: "center", // Centers all cards horizontally
-                }}
-            >
-                {links.map((lnk, i) => (
-                    <motion.div
-                        key={i}
-                        style={{ flex: "0 0 calc(30% - 16px)" }}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.1, duration: 0.4 }}
-                    >
-                        <Card
-                            sx={{
-                                minHeight: 60,
-                                borderRadius: 2,
-                                border: `2px solid ${borderColor}`,
-                                backgroundColor: "#fff",
-                                display: "flex",
-                                flexDirection: "row",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                textAlign: "center",
-                                p: 1.5,
-                                cursor: "pointer",
-                                transition: "all 0.3s ease-in-out",
-                                "&:hover": {
-                                    transform: "scale(1.05)",
-                                    backgroundColor: settings?.header_color || "#1976d2",
 
-                                    "& .card-text": {
-                                        color: "#fff", // ✅ text becomes white
-                                    },
-                                    "& .card-icon": {
-                                        color: "#fff", // ✅ icon becomes white
-                                    },
-                                },
-                            }}
-                            onClick={() => {
-                                if (lnk.onClick) {
-                                    lnk.onClick(); // run handler
-                                } else if (lnk.to) {
-                                    navigate(lnk.to); // navigate if it has a `to`
-                                }
-                            }}
+
+                {/* Cards Section */}
+
+                <Box
+                    sx={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: 2,
+                        mt: 2,
+                        pb: 1,
+                        justifyContent: "center", // Centers all cards horizontally
+                    }}
+                >
+                    {links.map((lnk, i) => (
+                        <motion.div
+                            key={i}
+                            style={{ flex: "0 0 calc(30% - 16px)" }}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: i * 0.1, duration: 0.4 }}
                         >
-                            {/* Icon */}
-                            <PictureAsPdfIcon
-                                className="card-icon"
-                                sx={{ fontSize: 35, color: mainButtonColor, mr: 1.5 }}
-                            />
-
-                            {/* Label */}
-                            <Typography
-                                className="card-text"
+                            <Card
                                 sx={{
-                                    color: mainButtonColor,
-                                    fontFamily: "Arial",
-                                    fontWeight: "bold",
-                                    fontSize: "0.85rem",
+                                    minHeight: 60,
+                                    borderRadius: 2,
+                                    border: `2px solid ${borderColor}`,
+                                    backgroundColor: "#fff",
+                                    display: "flex",
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    textAlign: "center",
+                                    p: 1.5,
+                                    cursor: "pointer",
+                                    transition: "all 0.3s ease-in-out",
+                                    "&:hover": {
+                                        transform: "scale(1.05)",
+                                        backgroundColor: settings?.header_color || "#1976d2",
+
+                                        "& .card-text": {
+                                            color: "#fff", // ✅ text becomes white
+                                        },
+                                        "& .card-icon": {
+                                            color: "#fff", // ✅ icon becomes white
+                                        },
+                                    },
+                                }}
+                                onClick={() => {
+                                    if (lnk.onClick) {
+                                        lnk.onClick(); // run handler
+                                    } else if (lnk.to) {
+                                        navigate(lnk.to); // navigate if it has a `to`
+                                    }
                                 }}
                             >
-                                {lnk.label}
-                            </Typography>
-                        </Card>
-                    </motion.div>
-                ))}
-            </Box>
+                                {/* Icon */}
+                                <PictureAsPdfIcon
+                                    className="card-icon"
+                                    sx={{ fontSize: 35, color: mainButtonColor, mr: 1.5 }}
+                                />
+
+                                {/* Label */}
+                                <Typography
+                                    className="card-text"
+                                    sx={{
+                                        color: mainButtonColor,
+                                        fontFamily: "Arial",
+                                        fontWeight: "bold",
+                                        fontSize: "0.85rem",
+                                    }}
+                                >
+                                    {lnk.label}
+                                </Typography>
+                            </Card>
+                        </motion.div>
+                    ))}
+                </Box>
 
 
 
 
 
 
-            <Container>
 
                 <Container>
                     <h1
@@ -1523,70 +1558,69 @@ const RegistrarDashboard1 = () => {
 
                 </Container>
 
+
                 <br />
 
-                {person.person_id && (
-                    <Box sx={{ display: "flex", justifyContent: "center", width: "100%", px: 4 }}>
-                        {steps.map((step, index) => (
-                            <React.Fragment key={index}>
-                                {/* Wrap the step with Link for routing */}
-                                <Link to={step.path} style={{ textDecoration: "none" }}>
+                <Box sx={{ display: "flex", justifyContent: "center", width: "100%", px: 4 }}>
+                    {steps.map((step, index) => (
+                        <React.Fragment key={index}>
+                            {/* Wrap the step with Link for routing */}
+                            <Link to={step.path} style={{ textDecoration: "none" }}>
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        alignItems: "center",
+                                        cursor: "pointer",
+                                    }}
+                                    onClick={() => handleStepClick(index)}
+                                >
+                                    {/* Step Icon */}
                                     <Box
                                         sx={{
+                                            width: 50,
+                                            height: 50,
+                                            borderRadius: "50%",
+                                            border: `2px solid ${borderColor}`,
+                                            backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
+                                            color: activeStep === index ? "#fff" : "#000",
                                             display: "flex",
-                                            flexDirection: "column",
                                             alignItems: "center",
-                                            cursor: "pointer",
+                                            justifyContent: "center",
                                         }}
-                                        onClick={() => handleStepClick(index)}
                                     >
-                                        {/* Step Icon */}
-                                        <Box
-                                            sx={{
-                                                width: 50,
-                                                height: 50,
-                                                borderRadius: "50%",
-                                                border: `2px solid ${borderColor}`,
-                                                backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
-                                                color: activeStep === index ? "#fff" : "#000",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                            }}
-                                        >
-                                            {step.icon}
-                                        </Box>
-
-                                        {/* Step Label */}
-                                        <Typography
-                                            sx={{
-                                                mt: 1,
-                                                color: activeStep === index ? "#6D2323" : "#000",
-                                                fontWeight: activeStep === index ? "bold" : "normal",
-                                                fontSize: 14,
-                                            }}
-                                        >
-                                            {step.label}
-                                        </Typography>
+                                        {step.icon}
                                     </Box>
-                                </Link>
 
-                                {/* Connector Line */}
-                                {index < steps.length - 1 && (
-                                    <Box
+                                    {/* Step Label */}
+                                    <Typography
                                         sx={{
-                                            height: "2px",
-                                            backgroundColor: mainButtonColor,
-                                            flex: 1,
-                                            alignSelf: "center",
-                                            mx: 2,
+                                            mt: 1,
+                                            color: activeStep === index ? "#6D2323" : "#000",
+                                            fontWeight: activeStep === index ? "bold" : "normal",
+                                            fontSize: 14,
                                         }}
-                                    />
-                                )}
-                            </React.Fragment>
-                        ))}
-                    </Box>
-                )}
+                                    >
+                                        {step.label}
+                                    </Typography>
+                                </Box>
+                            </Link>
+
+                            {/* Connector Line */}
+                            {index < steps.length - 1 && (
+                                <Box
+                                    sx={{
+                                        height: "2px",
+                                        backgroundColor: mainButtonColor,
+                                        flex: 1,
+                                        alignSelf: "center",
+                                        mx: 2,
+                                    }}
+                                />
+                            )}
+                        </React.Fragment>
+                    ))}
+                </Box>
 
                 <br />
 
@@ -1616,6 +1650,24 @@ const RegistrarDashboard1 = () => {
                         <br />
 
 
+                        <div className="flex items-center mb-4 gap-4">
+                            <label className="w-40 font-medium">Student Number:</label>
+
+                            <TextField
+                                fullWidth
+                                id="student-number"
+                                label="Student Number"
+                                size="small"
+                                name="studentNumber"
+                                placeholder="Enter your Student Number"
+                                required
+                                value={person.student_number ?? ""}
+                                onBlur={handleBlur}
+                                onChange={handleChange}
+                                error={!!errors.student_number}
+                                helperText={errors.student_number && "This field is required."}
+                            />
+                        </div>
 
 
 
@@ -1660,13 +1712,11 @@ const RegistrarDashboard1 = () => {
                                         </MenuItem>
                                     ))}
                                 </Select>
-
                                 {errors.campus && (
                                     <FormHelperText>This field is required.</FormHelperText>
                                 )}
                             </FormControl>
                         </div>
-
 
 
                         <div className="flex items-center mb-4 gap-4">
@@ -1689,7 +1739,6 @@ const RegistrarDashboard1 = () => {
                                     <MenuItem value="0">Undergraduate</MenuItem>
                                     <MenuItem value="1">Graduate</MenuItem>
                                     <MenuItem value="2">Techvoc</MenuItem>
-
                                 </Select>
                                 {errors.academicProgram && (
                                     <FormHelperText>This field is required.</FormHelperText>
@@ -1762,8 +1811,6 @@ const RegistrarDashboard1 = () => {
                         <Typography style={{ fontSize: "20px", color: mainButtonColor, fontWeight: "bold" }}>Course Program:</Typography>
                         <hr style={{ border: "1px solid #ccc", width: "100%" }} />
                         <br />
-
-
 
 
 
@@ -1872,7 +1919,6 @@ const RegistrarDashboard1 = () => {
                            </FormControl>
                          </Box> */}
 
-
                                     {/* Year Level */}
                                     <div className="flex items-center mb-4 gap-2">
                                         <label className="w-40 mt:[2] font-medium ">Year Level:</label>
@@ -1928,7 +1974,7 @@ const RegistrarDashboard1 = () => {
                             >
                                 {person.profile_img && person.profile_img !== "" ? (
                                     <img
-                                        src={`${API_BASE_URL}/uploads/Applicant1by1/${person.profile_img}?t=${Date.now()}`}
+                                        src={`${API_BASE_URL}/uploads/Student1by1/${person.profile_img}?t=${Date.now()}`}
                                         alt="Profile"
                                         style={{
                                             width: "100%",
@@ -2129,6 +2175,7 @@ const RegistrarDashboard1 = () => {
 
 
 
+
                         <Box display="flex" alignItems="center" gap={2} flexWrap="nowrap" width="100%" mb={2}>
                             {/* LRN Label */}
                             <Typography fontWeight="medium" minWidth="180px">
@@ -2187,10 +2234,9 @@ const RegistrarDashboard1 = () => {
                             />
 
 
-                            <Typography fontWeight="medium" >
+                            <Typography fontWeight="medium">
                                 Gender:
                             </Typography>
-
                             {/* Gender */}
                             <TextField
                                 select
@@ -2221,6 +2267,8 @@ const RegistrarDashboard1 = () => {
                                 <MenuItem value="0">MALE</MenuItem>
                                 <MenuItem value="1">FEMALE</MenuItem>
                             </TextField>
+
+
 
 
                             {errors.gender && (
@@ -2323,6 +2371,7 @@ const RegistrarDashboard1 = () => {
 
 
 
+
                             <Box flex={1}>
                                 <Typography mb={1} fontWeight="medium">
                                     Birth of Date
@@ -2341,7 +2390,6 @@ const RegistrarDashboard1 = () => {
                                     helperText={errors.birthOfDate ? "This field is required." : ""}
                                 />
                             </Box>
-
                             {/* 👤 Age (auto-filled, read-only) */}
                             <Box flex={1}>
                                 <Typography mb={1} fontWeight="medium">
@@ -2694,8 +2742,8 @@ const RegistrarDashboard1 = () => {
                                 </Typography>
 
                                 <TextField
-
                                     fullWidth
+
                                     size="small"
                                     name="cellphoneNumber"
                                     placeholder="9XXXXXXXXX"
@@ -2728,7 +2776,6 @@ const RegistrarDashboard1 = () => {
                                 </Typography>
 
                                 <TextField
-                                    InputProps={{ readOnly: true }}
                                     fullWidth
                                     size="small"
                                     name="emailAddress"
@@ -2759,13 +2806,6 @@ const RegistrarDashboard1 = () => {
                         </Box>
 
 
-
-
-
-
-
-
-
                         <Typography style={{ fontSize: "20px", color: mainButtonColor, fontWeight: "bold" }}>Present Address:</Typography>
                         <hr style={{ border: "1px solid #ccc", width: "100%" }} />
                         <br />
@@ -2794,6 +2834,7 @@ const RegistrarDashboard1 = () => {
                                 </strong>
                             </Typography>
                         </Box>
+
 
 
 
@@ -3250,6 +3291,8 @@ const RegistrarDashboard1 = () => {
                         </Box>
 
 
+
+
                         <Modal open={open} onClose={handleClose}>
                             <Box
                                 sx={{
@@ -3287,7 +3330,7 @@ const RegistrarDashboard1 = () => {
                                             border: `2px solid ${borderColor}`,
 
                                             "&:hover": {
-                                                bgcolor: "#5a1f1f",
+                                                bgcolor: "#000000",
                                             },
                                         }}
                                     >
@@ -3449,7 +3492,6 @@ const RegistrarDashboard1 = () => {
                             </Box>
                         </Modal>
 
-
                         <Modal
                             open={examPermitModalOpen}
                             onClose={handleCloseExamPermitModal}
@@ -3501,6 +3543,7 @@ const RegistrarDashboard1 = () => {
                                 sx={{
                                     backgroundColor: mainButtonColor,
                                     border: `2px solid ${borderColor}`,
+
                                     color: "#fff", // Set text color to white
                                     marginRight: "5px", // Add margin between buttons
                                     "&:hover": {
@@ -3517,8 +3560,7 @@ const RegistrarDashboard1 = () => {
                                 variant="contained"
                                 onClick={() => {
 
-                                    navigate(`/registrar_dashboard2?person_id=${userID}`);
-
+                                    navigate(`/official_student_dashboard2?person_id=${userID}`);
                                 }}
                                 endIcon={
                                     <ArrowForwardIcon
@@ -3529,6 +3571,7 @@ const RegistrarDashboard1 = () => {
                                     />
                                 }
                                 sx={{
+
                                     backgroundColor: mainButtonColor,
                                     border: `2px solid ${borderColor}`,
                                     color: '#fff',
@@ -3542,6 +3585,7 @@ const RegistrarDashboard1 = () => {
                                 }}
                             >
 
+
                                 Next Step
                             </Button>
                         </Box>
@@ -3549,8 +3593,20 @@ const RegistrarDashboard1 = () => {
                     </Container>
                 </form>
             </Container >
+
+            <Snackbar
+                open={snack.open}
+
+                onClose={handleSnackClose}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert onClose={handleSnackClose} severity={snack.severity} sx={{ width: '100%' }}>
+                    {snack.message}
+                </Alert>
+            </Snackbar>
+
         </Box >
     );
 };
 
-export default RegistrarDashboard1;
+export default OfficialStudentDashboard1;

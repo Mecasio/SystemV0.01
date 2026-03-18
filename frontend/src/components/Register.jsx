@@ -244,6 +244,27 @@ const Register = () => {
     }
   };
 
+  const [registrationOpen, setRegistrationOpen] = useState(true);
+  const [openClosedDialog, setOpenClosedDialog] = useState(false);
+
+  useEffect(() => {
+    const fetchRegistrationStatus = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/auth/registration-status`);
+
+        setRegistrationOpen(res.data.registration_open);
+
+        if (!res.data.registration_open) {
+          setOpenClosedDialog(true);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchRegistrationStatus();
+  }, []);
+
   const handleKeyDownRegister = (e) => {
     if (e.key === "Enter" && !isSubmitting) {
       handleRegister();
@@ -571,11 +592,11 @@ const Register = () => {
 
               {/* Register Button — disabled until CAPTCHA is solved */}
               <div
-                onClick={!isSubmitting ? handleRegister : null}
+                onClick={!isSubmitting && registrationOpen ? handleRegister : null}
                 style={{
-                  pointerEvents: !isSubmitting ? "auto" : "none",
-                  opacity: !isSubmitting ? 1 : 0.5,
-                  cursor: !isSubmitting ? "pointer" : "not-allowed",
+                  pointerEvents: (!isSubmitting && registrationOpen) ? "auto" : "none",
+                  opacity: registrationOpen ? 1 : 0.5,
+                  cursor: registrationOpen ? "pointer" : "not-allowed",
                   marginTop: "40px",
                   backgroundColor: mainButtonColor,
                   height: "50px",
@@ -589,7 +610,7 @@ const Register = () => {
                   fontSize: "16px",
                 }}
               >
-                {isSubmitting ? "Registering..." : "Register"}
+                {!registrationOpen ? "Registration Closed" : (isSubmitting ? "Registering..." : "Register")}
               </div>
 
 
@@ -781,6 +802,29 @@ const Register = () => {
               }}
             >
               I Agree & Continue
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+
+        <Dialog open={openClosedDialog}>
+          <DialogTitle sx={{ textAlign: "center", fontWeight: "bold" }}>
+            🚫 Registration Closed
+          </DialogTitle>
+
+          <DialogContent>
+            <Typography sx={{ textAlign: "center" }}>
+              Registration is currently closed.
+              Please wait for the official announcement.
+            </Typography>
+          </DialogContent>
+
+          <DialogActions sx={{ justifyContent: "center" }}>
+            <Button
+              variant="contained"
+              onClick={() => navigate("/login_applicant")}
+            >
+              Go to Login
             </Button>
           </DialogActions>
         </Dialog>

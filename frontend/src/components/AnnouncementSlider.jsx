@@ -1,11 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, memo } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import API_BASE_URL from "../apiConfig";
 
+// ✅ MUI Icons
+import IconButton from "@mui/material/IconButton";
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+
 const AnnouncementSlider = () => {
     const [slides, setSlides] = useState([]);
     const [index, setIndex] = useState(0);
+    const [isDragging, setIsDragging] = useState(false);
 
     useEffect(() => {
         axios
@@ -16,31 +22,56 @@ const AnnouncementSlider = () => {
                     setIndex(0);
                 }
             })
-
             .catch(err => console.error("Announcement fetch error:", err));
     }, []);
 
+    const intervalRef = useRef(null);
+
     useEffect(() => {
-        if (slides.length <= 1) return;
+        if (slides.length <= 1 || isDragging) return;
 
         const timer = setInterval(() => {
             setIndex(prev => (prev + 1) % slides.length);
         }, 5000);
 
         return () => clearInterval(timer);
-    }, [slides.length]);
+    }, [slides.length, isDragging]);
 
     if (!slides.length) {
         return (
-            <div
-                style={{
-                    width: "700px",
-                    height: "700px",
-                    background: "#f2f2f2",
-                }}
-            />
+            <div style={{ width: "700px", height: "700px", background: "#f2f2f2" }} />
         );
     }
+
+    const handleDragEnd = (_, info) => {
+        const threshold = 80;
+
+        // ✅ STRICT horizontal detection
+        if (Math.abs(info.offset.x) < Math.abs(info.offset.y)) {
+            setIsDragging(false);
+            return;
+        }
+
+        if (info.offset.x < -threshold && index < slides.length - 1) {
+            setIndex(prev => prev + 1);
+        } else if (info.offset.x > threshold && index > 0) {
+            setIndex(prev => prev - 1);
+        }
+
+        setIsDragging(false);
+    };
+
+    const goNext = () => {
+        if (index < slides.length - 1) {
+            setIndex(prev => prev + 1);
+        }
+    };
+
+    const goPrev = () => {
+        if (index > 0) {
+            setIndex(prev => prev - 1);
+        }
+    };
 
     const current = slides[index];
     if (!current?.file_path) return null;
@@ -50,38 +81,77 @@ const AnnouncementSlider = () => {
             style={{
                 width: "950px",
                 height: "720px",
-                overflow: "hidden",
                 marginRight: "300px",
-                border: "2px solid black",
                 background: "#000",
                 display: "flex",
-                marginTop: "-130px",   // ✅ THIS works
+                marginTop: "-130px",
                 alignItems: "center",
                 marginLeft: "125px",
-       
                 justifyContent: "center",
                 borderRadius: "30px",
-    
-                overflow: "hidden",
+                overflow: "hidden", // ✅ important to hide side images
+                position: "relative",
             }}
         >
+
+            {/* ✅ LEFT BUTTON (MUI) */}
+            <IconButton
+                onClick={goPrev}
+                sx={{
+                    position: "absolute",
+                    left: 10,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    zIndex: 10,
+                    background: "rgba(0,0,0,0.6)",
+                    color: "#fff",
+                    "&:hover": { background: "rgba(0,0,0,0.8)" }
+                }}
+            >
+                <ArrowBackIosNewIcon />
+            </IconButton>
+
+            {/* ✅ RIGHT BUTTON (MUI) */}
+            <IconButton
+                onClick={goNext}
+                sx={{
+                    position: "absolute",
+                    right: 10,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    zIndex: 10,
+                    background: "rgba(0,0,0,0.6)",
+                    color: "#fff",
+                    "&:hover": { background: "rgba(0,0,0,0.8)" }
+                }}
+            >
+                <ArrowForwardIosIcon />
+            </IconButton>
+
             <AnimatePresence mode="wait">
                 <motion.div
                     key={current.id}
+                    drag="x"
+                    dragDirectionLock // ✅ locks direction after initial move
+                    dragConstraints={{ left: 0, right: 0 }}
+                    dragElastic={0.02} // ✅ very tight → prevents side peek
+
+                    onDragStart={() => setIsDragging(true)}
+                    onDragEnd={handleDragEnd}
+
                     initial={{ x: 300, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     exit={{ x: -300, opacity: 0 }}
-                    transition={{ duration: 0.6, ease: "easeInOut" }}
+                    transition={{ duration: 0.5 }}
+
                     style={{
                         width: "100%",
                         height: "100%",
                         position: "relative",
-                        borderRadius: "30px",
-                        overflow: "hidden"
-
+                        overflow: "hidden",
+                        cursor: "grab",
                     }}
                 >
-                    {/* Image */}
                     <img
                         src={`${API_BASE_URL}/uploads/announcement/${current.file_path}`}
                         alt={current.title}
@@ -89,12 +159,12 @@ const AnnouncementSlider = () => {
                             width: "100%",
                             height: "100%",
                             objectFit: "cover",
-                            borderRadius: "30px",
-
+                            userSelect: "none",
+                            pointerEvents: "none", // ✅ prevents weird drag glitches
                         }}
+                        draggable={false}
                     />
 
-                    {/* Text Overlay */}
                     <div
                         style={{
                             position: "absolute",
@@ -103,7 +173,6 @@ const AnnouncementSlider = () => {
                             padding: "1.2rem",
                             background: "rgba(0,0,0,0.6)",
                             color: "#fff",
-
                         }}
                     >
                         <h3 style={{ margin: 0 }}>{current.title}</h3>

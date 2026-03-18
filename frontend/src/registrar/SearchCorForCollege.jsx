@@ -30,6 +30,10 @@ import { useNavigate } from "react-router-dom";
 import API_BASE_URL from "../apiConfig";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay"
+import ListAltIcon from "@mui/icons-material/ListAlt";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
+import PersonSearchIcon from "@mui/icons-material/PersonSearch";
 
 const SearchCorForCollege = () => {
     const settings = useContext(SettingsContext);
@@ -141,15 +145,16 @@ const SearchCorForCollege = () => {
     const COLLEGE_COR_SEARCH_KEY = "college_cor_search_student_number";
 
     const tabs = [
-        { label: "Admission Process For College", to: "/applicant_list", icon: <SchoolIcon fontSize="large" /> },
-        { label: "Applicant Form", to: "/registrar_dashboard1", icon: <AssignmentIcon fontSize="large" /> },
-        { label: "Student Requirements", to: "/registrar_requirements", icon: <AssignmentTurnedInIcon fontSize="large" /> },
-        { label: "Qualifying / Interview Exam Score", to: "/qualifying_interview_exam_scores", icon: <ScoreIcon fontSize="large" /> },
-        { label: "Student Numbering", to: "/student_numbering_per_college", icon: <DashboardIcon fontSize="large" /> },
-        { label: "Course Tagging", to: "/course_tagging_for_college", icon: <MenuBookIcon fontSize="large" /> },
-        { label: "Certificate of Registration", to: "/search_cor_for_college", icon: <SearchIcon fontSize="large" /> },
+          { label: "Student List", to: "/student_list_for_enrollment", icon: <ListAltIcon /> },
+    { label: "Applicant Form", to: "/official_student_dashboard1", icon: <PersonAddIcon /> },
+    { label: "Submitted Documents", to: "/student_official_requirements", icon: <UploadFileIcon /> },
+    { label: "Course Tagging", to: "/course_tagging_for_college", icon: <UploadFileIcon /> },
+    { label: "Search COR", to: "/search_cor_for_college", icon: <MenuBookIcon /> },
+
+    { label: "Class List", to: "/class_roster_enrollment", icon: <PersonSearchIcon /> },
+
     ];
-    const [activeStep, setActiveStep] = useState(6);
+    const [activeStep, setActiveStep] = useState(4);
 
     const handleStepClick = (index, to) => {
         setActiveStep(index);

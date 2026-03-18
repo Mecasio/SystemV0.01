@@ -408,7 +408,7 @@ const StudentScholarshipList = () => {
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
 
-      <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
+      <Card sx={{  boxShadow: 3 }}>
         <TableContainer component={Paper}>
           <Table size="small">
             <TableHead >
@@ -482,7 +482,7 @@ const StudentScholarshipList = () => {
 
               {notAssignedStudents.map((student) => (
                 <TableRow key={student.student_number} hover>
-                  <TableCell>
+                  <TableCell sx={{  border: `2px solid ${borderColor}`}}>
                     <Button
                       variant="text"
                       onClick={() => handleOpenCorModal(student.student_number)}
@@ -491,13 +491,13 @@ const StudentScholarshipList = () => {
                       {student.student_number}
                     </Button>
                   </TableCell>
-                  <TableCell>{student.last_name || "-"}</TableCell>
-                  <TableCell>{student.first_name || "-"}</TableCell>
-                  <TableCell>{student.middle_name || "-"}</TableCell>
-                  <TableCell>{student.extension || "-"}</TableCell>
-                  <TableCell>{student.program_code || "-"}</TableCell>
-                  <TableCell>{student.program_description || "-"}</TableCell>
-                  <TableCell>{student.major || "-"}</TableCell>
+                  <TableCell sx={{  border: `2px solid ${borderColor}`}}>{student.last_name || "-"}</TableCell>
+                  <TableCell sx={{  border: `2px solid ${borderColor}`}}>{student.first_name || "-"}</TableCell>
+                  <TableCell sx={{  border: `2px solid ${borderColor}`}}>{student.middle_name || "-"}</TableCell>
+                  <TableCell sx={{  border: `2px solid ${borderColor}`}}>{student.extension || "-"}</TableCell>
+                  <TableCell sx={{  border: `2px solid ${borderColor}`}}>{student.program_code || "-"}</TableCell>
+                  <TableCell sx={{  border: `2px solid ${borderColor}`}}>{student.program_description || "-"}</TableCell>
+                  <TableCell sx={{  border: `2px solid ${borderColor}`}}>{student.major || "-"}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
