@@ -214,6 +214,7 @@ const ApplicantForgotPassword = () => {
               style={{
                 borderRadius: "5px",
                 border: `2px solid ${borderColor}`,
+                marginBottom: "15px"
               }}
               InputProps={{
                 startAdornment: (
@@ -233,6 +234,7 @@ const ApplicantForgotPassword = () => {
               style={{
                 borderRadius: "5px",
                 border: `2px solid ${borderColor}`,
+                marginBottom: "15px"
               }}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -248,6 +250,7 @@ const ApplicantForgotPassword = () => {
                     height: "50px",
                     padding: "0 10px",
                     boxSizing: "border-box",
+                   
                   },
                 },
               }}
