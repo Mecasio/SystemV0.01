@@ -146,6 +146,8 @@ const StudentRequirements = () => {
   const [person, setPerson] = useState({
     profile_img: "",
     generalAverage1: "",
+    program: "",
+    strand: "",
     height: "",
     applyingAs: "",
     document_status: "",
@@ -155,6 +157,31 @@ const StudentRequirements = () => {
     extension: "",
     applicant_number: "",
   });
+
+  const [curriculumOptions, setCurriculumOptions] = useState([]);
+
+  useEffect(() => {
+    const fetchCurriculums = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/api/applied_program`);
+        setCurriculumOptions(response.data);
+      } catch (error) {
+        console.error("Error fetching curriculum options:", error);
+      }
+    };
+
+    fetchCurriculums();
+  }, []);
+
+  {
+    curriculumOptions.find(
+      (item) =>
+        item?.curriculum_id?.toString() === (person?.program ?? "").toString()
+    )?.program_description || (person?.program ?? "")
+
+  }
+
+
   useEffect(() => {
     axios.get(`${API_BASE_URL}/api/requirements`)
       .then((res) => {
@@ -165,7 +192,7 @@ const StudentRequirements = () => {
           const filtered = allRequirements.filter(
             (req) => Number(req.applicant_type) === Number(selectedPerson.applyingAs) || Number(req.applicant_type) === 0
           );
-          
+
           setRequirements(filtered);
         } else {
           // Default filter when no applicant is selected
@@ -177,6 +204,8 @@ const StudentRequirements = () => {
       })
       .catch((err) => console.error("Error loading requirements:", err));
   }, [selectedPerson]);
+
+
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     const personIdFromUrl = queryParams.get("person_id");
@@ -512,6 +541,8 @@ const StudentRequirements = () => {
         setPerson({
           profile_img: "",
           generalAverage1: "",
+          strand: "",
+          program: "",
           height: "",
           applyingAs: "",
           document_status: "",
@@ -542,6 +573,8 @@ const StudentRequirements = () => {
       setPerson({
         profile_img: "",
         generalAverage1: "",
+        strand: "",
+        program: "",
         height: "",
         applyingAs: "",
         document_status: "",
@@ -860,7 +893,7 @@ const StudentRequirements = () => {
           <Box display="flex" justifyContent="center" gap={1}>
             {uploaded ? (
               <>
-                <Button
+                {/* <Button
                   variant="contained"
                   size="small"
                   sx={{
@@ -879,7 +912,7 @@ const StudentRequirements = () => {
                   }}
                 >
                   Edit
-                </Button>
+                </Button> */}
 
                 <Button
                   variant="contained"
@@ -892,7 +925,7 @@ const StudentRequirements = () => {
 
 
 
-                <Button
+                {/* <Button
                   disabled
                   onClick={() => handleConfirmDelete(uploaded)}
                   sx={{
@@ -905,7 +938,7 @@ const StudentRequirements = () => {
                   }}
                 >
                   Delete
-                </Button>
+                </Button> */}
 
               </>
             ) : null}
@@ -1036,9 +1069,9 @@ const StudentRequirements = () => {
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
               {/* Left cell: Applicant ID */}
-              <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: 'Arial Black', }}>
+              <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: "Poppins, sans-serif", }}>
                 Applicant ID:&nbsp;
-                <span style={{ fontFamily: "Arial", fontWeight: "normal", textDecoration: "underline" }}>
+                <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: "normal", textDecoration: "underline" }}>
                   {selectedPerson?.applicant_number || person?.applicant_number || "N/A"}
                 </span>
               </TableCell>
@@ -1046,10 +1079,10 @@ const StudentRequirements = () => {
               {/* Right cell: Applicant Name, right-aligned */}
               <TableCell
                 align="right"
-                sx={{ color: 'white', fontSize: '20px', fontFamily: 'Arial Black', }}
+                sx={{ color: 'white', fontSize: '20px', fontFamily: "Poppins, sans-serif", }}
               >
                 Applicant Name:&nbsp;
-                <span style={{ fontFamily: "Arial", fontWeight: "normal", textDecoration: "underline" }}>
+                <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: "normal", textDecoration: "underline" }}>
                   {(selectedPerson?.last_name || person?.last_name || "").toUpperCase()},
                   &nbsp;{(selectedPerson?.first_name || person?.first_name || "").toUpperCase()}{" "}
                   {(selectedPerson?.middle_name || person?.middle_name || "").toUpperCase()}{" "}
@@ -1065,18 +1098,83 @@ const StudentRequirements = () => {
       <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}` }}>
         {/* SHS GWA and Height row below Applicant Name */}
         <Box sx={{ px: 2, mb: 2, mt: 2 }}>
-          {/* SHS GWA Field */}
           <Box sx={{ display: "flex", alignItems: "center", mb: 1, }}>
             <Typography
               sx={{
                 fontSize: "14px",
-                fontFamily: "Arial Black",
+                fontFamily: "Poppins, sans-serif",
                 minWidth: "100px",
 
                 mr: 1,
               }}
             >
-              SHS GWA:
+              Program Applied:
+            </Typography>
+            <TextField
+              size="small"
+              name="program"
+              value={curriculumOptions.length > 0
+                ? curriculumOptions.find(
+                  (item) =>
+                    item?.curriculum_id?.toString() ===
+                    (person?.program ?? "").toString()
+                )?.program_description || (person?.program ?? "")
+                : "Loading..."}
+              sx={{ width: "500px" }}
+              InputProps={{
+                sx: {
+                  height: 35, // control outer height
+                },
+              }}
+              inputProps={{
+                style: {
+                  padding: "4px 8px", // control inner padding
+                  fontSize: "12px",
+                },
+              }}
+            />
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1, }}>
+            <Typography
+              sx={{
+                fontSize: "14px",
+                fontFamily: "Poppins, sans-serif",
+                minWidth: "100px",
+
+                mr: 1,
+              }}
+            >
+              Strand:
+            </Typography>
+            <TextField
+              size="small"
+              name="strand"
+              value={person.strand || ""}
+              sx={{ width: "300px" }}
+              InputProps={{
+                sx: {
+                  height: 35, // control outer height
+                },
+              }}
+              inputProps={{
+                style: {
+                  padding: "4px 8px", // control inner padding
+                  fontSize: "12px",
+                },
+              }}
+            />
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1, }}>
+            <Typography
+              sx={{
+                fontSize: "14px",
+                fontFamily: "Poppins, sans-serif",
+                minWidth: "100px",
+
+                mr: 1,
+              }}
+            >
+              SHS Gwa:
             </Typography>
             <TextField
               size="small"
@@ -1101,7 +1199,7 @@ const StudentRequirements = () => {
             <Typography
               sx={{
                 fontSize: "14px",
-                fontFamily: "Arial Black",
+                fontFamily: "Poppins, sans-serif",
                 minWidth: "100px",
                 mr: 1,
               }}
@@ -1149,7 +1247,7 @@ const StudentRequirements = () => {
               <Typography
                 sx={{
                   fontSize: "14px",
-                  fontFamily: "Arial Black",
+                  fontFamily: "Poppins, sans-serif",
                   minWidth: "120px",
 
                   mr: 4.8,
@@ -1203,7 +1301,7 @@ const StudentRequirements = () => {
               <Typography
                 sx={{
                   fontSize: "14px",
-                  fontFamily: "Arial Black",
+                  fontFamily: "Poppins, sans-serif",
                   minWidth: "140px",
                   mr: 2.3,
                 }}
@@ -1250,7 +1348,7 @@ const StudentRequirements = () => {
 
               {/* Document Type */}
               {/* <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, }}>
-                  <Typography sx={{ fontSize: "14px", fontFamily: "Arial Black", width: "90px" }}>
+                  <Typography sx={{ fontSize: "14px", fontFamily: "Poppins, sans-serif", width: "90px" }}>
                     Document Type:
                   </Typography>
                   <TextField
@@ -1281,7 +1379,7 @@ const StudentRequirements = () => {
 
               {/* ---------------------------------------------------------------------- */}
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography sx={{ fontSize: "14px", fontFamily: "Arial Black", width: "90px" }}>
+                <Typography sx={{ fontSize: "14px", fontFamily: "Poppins, sans-serif", width: "90px" }}>
                   Document Type:
                 </Typography>
                 <TextField
@@ -1320,7 +1418,7 @@ const StudentRequirements = () => {
               {/*
                 Remarks
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography sx={{ fontSize: "14px", fontFamily: "Arial Black", width: "80px" }}>
+                  <Typography sx={{ fontSize: "14px", fontFamily: "Poppins, sans-serif", width: "80px" }}>
                     Remarks
                   </Typography>
                   <TextField
@@ -1353,7 +1451,7 @@ const StudentRequirements = () => {
                 <Typography
                   sx={{
                     fontSize: "14px",
-                    fontFamily: "Arial Black",
+                    fontFamily: "Poppins, sans-serif",
                     width: "100px",
                     textAlign: "center"
                   }}
@@ -1445,7 +1543,7 @@ const StudentRequirements = () => {
                 height: "2.10in",
                 border: "1px solid #ccc",
                 overflow: "hidden",
-                marginTop: "-250px",
+                marginTop: "-400px",
                 borderRadius: "4px",
               }}
             >

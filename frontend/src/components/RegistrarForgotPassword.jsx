@@ -159,7 +159,16 @@ const RegistrarForgotPassword = () => {
             <div className="HeaderBody">
               <strong style={{
                 color: "white",
-              }}>{settings?.company_name || "Company Name"}</strong>
+              }}>   {(settings?.company_name || "Company Name")
+                .split(" ")
+                .reduce((acc, word, index) => {
+                  if (index % 4 === 0 && index !== 0) {
+                    acc.push(<br key={`br-${index}`} />);
+                  }
+                  acc.push(word + " ");
+                  return acc;
+                }, [])}
+              </strong>
               <p>Student Information System</p>
             </div>
           </div>
@@ -240,9 +249,8 @@ const RegistrarForgotPassword = () => {
           {/* Footer */}
           <div className="Footer">
             <div className="FooterText">
-              &copy; {currentYear}{" "}
-              {settings?.company_name || ""} <br/>
-              Student Information System. <br/>
+          &copy; {currentYear} {settings?.company_name || "EARIST"} <br />
+              Student Information System. <br />
               All rights reserved.
             </div>
           </div>

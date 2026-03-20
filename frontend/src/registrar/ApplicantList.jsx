@@ -890,7 +890,7 @@ const ApplicantList = () => {
         <title>Applicant List</title>
         <style>
           @page { size: A4; margin: 10mm; }
-          body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+          body { font-family: Arial; margin: 0; padding: 0; }
           .print-container {
             display: flex;
             flex-direction: column;

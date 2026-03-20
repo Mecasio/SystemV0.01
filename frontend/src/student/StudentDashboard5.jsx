@@ -427,7 +427,7 @@ const StudentDashboard5 = () => {
           <Typography
             sx={{
               fontSize: "20px",
-              fontFamily: "Arial",
+              fontFamily: "Poppins, sans-serif",
               color: "#3e3e3e",
               lineHeight: 1.3, // slightly tighter to fit in fewer rows
               whiteSpace: "normal",
@@ -530,7 +530,7 @@ const StudentDashboard5 = () => {
                 className="card-text"
                 sx={{
                   color: mainButtonColor,
-                  fontFamily: "Arial",
+                  fontFamily: "Poppins, sans-serif",
                   fontWeight: "bold",
                   fontSize: "0.85rem",
                 }}
@@ -661,7 +661,7 @@ const StudentDashboard5 = () => {
                 style={{
                   fontSize: "20px",
                   padding: "10px",
-                  fontFamily: "Arial Black",
+                  fontFamily: "Poppins, sans-serif",
                 }}
               >
                 Step 5: Other Information
@@ -696,7 +696,7 @@ const StudentDashboard5 = () => {
             <Typography
               style={{
                 fontSize: "12px",
-                fontFamily: "Arial",
+                fontFamily: "Poppins, sans-serif",
                 textAlign: "Left",
               }}
             >
@@ -708,7 +708,7 @@ const StudentDashboard5 = () => {
             <Typography
               style={{
                 fontSize: "12px",
-                fontFamily: "Arial",
+                fontFamily: "Poppins, sans-serif",
                 textAlign: "left",
               }}
             >
@@ -725,7 +725,7 @@ const StudentDashboard5 = () => {
             <Typography
               style={{
                 fontSize: "12px",
-                fontFamily: "Arial",
+                fontFamily: "Poppins, sans-serif",
                 textAlign: "Left",
               }}
             >
@@ -735,7 +735,7 @@ const StudentDashboard5 = () => {
             <Typography
               style={{
                 fontSize: "12px",
-                fontFamily: "Arial",
+                fontFamily: "Poppins, sans-serif",
                 textAlign: "left",
               }}
             >
@@ -750,7 +750,7 @@ const StudentDashboard5 = () => {
             <Typography
               style={{
                 fontSize: "12px",
-                fontFamily: "Arial",
+                fontFamily: "Poppins, sans-serif",
                 textAlign: "Left",
               }}
             >
@@ -765,7 +765,7 @@ const StudentDashboard5 = () => {
             <Typography
               style={{
                 fontSize: "12px",
-                fontFamily: "Arial",
+                fontFamily: "Poppins, sans-serif",
                 textAlign: "Left",
               }}
             >
@@ -779,7 +779,7 @@ const StudentDashboard5 = () => {
             <Typography
               style={{
                 fontSize: "12px",
-                fontFamily: "Arial",
+                fontFamily: "Poppins, sans-serif",
                 textAlign: "Left",
               }}
             >

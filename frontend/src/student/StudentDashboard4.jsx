@@ -448,7 +448,7 @@ const StudentDashboard4 = () => {
           <Typography
             sx={{
               fontSize: "20px",
-              fontFamily: "Arial",
+              fontFamily: "Poppins, sans-serif",
               color: "#3e3e3e",
               lineHeight: 1.3, // slightly tighter to fit in fewer rows
               whiteSpace: "normal",
@@ -553,7 +553,7 @@ const StudentDashboard4 = () => {
                 className="card-text"
                 sx={{
                   color: mainButtonColor,
-                  fontFamily: "Arial",
+                  fontFamily: "Poppins, sans-serif",
                   fontWeight: "bold",
                   fontSize: "0.85rem",
                 }}
@@ -684,7 +684,7 @@ const StudentDashboard4 = () => {
                 style={{
                   fontSize: "20px",
                   padding: "10px",
-                  fontFamily: "Arial Black",
+                  fontFamily: "Poppins, sans-serif",
                 }}
               >
                 Step 4: Health Medical Records
@@ -762,7 +762,7 @@ const StudentDashboard4 = () => {
                 width: "100%",
                 border: "1px solid black",
                 borderCollapse: "collapse",
-                fontFamily: "Arial, Helvetica, sans-serif",
+                fontFamily: "Poppins, sans-serif",
                 tableLayout: "fixed",
               }}
             >
@@ -888,7 +888,7 @@ const StudentDashboard4 = () => {
                                   <span
                                     style={{
                                       fontSize: "15px",
-                                      fontFamily: "Arial",
+                                      fontFamily: "Poppins, sans-serif",
                                     }}
                                   >
                                     Yes
@@ -920,7 +920,7 @@ const StudentDashboard4 = () => {
                                   <span
                                     style={{
                                       fontSize: "15px",
-                                      fontFamily: "Arial",
+                                      fontFamily: "Poppins, sans-serif",
                                     }}
                                   >
                                     No
@@ -1069,7 +1069,7 @@ const StudentDashboard4 = () => {
               style={{
                 border: "1px solid black",
                 borderCollapse: "collapse",
-                fontFamily: "Arial, Helvetica, sans-serif",
+                fontFamily: "Poppins, sans-serif",
                 width: "100%",
                 tableLayout: "fixed",
               }}
@@ -1113,7 +1113,7 @@ const StudentDashboard4 = () => {
                             onBlur={handleBlur}
                       />
                           <span
-                            style={{ fontSize: "15px", fontFamily: "Arial" }}
+                            style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}
                           >
                             YES
                           </span>
@@ -1136,7 +1136,7 @@ const StudentDashboard4 = () => {
                             onBlur={handleBlur}
                       />
                           <span
-                            style={{ fontSize: "15px", fontFamily: "Arial" }}
+                            style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}
                           >
                             NO
                           </span>
@@ -1187,7 +1187,7 @@ const StudentDashboard4 = () => {
                       style={{
                         borderCollapse: "collapse",
                         width: "100%",
-                        fontFamily: "Arial, Helvetica, sans-serif",
+                        fontFamily: "Poppins, sans-serif",
                         tableLayout: "fixed",
                       }}
                     >
@@ -1382,7 +1382,7 @@ const StudentDashboard4 = () => {
                   width: "100%",
                   border: "1px solid black",
                   borderCollapse: "collapse",
-                  fontFamily: "Arial, Helvetica, sans-serif",
+                  fontFamily: "Poppins, sans-serif",
                   tableLayout: "fixed",
                 }}
               >
@@ -1400,7 +1400,7 @@ const StudentDashboard4 = () => {
                       <Typography
                         sx={{
                           fontSize: "15px",
-                          fontFamily: "Arial",
+                          fontFamily: "Poppins, sans-serif",
                           marginBottom: "4px",
                         }}
                       >
@@ -1440,7 +1440,7 @@ const StudentDashboard4 = () => {
                             onBlur={handleBlur}
                       />
                           <span
-                            style={{ fontSize: "15px", fontFamily: "Arial" }}
+                            style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}
                           >
                             Physically Fit
                           </span>
@@ -1470,7 +1470,7 @@ const StudentDashboard4 = () => {
                             onBlur={handleBlur}
                       />
                           <span
-                            style={{ fontSize: "15px", fontFamily: "Arial" }}
+                            style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}
                           >
                             For Compliance
                           </span>

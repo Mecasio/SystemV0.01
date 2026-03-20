@@ -268,7 +268,7 @@ const MedicalCertificate = () => {
               padding: 0;
               width: 210mm;
               height: 297mm;
-              font-family: Arial, sans-serif;
+              font-family: Arial;
               overflow: hidden;
             }
 
@@ -557,7 +557,7 @@ const MedicalCertificate = () => {
                                     {/* Top Line: Republic */}
                                     <div style={{
                                         fontSize: "14px",
-                                        fontFamily: "Arial, sans-serif",
+                                        fontFamily: "Arial",
                                         textAlign: "left",
                                         marginBottom: "5px"
                                     }}>
@@ -980,7 +980,7 @@ const MedicalCertificate = () => {
                                     {/* Top Line: Republic */}
                                     <div style={{
                                         fontSize: "14px",
-                                        fontFamily: "Arial, sans-serif",
+                                        fontFamily: "Arial",
                                         textAlign: "left",
                                         marginBottom: "5px"
                                     }}>

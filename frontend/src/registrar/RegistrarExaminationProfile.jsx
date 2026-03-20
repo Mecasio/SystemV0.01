@@ -838,7 +838,7 @@ const ExaminationProfile = ({ personId }) => {
             pointer-events: none;
             user-select: none;
             z-index: 9999;
-            font-family: 'Arial Black';
+            font-family: Arial;
             letter-spacing: 0.3rem;
           }
 

@@ -201,7 +201,7 @@ const StudentAdmissionServices = () => {
               padding: 0;
               width: 210mm;
               height: 297mm;
-              font-family: Arial, sans-serif;
+              font-family: Arial;
               overflow: hidden;
             }
 

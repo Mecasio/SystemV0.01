@@ -34,6 +34,7 @@ import HowToRegIcon from "@mui/icons-material/HowToReg";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
+import SearchIcon from "@mui/icons-material/Search";
 
 const tabs1 = [
   {
@@ -121,7 +122,7 @@ const MedicalRequirements = () => {
           const filtered = allRequirements.filter(
             (req) =>
               Number(req.applicant_type) ===
-                Number(selectedPerson.applyingAs) ||
+              Number(selectedPerson.applyingAs) ||
               Number(req.applicant_type) === 0,
           );
 
@@ -198,6 +199,8 @@ const MedicalRequirements = () => {
     profile_img: "",
     generalAverage1: "",
     height: "",
+    program: "",
+    strand: "",
     applyingAs: "",
     document_status: "",
     last_name: "",
@@ -207,6 +210,30 @@ const MedicalRequirements = () => {
     student_number: "",
     evaluator: null,
   });
+
+  const [curriculumOptions, setCurriculumOptions] = useState([]);
+
+  useEffect(() => {
+    const fetchCurriculums = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/api/applied_program`);
+        setCurriculumOptions(response.data);
+      } catch (error) {
+        console.error("Error fetching curriculum options:", error);
+      }
+    };
+
+    fetchCurriculums();
+  }, []);
+
+  {
+    curriculumOptions.find(
+      (item) =>
+        item?.curriculum_id?.toString() === (person?.program ?? "").toString()
+    )?.program_description || (person?.program ?? "")
+
+  }
+
   const [editingRemarkId, setEditingRemarkId] = useState(null);
   const [newRemarkMode, setNewRemarkMode] = useState({});
   const [documentStatus, setDocumentStatus] = useState("");
@@ -355,6 +382,9 @@ const MedicalRequirements = () => {
           generalAverage1: "",
           height: "",
           applyingAs: "",
+          program: "",
+          strand: "",
+
           document_status: "",
           last_name: "",
           first_name: "",
@@ -393,6 +423,8 @@ const MedicalRequirements = () => {
         generalAverage1: "",
         height: "",
         applyingAs: "",
+        program: "",
+        strand: "",
         document_status: "",
         last_name: "",
         first_name: "",
@@ -719,7 +751,7 @@ const MedicalRequirements = () => {
           <Box display="flex" justifyContent="center" gap={1}>
             {uploaded ? (
               <>
-                <Button
+                {/* <Button
                   disabled
                   variant="contained"
                   size="small"
@@ -737,7 +769,7 @@ const MedicalRequirements = () => {
                   }}
                 >
                   Edit
-                </Button>
+                </Button> */}
 
                 <Button
                   variant="contained"
@@ -748,7 +780,7 @@ const MedicalRequirements = () => {
                   Preview
                 </Button>
 
-                <Button
+                {/* <Button
                   disabled
                   onClick={() => handleConfirmDelete(uploaded)}
                   sx={{
@@ -765,7 +797,7 @@ const MedicalRequirements = () => {
                   }}
                 >
                   Delete
-                </Button>
+                </Button> */}
               </>
             ) : null}
           </Box>
@@ -816,8 +848,17 @@ const MedicalRequirements = () => {
           size="small"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          InputProps={{ startAdornment: <Search sx={{ mr: 1 }} /> }}
-          sx={{ width: { xs: "100%", sm: "425px" }, mt: { xs: 2, sm: 0 } }}
+          sx={{
+            width: 450,
+            backgroundColor: "#fff",
+            borderRadius: 1,
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "10px",
+            },
+          }}
+          InputProps={{
+            startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
+          }}
         />
       </Box>
 
@@ -896,7 +937,7 @@ const MedicalRequirements = () => {
                 sx={{
                   color: "white",
                   fontSize: "20px",
-                  fontFamily: "Arial Black",
+                  fontFamily: "Arial",
                   border: "none",
                 }}
               >
@@ -919,7 +960,7 @@ const MedicalRequirements = () => {
                 sx={{
                   color: "white",
                   fontSize: "20px",
-                  fontFamily: "Arial Black",
+                  fontFamily: "Arial",
                   border: "none",
                 }}
               >
@@ -964,26 +1005,102 @@ const MedicalRequirements = () => {
         sx={{ width: "100%", border: `2px solid ${borderColor}` }}
       >
         {/* SHS GWA and Height */}
+
         <Box sx={{ px: 2, mb: 2, mt: 2 }}>
-          <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1, }}>
             <Typography
               sx={{
                 fontSize: "14px",
-                fontFamily: "Arial Black",
+                fontFamily: "Poppins, sans-serif",
                 minWidth: "100px",
+
                 mr: 1,
               }}
             >
-              SHS GWA:
+              Program Applied:
             </Typography>
             <TextField
-              readOnly
+              size="small"
+              name="program"
+              value={curriculumOptions.length > 0
+                ? curriculumOptions.find(
+                  (item) =>
+                    item?.curriculum_id?.toString() ===
+                    (person?.program ?? "").toString()
+                )?.program_description || (person?.program ?? "")
+                : "Loading..."}
+              sx={{ width: "500px" }}
+              InputProps={{
+                sx: {
+                  height: 35, // control outer height
+                },
+              }}
+              inputProps={{
+                style: {
+                  padding: "4px 8px", // control inner padding
+                  fontSize: "12px",
+                },
+              }}
+            />
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1, }}>
+            <Typography
+              sx={{
+                fontSize: "14px",
+                fontFamily: "Poppins, sans-serif",
+                minWidth: "100px",
+
+                mr: 1,
+              }}
+            >
+              Strand:
+            </Typography>
+            <TextField
+              size="small"
+              name="strand"
+              value={person.strand || ""}
+              sx={{ width: "300px" }}
+              InputProps={{
+                sx: {
+                  height: 35, // control outer height
+                },
+              }}
+              inputProps={{
+                style: {
+                  padding: "4px 8px", // control inner padding
+                  fontSize: "12px",
+                },
+              }}
+            />
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1, }}>
+            <Typography
+              sx={{
+                fontSize: "14px",
+                fontFamily: "Poppins, sans-serif",
+                minWidth: "100px",
+
+                mr: 1,
+              }}
+            >
+              SHS Gwa:
+            </Typography>
+            <TextField
               size="small"
               name="generalAverage1"
               value={person.generalAverage1 || ""}
               sx={{ width: "250px" }}
-              InputProps={{ sx: { height: 35 } }}
-              inputProps={{ style: { padding: "4px 8px", fontSize: "12px" } }}
+              InputProps={{
+                sx: {
+                  height: 35, // control outer height
+                },
+              }}
+              inputProps={{
+                style: {
+                  padding: "4px 8px", // control inner padding
+                  fontSize: "12px",
+                },
+              }}
             />
           </Box>
 
@@ -991,7 +1108,7 @@ const MedicalRequirements = () => {
             <Typography
               sx={{
                 fontSize: "14px",
-                fontFamily: "Arial Black",
+                fontFamily: "Poppins, sans-serif",
                 minWidth: "100px",
                 mr: 1,
               }}
@@ -999,17 +1116,26 @@ const MedicalRequirements = () => {
               Height:
             </Typography>
             <TextField
-              readOnly
               size="small"
               name="height"
               value={person.height || ""}
               sx={{ width: "100px" }}
-              InputProps={{ sx: { height: 35 } }}
-              inputProps={{ style: { padding: "4px 8px", fontSize: "12px" } }}
+              InputProps={{
+                sx: {
+                  height: 35,
+                },
+              }}
+              inputProps={{
+                style: {
+                  padding: "4px 8px",
+                  fontSize: "12px",
+                },
+              }}
             />
             <div style={{ fontSize: "12px", marginLeft: "10px" }}>cm.</div>
           </Box>
         </Box>
+
 
         <br />
         <br />
@@ -1029,7 +1155,7 @@ const MedicalRequirements = () => {
               <Typography
                 sx={{
                   fontSize: "14px",
-                  fontFamily: "Arial Black",
+                  fontFamily: "Arial",
                   minWidth: "120px",
                   mr: 4.8,
                 }}
@@ -1071,7 +1197,7 @@ const MedicalRequirements = () => {
               <Typography
                 sx={{
                   fontSize: "14px",
-                  fontFamily: "Arial Black",
+                  fontFamily: "Arial",
                   minWidth: "140px",
                   mr: 2.3,
                 }}
@@ -1131,7 +1257,7 @@ const MedicalRequirements = () => {
                 <Typography
                   sx={{
                     fontSize: "14px",
-                    fontFamily: "Arial Black",
+                    fontFamily: "Arial",
                     width: "90px",
                   }}
                 >
@@ -1177,7 +1303,7 @@ const MedicalRequirements = () => {
                 <Typography
                   sx={{
                     fontSize: "14px",
-                    fontFamily: "Arial Black",
+                    fontFamily: "Arial",
                     width: "100px",
                     textAlign: "center",
                   }}
@@ -1271,7 +1397,7 @@ const MedicalRequirements = () => {
                 height: "2.10in",
                 border: "1px solid #ccc",
                 overflow: "hidden",
-                marginTop: "-250px",
+                marginTop: "-400px",
                 borderRadius: "4px",
               }}
             >

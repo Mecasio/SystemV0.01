@@ -707,19 +707,19 @@ const MedicalRequirements = () => {
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
               {/* Left cell: Student Number */}
-              <TableCell sx={{ color: "white", fontSize: "20px", fontFamily: "Arial Black", border: "none" }}>
+              <TableCell sx={{ color: "white", fontSize: "20px", fontFamily: "Poppins, sans-serif", border: "none" }}>
                 Student Number:&nbsp;
-                <span style={{ fontFamily: "Arial", fontWeight: "normal", textDecoration: "underline" }}>
+                <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: "normal", textDecoration: "underline" }}>
                   {person?.student_number || "N/A"}
                 </span>
               </TableCell>
 
               <TableCell
                 align="right"
-                sx={{ color: "white", fontSize: "20px", fontFamily: "Arial Black", border: "none" }}
+                sx={{ color: "white", fontSize: "20px", fontFamily: "Poppins, sans-serif", border: "none" }}
               >
                 Student Name:&nbsp;
-                <span style={{ fontFamily: "Arial", fontWeight: "normal", textDecoration: "underline" }}>
+                <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: "normal", textDecoration: "underline" }}>
                   {person
                     ? `${person.last_name?.toUpperCase() || ""}, ${person.first_name?.toUpperCase() || ""} ${person.middle_name?.toUpperCase() || ""} ${person.extension?.toUpperCase() || ""}`
                     : "N/A"}
@@ -790,7 +790,7 @@ const MedicalRequirements = () => {
                 className="card-text"
                 sx={{
                   color: "#6D2323",
-                  fontFamily: "Arial",
+                  fontFamily: "Poppins, sans-serif",
                   fontWeight: "bold",
                   fontSize: "0.9rem",
                 }}
@@ -838,7 +838,7 @@ const MedicalRequirements = () => {
                 className="card-text"
                 sx={{
                   color: "#6D2323",
-                  fontFamily: "Arial",
+                  fontFamily: "Poppins, sans-serif",
                   fontWeight: "bold",
                   fontSize: "0.9rem",
                 }}

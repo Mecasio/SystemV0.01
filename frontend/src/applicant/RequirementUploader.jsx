@@ -639,7 +639,7 @@ const RequirementUploader = () => {
           <Typography
             sx={{
               fontSize: "16px",
-              fontFamily: "Arial",
+              fontFamily: "Poppins, sans-serif",
               color: "#3e3e3e",
               lineHeight: 1.6,
             }}

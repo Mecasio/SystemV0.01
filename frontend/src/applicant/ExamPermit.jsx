@@ -275,7 +275,7 @@ const ExamPermit = ({ personId }) => {
                     pointerEvents: "none",
                     userSelect: "none",
                     zIndex: 0,
-                    fontFamily: "'Arial Black', sans-serif",
+                    fontFamily: "Arial",
                     letterSpacing: "0.3rem",
                 }}
             >

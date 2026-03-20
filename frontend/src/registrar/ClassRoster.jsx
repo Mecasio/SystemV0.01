@@ -397,7 +397,7 @@ const ClassRoster = () => {
     <title>Student List</title>
     <style>
       @page { size: A4; margin: 10mm; }
-      body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+      body { font-family: Arial; margin: 0; padding: 0; }
       .print-container { display: flex; flex-direction: column; align-items: center; text-align: center; }
       .print-header { display: flex; align-items: center; justify-content: center; position: relative; width: 100%; }
       .print-header img { position: absolute; left: 0; margin-left: 10px; width: 120px; height: 120px; border-radius: 50%; object-fit: cover; }

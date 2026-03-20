@@ -294,7 +294,7 @@ const InterviewerApplicantList = () => {
     @page { size: A4 landscape; margin: 5mm; }
 
     body {
-      font-family: Arial, sans-serif;
+      font-family: Arial;
       margin: 0;
       padding: 0;
       -webkit-print-color-adjust: exact !important;

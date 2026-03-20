@@ -642,7 +642,7 @@ const StudentDashboard2 = () => {
           <Typography
             sx={{
               fontSize: "20px",
-              fontFamily: "Arial",
+              fontFamily: "Poppins, sans-serif",
               color: "#3e3e3e",
               lineHeight: 1.3, // slightly tighter to fit in fewer rows
               whiteSpace: "normal",
@@ -747,7 +747,7 @@ const StudentDashboard2 = () => {
                 className="card-text"
                 sx={{
                   color: mainButtonColor,
-                  fontFamily: "Arial",
+                  fontFamily: "Poppins, sans-serif",
                   fontWeight: "bold",
                   fontSize: "0.85rem",
                 }}
@@ -880,7 +880,7 @@ const StudentDashboard2 = () => {
                 style={{
                   fontSize: "20px",
                   padding: "10px",
-                  fontFamily: "Arial Black",
+                  fontFamily: "Poppins, sans-serif",
                 }}
               >
                 Step 2: Family Background
@@ -943,7 +943,7 @@ const StudentDashboard2 = () => {
                   onBlur={handleBlur}
                   sx={{ width: 25, height: 25 }}
                 />
-                <label style={{ fontFamily: "Arial" }}>Solo Parent</label>
+                <label style={{ fontFamily: "Poppins, sans-serif" }}>Solo Parent</label>
               </Box>
 
               {/* Parent Type Dropdown */}
@@ -1184,7 +1184,7 @@ const StudentDashboard2 = () => {
                       onBlur={handleBlur}
                       sx={{ width: 25, height: 25 }}
                     />
-                    <label style={{ fontFamily: "Arial" }}>
+                    <label style={{ fontFamily: "Poppins, sans-serif" }}>
                       Father's education not applicable
                     </label>
                   </Box>
@@ -1675,7 +1675,7 @@ const StudentDashboard2 = () => {
                       onBlur={handleBlur}
                       sx={{ width: 25, height: 25 }}
                     />
-                    <label style={{ fontFamily: "Arial" }}>
+                    <label style={{ fontFamily: "Poppins, sans-serif" }}>
                       Mother's education not applicable
                     </label>
                   </Box>

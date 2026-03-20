@@ -612,9 +612,9 @@ const OfficialStudentDashboard5 = () => {
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `2px solid ${borderColor}`, }}>
                         <TableRow>
                             {/* Left cell: Student Number */}
-                            <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: 'Arial Black', border: 'none' }}>
+                            <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: "Poppins, sans-serif", border: 'none' }}>
                                 Student Number:&nbsp;
-                                <span style={{ fontFamily: "Arial", fontWeight: "normal", textDecoration: "underline" }}>
+                                <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: "normal", textDecoration: "underline" }}>
                                     {person?.student_number || "N/A"}
                                 </span>
                             </TableCell>
@@ -622,10 +622,10 @@ const OfficialStudentDashboard5 = () => {
                             {/* Right cell: Student Name */}
                             <TableCell
                                 align="right"
-                                sx={{ color: 'white', fontSize: '20px', fontFamily: 'Arial Black', border: 'none' }}
+                                sx={{ color: 'white', fontSize: '20px', fontFamily: "Poppins, sans-serif", border: 'none' }}
                             >
                                 Student Name:&nbsp;
-                                <span style={{ fontFamily: "Arial", fontWeight: "normal", textDecoration: "underline" }}>
+                                <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: "normal", textDecoration: "underline" }}>
                                     {person?.last_name?.toUpperCase()}, {person?.first_name?.toUpperCase()}{" "}
                                     {person?.middle_name?.toUpperCase()} {person?.extension?.toUpperCase() || ""}
                                 </span>
@@ -677,7 +677,7 @@ const OfficialStudentDashboard5 = () => {
                     <Typography
                         sx={{
                             fontSize: "20px",
-                            fontFamily: "Arial",
+                            fontFamily: "Poppins, sans-serif",
                             color: "#3e3e3e",
                             lineHeight: 1.3, // slightly tighter to fit in fewer rows
                             whiteSpace: "normal",
@@ -774,7 +774,7 @@ const OfficialStudentDashboard5 = () => {
                                 className="card-text"
                                 sx={{
                                     color: mainButtonColor,
-                                    fontFamily: "Arial",
+                                    fontFamily: "Poppins, sans-serif",
                                     fontWeight: "bold",
                                     fontSize: "0.85rem",
                                 }}
@@ -886,7 +886,7 @@ const OfficialStudentDashboard5 = () => {
                 <form>
                     <Container maxWidth="100%" sx={{ backgroundColor: settings?.header_color || "#1976d2", border: "2px solid black", color: "white", borderRadius: 2, boxShadow: 3, padding: "4px" }}>
                         <Box sx={{ width: "100%" }}>
-                            <Typography style={{ fontSize: "20px", padding: "10px", fontFamily: "Arial Black" }}>Step 5: Other Information</Typography>
+                            <Typography style={{ fontSize: "20px", padding: "10px", fontFamily: "Poppins, sans-serif" }}>Step 5: Other Information</Typography>
                         </Box>
                     </Container>
                     <Container maxWidth="100%" sx={{ backgroundColor: "#f1f1f1", border: `2px solid ${borderColor}`, padding: 4, borderRadius: 2, boxShadow: 3 }}>
@@ -898,12 +898,12 @@ const OfficialStudentDashboard5 = () => {
                             Data Subject Consent Form
                         </Typography>
                         < br />
-                        <Typography style={{ fontSize: "12px", fontFamily: "Arial", textAlign: "Left" }}>
+                        <Typography style={{ fontSize: "12px", fontFamily: "Poppins, sans-serif", textAlign: "Left" }}>
                             In accordance with RA 10173 or Data Privacy Act of 2012, I give my consent to the following terms and conditions on the collection, use, processing, and disclosure of my personal data:
                         </Typography>
                         < br />
                         <Typography
-                            style={{ fontSize: "12px", fontFamily: "Arial", textAlign: "left" }}
+                            style={{ fontSize: "12px", fontFamily: "Poppins, sans-serif", textAlign: "left" }}
                         >
                             1. I am aware that the{" "}
                             {companyName || "Your School Name"}{" "}
@@ -914,11 +914,11 @@ const OfficialStudentDashboard5 = () => {
                             email address, landline numbers, and mobile numbers.
                         </Typography>
 
-                        <Typography style={{ fontSize: "12px", fontFamily: "Arial", textAlign: "Left" }}>
+                        <Typography style={{ fontSize: "12px", fontFamily: "Poppins, sans-serif", textAlign: "Left" }}>
                             2. I agree to personally update these data through personal request from the Office of the registrar.
                         </Typography>
                         <Typography
-                            style={{ fontSize: "12px", fontFamily: "Arial", textAlign: "left" }}
+                            style={{ fontSize: "12px", fontFamily: "Poppins, sans-serif", textAlign: "left" }}
                         >
                             3. In consonance with the above stated Act, I am aware that the University will
                             protect my school records related to my being a student/graduate of{" "}
@@ -927,17 +927,17 @@ const OfficialStudentDashboard5 = () => {
                             the University.
                         </Typography>
 
-                        <Typography style={{ fontSize: "12px", fontFamily: "Arial", textAlign: "Left" }}>
+                        <Typography style={{ fontSize: "12px", fontFamily: "Poppins, sans-serif", textAlign: "Left" }}>
                             4. In order to promote efficient management of the organization’s records, I authorize the University to manage my data for data sharing with industry partners, government agencies/embassies, other educational institutions, and other offices for the university for employment, statistics, immigration, transfer credentials, and other legal purposes that may serve me best.
                         </Typography>
                         < br />
-                        <Typography style={{ fontSize: "12px", fontFamily: "Arial", textAlign: "Left" }}>
+                        <Typography style={{ fontSize: "12px", fontFamily: "Poppins, sans-serif", textAlign: "Left" }}>
                             By clicking the submit button, I warrant that I have read, understood all of the above provisions, and agreed to its full implementation.
                         </Typography>
                         <br />
                         <hr style={{ border: "1px solid #ccc", width: "100%" }} />
                         < br />
-                        <Typography style={{ fontSize: "12px", fontFamily: "Arial", textAlign: "Left" }}>
+                        <Typography style={{ fontSize: "12px", fontFamily: "Poppins, sans-serif", textAlign: "Left" }}>
                             I certify that the information given above are true, complete, and accurate to the best of my knowledge and belief. I promise to abide by the rules and regulations of Eulogio "Amang" Rodriguez Institute of Science and Technology regarding the ECAT and my possible admission. I am aware that any false or misleading information and/or statement may result in the refusal or disqualification of my admission to the institution.
                         </Typography>
 

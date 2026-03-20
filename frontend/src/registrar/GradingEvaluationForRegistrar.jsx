@@ -446,7 +446,7 @@ const ProgramEvaluationForRegistrar = () => {
                 colSpan={15}
                 style={{
                   textAlign: "center",
-                  fontFamily: "Arial",
+                  fontFamily: "Poppins, sans-serif",
                   fontSize: "10px",
                   lineHeight: "1.5",
                 }}

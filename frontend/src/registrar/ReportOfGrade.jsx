@@ -604,9 +604,9 @@ const ReportOfGrade = () => {
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `2px solid ${borderColor}`, }}>
                         <TableRow>
                             {/* Left cell: Student Number */}
-                            <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: 'Arial Black', border: 'none' }}>
+                            <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: "Poppins, sans-serif", border: 'none' }}>
                                 Student Number:&nbsp;
-                                <span style={{ fontFamily: "Arial", fontWeight: "normal", textDecoration: "underline" }}>
+                                <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: "normal", textDecoration: "underline" }}>
                                     {studentData.student_number || "N/A"}
 
                                 </span>
@@ -615,10 +615,10 @@ const ReportOfGrade = () => {
                             {/* Right cell: Student Name */}
                             <TableCell
                                 align="right"
-                                sx={{ color: 'white', fontSize: '20px', fontFamily: 'Arial Black', border: 'none' }}
+                                sx={{ color: 'white', fontSize: '20px', fontFamily: "Poppins, sans-serif", border: 'none' }}
                             >
                                 Student Name:&nbsp;
-                                <span style={{ fontFamily: "Arial", fontWeight: "normal", textDecoration: "underline" }}>
+                                <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: "normal", textDecoration: "underline" }}>
                                     {studentData && studentData.last_name
                                         ? `${studentData.last_name.toUpperCase()}, ${studentData.first_name.toUpperCase()} ${studentData.middle_name.toUpperCase()}`
                                         : "N/A"}
@@ -736,7 +736,7 @@ const ReportOfGrade = () => {
                                 colSpan={15}
                                 style={{
                                     textAlign: "center",
-                                    fontFamily: "Arial",
+                                    fontFamily: "Poppins, sans-serif",
                                     fontSize: "10px",
                                     lineHeight: "1.5",
                                 }}

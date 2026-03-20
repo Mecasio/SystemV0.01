@@ -269,7 +269,7 @@ const ProctorApplicantList = () => {
     <title>Proctor Applicant List</title>
     <style>
       @page { size: A4 landscape; margin: 5mm; }
-      body { font-family: Arial, sans-serif; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      body { font-family: Arial; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       .print-container { display: flex; flex-direction: column; align-items: center; text-align: center; }
       .print-header img { position: absolute; left: 0; margin-left: 10px; width: 90px; height: 90px; border-radius: 50%; object-fit: cover; }
       .print-header div { font-size: 12px; }

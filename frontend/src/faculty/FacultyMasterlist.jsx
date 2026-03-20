@@ -440,7 +440,7 @@ const FacultyMasterList = () => {
           <title>Print</title>
           <style>
             body {
-              font-family: Arial, sans-serif;
+              font-family: Arial;
               margin: 0.5in; /* 0.5 inch margins */
             }
             table {

@@ -64,7 +64,7 @@ export default function Receipt() {
    GLOBAL
 ========================= */
 body {
-  font-family: Arial, sans-serif;
+  font-family: Arial;
   margin: 0;
 }
 

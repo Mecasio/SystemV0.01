@@ -244,7 +244,7 @@ const ECATApplicationForm = () => {
         margin: 0;
         margin-top: -115px;
         padding: 0;
-        font-family: Arial, sans-serif;
+        font-family: Arial;
         width: auto;
         height: auto;
         overflow: visible;

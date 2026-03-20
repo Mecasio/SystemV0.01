@@ -330,7 +330,7 @@ const FacultyEvaluation = () => {
                     <style>
                         @page { size: A4; margin: 10mm; }
                         body {
-                            font-family: Arial, sans-serif;
+                            font-family: Arial;
                             margin-top: 50px;
                             padding: 0;
                         }

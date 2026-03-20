@@ -128,6 +128,8 @@ const SuperAdminRequirementsUploader = () => {
     profile_img: "",
     generalAverage1: "",
     height: "",
+    program: "",
+    strand: "",
     applyingAs: "",
     document_status: "",
     last_name: "",
@@ -136,6 +138,32 @@ const SuperAdminRequirementsUploader = () => {
     extension: "",
     applicant_number: "",
   });
+
+
+  const [curriculumOptions, setCurriculumOptions] = useState([]);
+
+  useEffect(() => {
+    const fetchCurriculums = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/api/applied_program`);
+        setCurriculumOptions(response.data);
+      } catch (error) {
+        console.error("Error fetching curriculum options:", error);
+      }
+    };
+
+    fetchCurriculums();
+  }, []);
+
+  {
+    curriculumOptions.find(
+      (item) =>
+        item?.curriculum_id?.toString() === (person?.program ?? "").toString()
+    )?.program_description || (person?.program ?? "")
+
+  }
+
+
   const [editingRemarkId, setEditingRemarkId] = useState(null);
   const [newRemarkMode, setNewRemarkMode] = useState({}); // { [upload_id]: true|false }
   const [documentStatus, setDocumentStatus] = useState("");
@@ -150,6 +178,8 @@ const SuperAdminRequirementsUploader = () => {
   const [stepperColor, setStepperColor] = useState("#000000"); // ✅ NEW
 
   const [fetchedLogo, setFetchedLogo] = useState(null);
+  
+  
   const [companyName, setCompanyName] = useState("");
   const [shortTerm, setShortTerm] = useState("");
   const [campusAddress, setCampusAddress] = useState("");
@@ -404,6 +434,8 @@ const SuperAdminRequirementsUploader = () => {
         setPerson({
           profile_img: "",
           generalAverage1: "",
+          program: "",
+    strand: "",
           height: "",
           applyingAs: "",
           document_status: "",
@@ -436,6 +468,8 @@ const SuperAdminRequirementsUploader = () => {
         generalAverage1: "",
         height: "",
         applyingAs: "",
+        program: "",
+    strand: "",
         document_status: "",
         last_name: "",
         first_name: "",
@@ -893,13 +927,13 @@ const SuperAdminRequirementsUploader = () => {
                 sx={{
                   color: "white",
                   fontSize: "20px",
-                  fontFamily: "Arial Black",
+                  fontFamily: "Poppins, sans-serif",
                 }}
               >
                 Applicant ID:&nbsp;
                 <span
                   style={{
-                    fontFamily: "Arial",
+                    fontFamily: "Poppins, sans-serif",
                     fontWeight: "normal",
                     textDecoration: "underline",
                   }}
@@ -916,13 +950,13 @@ const SuperAdminRequirementsUploader = () => {
                 sx={{
                   color: "white",
                   fontSize: "20px",
-                  fontFamily: "Arial Black",
+                  fontFamily: "Poppins, sans-serif",
                 }}
               >
                 Applicant Name:&nbsp;
                 <span
                   style={{
-                    fontFamily: "Arial",
+                    fontFamily: "Poppins, sans-serif",
                     fontWeight: "normal",
                     textDecoration: "underline",
                   }}
@@ -959,20 +993,84 @@ const SuperAdminRequirementsUploader = () => {
         component={Paper}
         sx={{ width: "100%", border: `2px solid ${borderColor}` }}
       >
-        {/* SHS GWA and Height row below Applicant Name */}
-        <Box sx={{ px: 2, mb: 2, mt: 2 }}>
-          {/* SHS GWA Field */}
-          <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+       <Box sx={{ px: 2, mb: 2, mt: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1, }}>
             <Typography
               sx={{
                 fontSize: "14px",
-                fontFamily: "Arial Black",
+                fontFamily: "Poppins, sans-serif",
                 minWidth: "100px",
 
                 mr: 1,
               }}
             >
-              SHS GWA:
+              Program Applied:
+            </Typography>
+            <TextField
+              size="small"
+              name="program"
+              value={curriculumOptions.length > 0
+                ? curriculumOptions.find(
+                  (item) =>
+                    item?.curriculum_id?.toString() ===
+                    (person?.program ?? "").toString()
+                )?.program_description || (person?.program ?? "")
+                : "Loading..."}
+              sx={{ width: "500px" }}
+              InputProps={{
+                sx: {
+                  height: 35, // control outer height
+                },
+              }}
+              inputProps={{
+                style: {
+                  padding: "4px 8px", // control inner padding
+                  fontSize: "12px",
+                },
+              }}
+            />
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1, }}>
+            <Typography
+              sx={{
+                fontSize: "14px",
+                fontFamily: "Poppins, sans-serif",
+                minWidth: "100px",
+
+                mr: 1,
+              }}
+            >
+              Strand:
+            </Typography>
+            <TextField
+              size="small"
+              name="strand"
+              value={person.strand || ""}
+              sx={{ width: "300px" }}
+              InputProps={{
+                sx: {
+                  height: 35, // control outer height
+                },
+              }}
+              inputProps={{
+                style: {
+                  padding: "4px 8px", // control inner padding
+                  fontSize: "12px",
+                },
+              }}
+            />
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1, }}>
+            <Typography
+              sx={{
+                fontSize: "14px",
+                fontFamily: "Poppins, sans-serif",
+                minWidth: "100px",
+
+                mr: 1,
+              }}
+            >
+              SHS Gwa:
             </Typography>
             <TextField
               size="small"
@@ -997,7 +1095,7 @@ const SuperAdminRequirementsUploader = () => {
             <Typography
               sx={{
                 fontSize: "14px",
-                fontFamily: "Arial Black",
+                fontFamily: "Poppins, sans-serif",
                 minWidth: "100px",
                 mr: 1,
               }}
@@ -1024,7 +1122,6 @@ const SuperAdminRequirementsUploader = () => {
             <div style={{ fontSize: "12px", marginLeft: "10px" }}>cm.</div>
           </Box>
         </Box>
-
         <br />
         <br />
 
@@ -1044,7 +1141,7 @@ const SuperAdminRequirementsUploader = () => {
               <Typography
                 sx={{
                   fontSize: "14px",
-                  fontFamily: "Arial Black",
+                  fontFamily: "Poppins, sans-serif",
                   minWidth: "120px",
 
                   mr: 4.8,
@@ -1086,7 +1183,7 @@ const SuperAdminRequirementsUploader = () => {
               <Typography
                 sx={{
                   fontSize: "14px",
-                  fontFamily: "Arial Black",
+                  fontFamily: "Poppins, sans-serif",
                   minWidth: "140px",
                   mr: 2.3,
                 }}
@@ -1137,7 +1234,7 @@ const SuperAdminRequirementsUploader = () => {
             <Box sx={{ display: "flex", alignItems: "center", gap: 4, mb: 2 }}>
               {/* Document Type */}
               {/* <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, }}>
-                  <Typography sx={{ fontSize: "14px", fontFamily: "Arial Black", width: "90px" }}>
+                  <Typography sx={{ fontSize: "14px", fontFamily: "Poppins, sans-serif", width: "90px" }}>
                     Document Type:
                   </Typography>
                   <TextField
@@ -1170,7 +1267,7 @@ const SuperAdminRequirementsUploader = () => {
                 <Typography
                   sx={{
                     fontSize: "14px",
-                    fontFamily: "Arial Black",
+                    fontFamily: "Poppins, sans-serif",
                     width: "90px",
                   }}
                 >
@@ -1219,7 +1316,7 @@ const SuperAdminRequirementsUploader = () => {
               {/*
                 Remarks
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography sx={{ fontSize: "14px", fontFamily: "Arial Black", width: "80px" }}>
+                  <Typography sx={{ fontSize: "14px", fontFamily: "Poppins, sans-serif", width: "80px" }}>
                     Remarks
                   </Typography>
                   <TextField
@@ -1259,7 +1356,7 @@ const SuperAdminRequirementsUploader = () => {
                 <Typography
                   sx={{
                     fontSize: "14px",
-                    fontFamily: "Arial Black",
+                    fontFamily: "Poppins, sans-serif",
                     width: "100px",
                     textAlign: "center",
                   }}
@@ -1355,7 +1452,7 @@ const SuperAdminRequirementsUploader = () => {
                 height: "2.10in",
                 border: "1px solid #ccc",
                 overflow: "hidden",
-                marginTop: "-250px",
+                marginTop: "-400px",
                 borderRadius: "4px",
               }}
             >

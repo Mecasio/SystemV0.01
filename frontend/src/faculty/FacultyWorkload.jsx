@@ -455,7 +455,7 @@ const FacultyWorkload = () => {
                         top: 0rem;
                         transform: translateX(-50%)
                         width: 100%;
-                        font-family: "Poppins", sans-serif;
+                        font-family: Arial;
                         margin-top: -4.5rem;
                         padding: 0;
                     }

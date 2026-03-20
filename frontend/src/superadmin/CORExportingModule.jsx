@@ -656,7 +656,7 @@ const CORExportingModule = () => {
 
                 // Copy essential visual styles but reset margins and line-height for stable layout
                 span.style.cssText = input.style && input.style.cssText ? input.style.cssText : '';
-                span.style.fontFamily = computedStyle.fontFamily || 'Arial, sans-serif';
+                span.style.fontFamily = computedStyle.fontFamily || 'Arial';
                 span.style.fontSize = computedStyle.fontSize || '12px';
                 span.style.fontWeight = computedStyle.fontWeight || '400';
                 span.style.color = '#000000';

@@ -985,7 +985,7 @@ const StudentDashboard1 = () => {
           <Typography
             sx={{
               fontSize: "20px",
-              fontFamily: "Arial",
+              fontFamily: "Poppins, sans-serif",
               color: "#3e3e3e",
               lineHeight: 1.3, // slightly tighter to fit in fewer rows
               whiteSpace: "normal",
@@ -1090,7 +1090,7 @@ const StudentDashboard1 = () => {
                 className="card-text"
                 sx={{
                   color: mainButtonColor,
-                  fontFamily: "Arial",
+                  fontFamily: "Poppins, sans-serif",
                   fontWeight: "bold",
                   fontSize: "0.85rem",
                 }}
@@ -1223,7 +1223,7 @@ const StudentDashboard1 = () => {
                 style={{
                   fontSize: "20px",
                   padding: "10px",
-                  fontFamily: "Arial Black",
+                  fontFamily: "Poppins, sans-serif",
                 }}
               >
                 Step 1: Personal Information

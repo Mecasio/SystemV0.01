@@ -1228,7 +1228,7 @@ const CertificateOfRegistration = forwardRef(
                   className="student-table"
                   style={{
                     borderCollapse: "collapse",
-                    fontFamily: "Arial, Helvetica, sans-serif",
+                    fontFamily: "Arial",
                     width: "8in",
                     margin: "0 auto", // Center the table inside the form
                     textAlign: "center",
@@ -1487,7 +1487,7 @@ const CertificateOfRegistration = forwardRef(
                     borderTop: "1px solid black",
                     borderRight: "1px solid black",
                     borderCollapse: "collapse",
-                    fontFamily: "Arial, Helvetica, sans-serif",
+                    fontFamily: "Arial",
                     width: "8in",
                     paddingTop: "-15px",
                     margin: "0 auto", // Center the table inside the form
@@ -2496,7 +2496,7 @@ const CertificateOfRegistration = forwardRef(
                       className="fee-table"
                       style={{
                         borderCollapse: "collapse",
-                        fontFamily: "Arial, Helvetica, sans-serif",
+                        fontFamily: "Arial",
                         width: "100%",
                         textAlign: "center",
                         tableLayout: "fixed",
@@ -3924,7 +3924,7 @@ const CertificateOfRegistration = forwardRef(
                     <table
                       style={{
                         borderCollapse: "collapse",
-                        fontFamily: "Arial, Helvetica, sans-serif",
+                        fontFamily: "Arial",
                         width: "100%",
                         margin: "0",
                         textAlign: "center",
@@ -4198,7 +4198,7 @@ const CertificateOfRegistration = forwardRef(
                 <table
                   style={{
                     borderCollapse: "collapse",
-                    fontFamily: "Arial, Helvetica, sans-serif",
+                    fontFamily: "Arial",
                     width: "8in",
                     margin: "0 auto",
                     textAlign: "center",

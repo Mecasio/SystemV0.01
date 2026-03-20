@@ -439,7 +439,7 @@ const Dashboard3 = (props) => {
           <Typography
             sx={{
               fontSize: "20px",
-              fontFamily: "Arial",
+              fontFamily: "Poppins, sans-serif",
               color: "#3e3e3e",
               lineHeight: 1.3, // slightly tighter to fit in fewer rows
               whiteSpace: "normal",
@@ -533,7 +533,7 @@ const Dashboard3 = (props) => {
                 className="card-text"
                 sx={{
                   color: mainButtonColor,
-                  fontFamily: "Arial",
+                  fontFamily: "Poppins, sans-serif",
                   fontWeight: "bold",
                   fontSize: "0.85rem",
                 }}
@@ -636,7 +636,7 @@ const Dashboard3 = (props) => {
             }}
           >
             <Box sx={{ width: "100%" }}>
-              <Typography style={{ fontSize: "20px", padding: "10px", fontFamily: "Arial Black" }}>Step 3: Educational Attainment</Typography>
+              <Typography style={{ fontSize: "20px", padding: "10px", fontFamily: "Poppins, sans-serif" }}>Step 3: Educational Attainment</Typography>
             </Box>
           </Container>
 

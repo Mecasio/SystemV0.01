@@ -1132,9 +1132,9 @@ const SuperAdminStudentDashboard1 = () => {
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `2px solid ${borderColor}`, }}>
                         <TableRow>
                             {/* Left cell: Student Number */}
-                            <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: 'Arial Black', border: 'none' }}>
+                            <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: "Poppins, sans-serif", border: 'none' }}>
                                 Student Number:&nbsp;
-                                <span style={{ fontFamily: "Arial", fontWeight: "normal", textDecoration: "underline" }}>
+                                <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: "normal", textDecoration: "underline" }}>
                                     {person?.student_number || "N/A"}
                                 </span>
                             </TableCell>
@@ -1142,10 +1142,10 @@ const SuperAdminStudentDashboard1 = () => {
                             {/* Right cell: Student Name */}
                             <TableCell
                                 align="right"
-                                sx={{ color: 'white', fontSize: '20px', fontFamily: 'Arial Black', border: 'none' }}
+                                sx={{ color: 'white', fontSize: '20px', fontFamily: "Poppins, sans-serif", border: 'none' }}
                             >
                                 Student Name:&nbsp;
-                                <span style={{ fontFamily: "Arial", fontWeight: "normal", textDecoration: "underline" }}>
+                                <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: "normal", textDecoration: "underline" }}>
                                     {person?.last_name?.toUpperCase()}, {person?.first_name?.toUpperCase()}{" "}
                                     {person?.middle_name?.toUpperCase()} {person?.extension?.toUpperCase() || ""}
                                 </span>
@@ -1197,7 +1197,7 @@ const SuperAdminStudentDashboard1 = () => {
                     <Typography
                         sx={{
                             fontSize: "20px",
-                            fontFamily: "Arial",
+                            fontFamily: "Poppins, sans-serif",
                             color: "#3e3e3e",
                             lineHeight: 1.3, // slightly tighter to fit in fewer rows
                             whiteSpace: "normal",
@@ -1298,7 +1298,7 @@ const SuperAdminStudentDashboard1 = () => {
                                     className="card-text"
                                     sx={{
                                         color: mainButtonColor,
-                                        fontFamily: "Arial",
+                                        fontFamily: "Poppins, sans-serif",
                                         fontWeight: "bold",
                                         fontSize: "0.85rem",
                                     }}
@@ -1419,7 +1419,7 @@ const SuperAdminStudentDashboard1 = () => {
                         }}
                     >
                         <Box sx={{ width: "100%" }}>
-                            <Typography style={{ fontSize: "20px", padding: "10px", fontFamily: "Arial Black" }}>Step 1: Personal Information</Typography>
+                            <Typography style={{ fontSize: "20px", padding: "10px", fontFamily: "Poppins, sans-serif" }}>Step 1: Personal Information</Typography>
                         </Box>
                     </Container>
 

@@ -672,9 +672,9 @@ const RegistrarDashboard4 = () => {
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `2px solid ${borderColor}`, }}>
                         <TableRow>
                             {/* Left cell: Applicant ID */}
-                            <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: 'Arial Black', border: 'none' }}>
+                            <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: "Poppins, sans-serif", border: 'none' }}>
                                 Applicant ID:&nbsp;
-                                <span style={{ fontFamily: "Arial", fontWeight: "normal", textDecoration: "underline" }}>
+                                <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: "normal", textDecoration: "underline" }}>
                                     {person?.applicant_number || "N/A"}
 
                                 </span>
@@ -683,10 +683,10 @@ const RegistrarDashboard4 = () => {
                             {/* Right cell: Applicant Name */}
                             <TableCell
                                 align="right"
-                                sx={{ color: 'white', fontSize: '20px', fontFamily: 'Arial Black', border: 'none' }}
+                                sx={{ color: 'white', fontSize: '20px', fontFamily: "Poppins, sans-serif", border: 'none' }}
                             >
                                 Applicant Name:&nbsp;
-                                <span style={{ fontFamily: "Arial", fontWeight: "normal", textDecoration: "underline" }}>
+                                <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: "normal", textDecoration: "underline" }}>
                                     {person?.last_name?.toUpperCase()}, {person?.first_name?.toUpperCase()}{" "}
                                     {person?.middle_name?.toUpperCase()} {person?.extension?.toUpperCase() || ""}
                                 </span>
@@ -739,7 +739,7 @@ const RegistrarDashboard4 = () => {
                     <Typography
                         sx={{
                             fontSize: "20px",
-                            fontFamily: "Arial",
+                            fontFamily: "Poppins, sans-serif",
                             color: "#3e3e3e",
                             lineHeight: 1.3, // slightly tighter to fit in fewer rows
                             whiteSpace: "normal",
@@ -835,7 +835,7 @@ const RegistrarDashboard4 = () => {
                                 className="card-text"
                                 sx={{
                                     color: mainButtonColor,
-                                    fontFamily: "Arial",
+                                    fontFamily: "Poppins, sans-serif",
                                     fontWeight: "bold",
                                     fontSize: "0.85rem",
                                 }}
@@ -960,7 +960,7 @@ const RegistrarDashboard4 = () => {
                         }}
                     >
                         <Box sx={{ width: "100%" }}>
-                            <Typography style={{ fontSize: "20px", padding: "10px", fontFamily: "Arial Black" }}>Step 4: Health and Medical Records</Typography>
+                            <Typography style={{ fontSize: "20px", padding: "10px", fontFamily: "Poppins, sans-serif" }}>Step 4: Health and Medical Records</Typography>
                         </Box>
                     </Container>
 
@@ -1013,7 +1013,7 @@ const RegistrarDashboard4 = () => {
                                 width: "100%",
                                 border: "1px solid black",
                                 borderCollapse: "collapse",
-                                fontFamily: "Arial, Helvetica, sans-serif",
+                                fontFamily: "Poppins, sans-serif",
                                 tableLayout: "fixed",
                             }}
                         >
@@ -1073,7 +1073,7 @@ const RegistrarDashboard4 = () => {
                                                                         }}
                                                                         onBlur={handleBlur}
                       />
-                                                                    <span style={{ fontSize: "15px", fontFamily: "Arial" }}>Yes</span>
+                                                                    <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>Yes</span>
                                                                 </div>
 
                                                                 {/* NO */}
@@ -1092,7 +1092,7 @@ const RegistrarDashboard4 = () => {
                                                                         }}
                                                                         onBlur={handleBlur}
                       />
-                                                                    <span style={{ fontSize: "15px", fontFamily: "Arial" }}>No</span>
+                                                                    <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>No</span>
                                                                 </div>
                                                             </div>
 
@@ -1235,7 +1235,7 @@ const RegistrarDashboard4 = () => {
                             style={{
                                 border: "1px solid black",
                                 borderCollapse: "collapse",
-                                fontFamily: "Arial, Helvetica, sans-serif",
+                                fontFamily: "Poppins, sans-serif",
                                 width: "100%",
                                 tableLayout: "fixed",
                             }}
@@ -1272,7 +1272,7 @@ const RegistrarDashboard4 = () => {
                                                         }}
                                                         onBlur={handleBlur}
                       />
-                                                    <span style={{ fontSize: "15px", fontFamily: "Arial" }}>YES</span>
+                                                    <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>YES</span>
                                                 </Box>
 
                                                 {/* NO */}
@@ -1291,7 +1291,7 @@ const RegistrarDashboard4 = () => {
                                                         }}
                                                         onBlur={handleBlur}
                       />
-                                                    <span style={{ fontSize: "15px", fontFamily: "Arial" }}>NO</span>
+                                                    <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>NO</span>
 
 
                                                 </Box>
@@ -1341,7 +1341,7 @@ const RegistrarDashboard4 = () => {
                                             style={{
                                                 borderCollapse: "collapse",
                                                 width: "100%",
-                                                fontFamily: "Arial, Helvetica, sans-serif",
+                                                fontFamily: "Poppins, sans-serif",
                                                 tableLayout: "fixed",
                                             }}
                                         >
@@ -1523,7 +1523,7 @@ const RegistrarDashboard4 = () => {
                                     width: "100%",
                                     border: "1px solid black",
                                     borderCollapse: "collapse",
-                                    fontFamily: "Arial, Helvetica, sans-serif",
+                                    fontFamily: "Poppins, sans-serif",
                                     tableLayout: "fixed",
                                 }}
                             >
@@ -1538,7 +1538,7 @@ const RegistrarDashboard4 = () => {
                                             }}
                                         >
                                             {/* Question */}
-                                            <Typography sx={{ fontSize: "15px", fontFamily: "Arial", marginBottom: "4px" }}>
+                                            <Typography sx={{ fontSize: "15px", fontFamily: "Poppins, sans-serif", marginBottom: "4px" }}>
                                                 Do you have any of the following symptoms today?
                                             </Typography>
 
@@ -1560,7 +1560,7 @@ const RegistrarDashboard4 = () => {
                                                         }}
                                                         onBlur={handleBlur}
                       />
-                                                    <span style={{ fontSize: "15px", fontFamily: "Arial" }}>Physically Fit</span>
+                                                    <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>Physically Fit</span>
                                                 </div>
 
                                                 {/* For Compliance (1) */}
@@ -1579,7 +1579,7 @@ const RegistrarDashboard4 = () => {
                                                         }}
                                                         onBlur={handleBlur}
                       />
-                                                    <span style={{ fontSize: "15px", fontFamily: "Arial" }}>For Compliance</span>
+                                                    <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>For Compliance</span>
                                                 </div>
                                             </div>
                                         </td>

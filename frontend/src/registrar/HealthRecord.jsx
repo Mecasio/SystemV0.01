@@ -437,7 +437,7 @@ const HealthRecord = () => {
                     className="student-table"
                     style={{
                         borderCollapse: "collapse",
-                        fontFamily: "Arial, Helvetica, sans-serif",
+                        fontFamily: "Arial",
                         width: "8in",
                         margin: "0 auto",
                         textAlign: "center",
@@ -453,7 +453,7 @@ const HealthRecord = () => {
                                     style={{
                                         width: "8in", // full width for colSpan 40
                                         margin: "0 auto",
-                                        fontFamily: "Times New Roman",
+                                        fontFamily: "Arial",
                                         boxSizing: "border-box",
                                         padding: "10px 0",
                                     }}
@@ -595,7 +595,7 @@ const HealthRecord = () => {
                                                 fontSize: "16px",
                                                 marginTop: "-5px",
                                                 letterSpacing: "1px",
-                                                fontFamily: "Times New Roman",
+                                                fontFamily: "Arial",
                                                 fontWeight: "bold",
                                                 marginLeft: "200px"
                                             }}
@@ -608,7 +608,7 @@ const HealthRecord = () => {
                                                 fontSize: "16px",
                                                 marginTop: "20px",
                                                 letterSpacing: "1px",
-                                                fontFamily: "Times New Roman",
+                                                fontFamily: "Arial",
                                                 fontWeight: "bold",
                                                 marginLeft: "200px"
 
@@ -625,7 +625,7 @@ const HealthRecord = () => {
                                             flexDirection: "column",
                                             alignItems: "flex-end",
                                             fontSize: "12px",
-                                            fontFamily: "Arial, sans-serif",
+                                            fontFamily: "Arial",
                                             gap: "6px",
                                             marginTop: "-10px",
                                         }}
@@ -640,7 +640,7 @@ const HealthRecord = () => {
                                                     width: "150px",
                                                     marginLeft: "10px",
                                                     fontSize: "12px",
-                                                    fontFamily: "Arial, sans-serif",
+                                                    fontFamily: "Arial",
                                                     background: "none",
                                                     outline: "none",
                                                 }}
@@ -657,7 +657,7 @@ const HealthRecord = () => {
                                                     width: "150px",
                                                     marginLeft: "10px",
                                                     fontSize: "12px",
-                                                    fontFamily: "Arial, sans-serif",
+                                                    fontFamily: "Arial",
                                                     background: "none",
                                                     outline: "none",
                                                 }}
@@ -674,7 +674,7 @@ const HealthRecord = () => {
                                                     width: "150px",
                                                     marginLeft: "20px",
                                                     fontSize: "12px",
-                                                    fontFamily: "Arial, sans-serif",
+                                                    fontFamily: "Arial",
                                                     background: "none",
                                                     outline: "none",
                                                 }}
@@ -685,13 +685,13 @@ const HealthRecord = () => {
 
                                 <div style={{
                                     textAlign: "left", fontSize: "12px",
-                                    fontFamily: "Times new roman",
+                                    fontFamily: "Arial",
                                     marginTop: "5px"
                                 }}>
                                     INSTRUCTIONS: <span style={{ marginLeft: "50px" }}>Please fill up all blanks and provide necessary Information.</span></div>
                                 <div style={{
                                     textAlign: "left", fontSize: "12px",
-                                    fontFamily: "Times new roman",
+                                    fontFamily: "Arial",
                                 }}> <span style={{ marginLeft: "145px" }}>(Sagutin ang lahat ng Patlang o talata na maaring bilugan)</span></div>
                             </td>
                         </tr>
@@ -706,7 +706,7 @@ const HealthRecord = () => {
                 <table
                     style={{
                         borderCollapse: "collapse",
-                        fontFamily: "Arial, Helvetica, sans-serif",
+                        fontFamily: "Arial",
                         width: "8in",
                         margin: "0 auto",
                         textAlign: "center",
@@ -724,7 +724,7 @@ const HealthRecord = () => {
                     style={{
 
                         borderCollapse: "collapse",
-                        fontFamily: "Arial, Helvetica, sans-serif",
+                        fontFamily: "Arial",
                         width: "8in",
                         margin: "0 auto",
                         textAlign: "center",
@@ -740,7 +740,7 @@ const HealthRecord = () => {
                         </tr>
 
                         {/* --- Row 1: Name and Sex --- */}
-                        <tr style={{ fontFamily: "Times New Roman", fontSize: "12px" }}>
+                        <tr style={{ fontFamily: "Arial", fontSize: "12px" }}>
                             <td colSpan={40} style={{ paddingTop: "5px" }}>
                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                                     {/* Left Side: Name */}
@@ -815,7 +815,7 @@ const HealthRecord = () => {
                         </tr>
 
                         {/* --- Row 2: Status / Birth Date / Birth Place --- */}
-                        <tr style={{ fontFamily: "Times New Roman", fontSize: "12px" }}>
+                        <tr style={{ fontFamily: "Arial", fontSize: "12px" }}>
                             <td colSpan={40} style={{ paddingTop: "6px" }}>
                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                     {/* Civil Status */}
@@ -878,7 +878,7 @@ const HealthRecord = () => {
 
 
                         {/* Contact */}
-                        <tr style={{ fontFamily: "Times New Roman", fontSize: "12px", textAlign: "left" }}>
+                        <tr style={{ fontFamily: "Arial", fontSize: "12px", textAlign: "left" }}>
                             <td colSpan={40}>
                                 <b>PARENTS NAME:</b>
                                 <span
@@ -907,7 +907,7 @@ const HealthRecord = () => {
 
 
                         {/* Permanent Address */}
-                        <tr style={{ fontFamily: "Times New Roman", fontSize: "12px", textAlign: "left" }}>
+                        <tr style={{ fontFamily: "Arial", fontSize: "12px", textAlign: "left" }}>
                             <td colSpan={40}>
                                 <b style={{ marginRight: "10px" }}>ADDRESS while in school <span style={{ fontWeight: "normal" }}>(Boarding House):</span></b>
                                 <span
@@ -928,7 +928,7 @@ const HealthRecord = () => {
                         </tr>
 
                         {/* Contact */}
-                        <tr style={{ fontFamily: "Times New Roman", fontSize: "12px", textAlign: "left" }}>
+                        <tr style={{ fontFamily: "Arial", fontSize: "12px", textAlign: "left" }}>
                             <td colSpan={40}>
                                 <b>GUARDIAN:</b>
                                 <span
@@ -969,7 +969,7 @@ const HealthRecord = () => {
                     style={{
                         border: "2px solid black",
                         borderCollapse: "collapse",
-                        fontFamily: "Arial, Helvetica, sans-serif",
+                        fontFamily: "Arial",
                         width: "8in",
                         margin: "0 auto",
                         textAlign: "center",
@@ -984,11 +984,11 @@ const HealthRecord = () => {
                                 fontSize: "12px",
                                 textAlign: "justify",
                                 color: "black",
-                                fontFamily: "arial",
+                                fontFamily: "Arial",
                                 padding: "8px",
                                 lineHeight: "1.5",
                             }}>
-                                <div style={{ textAlign: "center", fontsize: "12px", fontFamily: "Times new roman", fontWeight: "bold" }}>Informed Consent</div>
+                                <div style={{ textAlign: "center", fontsize: "12px", fontFamily: "Arial", fontWeight: "bold" }}>Informed Consent</div>
                                 <strong>
                                     I,<span
                                         style={{
@@ -1030,7 +1030,7 @@ const HealthRecord = () => {
                                         display: "flex",
                                         justifyContent: "flex-end", // align to the right side
                                         padding: "20px 40px 0 40px",
-                                        fontFamily: "Times New Roman",
+                                        fontFamily: "Arial",
                                         fontsize: "12px",
                                     }}
                                 >
@@ -1063,7 +1063,7 @@ const HealthRecord = () => {
                 <table
                     style={{
                         borderCollapse: "collapse",
-                        fontFamily: "Times New Roman",
+                        fontFamily: "Arial",
                         width: "8in",
                         margin: "0 auto",
                         textAlign: "center",
@@ -1333,7 +1333,7 @@ const HealthRecord = () => {
                         ))}
 
                         <tr>
-                            <td colSpan={40} style={{ padding: 0, margin: 0, fontSize: "12px", fontFamily: "Times new roman" }}>
+                            <td colSpan={40} style={{ padding: 0, margin: 0, fontSize: "12px", fontFamily: "Arial" }}>
                                 <div
                                     style={{
                                         marginTop: "5px",
@@ -1357,7 +1357,7 @@ const HealthRecord = () => {
 
                     style={{
                         borderCollapse: "collapse",
-                        fontFamily: "Arial, Helvetica, sans-serif",
+                        fontFamily: "Arial",
                         width: "8in",
                         margin: "0 auto",
                         textAlign: "center",
@@ -1376,7 +1376,7 @@ const HealthRecord = () => {
                                 style={{
                                     textAlign: "left",
                                     fontSize: "12px",
-                                    fontFamily: "Times New Roman, serif",
+                                    fontFamily: "Arial",
                                     fontWeight: "bold",
 
                                 }}
@@ -1392,7 +1392,7 @@ const HealthRecord = () => {
                                 style={{
                                     textAlign: "left",
                                     fontSize: "12px",
-                                    fontFamily: "Times New Roman, serif",
+                                    fontFamily: "Arial",
 
                                 }}
                             >
@@ -1407,7 +1407,7 @@ const HealthRecord = () => {
                                         width: "100%",
                                         display: "flex",
                                         justifyContent: "center",
-                                        fontFamily: "Times New Roman, serif",
+                                        fontFamily: "Arial",
                                         fontSize: "12px",
                                     }}
                                 >
@@ -1420,28 +1420,28 @@ const HealthRecord = () => {
                                     >
                                         <tbody>
                                             <tr>
-                                                <td style={{ width: "50%", padding: "2px 10px", fontSize: "12px", fontFamily: "Times New Roman, serif", }}>____ Convulsion / Epilepsy</td>
-                                                <td style={{ width: "50%", padding: "2px 10px", fontSize: "12px", fontFamily: "Times New Roman, serif", }}>____ Dengue Fever</td>
+                                                <td style={{ width: "50%", padding: "2px 10px", fontSize: "12px", fontFamily: "Arial", }}>____ Convulsion / Epilepsy</td>
+                                                <td style={{ width: "50%", padding: "2px 10px", fontSize: "12px", fontFamily: "Arial", }}>____ Dengue Fever</td>
                                             </tr>
                                             <tr>
-                                                <td style={{ padding: "2px 10px", fontSize: "12px", fontFamily: "Times New Roman, serif", }}>____ Cough / Colds</td>
-                                                <td style={{ padding: "2px 10px", fontSize: "12px", fontFamily: "Times New Roman, serif", }}>____ Malaria</td>
+                                                <td style={{ padding: "2px 10px", fontSize: "12px", fontFamily: "Arial", }}>____ Cough / Colds</td>
+                                                <td style={{ padding: "2px 10px", fontSize: "12px", fontFamily: "Arial", }}>____ Malaria</td>
                                             </tr>
                                             <tr>
-                                                <td style={{ padding: "2px 10px", fontSize: "12px", fontFamily: "Times New Roman, serif", }}>____ Tuberculosis (TB)</td>
-                                                <td style={{ padding: "2px 10px", fontSize: "12px", fontFamily: "Times New Roman, serif", }}>____ Pneumonia</td>
+                                                <td style={{ padding: "2px 10px", fontSize: "12px", fontFamily: "Arial", }}>____ Tuberculosis (TB)</td>
+                                                <td style={{ padding: "2px 10px", fontSize: "12px", fontFamily: "Arial", }}>____ Pneumonia</td>
                                             </tr>
                                             <tr>
-                                                <td style={{ padding: "2px 10px", fontSize: "12px", fontFamily: "Times New Roman, serif", }}>____ Tonsillitis</td>
-                                                <td style={{ padding: "2px 10px", fontSize: "12px", fontFamily: "Times New Roman, serif", }}>____ Urinary Tract Infection</td>
+                                                <td style={{ padding: "2px 10px", fontSize: "12px", fontFamily: "Arial", }}>____ Tonsillitis</td>
+                                                <td style={{ padding: "2px 10px", fontSize: "12px", fontFamily: "Arial", }}>____ Urinary Tract Infection</td>
                                             </tr>
                                             <tr>
-                                                <td style={{ padding: "2px 10px", fontSize: "12px", fontFamily: "Times New Roman, serif", }}>____ Measles (Tigdas)</td>
-                                                <td style={{ padding: "2px 10px", fontSize: "12px", fontFamily: "Times New Roman, serif", }}>____ Typhoid Fever</td>
+                                                <td style={{ padding: "2px 10px", fontSize: "12px", fontFamily: "Arial", }}>____ Measles (Tigdas)</td>
+                                                <td style={{ padding: "2px 10px", fontSize: "12px", fontFamily: "Arial", }}>____ Typhoid Fever</td>
                                             </tr>
                                             <tr>
-                                                <td style={{ padding: "2px 10px", fontSize: "12px", fontFamily: "Times New Roman, serif", }}>____ Chicken Pox (Bulutong)</td>
-                                                <td style={{ padding: "2px 10px", fontSize: "12px", fontFamily: "Times New Roman, serif", }}>____ Asthma (Hika)</td>
+                                                <td style={{ padding: "2px 10px", fontSize: "12px", fontFamily: "Arial", }}>____ Chicken Pox (Bulutong)</td>
+                                                <td style={{ padding: "2px 10px", fontSize: "12px", fontFamily: "Arial", }}>____ Asthma (Hika)</td>
                                             </tr>
                                             <tr>
                                                 <td colSpan={2} style={{ padding: "2px 10px" }}>
@@ -1460,7 +1460,7 @@ const HealthRecord = () => {
                                 style={{
                                     textAlign: "left",
                                     fontSize: "12px",
-                                    fontFamily: "Times New Roman, serif",
+                                    fontFamily: "Arial",
                                     paddingBottom: "6px",
                                 }}
                             >
@@ -1474,25 +1474,25 @@ const HealthRecord = () => {
                                 style={{
                                     textAlign: "left",
                                     fontSize: "12px",
-                                    fontFamily: "Times New Roman, serif",
+                                    fontFamily: "Arial",
                                     paddingLeft: "60px",
                                 }}
                             >
                                 <table style={{ borderCollapse: "collapse", width: "100%" }}>
                                     <tbody>
                                         <tr>
-                                            <td style={{ width: "120px", fontSize: "12px", fontFamily: "Times New Roman, serif", }}>___ BCG</td>
-                                            <td style={{ width: "120px", fontSize: "12px", fontFamily: "Times New Roman, serif", }}>___ Hepa A</td>
-                                            <td style={{ width: "140px", fontSize: "12px", fontFamily: "Times New Roman, serif", }}>___ Typhoid Fever</td>
-                                            <td style={{ width: "120px", fontSize: "12px", fontFamily: "Times New Roman, serif", }}>___ Hepa B</td>
-                                            <td style={{ width: "120px", fontSize: "12px", fontFamily: "Times New Roman, serif", }}>___ DPT</td>
-                                            <td style={{ width: "120px", fontSize: "12px", fontFamily: "Times New Roman, serif", }}>___ MMR</td>
+                                            <td style={{ width: "120px", fontSize: "12px", fontFamily: "Arial", }}>___ BCG</td>
+                                            <td style={{ width: "120px", fontSize: "12px", fontFamily: "Arial", }}>___ Hepa A</td>
+                                            <td style={{ width: "140px", fontSize: "12px", fontFamily: "Arial", }}>___ Typhoid Fever</td>
+                                            <td style={{ width: "120px", fontSize: "12px", fontFamily: "Arial", }}>___ Hepa B</td>
+                                            <td style={{ width: "120px", fontSize: "12px", fontFamily: "Arial", }}>___ DPT</td>
+                                            <td style={{ width: "120px", fontSize: "12px", fontFamily: "Arial", }}>___ MMR</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ width: "120px", fontSize: "12px", fontFamily: "Times New Roman, serif", }}>___ Tetanus Toxoid</td>
-                                            <td style={{ width: "120px", fontSize: "12px", fontFamily: "Times New Roman, serif", }}>___ HIV</td>
-                                            <td style={{ width: "120px", fontSize: "12px", fontFamily: "Times New Roman, serif", }}>___ OPV</td>
-                                            <td style={{ width: "120px", fontSize: "12px", fontFamily: "Times New Roman, serif", }}>___ Influenza</td>
+                                            <td style={{ width: "120px", fontSize: "12px", fontFamily: "Arial", }}>___ Tetanus Toxoid</td>
+                                            <td style={{ width: "120px", fontSize: "12px", fontFamily: "Arial", }}>___ HIV</td>
+                                            <td style={{ width: "120px", fontSize: "12px", fontFamily: "Arial", }}>___ OPV</td>
+                                            <td style={{ width: "120px", fontSize: "12px", fontFamily: "Arial", }}>___ Influenza</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -1509,7 +1509,7 @@ const HealthRecord = () => {
                                     textAlign: "left",
                                     fontsize: "12px",
                                     paddingBottom: "1px",
-                                    fontFamily: "Times New Roman, serif",
+                                    fontFamily: "Arial",
                                 }}
                             >
                                 <div
@@ -1517,7 +1517,7 @@ const HealthRecord = () => {
                                         display: "flex",
                                         alignItems: "center",
                                         marginLeft: "35px",
-                                        fontFamily: "Times New Roman, serif",
+                                        fontFamily: "Arial",
                                         fontSize: "12px",
                                     }}
                                 >
@@ -1558,7 +1558,7 @@ const HealthRecord = () => {
 
                                     alignItems: "center",
                                     marginLeft: "35px",
-                                    fontFamily: "Times New Roman, serif",
+                                    fontFamily: "Arial",
                                     fontSize: "12px",
                                 }}
                             >
@@ -1583,7 +1583,7 @@ const HealthRecord = () => {
                                 style={{
                                     alignItems: "center",
                                     marginLeft: "35px",
-                                    fontFamily: "Times New Roman, serif",
+                                    fontFamily: "Arial",
                                     fontSize: "12px",
                                 }}
                             >
@@ -1608,7 +1608,7 @@ const HealthRecord = () => {
                                 style={{
                                     alignItems: "center",
                                     marginLeft: "35px",
-                                    fontFamily: "Times New Roman, serif",
+                                    fontFamily: "Arial",
                                     fontSize: "12px",
                                 }}
                             >
@@ -1633,7 +1633,7 @@ const HealthRecord = () => {
                                 style={{
                                     alignItems: "center",
                                     marginLeft: "35px",
-                                    fontFamily: "Times New Roman, serif",
+                                    fontFamily: "Arial",
                                     fontSize: "12px",
                                     marginBottom: "5px"
                                 }}
@@ -1667,7 +1667,7 @@ const HealthRecord = () => {
                                 textAlign: "left",
                                 fontSize: "12px",
                                 fontWeight: "bold",
-                                fontFamily: "Times New Roman, serif",
+                                fontFamily: "Arial",
 
                                 paddingBottom: "2px",
                             }}
@@ -1682,7 +1682,7 @@ const HealthRecord = () => {
                             style={{
                                 textAlign: "left",
                                 fontSize: "12px",
-                                fontFamily: "Times New Roman, serif",
+                                fontFamily: "Arial",
                                 paddingLeft: "40px",
                                 paddingTop: "2px",
                                 lineHeight: "1.4",
@@ -1692,7 +1692,7 @@ const HealthRecord = () => {
                                 style={{
                                     width: "100%",
                                     borderCollapse: "collapse",
-                                    fontFamily: "Times New Roman, serif",
+                                    fontFamily: "Arial",
                                     fontSize: "12px",
                                 }}
                             >
@@ -1802,7 +1802,7 @@ const HealthRecord = () => {
                             style={{
                                 textAlign: "left",
                                 fontSize: "12px",
-                                fontFamily: "Times New Roman, serif",
+                                fontFamily: "Arial",
                                 fontWeight: "bold",
 
                                 paddingBottom: "2px",
@@ -1822,7 +1822,7 @@ const HealthRecord = () => {
                             style={{
                                 textAlign: "left",
                                 fontSize: "12px",
-                                fontFamily: "Times New Roman, serif",
+                                fontFamily: "Arial",
                                 paddingLeft: "40px",
                                 paddingTop: "2px",
                                 lineHeight: "1.4",
@@ -1832,7 +1832,7 @@ const HealthRecord = () => {
                                 style={{
                                     width: "100%",
                                     borderCollapse: "collapse",
-                                    fontFamily: "Times New Roman, serif",
+                                    fontFamily: "Arial",
                                     fontSize: "12px",
                                 }}
                             >
@@ -1856,7 +1856,7 @@ const HealthRecord = () => {
                     </tr>
 
                     {/* FATHER ROW */}
-                    <tr style={{ fontFamily: "Times New Roman, serif", fontSize: "12px", lineHeight: "1.2" }}>
+                    <tr style={{ fontFamily: "Arial", fontSize: "12px", lineHeight: "1.2" }}>
                         <td colSpan={40} style={{ paddingLeft: "40px", paddingTop: "4px" }}>
                             <table style={{ width: "100%", borderCollapse: "collapse" }}>
                                 <tbody>
@@ -1867,17 +1867,17 @@ const HealthRecord = () => {
                                                 width: "33%",
                                                 borderBottom: "1px solid #000",
                                                 textTransform: "lowercase",
-                                                fontSize: "12px", fontFamily: "times new roman"
+                                                fontSize: "12px", fontFamily: "Arial"
                                             }}
                                         >
                                             {person.father_given_name} {person.father_middle_name} {person.father_family_name}
                                         </td>
-                                        <td style={{ width: "5%", fontWeight: "bold", textAlign: "right", fontSize: "12px", fontFamily: "times new roman" }}>Age:</td>
+                                        <td style={{ width: "5%", fontWeight: "bold", textAlign: "right", fontSize: "12px", fontFamily: "Arial" }}>Age:</td>
                                         <td style={{ width: "8%", borderBottom: "1px solid #000" }}></td>
-                                        <td style={{ width: "10%", fontWeight: "bold", textAlign: "right", fontSize: "12px", fontFamily: "times new roman" }}>Education:</td>
+                                        <td style={{ width: "10%", fontWeight: "bold", textAlign: "right", fontSize: "12px", fontFamily: "Arial" }}>Education:</td>
                                         <td style={{ width: "12%", borderBottom: "1px solid #000" }}></td>
-                                        <td style={{ width: "10%", fontWeight: "bold", textAlign: "right", fontSize: "12px", fontFamily: "times new roman" }}>Occupation:</td>
-                                        <td style={{ width: "15%", borderBottom: "1px solid #000", fontSize: "12px", fontFamily: "times new roman" }}>
+                                        <td style={{ width: "10%", fontWeight: "bold", textAlign: "right", fontSize: "12px", fontFamily: "Arial" }}>Occupation:</td>
+                                        <td style={{ width: "15%", borderBottom: "1px solid #000", fontSize: "12px", fontFamily: "Arial" }}>
                                             {person.father_occupation}
                                         </td>
                                     </tr>
@@ -1887,7 +1887,7 @@ const HealthRecord = () => {
                     </tr>
 
                     {/* MOTHER ROW */}
-                    <tr style={{ fontFamily: "Times New Roman, serif", fontSize: "12px", lineHeight: "1.2" }}>
+                    <tr style={{ fontFamily: "Arial", fontSize: "12px", lineHeight: "1.2" }}>
                         <td colSpan={40} style={{ paddingLeft: "40px", paddingTop: "2px" }}>
                             <table style={{ width: "100%", borderCollapse: "collapse" }}>
                                 <tbody>
@@ -1898,17 +1898,17 @@ const HealthRecord = () => {
                                                 width: "33%",
                                                 borderBottom: "1px solid #000",
                                                 textTransform: "lowercase",
-                                                fontSize: "12px", fontFamily: "times new roman"
+                                                fontSize: "12px", fontFamily: "Arial"
                                             }}
                                         >
                                             {person.mother_given_name} {person.mother_middle_name} {person.mother_family_name}
                                         </td>
-                                        <td style={{ width: "5%", fontWeight: "bold", textAlign: "right", fontSize: "12px", fontFamily: "times new roman" }}>Age:</td>
+                                        <td style={{ width: "5%", fontWeight: "bold", textAlign: "right", fontSize: "12px", fontFamily: "Arial" }}>Age:</td>
                                         <td style={{ width: "8%", borderBottom: "1px solid #000" }}></td>
-                                        <td style={{ width: "10%", fontWeight: "bold", textAlign: "right", fontSize: "12px", fontFamily: "times new roman" }}>Education:</td>
+                                        <td style={{ width: "10%", fontWeight: "bold", textAlign: "right", fontSize: "12px", fontFamily: "Arial" }}>Education:</td>
                                         <td style={{ width: "12%", borderBottom: "1px solid #000" }}></td>
-                                        <td style={{ width: "10%", fontWeight: "bold", textAlign: "right", fontSize: "12px", fontFamily: "times new roman" }}>Occupation:</td>
-                                        <td style={{ width: "15%", borderBottom: "1px solid #000", fontSize: "12px", fontFamily: "times new roman" }}>
+                                        <td style={{ width: "10%", fontWeight: "bold", textAlign: "right", fontSize: "12px", fontFamily: "Arial" }}>Occupation:</td>
+                                        <td style={{ width: "15%", borderBottom: "1px solid #000", fontSize: "12px", fontFamily: "Arial" }}>
                                             {person.mother_occupation}
                                         </td>
                                     </tr>
@@ -1923,7 +1923,7 @@ const HealthRecord = () => {
                             colSpan={40}
                             style={{
                                 textAlign: "left",
-                                fontFamily: "Times New Roman, serif",
+                                fontFamily: "Arial",
                                 fontSize: "12px",
                                 paddingLeft: "40px",
                                 paddingTop: "3px",
@@ -1951,7 +1951,7 @@ const HealthRecord = () => {
                         <td
                             colSpan={40}
                             style={{
-                                fontFamily: "Times New Roman, serif",
+                                fontFamily: "Arial",
                                 fontSize: "12px",
                                 fontWeight: "bold",
                                 textAlign: "left",
@@ -1968,7 +1968,7 @@ const HealthRecord = () => {
                                 style={{
                                     width: "100%",
                                     borderCollapse: "collapse",
-                                    fontFamily: "Times New Roman, serif",
+                                    fontFamily: "Arial",
                                     fontSize: "12px",
                                 }}
                             >
@@ -2105,10 +2105,10 @@ const HealthRecord = () => {
                                                             <table style={{ width: "100%", borderCollapse: "collapse" }}>
                                                                 <tbody>
                                                                     <tr>
-                                                                        <td style={{ width: "25%", fontSize: "12px", fontFamily: "Times new roman" }}>___ Genitalia:</td>
-                                                                        <td style={{ width: "25%", fontSize: "12px", fontFamily: "Times new roman" }}>Male SMR:</td>
+                                                                        <td style={{ width: "25%", fontSize: "12px", fontFamily: "Arial" }}>___ Genitalia:</td>
+                                                                        <td style={{ width: "25%", fontSize: "12px", fontFamily: "Arial" }}>Male SMR:</td>
                                                                         <td style={{ borderBottom: "1px solid #000", width: "25%" }}></td>
-                                                                        <td style={{ width: "10%", fontSize: "12px", fontFamily: "Times new roman" }}>Penis:</td>
+                                                                        <td style={{ width: "10%", fontSize: "12px", fontFamily: "Arial" }}>Penis:</td>
                                                                         <td style={{ borderBottom: "1px solid #000", width: "25%" }}></td>
                                                                     </tr>
                                                                     <tr>
@@ -2142,12 +2142,12 @@ const HealthRecord = () => {
                         <td colSpan={40} style={{ borderBottom: "1px solid black", height: "1px" }}></td>
                     </tr>
                     <tr>
-                        <td colSpan={40} style={{ fontFamily: "Times New Roman, serif", fontSize: "12px", fontWeight: "bold", paddingTop: "5px", textAlign: "left" }}>
+                        <td colSpan={40} style={{ fontFamily: "Arial", fontSize: "12px", fontWeight: "bold", paddingTop: "5px", textAlign: "left" }}>
                             NEUROLOGICAL EXAMINATION
                         </td>
                     </tr>
                     <tr>
-                        <td colSpan={40} style={{ fontFamily: "Times New Roman, serif", fontSize: "12px", paddingBottom: "4px", textAlign: "left" }}>
+                        <td colSpan={40} style={{ fontFamily: "Arial", fontSize: "12px", paddingBottom: "4px", textAlign: "left" }}>
                             Describe Abnormal Findings
                         </td>
                     </tr>
@@ -2156,7 +2156,7 @@ const HealthRecord = () => {
                         <td
                             colSpan={40}
                             style={{
-                                fontFamily: "Times New Roman, serif",
+                                fontFamily: "Arial",
                                 fontSize: "12px",
                                 padding: "4px 0",
                             }}
@@ -2166,7 +2166,7 @@ const HealthRecord = () => {
                                     width: "100%",
                                     borderCollapse: "collapse",
                                     textAlign: "left",
-                                    fontFamily: "Times New Roman, serif",
+                                    fontFamily: "Arial",
                                     fontSize: "12px",
                                 }}
                             >
@@ -2203,7 +2203,7 @@ const HealthRecord = () => {
                         <td
                             colSpan={40}
                             style={{
-                                fontFamily: "Times New Roman, serif",
+                                fontFamily: "Arial",
                                 fontSize: "12px",
                                 fontWeight: "bold",
                                 paddingTop: "6px",
@@ -2227,7 +2227,7 @@ const HealthRecord = () => {
                         <td
                             colSpan={40}
                             style={{
-                                fontFamily: "Times New Roman, serif",
+                                fontFamily: "Arial",
                                 fontSize: "12px",
                                 fontWeight: "bold",
                                 paddingTop: "6px",
@@ -2250,7 +2250,7 @@ const HealthRecord = () => {
                     </tr>
 
                     <tr>
-                        <td colSpan={40} style={{ padding: 0, margin: 0, fontSize: "12px", fontFamily: "Times new roman" }}>
+                        <td colSpan={40} style={{ padding: 0, margin: 0, fontSize: "12px", fontFamily: "Arial" }}>
                             <div
                                 style={{
                                     marginTop: "10px",
