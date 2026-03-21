@@ -634,12 +634,29 @@ const AssignScheduleToApplicantsInterviewer = () => {
     useEffect(() => {
         fetchRequirements();
     }, []);
-    const buildRequirementsText = (requirements) => {
-        if (!requirements || requirements.length === 0) {
+    const filterRequirementsForApplicant = (applicant, list = requirements) => {
+        if (!Array.isArray(list)) return [];
+
+        const applyingAs = String(applicant?.applyingAs ?? "");
+
+        return list.filter((req) => {
+            const applicantType = String(req.applicant_type ?? 0);
+            return (
+                applicantType === applyingAs ||
+                applicantType === "0" ||
+                applicantType.toLowerCase() === "all"
+            );
+        });
+    };
+
+    const buildRequirementsText = (applicant, list = requirements) => {
+        const filteredRequirements = filterRequirementsForApplicant(applicant, list);
+
+        if (!filteredRequirements || filteredRequirements.length === 0) {
             return "• No requirements listed at this time.";
         }
 
-        const grouped = requirements.reduce((acc, req) => {
+        const grouped = filteredRequirements.reduce((acc, req) => {
             const category = req.category || "Other";
             if (!acc[category]) acc[category] = [];
             acc[category].push(req);
@@ -737,7 +754,7 @@ const AssignScheduleToApplicantsInterviewer = () => {
             day: "numeric",
         });
 
-        const reqText = buildRequirementsText(requirements);
+        const reqText = buildRequirementsText(first, requirements);
 
         setEmailMessage(
             `Dear ${first.last_name || ""}, ${first.first_name || ""} ${first.middle_name || ""},
@@ -816,7 +833,7 @@ Thank you and good luck!`
             day: "numeric",
         });
 
-        const reqText = buildRequirementsText(requirements);
+        const reqText = buildRequirementsText(applicant, requirements);
 
 
         setSelectedSchedule(targetScheduleId);

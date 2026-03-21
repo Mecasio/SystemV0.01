@@ -421,11 +421,12 @@ const QualifyingExamScore = () => {
 
       const data = Array.isArray(res.data) ? res.data : [];
 
-      // NEVER hide anyone based on action
-      const withAssignedFlag = data.map((p) => ({
-        ...p,
-        assigned: false,
-      }));
+      const withAssignedFlag = data
+        .filter((p) => Number(p.applicant_interview_status) !== 1)
+        .map((p) => ({
+          ...p,
+          assigned: false,
+        }));
 
       setPersons(withAssignedFlag);
     } catch (err) {
@@ -752,7 +753,13 @@ const QualifyingExamScore = () => {
       // ✅ Fetch all applicants (with scores)
       axios
         .get(`${API_BASE_URL}/api/applicants-with-number`)
-        .then((res) => setPersons(res.data))
+        .then((res) =>
+          setPersons(
+            (Array.isArray(res.data) ? res.data : []).filter(
+              (p) => Number(p.applicant_interview_status) !== 1,
+            ),
+          ),
+        )
         .catch((err) => {
           console.error("❌ Error fetching applicants:", err);
           setPersons([]);
@@ -1510,15 +1517,31 @@ th, td {
     fetchRequirements();
   }, []);
 
+  const filterRequirementsForApplicant = (applicant, list = requirements) => {
+    if (!Array.isArray(list)) return [];
 
-  const buildRequirementsText = (requirements) => {
-    if (!Array.isArray(requirements) || requirements.length === 0) {
+    const applyingAs = String(applicant?.applyingAs ?? "");
+
+    return list.filter((req) => {
+      const applicantType = String(req.applicant_type ?? 0);
+      return (
+        applicantType === applyingAs ||
+        applicantType === "0" ||
+        applicantType.toLowerCase() === "all"
+      );
+    });
+  };
+
+  const buildRequirementsText = (applicant, list = requirements) => {
+    const filteredRequirements = filterRequirementsForApplicant(applicant, list);
+
+    if (!Array.isArray(filteredRequirements) || filteredRequirements.length === 0) {
       return "• No requirements listed at this time.";
     }
 
     let text = "";
 
-    requirements.forEach((req) => {
+    filteredRequirements.forEach((req) => {
       let notes = [];
 
       // ✅ PRIORITY: Original overrides Xerox
@@ -1554,7 +1577,7 @@ th, td {
       year: "numeric",
     });
 
-    const reqText = buildRequirementsText(requirements);
+    const reqText = buildRequirementsText(applicant, requirements);
 
 
     // ✅ Use dynamic company name from settings
@@ -1598,7 +1621,7 @@ Thank you, best regards
       year: "numeric",
     });
 
-    const reqText = buildRequirementsText(requirements);
+    const reqText = buildRequirementsText(applicant, requirements);
 
 
     // ✅ Use dynamic company name from settings
@@ -1720,7 +1743,11 @@ Thank you, best regards
     setLoading2(true);
     const targets = selectedApplicant
       ? persons.filter((p) => p.applicant_number === selectedApplicant)
-      : persons.filter((p) => p.interview_status === "Accepted");
+      : persons.filter(
+          (p) =>
+            p.college_approval_status === "Accepted" &&
+            Number(p.applicant_interview_status) !== 1,
+        );
 
     if (targets.length === 0) {
       setLoading2(false);
@@ -3136,8 +3163,8 @@ Thank you, best regards
                         fontSize: "13px",
                       }}
                     >
-                      {person.interview_status === "Accepted" ? (
-                        person.interview_status === 1 ? (
+                      {person.college_approval_status === "Accepted" ? (
+                        Number(person.applicant_interview_status) === 1 ? (
                           <Button
                             variant="contained"
                             disabled

@@ -2424,6 +2424,7 @@ app.get("/api/applicants-with-number", async (req, res) => {
     const [rows] = await db.execute(`
       SELECT
         p.person_id,
+        p.applyingAs,
         p.emailAddress,
         p.campus,
         p.first_name,
@@ -2452,6 +2453,7 @@ app.get("/api/applicants-with-number", async (req, res) => {
         e.status AS exam_status,
 
         -- From person_status_table
+        COALESCE(ps.interview_status, 0)   AS applicant_interview_status,
         COALESCE(ps.exam_result, 0)        AS total_ave,
         COALESCE(ps.qualifying_result, 0)  AS qualifying_exam_score,
         COALESCE(ps.interview_result, 0)   AS qualifying_interview_score,
@@ -4206,6 +4208,7 @@ app.get("/api/interview/not-emailed-applicants", async (req, res) => {
     const [rows] = await db.query(`
       SELECT
         p.person_id,
+        p.applyingAs,
         p.last_name,
         p.first_name,
         p.campus,
