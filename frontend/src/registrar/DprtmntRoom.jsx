@@ -247,7 +247,7 @@ const DepartmentRoom = () => {
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
 
-      <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+      <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
@@ -261,7 +261,7 @@ const DepartmentRoom = () => {
         elevation={3}
         sx={{
           p: 3,
-          border: `2px solid ${borderColor}`,
+          border: `1px solid ${borderColor}`,
 
         }}
       >
@@ -331,7 +331,7 @@ const DepartmentRoom = () => {
       <Grid container spacing={1}>
         {departmentList.map((dept) => (
           <Grid item xs={12} md={4} key={dept.dprtmnt_id}>
-            <Paper elevation={2} style={{ padding: "10px", border: `2px solid ${borderColor}` }}>
+            <Paper elevation={2} style={{ padding: "10px", border: `1px solid ${borderColor}` }}>
               <Typography variant="subtitle2" style={{ fontSize: "14px", marginBottom: "8px" }}>
                 {dept.dprtmnt_name}
               </Typography>

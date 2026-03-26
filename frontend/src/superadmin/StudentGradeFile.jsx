@@ -518,7 +518,7 @@ const StudentGradeFile = () => {
                 </FormControl>
             </Box>
 
-            <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+            <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
                 <Table>
                     <TableHead sx={{ backgroundColor: mainButtonColor }}>
                         <TableRow>
@@ -528,7 +528,7 @@ const StudentGradeFile = () => {
                 </Table>
             </TableContainer>
 
-            <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, padding: "20px 0px" }}>
+            <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, padding: "20px 0px" }}>
                 <Table sx={{ '& td, & th': { paddingTop: 0, paddingBottom: 0, border: 'none', fontSize: "15px", letterSpacing: "-0.9px", wordSpacing: "3px" } }}>
                     <TableHead>
                         <TableRow>
@@ -683,7 +683,7 @@ const StudentGradeFile = () => {
                         <TableContainer
                             key={semester}
                             component={Paper}
-                            sx={{ width: '100%', border: `2px solid ${borderColor}`, mb: 2, mt: 2 }}
+                            sx={{ width: '100%', border: `1px solid ${borderColor}`, mb: 2, mt: 2 }}
                         >
                             <Typography
                                 sx={{
@@ -919,7 +919,7 @@ const StudentGradeFile = () => {
                     >
                         <Box
                             sx={{
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 borderRadius: 2,
                                 padding: 2,
                             }}
@@ -929,7 +929,7 @@ const StudentGradeFile = () => {
 
                         <Box
                             sx={{
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 borderRadius: 2,
                                 padding: 2,
                             }}
@@ -939,7 +939,7 @@ const StudentGradeFile = () => {
 
                         <Box
                             sx={{
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 borderRadius: 2,
                                 padding: 2,
                             }}
@@ -957,7 +957,7 @@ const StudentGradeFile = () => {
                     >
                         <Box
                             sx={{
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 borderRadius: 2,
                                 padding: 2,
                             }}
@@ -967,7 +967,7 @@ const StudentGradeFile = () => {
 
                         <Box
                             sx={{
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 borderRadius: 2,
                                 padding: 2,
                             }}
@@ -977,7 +977,7 @@ const StudentGradeFile = () => {
 
                         <Box
                             sx={{
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 borderRadius: 2,
                                 padding: 2,
                             }}
@@ -995,7 +995,7 @@ const StudentGradeFile = () => {
                     >
                         <Box
                             sx={{
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 borderRadius: 2,
                                 padding: 2,
                             }}
@@ -1005,7 +1005,7 @@ const StudentGradeFile = () => {
 
                         <Box
                             sx={{
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 borderRadius: 2,
                                 padding: 2,
                             }}
@@ -1015,7 +1015,7 @@ const StudentGradeFile = () => {
 
                         <Box
                             sx={{
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 borderRadius: 2,
                                 padding: 2,
                             }}
@@ -1033,7 +1033,7 @@ const StudentGradeFile = () => {
                     >
                         <Box
                             sx={{
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 borderRadius: 2,
                                 padding: 2,
                             }}
@@ -1043,7 +1043,7 @@ const StudentGradeFile = () => {
 
                         <Box
                             sx={{
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 borderRadius: 2,
                                 padding: 2,
                             }}
@@ -1053,7 +1053,7 @@ const StudentGradeFile = () => {
 
                         <Box
                             sx={{
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 borderRadius: 2,
                                 padding: 2,
                             }}
@@ -1071,7 +1071,7 @@ const StudentGradeFile = () => {
                     >
                         <Box
                             sx={{
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 borderRadius: 2,
                                 padding: 2,
                             }}
@@ -1081,7 +1081,7 @@ const StudentGradeFile = () => {
 
                         <Box
                             sx={{
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 borderRadius: 2,
                                 padding: 2,
                             }}
@@ -1091,7 +1091,7 @@ const StudentGradeFile = () => {
 
                         <Box
                             sx={{
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 borderRadius: 2,
                                 padding: 2,
                             }}

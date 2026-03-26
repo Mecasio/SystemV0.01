@@ -586,7 +586,7 @@ const StudentListForEnrollment = () => {
              <div class="print-header">
                <img src="${logoSrc}" alt="School Logo" class="logo" style="width: 18%;"/>
                <div style="width: 64%;">
-                 <div>Republic of the Philippines</div>
+               <div style="font-size: 13px; font-family: Arial">Republic of the Philippines</div>
                  ${name ? `<b style="letter-spacing: 1px; font-size: 20px;">${firstLine}</b>${secondLine ? `<div style="letter-spacing: 1px; font-size: 20px;"><b>${secondLine}</b></div>` : ""}` : ""}
                  <div style="font-size: 12px;">${campusAddress}</div>
                </div>
@@ -672,7 +672,7 @@ const StudentListForEnrollment = () => {
                                 justifyContent: "center",
                                 cursor: "pointer",
                                 borderRadius: 2,
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
                                 color: activeStep === index ? "#fff" : "#000",
                                 boxShadow: activeStep === index ? "0px 4px 10px rgba(0,0,0,0.3)" : "0px 2px 6px rgba(0,0,0,0.15)",
@@ -698,7 +698,7 @@ const StudentListForEnrollment = () => {
 
             <div style={{ height: "20px" }}></div>
 
-            <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}` }}>
+            <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}` }}>
                 <Table>
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
                         <TableRow>
@@ -708,7 +708,7 @@ const StudentListForEnrollment = () => {
                 </Table>
             </TableContainer>
 
-            <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, p: 2 }}>
+            <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, p: 2 }}>
                 <Box display="flex" justifyContent="space-between" flexWrap="wrap" rowGap={2}>
                     {/* Left Side: Campus Dropdown */}
                     <Box display="flex" flexDirection="column" gap={1} sx={{ minWidth: 200 }}>
@@ -773,7 +773,7 @@ const StudentListForEnrollment = () => {
                 <Table size="small">
                     <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
                         <TableRow>
-                            <TableCell colSpan={12} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+                            <TableCell colSpan={12} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                                 <Box display="flex" justifyContent="space-between" alignItems="center">
                                     <Typography fontSize="14px" fontWeight="bold" color="white">
                                         Total Students: {filteredPersons.length}
@@ -820,7 +820,7 @@ const StudentListForEnrollment = () => {
             </TableContainer>
 
             {/* Filters Panel */}
-            <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, p: 2 }}>
+            <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, p: 2 }}>
                 <Box display="flex" justifyContent="space-between" flexWrap="wrap" rowGap={3} columnGap={5}>
 
                     {/* LEFT: Sort */}
@@ -928,26 +928,26 @@ const StudentListForEnrollment = () => {
                 <Table size="small">
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
                         <TableRow>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "2%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>#</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "4%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>Student's Documents</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "4%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>Student Number</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "25%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>Name</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "10%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>Program</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>Year Level</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "8%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>Birth Date</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "8%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>Sex</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "8%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>Remarks</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "8%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>Action</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "2%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>#</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "4%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>Student's Documents</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "4%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>Student Number</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "25%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>Name</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "10%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>Program</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>Year Level</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "8%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>Birth Date</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "8%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>Sex</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "8%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>Remarks</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "8%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>Action</TableCell>
                         </TableRow>
                     </TableHead>
 
                     <TableBody>
                         {currentPersons.map((person, index) => (
                             <TableRow key={`${person.student_number ?? ""}-${person.year_id ?? ""}-${person.semester_id ?? ""}`}>
-                                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                                     {index + 1}
                                 </TableCell>
-                                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                                     <Checkbox 
                                     readOnly
                                     checked
@@ -963,35 +963,35 @@ const StudentListForEnrollment = () => {
                                     </Checkbox>
                                 </TableCell>
                                 <TableCell
-                                    sx={{ textAlign: "center", border: `2px solid ${borderColor}`, color: "blue", cursor: "pointer" }}
+                                    sx={{ textAlign: "center", border: `1px solid ${borderColor}`, color: "blue", cursor: "pointer" }}
                                     onClick={() => handleRowClick(person)}
                                 >
                                     {person.student_number ?? "N/A"}
                                 </TableCell>
                                 <TableCell
-                                    sx={{ textAlign: "left", border: `2px solid ${borderColor}`, color: "blue", cursor: "pointer" }}
+                                    sx={{ textAlign: "left", border: `1px solid ${borderColor}`, color: "blue", cursor: "pointer" }}
                                     onClick={() => handleRowClick(person)}
                                 >
                                     {`${person.last_name}, ${person.first_name} ${person.middle_name ?? ""} ${person.extension ?? ""}`}
                                 </TableCell>
-                                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                                     {person.program_description ||
                                         (curriculumOptions.find(item => String(item.curriculum_id) === String(person.program ?? person.curriculum_id))?.program_code) ||
                                         " "}
                                 </TableCell>
-                                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                                     {person.year_level_description ?? ""}
                                 </TableCell>
-                                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                                     {person.birthOfDate}
                                 </TableCell>
-                                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                                     {person.gender === 0 ? "MALE" : person.gender === 1 ? "FEMALE" : ""}
                                 </TableCell>
-                                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                                     {getRemarkText(person.en_remarks) ?? ""}
                                 </TableCell>
-                                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                                     <Button variant="contained" size="small" onClick={() => handleOpenPreview(person)}>
                                         Preview
                                     </Button>
@@ -1000,7 +1000,7 @@ const StudentListForEnrollment = () => {
                         ))}
                         {currentPersons.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={10} sx={{ textAlign: "center", border: `2px solid ${borderColor}`, color: "#777", py: 3 }}>
+                                <TableCell colSpan={10} sx={{ textAlign: "center", border: `1px solid ${borderColor}`, color: "#777", py: 3 }}>
                                     No students found for the selected filters.
                                 </TableCell>
                             </TableRow>

@@ -669,7 +669,7 @@ const MatriculationPaymentModule = () => {
                 <Table stickyHeader size="small"
                     sx={{
                     "& th, & td": {
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         textAlign: "center",
                         fontSize: "12px",   
                     },

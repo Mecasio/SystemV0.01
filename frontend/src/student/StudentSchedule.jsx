@@ -321,47 +321,47 @@ const StudentSchedule = () => {
           <TableHead
             sx={{
               backgroundColor: settings?.header_color || "#1976d2",
-              border: `2px solid ${borderColor}`,
+              border: `1px solid ${borderColor}`,
             }}
           >
             <TableRow>
               <TableCell
-                sx={{ color: "white", border: `2px solid ${borderColor}` }}
+                sx={{ color: "white", border: `1px solid ${borderColor}` }}
               >
                 #
               </TableCell>
               <TableCell
-                sx={{ color: "white", border: `2px solid ${borderColor}` }}
+                sx={{ color: "white", border: `1px solid ${borderColor}` }}
               >
                 Course Description
               </TableCell>
               <TableCell
-                sx={{ color: "white", border: `2px solid ${borderColor}` }}
+                sx={{ color: "white", border: `1px solid ${borderColor}` }}
               >
                 Course Code
               </TableCell>
               <TableCell
-                sx={{ color: "white", border: `2px solid ${borderColor}` }}
+                sx={{ color: "white", border: `1px solid ${borderColor}` }}
               >
                 Lec
               </TableCell>
               <TableCell
-                sx={{ color: "white", border: `2px solid ${borderColor}` }}
+                sx={{ color: "white", border: `1px solid ${borderColor}` }}
               >
                 Lab
               </TableCell>
               <TableCell
-                sx={{ color: "white", border: `2px solid ${borderColor}` }}
+                sx={{ color: "white", border: `1px solid ${borderColor}` }}
               >
                 Units
               </TableCell>
               <TableCell
-                sx={{ color: "white", border: `2px solid ${borderColor}` }}
+                sx={{ color: "white", border: `1px solid ${borderColor}` }}
               >
                 Section
               </TableCell>
               <TableCell
-                sx={{ color: "white", border: `2px solid ${borderColor}` }}
+                sx={{ color: "white", border: `1px solid ${borderColor}` }}
               >
                 Schedule
               </TableCell>
@@ -371,12 +371,12 @@ const StudentSchedule = () => {
             {sortedSchedule.map((row, index) => (
               <TableRow
                 key={index}
-                style={{ border: `2px solid ${borderColor}` }}
+                style={{ border: `1px solid ${borderColor}` }}
               >
                 <TableCell
                   sx={{
                     fontSize: "0.75rem",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   {index + 1}
@@ -384,7 +384,7 @@ const StudentSchedule = () => {
                 <TableCell
                   sx={{
                     fontSize: "0.75rem",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   {row.course_description}
@@ -392,7 +392,7 @@ const StudentSchedule = () => {
                 <TableCell
                   sx={{
                     fontSize: "0.75rem",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   {row.course_code}
@@ -400,7 +400,7 @@ const StudentSchedule = () => {
                 <TableCell
                   sx={{
                     fontSize: "0.75rem",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   1
@@ -409,7 +409,7 @@ const StudentSchedule = () => {
                 <TableCell
                   sx={{
                     fontSize: "0.75rem",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   {row.lab_unit == null ? "" : toWholeUnit(row.lab_unit)}
@@ -417,7 +417,7 @@ const StudentSchedule = () => {
                 <TableCell
                   sx={{
                     fontSize: "0.75rem",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   {row.course_unit == null ? "" : toWholeUnit(row.course_unit)}
@@ -425,7 +425,7 @@ const StudentSchedule = () => {
                 <TableCell
                   sx={{
                     fontSize: "0.75rem",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   {row.program_code} {row.section_description}
@@ -433,7 +433,7 @@ const StudentSchedule = () => {
                 <TableCell
                   sx={{
                     fontSize: "0.75rem",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   {row.day_description}, {row.school_time_start} -{" "}
@@ -442,22 +442,22 @@ const StudentSchedule = () => {
               </TableRow>
             ))}
             <TableRow
-              sx={{ fontSize: "0.75rem", border: `2px solid ${borderColor}` }}
+              sx={{ fontSize: "0.75rem", border: `1px solid ${borderColor}` }}
             >
               <TableCell
                 colSpan={3}
-                style={{ border: `2px solid ${borderColor}` }}
+                style={{ border: `1px solid ${borderColor}` }}
               />
               <TableCell
                 colSpan={2}
                 style={{
                   fontWeight: "600",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Total Units
               </TableCell>
-              <TableCell style={{ border: `2px solid ${borderColor}` }}>
+              <TableCell style={{ border: `1px solid ${borderColor}` }}>
                 {sortedSchedule.reduce(
                   (total, row) => total + toWholeUnit(row.course_unit),
                   0,
@@ -478,7 +478,7 @@ const StudentSchedule = () => {
       >
         {/* Event */}
         <Box
-          style={{ border: `2px solid ${borderColor}`, padding: "1rem 1rem" }}
+          style={{ border: `1px solid ${borderColor}`, padding: "1rem 1rem" }}
         >
           <table>
             <thead className="">

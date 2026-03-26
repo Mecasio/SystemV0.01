@@ -926,7 +926,7 @@ const printDiv = () => {
           <img src="${logoSrc}" alt="School Logo"/>
 
           <div class="header-text">
-            <div class="gov">Republic of the Philippines</div>
+         <div style="font-size: 13px; font-family: Arial">Republic of the Philippines</div>
 
             ${name ? `
               <div class="school-name">${firstLine}</div>
@@ -2052,7 +2052,7 @@ Thank you, best regards
               justifyContent: "center",
               cursor: "pointer",
               borderRadius: 2,
-              border: `2px solid ${borderColor}`,
+              border: `1px solid ${borderColor}`,
               backgroundColor:
                 activeStep === index
                   ? settings?.header_color || "#1976d2"
@@ -2090,7 +2090,7 @@ Thank you, best regards
 
       <TableContainer
         component={Paper}
-        sx={{ width: "100%", border: `2px solid ${borderColor}` }}
+        sx={{ width: "100%", border: `1px solid ${borderColor}` }}
       >
         <Table>
           <TableHead
@@ -2107,7 +2107,7 @@ Thank you, best regards
 
       <TableContainer
         component={Paper}
-        sx={{ width: "100%", border: `2px solid ${borderColor}`, p: 2 }}
+        sx={{ width: "100%", border: `1px solid ${borderColor}`, p: 2 }}
       >
         <Box
           display="flex"
@@ -2308,7 +2308,7 @@ Thank you, best regards
               <TableCell
                 colSpan={10}
                 sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   py: 0.5,
                   backgroundColor: settings?.header_color || "#1976d2",
                   color: "white",
@@ -2487,7 +2487,7 @@ Thank you, best regards
 
       <TableContainer
         component={Paper}
-        sx={{ width: "100%", border: `2px solid ${borderColor}`, p: 2 }}
+        sx={{ width: "100%", border: `1px solid ${borderColor}`, p: 2 }}
       >
         <Box
           display="flex"
@@ -2777,7 +2777,7 @@ Thank you, best regards
                   width: "2%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 #
@@ -2790,7 +2790,7 @@ Thank you, best regards
                   width: "8%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Applicant ID
@@ -2802,7 +2802,7 @@ Thank you, best regards
                   width: "25%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Name
@@ -2814,7 +2814,7 @@ Thank you, best regards
                   width: "20%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Program
@@ -2826,7 +2826,7 @@ Thank you, best regards
                   width: "10%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 SHS GWA
@@ -2838,7 +2838,7 @@ Thank you, best regards
                   width: "10%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Final Rating
@@ -2851,7 +2851,7 @@ Thank you, best regards
                   width: "10%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Qualifying Exam Score
@@ -2863,7 +2863,7 @@ Thank you, best regards
                   width: "10%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Interview Exam Score
@@ -2875,7 +2875,7 @@ Thank you, best regards
                   width: "10%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Total Ave.
@@ -2887,7 +2887,7 @@ Thank you, best regards
                   width: "10%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Status
@@ -2900,7 +2900,7 @@ Thank you, best regards
                   width: "10%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Date
@@ -2913,7 +2913,7 @@ Thank you, best regards
                   width: "10%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Action
@@ -2926,7 +2926,7 @@ Thank you, best regards
                   width: "10%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Assign
@@ -2943,7 +2943,7 @@ Thank you, best regards
                     py: 3,
                     fontStyle: "italic",
                     color: "gray",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   No Applicants available.
@@ -2970,7 +2970,7 @@ Thank you, best regards
                     {/* # */}
                     <TableCell
                       sx={{
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         textAlign: "center",
                         fontSize: "13px",
                       }}
@@ -2981,7 +2981,7 @@ Thank you, best regards
                     {/* Applicant Number */}
                     <TableCell
                       sx={{
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         textAlign: "center",
                         fontSize: "13px",
                         color: "blue",
@@ -2994,7 +2994,7 @@ Thank you, best regards
                     {/* Applicant Name */}
                     <TableCell
                       sx={{
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         textAlign: "center",
                         fontSize: "13px",
                         color: "blue",
@@ -3007,7 +3007,7 @@ Thank you, best regards
                     {/* Program */}
                     <TableCell
                       sx={{
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         textAlign: "center",
                         fontSize: "13px",
                       }}
@@ -3021,7 +3021,7 @@ Thank you, best regards
 
                     <TableCell
                       sx={{
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         textAlign: "center",
                         fontSize: "13px",
                       }}
@@ -3032,7 +3032,7 @@ Thank you, best regards
 
                     <TableCell
                       sx={{
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         textAlign: "center",
                         fontSize: "13px",
                       }}
@@ -3043,7 +3043,7 @@ Thank you, best regards
                     {/* Qualifying Exam Score */}
                     <TableCell
                       sx={{
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         textAlign: "center",
                         fontSize: "13px",
                       }}
@@ -3066,7 +3066,7 @@ Thank you, best regards
                     {/* Qualifying Interview Score */}
                     <TableCell
                       sx={{
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         textAlign: "center",
                         fontSize: "13px",
                       }}
@@ -3089,7 +3089,7 @@ Thank you, best regards
                     {/* ✅ Total Average (read-only, comes from DB or recomputed) */}
                     <TableCell
                       sx={{
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         textAlign: "center",
                         fontSize: "13px",
                       }}
@@ -3098,7 +3098,7 @@ Thank you, best regards
                     </TableCell>
                     <TableCell
                       sx={{
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         textAlign: "center",
                         fontSize: "13px",
                       }}
@@ -3128,7 +3128,7 @@ Thank you, best regards
 
                     <TableCell
                       sx={{
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         textAlign: "center",
                         fontSize: "13px",
                       }}
@@ -3150,7 +3150,7 @@ Thank you, best regards
 
                     <TableCell
                       sx={{
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         textAlign: "center",
                         fontSize: "13px",
                       }}
@@ -3168,7 +3168,7 @@ Thank you, best regards
 
                     <TableCell
                       sx={{
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         textAlign: "center",
                         fontSize: "13px",
                       }}
@@ -3256,7 +3256,7 @@ Thank you, best regards
               <TableCell
                 colSpan={10}
                 sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   py: 0.5,
                   backgroundColor: settings?.header_color || "#1976d2",
                   color: "white",

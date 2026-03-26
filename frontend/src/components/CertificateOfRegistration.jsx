@@ -24,7 +24,7 @@ const CertificateOfRegistration = forwardRef(
       message: "",
       severity: "",
     });
-    
+
     const showSnackbar = (message, severity) => {
       setSnack({ open: true, message, severity });
     };
@@ -32,7 +32,7 @@ const CertificateOfRegistration = forwardRef(
       if (reason === "clickaway") return;
       setSnack((prev) => ({ ...prev, open: false }));
     };
-    
+
     useEffect(() => {
       if (settings) {
         // ✅ load dynamic logo
@@ -278,7 +278,7 @@ const CertificateOfRegistration = forwardRef(
     const [year_Level_Description, setYearLevelDescription] = useState(null);
     const [activeSchoolYear, setActiveSchoolYear] = useState([]);
     const [major, setMajor] = useState(null);
-    
+
     // Track when all critical data is loaded
     const [dataLoaded, setDataLoaded] = useState({
       student: false,
@@ -472,7 +472,7 @@ const CertificateOfRegistration = forwardRef(
           setAge(fullData.age || null);
           setEmail(fullData.email || null);
           setProgram(activeCurriculum);
-          
+
           // Small delay to ensure state is updated before signaling ready
           setTimeout(() => {
             setDataLoaded((prev) => ({ ...prev, student: true }));
@@ -488,10 +488,10 @@ const CertificateOfRegistration = forwardRef(
 
     // Call onReady only when ALL critical data is loaded and rendered
     useEffect(() => {
-      const allDataLoaded = 
-        dataLoaded.student && 
-        dataLoaded.courses && 
-        dataLoaded.enrolled && 
+      const allDataLoaded =
+        dataLoaded.student &&
+        dataLoaded.courses &&
+        dataLoaded.enrolled &&
         dataLoaded.tosf;
 
       if (allDataLoaded && onReady && student_number) {
@@ -503,7 +503,7 @@ const CertificateOfRegistration = forwardRef(
           }, 2000);
           return () => clearTimeout(retryTimer);
         }
-        
+
         // Add extra delay to ensure DOM is fully rendered with actual values
         const timer = setTimeout(() => {
           // Verify DOM actually has content rendered
@@ -513,7 +513,7 @@ const CertificateOfRegistration = forwardRef(
               if (container) {
                 const inputs = container.querySelectorAll('input[value]');
                 const filledInputs = Array.from(inputs).filter(inp => inp.value && inp.value.trim() !== '');
-                
+
                 // Only signal ready if we have some filled inputs OR force after timeout
                 if (filledInputs.length > 5 || Date.now() > checkContent.startTime + 3000) {
                   onReady(student_number);
@@ -527,7 +527,7 @@ const CertificateOfRegistration = forwardRef(
           checkContent.startTime = Date.now();
           checkContent();
         }, 1200); // Increased from 800ms to 1200ms
-        
+
         return () => clearTimeout(timer);
       }
     }, [dataLoaded, onReady, student_number, enrolled, data, containerId]);
@@ -793,11 +793,15 @@ const CertificateOfRegistration = forwardRef(
                                   fontFamily: "Arial",
                                 }}
                               >
-                                <div>Republic of the Philippines</div>
+                                <div style={{ fontFamily: "Arial", fontSize: "13px" }}>
+                                  Republic of the Philippines
+                                </div>
                                 <div
                                   style={{
                                     fontWeight: "bold",
                                     fontFamily: "Arial",
+                                    fontSize: "16px",
+                                    textTransform: "Uppercase"
                                   }}
                                 >
                                   {firstLine}
@@ -807,6 +811,8 @@ const CertificateOfRegistration = forwardRef(
                                     style={{
                                       fontWeight: "bold",
                                       fontFamily: "Arial",
+                                      fontSize: "16px",
+                                      textTransform: "Uppercase"
                                     }}
                                   >
                                     {secondLine}
@@ -1903,7 +1909,7 @@ const CertificateOfRegistration = forwardRef(
                         }}
                       ></td>
                     </tr>
-                  
+
                     <tr
                       colSpan={12}
                       style={{
@@ -1990,14 +1996,14 @@ const CertificateOfRegistration = forwardRef(
                           </td>
                         </tr>
 
-                        <tr style={{borderLeft: "1px solid black", height: "2px", borderRight: "1px solid black"}}>
+                        <tr style={{ borderLeft: "1px solid black", height: "2px", borderRight: "1px solid black" }}>
                           <td colSpan={20}>
 
                           </td>
                         </tr>
 
-                        <tr style={{height: "2px",}}>
-                          <td colSpan={15} style={{ padding: 0, borderLeft: "1px solid black"}}>
+                        <tr style={{ height: "2px", }}>
+                          <td colSpan={15} style={{ padding: 0, borderLeft: "1px solid black" }}>
                             <input
                               type="text"
                               value={`Tuition (${totalCourseUnits} unit(s))`}
@@ -2862,7 +2868,7 @@ const CertificateOfRegistration = forwardRef(
                             />
                           </td>
                         </tr>
-                        
+
                         <tr>
                           <td
                             colSpan={2}
@@ -3068,7 +3074,7 @@ const CertificateOfRegistration = forwardRef(
                           </td>
                         </tr>
 
-                        <tr style={{borderLeft: "1px solid black", height: "5px", borderRight: "1px solid black"}}>
+                        <tr style={{ borderLeft: "1px solid black", height: "5px", borderRight: "1px solid black" }}>
                           <td>
 
                           </td>
@@ -3299,7 +3305,7 @@ const CertificateOfRegistration = forwardRef(
                             />
                           </td>
                         </tr>
-                        
+
                         <tr>
                           <td
                             colSpan={9}

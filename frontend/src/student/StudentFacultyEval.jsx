@@ -364,14 +364,14 @@ const StudentFacultyEvaluation = () => {
                     sx={{
                       backgroundColor: settings?.header_color || "#1976d2",
                       color: "white",
-                      border: "2px solid black",
+                      border: `1px solid ${borderColor}`,
                     }}
                   >
                     <TableCell
                       sx={{
                         fontWeight: 700,
                         color: "white",
-                        border: "2px solid black",
+                        border: `1px solid ${borderColor}`,
                       }}
                     >
                       Scale
@@ -380,7 +380,7 @@ const StudentFacultyEvaluation = () => {
                       sx={{
                         fontWeight: 700,
                         color: "white",
-                        border: "2px solid black",
+                        border: `1px solid ${borderColor}`,
                       }}
                     >
                       Qualitative Description
@@ -389,7 +389,7 @@ const StudentFacultyEvaluation = () => {
                       sx={{
                         fontWeight: 700,
                         color: "white",
-                        border: "2px solid black",
+                        border: `1px solid ${borderColor}`,
                       }}
                     >
                       Operational Definition
@@ -398,52 +398,52 @@ const StudentFacultyEvaluation = () => {
                 </TableHead>
 
                 <TableBody>
-                  <TableRow sx={{ border: "2px solid black" }}>
+                  <TableRow sx={{ border: `1px solid ${borderColor}` }}>
                     <TableCell sx={{ fontWeight: 600 }}>5</TableCell>
-                    <TableCell sx={{ border: "2px solid black" }}>
+                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                       Always manifested
                     </TableCell>
-                    <TableCell sx={{ border: "2px solid black" }}>
+                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                       Evident in nearly all relevant situations (91–100%).
                     </TableCell>
                   </TableRow>
 
-                  <TableRow sx={{ border: "2px solid black" }}>
+                  <TableRow sx={{ border: `1px solid ${borderColor}` }}>
                     <TableCell sx={{ fontWeight: 600 }}>4</TableCell>
-                    <TableCell sx={{ border: "2px solid black" }}>
+                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                       Often manifested
                     </TableCell>
-                    <TableCell sx={{ border: "2px solid black" }}>
+                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                       Evident most of the time (61–90%).
                     </TableCell>
                   </TableRow>
 
-                  <TableRow sx={{ border: "2px solid black" }}>
+                  <TableRow sx={{ border: `1px solid ${borderColor}` }}>
                     <TableCell sx={{ fontWeight: 600 }}>3</TableCell>
-                    <TableCell sx={{ border: "2px solid black" }}>
+                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                       Sometimes manifested
                     </TableCell>
-                    <TableCell sx={{ border: "2px solid black" }}>
+                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                       Evident about half the time (31–60%).
                     </TableCell>
                   </TableRow>
 
-                  <TableRow sx={{ border: "2px solid black" }}>
+                  <TableRow sx={{ border: `1px solid ${borderColor}` }}>
                     <TableCell sx={{ fontWeight: 600 }}>2</TableCell>
-                    <TableCell sx={{ border: "2px solid black" }}>
+                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                       Seldom manifested
                     </TableCell>
-                    <TableCell sx={{ border: "2px solid black" }}>
+                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                       Rarely evident (11–30%).
                     </TableCell>
                   </TableRow>
 
-                  <TableRow sx={{ border: "2px solid black" }}>
+                  <TableRow sx={{ border: `1px solid ${borderColor}` }}>
                     <TableCell sx={{ fontWeight: 600 }}>1</TableCell>
-                    <TableCell sx={{ border: "2px solid black" }}>
+                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                       Never manifested
                     </TableCell>
-                    <TableCell sx={{ border: "2px solid black" }}>
+                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                       Almost never evident (0–10%).
                     </TableCell>
                   </TableRow>

@@ -505,7 +505,7 @@ const VerifyDocumentsSchedule = () => {
     // });
 
     const cellStyle = {
-        border: `2px solid ${borderColor}`,
+        border: `1px solid ${borderColor}`,
         padding: "6px",
         fontSize: "0.85rem",
     };
@@ -598,7 +598,7 @@ const VerifyDocumentsSchedule = () => {
                             justifyContent: "center",
                             cursor: "pointer",
                             borderRadius: 2,
-                            border: `2px solid ${borderColor}`,
+                            border: `1px solid ${borderColor}`,
                             backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
                             color: activeStep === index ? "#fff" : "#000",
                             boxShadow:
@@ -625,7 +625,7 @@ const VerifyDocumentsSchedule = () => {
             <br />
             <TableContainer
                 component={Paper}
-                sx={{ width: "100%", border: `2px solid ${borderColor}` }}
+                sx={{ width: "100%", border: `1px solid ${borderColor}` }}
             >
                 <Table>
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
@@ -644,7 +644,7 @@ const VerifyDocumentsSchedule = () => {
                 elevation={3}
                 sx={{
                     p: 3,
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
 
                 }}
             >
@@ -654,7 +654,7 @@ const VerifyDocumentsSchedule = () => {
                 <TableContainer component={Paper} sx={{ width: '100%', }}>
                     <Box
                         sx={{
-                            border: `2px solid ${borderColor}`,
+                            border: `1px solid ${borderColor}`,
                             borderRadius: 2,
                             p: 3,
                             mb: 3,
@@ -743,7 +743,7 @@ const VerifyDocumentsSchedule = () => {
                     <Table size="small">
                         <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
                             <TableRow>
-                                <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+                                <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                                     <Box
                                         display="flex"
                                         justifyContent="space-between"
@@ -945,7 +945,7 @@ const VerifyDocumentsSchedule = () => {
                                         fontWeight: "600",
                                         fontSize: "0.9rem",
                                         backgroundColor: "f5f5f5",
-                                        border: `2px solid ${borderColor}`,
+                                        border: `1px solid ${borderColor}`,
                                         py: 0.8,
                                     }}
                                 >
@@ -1049,7 +1049,7 @@ const VerifyDocumentsSchedule = () => {
                     <Table size="small">
                         <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
                             <TableRow>
-                                <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+                                <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                                     <Box
                                         display="flex"
                                         justifyContent="space-between"
@@ -1234,7 +1234,7 @@ const VerifyDocumentsSchedule = () => {
             <TableContainer
                 component={Paper}
                 sx={{
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     width: "50%"
                 }}
             >

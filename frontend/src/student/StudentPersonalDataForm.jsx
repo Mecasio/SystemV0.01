@@ -318,2034 +318,2033 @@ const StudentPersonalDataForm = () => {
   }
 
 
+ return (
+        <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    mb: 2,
+                }}
+            >
+                <Typography
+                    variant="h4"
+                    sx={{
+                        fontWeight: "bold",
+                        color: titleColor,
+                        fontSize: "36px",
+                    }}
+                >
+                    PERSONAL DATA FORM
+                </Typography>
+            </Box>
 
-   return (
-         <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
-             <Box
-                 sx={{
-                     display: "flex",
-                     justifyContent: "space-between",
-                     alignItems: "center",
-                     flexWrap: "wrap",
-                     mb: 2,
-                 }}
-             >
-                 <Typography
-                     variant="h4"
-                     sx={{
-                         fontWeight: "bold",
-                         color: titleColor,
-                         fontSize: "36px",
-                     }}
-                 >
-                     PERSONAL DATA FORM
-                 </Typography>
-             </Box>
- 
-             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
-             <br />
- 
-             {/* ✅ PRINT BUTTON (unchanged) */}
-             <button
-                 onClick={printDiv}
-                 style={{
-                     marginBottom: "1rem",
-                     padding: "10px 20px",
-                     border: "2px solid black",
-                     backgroundColor: "#f0f0f0",
-                     color: "black",
-                     borderRadius: "5px",
-                     marginTop: "20px",
-                     cursor: "pointer",
-                     fontSize: "16px",
-                     fontWeight: "bold",
-                     transition: "background-color 0.3s, transform 0.2s",
-                 }}
-                 onMouseEnter={(e) => (e.target.style.backgroundColor = "#d3d3d3")}
-                 onMouseLeave={(e) => (e.target.style.backgroundColor = "#f0f0f0")}
-                 onMouseDown={(e) => (e.target.style.transform = "scale(0.95)")}
-                 onMouseUp={(e) => (e.target.style.transform = "scale(1)")}
-             >
-                 <span
-                     style={{
-                         display: "flex",
-                         alignItems: "center",
-                         gap: "8px",
-                     }}
-                 >
-                     <FcPrint size={20} />
-                     Print Personal Data Form
-                 </span>
-             </button>
- 
-             <Container>
-                 <div ref={divToPrintRef}>
-                     <div>
-                         <style>
-                             {`
-           @media print {
-             button {
-               display: none;
-             }
-           }
-         `}
-                         </style>
- 
- 
-                     </div>
- 
-                     <Container>
- 
-                         <br />
-                         <div
-                             className="student-table"
-                             style={{
- 
-                                 display: "flex",
-                                 alignItems: "center",
-                                 justifyContent: "center", // Center horizontally
-                                 padding: "10px 20px",
-                                 width: "100%",
- 
-                                 boxSizing: "border-box"
-                             }}>
-                             {/* Wrapper to contain logo and text side by side without stretching */}
-                             <div style={{
-                                 display: "flex",
- 
-                                 alignItems: "center"
-                             }}>
-                                 {/* Logo */}
-                                 <div style={{ flexShrink: 0, marginRight: "20px" }}>
-                                     <img
-                                         src={fetchedLogo}
-                                         alt="School Logo"
-                                         style={{
-                                             width: "120px",
-                                             height: "120px",
-                                             objectFit: "cover",   // ✅ ensures image fills the circle cleanly
-                                             borderRadius: "50%",  // ✅ makes it circular
- 
-                                             marginLeft: "10px",
-                                             marginTop: "-25px",
-                                         }}
-                                     />
-                                 </div>
- 
- 
-                                 <div>
-                                     {/* Top Line: Republic */}
-                                     <div style={{
-                                         fontSize: "14px",
-                                         fontFamily: "Arial",
-                                         textAlign: "left",
-                                         marginBottom: "5px"
-                                     }}>
-                                         Republic of the Philippines
-                                     </div>
- 
-                                     {/* Institute Name */}
-                                     <div style={{
-                                         textAlign: "center",
-                                         fontSize: "23px",
-                                         fontWeight: "bold",
-                                         color: "black",
-                                         fontFamily: "Arial",
-                                         marginBottom: "5px"
-                                     }}>
-                                         {companyName}
-                                     </div>
- 
-                                     {/* Horizontal Line */}
-                                     <div style={{ display: "flex", justifyContent: "center", marginBottom: "5px" }}>
-                                         <hr style={{ width: "100%", maxWidth: "700px", border: "1px solid #000", margin: 0 }} />
-                                     </div>
-                                     <br />
-                                     {/* Office Name */}
-                                     <div style={{
-                                         textAlign: "center",
-                                         fontSize: "14px",
-                                         fontWeight: "bold",
-                                         fontFamily: "Arial",
-                                         marginLeft: "-130px",
-                                         marginTop: "-10px"
-                                     }}>
-                                         OFFICE OF STUDENT AFFAIRS AND SERVICES
-                                     </div>
-                                 </div>
-                             </div>
-                         </div>
- 
-                     </Container>
- 
- 
- 
- 
-                     <form>
- 
-                         <table
-                             style={{
-                                 marginTop: "-23px",
-                                 border: "2px solid black",
-                                 borderCollapse: "collapse",
-                                 fontFamily: "Arial",
-                                 width: "8in",
-                                 margin: "0 auto",
-                                 textAlign: "center",
-                                 tableLayout: "fixed",
-                             }}
-                         >
-                             <tbody>
- 
-                                 {/* Title: PERSONAL DATA FORM */}
-                                 <tr>
-                                     <td colSpan={40} style={{ textAlign: "center", padding: "10px" }}>
-                                         <span
-                                             style={{
-                                                 fontSize: "25px",
-                                                 color: "black",
-                                                 fontWeight: "bold",
-                                                 fontFamily: "Arial",
-                                             }}
-                                         >
-                                             PERSONAL DATA FORM
-                                         </span>
-                                     </td>
-                                 </tr>
- 
-                                 {/* Spacer */}
- 
- 
-                                 {/* Section Title: I. PERSONAL INFORMATION */}
- 
- 
-                                 <tr>
-                                     {/* Left side: Print Legibly with MUI checkboxes */}
-                                     <td colSpan={25} style={{ fontSize: "12px", fontFamily: "Arial", padding: "5px" }}>
-                                         <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-                                             <span style={{ fontWeight: "bold", whiteSpace: "nowrap" }}>
-                                                 Print Legibly. Mark appropriate boxes.
-                                             </span>
- 
-                                             <label style={{ display: "flex", alignItems: "center", gap: "5px", fontWeight: "bold", }}>
-                                                 <input
-                                                     type="checkbox"
-                                                     checked // or controlled via state
-                                                     readOnly
-                                                     style={{
-                                                         width: "20px",
-                                                         height: "20px",
-                                                         border: "1px solid black",
-                                                         backgroundColor: "white",
-                                                         appearance: "none",
- 
-                                                         WebkitAppearance: "none",
-                                                         MozAppearance: "none",
-                                                         display: "inline-block",
-                                                         position: "relative",
-                                                     }}
-                                                     className="custom-checkbox"
-                                                 />
-                                                 <span style={{ fontSize: "12px", fontFamily: "Arial" }}>With</span>
-                                             </label>
- 
-                                             <div style={{ fontWeight: "bold", fontSize: "20px" }}>✓</div>
-                                         </div>
- 
-                                         <style>
-                                             {`
-       .custom-checkbox:checked::after {
-         content: '✓';
-         position: absolute;
-         top: -2px;
-         left: 3px;
-         font-size: 16px;
-         color: black;
-       }
-     `}
-                                         </style>
-                                     </td>
- 
- 
- 
- 
-                                     {/* Right side: Date input and label */}
-                                     <td colSpan={15} style={{ fontSize: "12px", fontFamily: "Arial", padding: "5px" }}>
-                                         <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                                             <input
-                                                 type="text"
-                                                 value={shortDate}
-                                                 readOnly
-                                                 style={{
-                                                     width: "75%",
-                                                     textAlign: "center",
-                                                     border: "none",
-                                                     borderBottom: "1px solid black",
-                                                     fontWeight: "bold",
-                                                     background: "none",
-                                                     fontSize: "12px",
-                                                     marginBottom: "2px",
-                                                 }}
-                                             />
-                                             <div style={{ fontWeight: "bold", textAlign: "center" }}>
-                                                 Date of Registration
-                                             </div>
-                                         </div>
-                                     </td>
-                                 </tr>
- 
-                                 <tr>
-                                     <td
-                                         colSpan={40}
-                                         style={{
-                                             height: "0.2in",
-                                             fontSize: "72.5%",
- 
-                                             color: "white",
-                                         }}
-                                     >
-                                         <b>
-                                             <b style={{
-                                                 color: "black",
-                                                 fontFamily: "Arial",
-                                                 fontSize: '15px',
-                                                 textAlign: "left",
-                                                 display: "block",
-                                                 fontStyle: 'italic'
-                                             }}>
-                                                 {"\u00A0\u00A0"}I. PERSONAL INFORMATION
-                                             </b>
- 
-                                         </b>
-                                     </td>
-                                 </tr>
-                                 {/* SURNAME */}
-                                 {/* SURNAME */}
-                                 <tr>
-                                     <td colSpan={6} style={{ border: "1px solid black", textAlign: "center", padding: "8px", fontWeight: "bold", fontSize: "14px", fontFamily: "Arial" }}>
-                                         SURNAME
-                                     </td>
-                                     <td colSpan={34} style={{ border: "1px solid black", padding: "8px" }}>
-                                         <input
-                                             type="text"
-                                             value={person?.last_name?.toUpperCase() || ""}
-                                             readOnly
-                                             style={{
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontWeight: "bold",
-                                                 letterSpacing: '3px',
-                                                 fontFamily: "Arial"
-                                             }}
-                                         />
-                                     </td>
-                                 </tr>
- 
-                                 {/* FIRST NAME */}
-                                 <tr>
-                                     <td colSpan={6} style={{ border: "1px solid black", textAlign: "center", padding: "8px", fontWeight: "bold", fontSize: "14px", fontFamily: "Arial" }}>
-                                         FIRST NAME
-                                     </td>
-                                     <td colSpan={34} style={{ border: "1px solid black", padding: "8px" }}>
-                                         <input
-                                             type="text"
-                                             value={person?.first_name?.toUpperCase() || ""}
- 
-                                             readOnly
-                                             style={{
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontWeight: "bold",
-                                                 fontSize: "15px",
-                                                 letterSpacing: '3px',
-                                                 fontFamily: "Arial"
-                                             }}
-                                         />
-                                     </td>
-                                 </tr>
- 
-                                 {/* MIDDLE NAME */}
-                                 <tr>
-                                     {/* MIDDLE NAME */}
-                                     <td colSpan={6} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
- 
-                                         textAlign: "Center",
-                                         fontWeight: "bold",
-                                         fontSize: "14px",
-                                         fontFamily: "Arial"
- 
-                                     }}>
-                                         MIDDLE NAME
-                                     </td>
- 
-                                     <td colSpan={19} style={{
-                                         border: "1px solid black",
-                                         padding: "8px",
- 
-                                     }}>
-                                         <input
-                                             type="text"
-                                             value={person?.middle_name?.toUpperCase() || ""}
-                                             readOnly
-                                             style={{
- 
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontWeight: "bold",
-                                                 fontSize: "15px",
-                                                 letterSpacing: '3px',
-                                                 fontFamily: "Arial"
-                                             }}
-                                         />
-                                     </td>
- 
-                                     {/* NAME EXTENSION */}
-                                     <td colSpan={15} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
- 
-                                         fontWeight: "bold",
-                                         fontSize: "14px",
-                                         verticalAlign: "top",
-                                         fontFamily: "Arial",
- 
-                                     }}>
-                                         NAME EXTENSION (e.g. Jr., Sr.)
-                                         <input
-                                             type="text"
-                                             value={person?.extension?.toUpperCase() || ""}
-                                             readOnly
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "14px",
-                                                 fontFamily: "Arial",
-                                             }}
-                                         />
-                                     </td>
-                                 </tr>
- 
- 
-                                 {/* COURSE */}
-                                 <tr>
-                                     {/* COURSE (COMPLETE NAME) */}
-                                     <td
-                                         colSpan={30}
-                                         style={{
-                                             border: "1px solid black",
-                                             textAlign: "left",
-                                             fontSize: "14px",
-                                             fontFamily: "Arial",
-                                             verticalAlign: "top",
-                                         }}
-                                     >
-                                         <div style={{ fontWeight: "bold" }}>COURSE (COMPLETE NAME)</div>
-                                         <input
-                                             type="text"
-                                             value={
-                                                 curriculumOptions.length > 0
-                                                     ? curriculumOptions.find(
-                                                         (item) =>
-                                                             item?.curriculum_id?.toString() ===
-                                                             (person?.program ?? "").toString()
-                                                     )?.program_description?.toUpperCase() ||
-                                                     (person?.program?.toString()?.toUpperCase() ?? "")
-                                                     : "LOADING..."
-                                             }
-                                             readOnly
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "12px",
-                                                 fontFamily: "Arial",
-                                                 textTransform: "uppercase", // visual effect
-                                             }}
-                                         />
-                                     </td>
- 
-                                     {/* YEAR LEVEL */}
-                                     <td colSpan={10} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
- 
- 
-                                         fontFamily: "Arial",
-                                         fontSize: "14px",
-                                         verticalAlign: "top"
-                                     }}>
-                                         <div style={{ fontWeight: "bold" }}>YEAR LEVEL (1,2,3,4,5)</div>
-                                         <input
-                                             type="text"
-                                             value={person?.yearLevel?.toUpperCase() || ""}
- 
-                                             readOnly
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
- 
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
-                                                 textTransform: "uppercase",
-                                             }}
-                                         />
-                                     </td>
-                                 </tr>
- 
- 
-                                 <tr>
-                                     {/* DATE OF BIRTH */}
-                                     <td colSpan={11} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         fontFamily: "Arial",
- 
-                                         fontSize: "14px",
-                                         verticalAlign: "top"
-                                     }}>
-                                         <div style={{ fontWeight: "bold" }}>DATE OF BIRTH (e.g. June 15, 2019)</div>
-                                         <input
-                                             type="text"
-                                             value={
-                                                 person.birthOfDate
-                                                     ? new Date(person.birthOfDate).toLocaleDateString("en-US", {
-                                                         year: "numeric",
-                                                         month: "long",
-                                                         day: "numeric"
-                                                     })
-                                                     : ""
-                                             }
-                                             readOnly
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
-                                                 textTransform: "uppercase"
-                                             }}
-                                         />
-                                     </td>
- 
- 
-                                     {/* PLACE OF BIRTH */}
-                                     <td colSpan={15} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
- 
- 
-                                         fontSize: "14px",
-                                         verticalAlign: "top",
-                                         fontFamily: "Arial",
-                                     }}>
-                                         <div style={{ fontWeight: "bold" }}>PLACE OF BIRTH</div>
-                                         <input
-                                             type="text"
-                                             value={person.birthPlace || ""}
-                                             readOnly
-                                             style={{
-                                                 marginTop: "5px",
-                                                 fontFamily: "Arial",
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
- 
- 
-                                             }}
-                                         />
-                                     </td>
- 
-                                     {/* ETHNICITY */}
-                                     <td colSpan={14} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
- 
-                                         fontFamily: "Arial",
-                                         fontSize: "14px",
-                                         verticalAlign: "top"
-                                     }}>
-                                         <div style={{ fontWeight: "bold" }}>ETHNICITY (e.g. Tagbanua, Palaw’an)<br />
-                                             Pangkat etniko / Kinaanibang pangkat</div>
- 
-                                         <input
-                                             type="text"
-                                             value={person.tribeEthnicGroup || ""}
-                                             readOnly
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
-                                             }}
-                                         />
-                                     </td>
-                                 </tr>
-                                 {/* STUDENT ID NUMBER */}
-                                 <tr>
-                                     {/* STUDENT ID NUMBER */}
-                                     <td colSpan={11}
-                                         style={{
-                                             border: "1px solid black",
-                                             textAlign: "left",
-                                             fontFamily: "Arial",
-                                             fontWeight: "bold",
-                                             fontSize: "14px",
-                                             verticalAlign: "top"
-                                         }}
-                                     >
-                                         <div style={{ fontWeight: "bold" }}>APPLICANT ID:</div>
- 
-                                         <input
-                                             type="text"
-                                             value={person.applicant_number || ""}
-                                             readOnly
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
-                                                 fontWeight: "normal",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
- 
-                                             }}
-                                         />
-                                     </td>
- 
- 
-                                     {/* LEARNER’S REFERENCE NUMBER */}
-                                     <td colSpan={15}
- 
-                                         style={{
-                                             border: "1px solid black",
-                                             textAlign: "left",
-                                             fontFamily: "Arial",
- 
-                                             fontSize: "14px",
-                                             verticalAlign: "top"
-                                         }}>
-                                         <div style={{ fontWeight: "bold" }}>LEARNER’S REFERENCE NUMBER</div>
-                                         <input
-                                             type="text"
-                                             readOnly
-                                             value={person.lrnNumber || ""}
- 
-                                             style={{
-                                                 marginTop: "5px",
- 
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
-                                             }}
-                                         />
-                                     </td>
- 
-                                     {/* DISABILITY */}
-                                     <td colSpan={14} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
- 
-                                         fontFamily: "Arial",
-                                         fontSize: "14px",
-                                         verticalAlign: "top"
-                                     }}>
-                                         <div style={{ fontWeight: "bold" }}>DISABILITY</div>
- 
-                                         <input
- 
-                                             type="text"
-                                             readOnly
-                                             value={person.pwdType || ""}
- 
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
-                                             }}
-                                         />
-                                     </td>
-                                 </tr>
-                                 <tr>
-                                     {/* SEX */}
-                                     <td
-                                         colSpan={11}
-                                         style={{
-                                             border: "1px solid black",
-                                             textAlign: "left",
- 
-                                             fontWeight: "bold",
-                                             fontSize: "14px",
-                                             verticalAlign: "top",
-                                             fontFamily: "Arial",
-                                         }}
-                                     >
-                                         SEX
-                                         <div
-                                             style={{
-                                                 display: "flex",
-                                                 justifyContent: "center",
-                                                 gap: "40px",
-                                                 alignItems: "center",
-                                                 fontFamily: "Arial",
-                                                 width: "100%",
-                                                 marginTop: "5px",
-                                             }}
-                                         >
-                                             <label
-                                                 style={{
-                                                     display: "flex",
-                                                     alignItems: "center",
-                                                     gap: "5px",
-                                                     fontSize: "15px",
-                                                     fontFamily: "Arial",
-                                                     marginBottom: "10px"
-                                                 }}
-                                             >
-                                                 <input
-                                                     type="checkbox"
-                                                     checked={person.gender === 0}
-                                                     readOnly
-                                                     style={{
-                                                         width: "20px",
-                                                         height: "20px",
-                                                         border: "1px solid black",
-                                                         backgroundColor: "white",
- 
-                                                         appearance: "none",
-                                                         WebkitAppearance: "none",
-                                                         MozAppearance: "none",
-                                                         display: "inline-block",
-                                                         position: "relative",
-                                                     }}
-                                                     className="custom-checkbox"
-                                                 />
-                                                 Male
-                                             </label>
- 
-                                             <label
-                                                 style={{
-                                                     display: "flex",
-                                                     alignItems: "center",
-                                                     gap: "5px",
-                                                     fontSize: "15px",
-                                                     fontFamily: "Arial",
-                                                     marginBottom: "10px"
-                                                 }}
-                                             >
-                                                 <input
-                                                     type="checkbox"
-                                                     checked={person.gender === 1}
-                                                     readOnly
-                                                     style={{
-                                                         width: "20px",
-                                                         height: "20px",
-                                                         border: "1px solid black",
-                                                         backgroundColor: "white",
-                                                         appearance: "none",
-                                                         WebkitAppearance: "none",
-                                                         MozAppearance: "none",
- 
-                                                         display: "inline-block",
-                                                         position: "relative",
-                                                     }}
-                                                     className="custom-checkbox"
-                                                 />
-                                                 Female
-                                             </label>
-                                         </div>
- 
-                                         {/* ✅ Style block for ✓ checkmark */}
-                                         <style>
-                                             {`
-       .custom-checkbox:checked::after {
-         content: '✓';
-         position: absolute;
-         top: -2px;
-         left: 3px;
-         font-size: 16px;
-         color: black;
-       }
-     `}
-                                         </style>
-                                     </td>
- 
- 
- 
- 
-                                     {/* E-MAIL ADDRESS */}
-                                     <td colSpan={15} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
- 
-                                         fontSize: "14px",
-                                         verticalAlign: "top",
-                                         fontFamily: "Arial",
-                                     }}>
-                                         <div style={{ fontWeight: "bold" }}>E-MAIL ADDRESS</div>
-                                         <input
-                                             type="text"
-                                             value={person.emailAddress || ""}
-                                             readOnly
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
-                                             }}
-                                         />
-                                     </td>
-                                     <td colSpan={14} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
- 
-                                         fontSize: "14px",
-                                         verticalAlign: "top",
-                                         fontFamily: "Arial",
-                                     }}>
-                                         <div style={{ fontWeight: "bold" }}>YEAR GRADUATED</div>
-                                         <input
-                                             type="text"
-                                             value={person.yearGraduated1 || ""}
-                                             readOnly
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
-                                             }}
-                                         />
-                                     </td>
-                                 </tr>
- 
- 
-                                 <tr>
-                                     <td
-                                         colSpan={18}
-                                         style={{
-                                             border: "1px solid black",
-                                             verticalAlign: "top",
-                                             fontSize: "14px",
- 
-                                             padding: "8px",
-                                             fontFamily: "Arial",
-                                         }}
-                                     >
-                                         <div style={{ fontWeight: "bold", paddingLeft: "-10px" }}>CIVIL STATUS</div>
-                                         <div
-                                             style={{
-                                                 marginTop: "5px",
-                                                 display: "flex",
-                                                 flexWrap: "wrap",
-                                                 alignItems: "center",
-                                                 paddingLeft: "50px",
-                                             }}
-                                         >
-                                             {/* Standard Civil Status Options */}
-                                             {["Single", "Married", "Widowed", "Separated", "Annulled"].map((status) => (
-                                                 <label
-                                                     key={status}
-                                                     style={{
-                                                         display: "flex",
-                                                         alignItems: "center",
-                                                         width: "50%",
- 
-                                                         fontSize: "15px",
-                                                         fontFamily: "Arial",
-                                                     }}
-                                                 >
-                                                     <input
-                                                         type="checkbox"
-                                                         checked={person.civilStatus === status}
-                                                         readOnly
-                                                         style={{
-                                                             width: "20px",
-                                                             height: "20px",
-                                                             border: "1px solid black",
-                                                             backgroundColor: "white",
-                                                             appearance: "none",
-                                                             WebkitAppearance: "none",
-                                                             MozAppearance: "none",
-                                                             display: "inline-block",
-                                                             position: "relative",
-                                                             marginRight: "5px",
-                                                         }}
-                                                         className="custom-checkbox"
-                                                     />
-                                                     {status}
-                                                 </label>
-                                             ))}
- 
-                                             {/* Others, specify */}
-                                             <div
-                                                 style={{
-                                                     display: "flex",
-                                                     alignItems: "center",
-                                                     width: "100%",
-                                                     fontSize: "15px",
-                                                     fontFamily: "Arial",
- 
- 
-                                                 }}
-                                             >
-                                                 <label style={{ display: "flex", alignItems: "center", marginRight: "10px" }}>
-                                                     <input
-                                                         type="checkbox"
-                                                         checked={
-                                                             person.civilStatus &&
-                                                             !["Single", "Married", "Widowed", "Separated", "Annulled"].includes(person.civilStatus)
-                                                         }
-                                                         readOnly
-                                                         style={{
-                                                             width: "20px",
- 
-                                                             height: "20px",
- 
-                                                             border: "1px solid black",
-                                                             backgroundColor: "white",
-                                                             appearance: "none",
-                                                             WebkitAppearance: "none",
-                                                             MozAppearance: "none",
-                                                             display: "inline-block",
-                                                             position: "relative",
-                                                             marginRight: "5px",
-                                                         }}
-                                                         className="custom-checkbox"
-                                                     />
-                                                     Others, specify:
-                                                 </label>
-                                                 <span
-                                                     style={{
-                                                         borderBottom: "1px solid black",
-                                                         width: "100px",
-                                                         display: "inline-block",
-                                                         marginTop: "10px",
-                                                     }}
-                                                 >
-                                                     {person.civilStatus &&
-                                                         !["Single", "Married", "Widowed", "Separated", "Annulled"].includes(person.civilStatus)
-                                                         ? person.civilStatus
-                                                         : ""}
-                                                 </span>
-                                             </div>
-                                         </div>
- 
- 
-                                         <style>
-                                             {`
-       .custom-checkbox:checked::after {
-         content: '✓';
-         position: absolute;
-         top: -2px;
-         left: 4px;
-         font-size: 16px;
-         color: black;
-       }
-     `}
-                                         </style>
-                                     </td>
- 
- 
- 
- 
-                                     {/* PERMANENT / HOME ADDRESS */}
-                                     <td
-                                         colSpan={16}
-                                         style={{
-                                             border: "1px solid black",
-                                             verticalAlign: "top",
-                                             fontSize: "14px",
-                                             fontFamily: "Arial",
-                                             textAlign: "left",
-                                         }}
-                                     >
-                                         <div style={{ fontWeight: "bold" }}>PERMANENT / HOME ADDRESS</div>
- 
-                                         <input
-                                             type="text"
-                                             value={
-                                                 person.presentStreet || person.presentBarangay || person.presentMunicipality
-                                                     ? `${person.presentStreet || ""} ${person.presentBarangay || ""}, ${person.presentMunicipality || ""}`
-                                                     : ""
-                                             }
-                                             readOnly
-                                             style={{
-                                                 marginTop: "5px",
-                                                 border: "none",
-                                                 width: "100%",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
-                                                 outline: "none",
-                                                 padding: "2px 4px",
-                                             }}
-                                         />
- 
- 
- 
-                                         <div
-                                             style={{
-                                                 marginTop: "10px",
-                                                 borderTop: "1px solid black",
-                                                 paddingTop: "8px",
- 
-                                                 fontSize: "14px",
-                                             }}
-                                         >
-                                             <div style={{ fontWeight: "bold" }}>HOUSEHOLD</div>
-                                             <input
-                                                 readOnly
-                                                 type="text"
-                                                 value={person.presentDswdHouseholdNumber || ""}
- 
-                                                 style={{
-                                                     width: "100%",
-                                                     marginTop: "5px",
-                                                     border: "none",
- 
-                                                     fontSize: "15px",
-                                                     fontFamily: "Arial",
-                                                     outline: "none",
-                                                     padding: "2px 4px",
-                                                 }}
-                                             />
- 
-                                         </div>
-                                     </td>
- 
- 
-                                     {/* ZIP CODE */}
-                                     <td colSpan={6} style={{
-                                         border: "1px solid black",
-                                         verticalAlign: "top",
-                                         fontSize: "14px",
- 
- 
-                                         fontFamily: "Arial"
-                                     }}>
-                                         <div style={{ fontWeight: "bold" }}>ZIP CODE</div>
-                                         <input
-                                             readOnly
-                                             type="text"
-                                             value={person.presentZipCode || ""}
-                                             style={{
-                                                 width: "100%",
-                                                 marginTop: "5px",
-                                                 border: "none",
- 
-                                                 fontSize: "15px",
- 
-                                                 fontFamily: "Arial",
-                                                 outline: "none",
-                                                 padding: "2px 4px",
-                                             }}
-                                         />
-                                     </td>
-                                 </tr>
- 
- 
-                                 <tr>
-                                     {/* CITIZENSHIP */}
-                                     <td colSpan={8} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
- 
-                                         fontFamily: "Arial",
- 
-                                         fontSize: "14px"
-                                     }}>
-                                         <div style={{ fontWeight: "bold" }}>CITIZENSHIP</div>
-                                         <input
-                                             readOnly
-                                             type="text"
-                                             value={person.citizenship || ""}
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
-                                             }}
-                                         />
-                                     </td>
- 
-                                     {/* HEIGHT (m) */}
-                                     <td colSpan={6} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         fontFamily: "Arial",
-                                         fontSize: "14px"
-                                     }}>
-                                         <div style={{ fontWeight: "bold" }}>HEIGHT (m)</div>
-                                         <input
-                                             readOnly
-                                             type="text"
-                                             value={person.height || ""}
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
-                                             }}
-                                         />
-                                     </td>
- 
-                                     {/* WEIGHT (kg) */}
-                                     <td colSpan={6} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         fontFamily: "Arial",
-                                         fontSize: "14px"
-                                     }}>
-                                         <div style={{ fontWeight: "bold" }}>WEIGHT (kg)</div>
-                                         <input
-                                             readOnly
-                                             type="text"
-                                             value={person.weight || ""}
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
-                                             }}
-                                         />
-                                     </td>
- 
-                                     {/* BLOOD TYPE */}
-                                     <td colSpan={6} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
- 
-                                         fontFamily: "Arial",
-                                         fontSize: "14px"
-                                     }}>
-                                         <div style={{ fontWeight: "bold" }}>BLOOD TYPE</div>
-                                         <input
-                                             type="text"
- 
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
-                                             }}
-                                         />
-                                     </td>
- 
-                                     {/* PERMANENT CONTACT NUMBER */}
-                                     <td colSpan={14} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         fontFamily: "Arial",
- 
-                                         fontSize: "14px"
-                                     }}>
-                                         <div style={{ fontWeight: "bold" }}> PERMANENT CONTACT NUMBER</div>
- 
-                                         <input
-                                             type="text"
-                                             value={person.cellphoneNumber || ""}
-                                             readOnly
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
-                                             }}
-                                         />
-                                     </td>
-                                 </tr>
-                                 <tr>
-                                     <td
-                                         colSpan={40}
-                                         style={{
-                                             height: "0.2in",
-                                             fontSize: "72.5%",
- 
-                                             color: "white",
-                                         }}
-                                     >
-                                         <b>
-                                             <b style={{
-                                                 color: "black",
-                                                 fontFamily: "Arial",
-                                                 fontSize: '15px',
-                                                 textAlign: "left",
-                                                 display: "block",
-                                                 fontStyle: 'italic'
-                                             }}>
-                                                 {"\u00A0\u00A0"}II. FAMILY BACKGROUND
-                                             </b>
- 
-                                         </b>
-                                     </td>
-                                 </tr>
- 
-                                 <tr>
- 
-                                     <td colSpan={10}
-                                         style={{
-                                             border: "1px solid black",
-                                             textAlign: "left",
-                                             paddingLeft: "10px",
-                                             fontWeight: "bold",
-                                             fontFamily: "Arial",
-                                             fontSize: "14px"
-                                         }}>
-                                         FATHER'S NAME
- 
-                                     </td>
- 
-                                     {/* GIVEN NAME */}
-                                     <td colSpan={10} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
- 
-                                         fontFamily: "Arial",
-                                         fontSize: "13px"
-                                     }}>
-                                         <div style={{ fontWeight: "bold" }}>SURNAME / FAMILY NAME</div>
- 
-                                         <input
-                                             type="text"
-                                             value={person.father_family_name || ""}
-                                             readOnly
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
-                                             }}
-                                         />
-                                     </td>
- 
-                                     {/* MIDDLE NAME */}
-                                     <td colSpan={10} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
- 
-                                         fontFamily: "Arial",
-                                         fontSize: "13px"
-                                     }}>
-                                         <div style={{ fontWeight: "bold" }}>GIVEN NAME</div>
-                                         <input
-                                             type="text"
-                                             value={person.father_given_name || ""}
-                                             readOnly
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
-                                             }}
-                                         />
-                                     </td>
- 
-                                     {/* PERMANENT CONTACT NUMBER */}
-                                     <td colSpan={10} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
- 
-                                         fontFamily: "Arial",
-                                         fontSize: "13px"
-                                     }}>
-                                         <div style={{ fontWeight: "bold" }}>MIDDLE NAME</div>
-                                         <input
-                                             type="text"
-                                             value={person.father_middle_name || ""}
-                                             readOnly
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
-                                             }}
-                                         />
-                                     </td>
-                                 </tr>
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
-                                 <tr>
- 
-                                     <td colSpan={10}
-                                         style={{
-                                             border: "1px solid black",
-                                             textAlign: "left",
-                                             paddingLeft: "10px",
-                                             fontWeight: "bold",
-                                             fontSize: "14px",
-                                             fontFamily: "Arial",
-                                         }}>
-                                         MOTHER`S NAME
- 
-                                     </td>
- 
-                                     {/* GIVEN NAME */}
-                                     <td colSpan={10} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
- 
-                                         fontFamily: "Arial",
-                                         fontSize: "13px"
-                                     }}>
-                                         <div style={{ fontWeight: "bold", fontFamily: "Arial", }}>SURNAME (Not Yet Married)</div>
- 
-                                         <input
-                                             type="text"
-                                             value={person.mother_family_name || ""}
-                                             readOnly
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
-                                             }}
-                                         />
-                                     </td>
- 
-                                     {/* MIDDLE NAME (Not yet married) */}
-                                     <td colSpan={10} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
- 
-                                         fontFamily: "Arial",
- 
-                                         fontSize: "13px"
-                                     }}>
-                                         <div style={{ fontWeight: "bold" }}>GIVEN NAME</div>
-                                         <input
-                                             type="text"
-                                             value={person.mother_given_name || ""}
-                                             readOnly
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
-                                             }}
-                                         />
-                                     </td>
-                                     {/* MIDDLE NAME (Not yet married) */}
-                                     <td colSpan={10} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
- 
-                                         fontFamily: "Arial",
-                                         fontSize: "13px"
-                                     }}>
-                                         <div style={{ fontWeight: "bold", fontFamily: "Arial", }}>   MIDDLE NAME (Not yet married)</div>
- 
-                                         <input
-                                             type="text"
-                                             value={person.mother_middle_name || ""}
-                                             readOnly
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
-                                             }}
-                                         />
-                                     </td>
-                                 </tr>
- 
-                                 <tr>
-                                     <td
-                                         colSpan={40}
-                                         style={{
-                                             height: "0.2in",
-                                             fontSize: "72.5%",
- 
-                                             color: "white",
-                                         }}
-                                     >
-                                         <b>
-                                             <b style={{
-                                                 color: "black",
-                                                 fontFamily: "Arial",
-                                                 fontSize: '15px',
-                                                 textAlign: "left",
-                                                 display: "block",
-                                                 fontStyle: 'italic'
-                                             }}>
-                                                 {"\u00A0\u00A0"}FAMILY PER CAPITA INCOME
-                                             </b>
- 
-                                         </b>
-                                     </td>
-                                 </tr>
- 
-                                 {/* STUDENT ID NUMBER */}
-                                 <tr>
-                                     {/* STUDENT ID NUMBER */}
-                                     <td colSpan={20} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         padding: "8px",
-                                         fontWeight: "bold",
-                                         fontFamily: "Arial",
-                                         fontSize: "12px",
-                                         verticalAlign: "top"
-                                     }}>
-                                         NAME OF FAMILY MEMBER
- 
-                                     </td>
- 
-                                     {/* LEARNER’S REFERENCE NUMBER */}
-                                     <td colSpan={10} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         padding: "8px",
-                                         fontWeight: "bold",
-                                         fontSize: "12px",
-                                         verticalAlign: "top",
-                                         fontFamily: "Arial",
-                                     }}>
-                                         OCCUPATION
- 
-                                     </td>
- 
-                                     {/* DISABILITY */}
-                                     <td colSpan={10} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         padding: "8px",
-                                         fontWeight: "bold",
-                                         fontSize: "12px",
-                                         verticalAlign: "top",
-                                         fontFamily: "Arial",
-                                     }}>
-                                         MONTHLY INCOME
- 
-                                     </td>
-                                 </tr>
- 
-                                 <tr style={{ height: "5px" }}>
- 
-                                     <td colSpan={7} style={{
-                                         border: "1px solid black",
-                                         textAlign: "center",
-                                         padding: "2px",
-                                         fontWeight: "bold",
-                                         fontSize: "14px",
-                                         fontFamily: "Arial"
-                                     }}>
-                                         Father
- 
-                                     </td>
- 
- 
-                                     <td colSpan={13}
- 
-                                         style={{
-                                             border: "1px solid black",
-                                             textAlign: "left",
-                                             padding: "2px",
-                                             fontFamily: "Arial",
-                                             fontSize: "12px"
-                                         }}>
-                                         <input
-                                             type="text"
-                                             value={`${person.father_given_name || ""} ${person.father_middle_name || ""} ${person.father_family_name || ""}`}
-                                             readOnly
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
-                                             }}
-                                         />
- 
- 
-                                     </td>
- 
- 
-                                     <td colSpan={10}
-                                         style={{
-                                             border: "1px solid black",
-                                             textAlign: "left",
-                                             padding: "2px",
-                                             fontFamily: "Arial",
-                                             fontSize: "14px"
-                                         }}>
-                                         <input
-                                             type="text"
-                                             value={person.father_occupation || ""}
-                                             readOnly
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
-                                             }}
-                                         />
- 
- 
-                                     </td>
- 
-                                     <td colSpan={10} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         padding: "2px",
-                                         fontFamily: "Arial",
-                                         fontSize: "14px"
-                                     }}>
-                                         <input
-                                             type="text"
-                                             value={person.father_income || ""}
-                                             readOnly
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
-                                             }}
-                                         />
- 
- 
- 
-                                     </td>
-                                 </tr>
- 
-                                 <tr style={{ height: "5px" }}>
-                                     <td colSpan={7} style={{
-                                         border: "1px solid black",
-                                         textAlign: "center",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontWeight: "bold",
-                                         fontFamily: "Arial",
-                                         fontSize: "14px"
-                                     }}>
-                                         Mother
- 
-                                     </td>
- 
-                                     {/* GIVEN NAME */}
-                                     <td colSpan={13} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontFamily: "Arial",
-                                         fontSize: "12px"
-                                     }}>
-                                         <input
-                                             type="text"
-                                             value={`${person.mother_given_name || ""} ${person.mother_middle_name || ""} ${person.mother_family_name || ""}`}
-                                             readOnly
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
-                                             }}
-                                         />
- 
- 
- 
-                                     </td>
- 
-                                     {/* MIDDLE NAME */}
-                                     <td colSpan={10} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontFamily: "Arial",
-                                         fontSize: "14px"
-                                     }}>
-                                         <input
-                                             type="text"
-                                             value={person.mother_occupation || ""}
-                                             readOnly
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
-                                             }}
-                                         />
- 
- 
- 
-                                     </td>
- 
-                                     {/* PERMANENT CONTACT NUMBER */}
-                                     <td colSpan={10} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontFamily: "Arial",
-                                         fontSize: "14px"
-                                     }}>
-                                         <input
-                                             type="text"
-                                             value={person.mother_income || ""}
-                                             readOnly
-                                             style={{
-                                                 marginTop: "5px",
-                                                 width: "100%",
-                                                 border: "none",
-                                                 outline: "none",
-                                                 fontSize: "15px",
-                                                 fontFamily: "Arial",
-                                             }}
-                                         />
- 
- 
-                                     </td>
-                                 </tr>
- 
- 
- 
-                                 <tr style={{ height: "5px" }}>
- 
-                                     <td colSpan={7} style={{
-                                         border: "1px solid black",
-                                         textAlign: "center",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontWeight: "bold",
-                                         fontSize: "14px",
-                                         fontFamily: "Arial",
-                                     }}>
-                                         Siblings
- 
-                                     </td>
- 
-                                     {/* GIVEN NAME */}
-                                     <td colSpan={13} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontWeight: "bold",
-                                         fontSize: "15px"
-                                     }}>
- 
- 
-                                     </td>
- 
-                                     {/* MIDDLE NAME */}
-                                     <td colSpan={10} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontWeight: "bold",
-                                         fontSize: "15px"
-                                     }}>
- 
- 
-                                     </td>
- 
-                                     {/* PERMANENT CONTACT NUMBER */}
-                                     <td colSpan={10} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontWeight: "bold",
-                                         fontSize: "15px"
-                                     }}>
- 
- 
-                                     </td>
-                                 </tr>
- 
- 
- 
-                                 <tr style={{ height: "5px" }}>
- 
-                                     <td colSpan={7} style={{
-                                         border: "1px solid black",
-                                         textAlign: "right",
-                                         fontFamily: "Arial",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontWeight: "bold",
-                                         fontSize: "15px"
-                                     }}>
-                                         1.
- 
-                                     </td>
- 
-                                     {/* GIVEN NAME */}
-                                     <td colSpan={13} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontWeight: "bold",
-                                         fontSize: "12px"
-                                     }}>
- 
- 
-                                     </td>
- 
-                                     {/* MIDDLE NAME */}
-                                     <td colSpan={10} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontWeight: "bold",
-                                         fontSize: "12px"
-                                     }}>
- 
- 
-                                     </td>
- 
-                                     {/* PERMANENT CONTACT NUMBER */}
-                                     <td colSpan={10} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontWeight: "bold",
-                                         fontSize: "12px"
-                                     }}>
- 
- 
-                                     </td>
-                                 </tr>
- 
- 
- 
-                                 <tr style={{ height: "5px" }}>
- 
-                                     <td colSpan={7} style={{
-                                         border: "1px solid black",
-                                         textAlign: "right",
-                                         fontFamily: "Arial",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontWeight: "bold",
-                                         fontSize: "15px"
-                                     }}>
-                                         2.
- 
-                                     </td>
- 
- 
-                                     {/* GIVEN NAME */}
-                                     <td colSpan={13} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontWeight: "bold",
-                                         fontSize: "12px"
-                                     }}>
- 
- 
-                                     </td>
- 
-                                     {/* MIDDLE NAME */}
-                                     <td colSpan={10} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontWeight: "bold",
-                                         fontSize: "12px"
-                                     }}>
- 
- 
-                                     </td>
- 
-                                     {/* PERMANENT CONTACT NUMBER */}
-                                     <td colSpan={10} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontWeight: "bold",
-                                         fontSize: "12px"
-                                     }}>
- 
- 
-                                     </td>
-                                 </tr>
- 
- 
- 
-                                 <tr style={{ height: "5px" }}>
- 
-                                     <td colSpan={7} style={{
-                                         border: "1px solid black",
-                                         textAlign: "right",
-                                         fontFamily: "Arial",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontWeight: "bold",
-                                         fontSize: "15px"
-                                     }}>
-                                         3.
- 
-                                     </td>
- 
-                                     {/* GIVEN NAME */}
-                                     <td colSpan={13} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontWeight: "bold",
-                                         fontSize: "12px"
-                                     }}>
- 
- 
-                                     </td>
- 
-                                     {/* MIDDLE NAME */}
-                                     <td colSpan={10} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontWeight: "bold",
-                                         fontSize: "12px"
-                                     }}>
- 
- 
-                                     </td>
- 
-                                     {/* PERMANENT CONTACT NUMBER */}
-                                     <td colSpan={10} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontWeight: "bold",
-                                         fontSize: "12px"
-                                     }}>
- 
- 
-                                     </td>
-                                 </tr>
- 
- 
- 
-                                 <tr style={{ height: "5px" }}>
- 
-                                     <td colSpan={7} style={{
-                                         border: "1px solid black",
-                                         textAlign: "right",
-                                         fontFamily: "Arial",
-                                         padding: "2px",
-                                         fontWeight: "bold",
-                                         fontSize: "15px"
-                                     }}>
-                                         4.
- 
-                                     </td>
- 
- 
-                                     {/* GIVEN NAME */}
-                                     <td colSpan={13} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontWeight: "bold",
-                                         fontSize: "12px"
-                                     }}>
- 
- 
-                                     </td>
- 
-                                     {/* MIDDLE NAME */}
-                                     <td colSpan={10} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontWeight: "bold",
-                                         fontSize: "12px"
-                                     }}>
- 
- 
-                                     </td>
- 
-                                     {/* PERMANENT CONTACT NUMBER */}
-                                     <td colSpan={10} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontWeight: "bold",
-                                         fontSize: "12px"
-                                     }}>
- 
- 
-                                     </td>
-                                 </tr>
- 
- 
-                                 <tr style={{ height: "5px" }}>
- 
-                                     <td colSpan={7} style={{
-                                         border: "1px solid black",
-                                         textAlign: "right",
-                                         fontFamily: "Arial",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontWeight: "bold",
-                                         fontSize: "15px"
-                                     }}>
-                                         5.
- 
-                                     </td>
- 
- 
-                                     {/* GIVEN NAME */}
-                                     <td colSpan={13} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontWeight: "bold",
-                                         fontSize: "12px"
-                                     }}>
- 
- 
-                                     </td>
- 
-                                     {/* MIDDLE NAME */}
-                                     <td colSpan={10} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         padding: "2px",  // Reduced padding to fit in 10px height
-                                         fontWeight: "bold",
-                                         fontSize: "12px"
-                                     }}>
- 
- 
-                                     </td>
- 
- 
-                                     {/* PERMANENT CONTACT NUMBER */}
-                                     <td colSpan={10} style={{
-                                         border: "1px solid black",
-                                         textAlign: "left",
-                                         padding: "2px",
- 
-                                         fontSize: "15px",
-                                         fontFamily: "Arial",
-                                     }}>
-                                         Total: ₱{(Number(person.father_income || 0) + Number(person.mother_income || 0)).toLocaleString("en-PH", {
-                                             minimumFractionDigits: 2,
-                                             maximumFractionDigits: 2
-                                         })}
-                                     </td>
-                                 </tr>
- 
- 
- 
- 
- 
- 
- 
-                             </tbody>
-                         </table>
- 
-                         <table
-                             style={{
-                                 marginTop: "-50px",
-                                 borderCollapse: "collapse",
-                                 fontFamily: "Arial",
-                                 width: "8in",
-                                 margin: "0 auto",
-                                 textAlign: "center",
-                                 tableLayout: "fixed",
-                             }}
-                         >
-                             <tbody>
-                                 {/* Other table rows here... */}
- 
-                                 <tr>
-                                     <td colSpan={40} style={{ paddingTop: '5px' }}>
-                                         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                             <div
-                                                 style={{
-                                                     display: 'inline-block',
-                                                     width: '250px',
-                                                     textAlign: 'center',
-                                                 }}
-                                             >
-                                                 <div
-                                                     style={{
-                                                         borderBottom: '1px solid black',
-                                                         height: '40px',
-                                                         marginBottom: '5px',
-                                                     }}
-                                                 ></div>
-                                                 <div
-                                                     style={{
-                                                         fontSize: '12px',
-                                                         fontWeight: 'bold',
-                                                         fontFamily: "Arial",
-                                                     }}
-                                                 >
-                                                     Signature
-                                                 </div>
-                                             </div>
-                                         </div>
-                                     </td>
-                                 </tr>
- 
-                                 {/* Additional rows if needed... */}
-                             </tbody>
-                         </table>
- 
-                     </form>
-                 </div>
- 
-             </Container>
- 
- 
-         </Box >
- 
-     );
+            <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+            <br />
+
+            {/* ✅ PRINT BUTTON (unchanged) */}
+            <button
+                onClick={printDiv}
+                style={{
+                    marginBottom: "1rem",
+                    padding: "10px 20px",
+                    border: "2px solid black",
+                    backgroundColor: "#f0f0f0",
+                    color: "black",
+                    borderRadius: "5px",
+                    marginTop: "20px",
+                    cursor: "pointer",
+                    fontSize: "16px",
+                    fontWeight: "bold",
+                    transition: "background-color 0.3s, transform 0.2s",
+                }}
+                onMouseEnter={(e) => (e.target.style.backgroundColor = "#d3d3d3")}
+                onMouseLeave={(e) => (e.target.style.backgroundColor = "#f0f0f0")}
+                onMouseDown={(e) => (e.target.style.transform = "scale(0.95)")}
+                onMouseUp={(e) => (e.target.style.transform = "scale(1)")}
+            >
+                <span
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                    }}
+                >
+                    <FcPrint size={20} />
+                    Print Personal Data Form
+                </span>
+            </button>
+
+            <Container>
+                <div ref={divToPrintRef}>
+                    <div>
+                        <style>
+                            {`
+          @media print {
+            button {
+              display: none;
+            }
+          }
+        `}
+                        </style>
+
+
+                    </div>
+
+                    <Container>
+
+                        <br />
+                        <div
+                            className="student-table"
+                            style={{
+
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center", // Center horizontally
+                                padding: "10px 20px",
+                                width: "100%",
+
+                                boxSizing: "border-box"
+                            }}>
+                            {/* Wrapper to contain logo and text side by side without stretching */}
+                            <div style={{
+                                display: "flex",
+
+                                alignItems: "center"
+                            }}>
+                                {/* Logo */}
+                                <div style={{ flexShrink: 0, marginRight: "20px" }}>
+                                    <img
+                                        src={fetchedLogo}
+                                        alt="School Logo"
+                                        style={{
+                                            width: "120px",
+                                            height: "120px",
+                                            objectFit: "cover",   // ✅ ensures image fills the circle cleanly
+                                            borderRadius: "50%",  // ✅ makes it circular
+
+                                            marginLeft: "10px",
+                                            marginTop: "-25px",
+                                        }}
+                                    />
+                                </div>
+
+
+                                <div>
+                                    {/* Top Line: Republic */}
+                                    <div style={{
+                                        fontSize: "13px",
+                                        fontFamily: "Arial",
+                                        textAlign: "left",
+                                        marginBottom: "5px"
+                                    }}>
+                                        Republic of the Philippines
+                                    </div>
+
+                                    {/* Institute Name */}
+                                    <div style={{
+                                        textAlign: "center",
+                                        letterSpacing: "1px",
+                                        fontWeight: "bold",
+                                        fontFamily: "Arial",
+                                        fontSize: "20px",
+                                        marginBottom: "5px"
+                                    }}>
+                                        {companyName}
+                                    </div>
+
+                                    {/* Horizontal Line */}
+                                    <div style={{ display: "flex", justifyContent: "center", marginBottom: "5px" }}>
+                                        <hr style={{ width: "100%", maxWidth: "700px", border: "1px solid #000", margin: 0 }} />
+                                    </div>
+                                    <br />
+                                    {/* Office Name */}
+                                    <div style={{
+                                        textAlign: "center",
+                                        fontSize: "12px",
+                                        fontWeight: "bold",
+                                        fontFamily: "Arial",
+                                        marginLeft: "-130px",
+                                        marginTop: "-10px"
+                                    }}>
+                                        OFFICE OF STUDENT AFFAIRS AND SERVICES
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </Container>
+
+
+
+
+                    <form>
+
+                        <table
+                            style={{
+                                marginTop: "-23px",
+                                border: "1px solid black",
+                                borderCollapse: "collapse",
+                                fontFamily: "Arial",
+                                width: "8in",
+                                margin: "0 auto",
+                                textAlign: "center",
+                                tableLayout: "fixed",
+                            }}
+                        >
+                            <tbody>
+
+                                {/* Title: PERSONAL DATA FORM */}
+                                <tr>
+                                    <td colSpan={40} style={{ textAlign: "center", padding: "10px" }}>
+                                        <span
+                                            style={{
+                                                fontSize: "25px",
+                                                color: "black",
+                                                fontWeight: "bold",
+                                                fontFamily: "Arial",
+                                            }}
+                                        >
+                                            PERSONAL DATA FORM
+                                        </span>
+                                    </td>
+                                </tr>
+
+                                {/* Spacer */}
+
+
+                                {/* Section Title: I. PERSONAL INFORMATION */}
+
+
+                                <tr>
+                                    {/* Left side: Print Legibly with MUI checkboxes */}
+                                    <td colSpan={25} style={{ fontSize: "12px", fontFamily: "Arial", padding: "5px" }}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+                                            <span style={{ fontWeight: "bold", whiteSpace: "nowrap" }}>
+                                                Print Legibly. Mark appropriate boxes.
+                                            </span>
+
+                                            <label style={{ display: "flex", alignItems: "center", gap: "5px", fontWeight: "bold", }}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked // or controlled via state
+                                                    readOnly
+                                                    style={{
+                                                        width: "20px",
+                                                        height: "20px",
+                                                        border: "1px solid black",
+                                                        backgroundColor: "white",
+                                                        appearance: "none",
+
+                                                        WebkitAppearance: "none",
+                                                        MozAppearance: "none",
+                                                        display: "inline-block",
+                                                        position: "relative",
+                                                    }}
+                                                    className="custom-checkbox"
+                                                />
+                                                <span style={{ fontSize: "12px", fontFamily: "Arial" }}>With</span>
+                                            </label>
+
+                                            <div style={{ fontWeight: "bold", fontSize: "20px" }}>✓</div>
+                                        </div>
+
+                                        <style>
+                                            {`
+      .custom-checkbox:checked::after {
+        content: '✓';
+        position: absolute;
+        top: -2px;
+        left: 3px;
+        font-size: 16px;
+        color: black;
+      }
+    `}
+                                        </style>
+                                    </td>
+
+
+
+
+                                    {/* Right side: Date input and label */}
+                                    <td colSpan={15} style={{ fontSize: "12px", fontFamily: "Arial", padding: "5px" }}>
+                                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                                            <input
+                                                type="text"
+                                                value={shortDate}
+                                                readOnly
+                                                style={{
+                                                    width: "75%",
+                                                    textAlign: "center",
+                                                    border: "none",
+                                                    borderBottom: "1px solid black",
+                                                    fontWeight: "bold",
+                                                    background: "none",
+                                                    fontSize: "12px",
+                                                    marginBottom: "2px",
+                                                }}
+                                            />
+                                            <div style={{ fontWeight: "bold", textAlign: "center" }}>
+                                                Date of Registration
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td
+                                        colSpan={40}
+                                        style={{
+                                            height: "0.2in",
+                                            fontSize: "72.5%",
+
+                                            color: "white",
+                                        }}
+                                    >
+                                        <b>
+                                            <b style={{
+                                                color: "black",
+                                                fontFamily: "Arial",
+                                                fontSize: '15px',
+                                                textAlign: "left",
+                                                display: "block",
+                                                fontStyle: 'italic'
+                                            }}>
+                                                {"\u00A0\u00A0"}I. PERSONAL INFORMATION
+                                            </b>
+
+                                        </b>
+                                    </td>
+                                </tr>
+                                {/* SURNAME */}
+                                {/* SURNAME */}
+                                <tr>
+                                    <td colSpan={6} style={{ border: "1px solid black", textAlign: "center", padding: "8px", fontWeight: "bold", fontSize: "12px", fontFamily: "Arial" }}>
+                                        SURNAME
+                                    </td>
+                                    <td colSpan={34} style={{ border: "1px solid black", padding: "8px" }}>
+                                        <input
+                                            type="text"
+                                            value={person?.last_name?.toUpperCase() || ""}
+                                            readOnly
+                                            style={{
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontWeight: "bold",
+                                                letterSpacing: '3px',
+                                                fontFamily: "Arial"
+                                            }}
+                                        />
+                                    </td>
+                                </tr>
+
+                                {/* FIRST NAME */}
+                                <tr>
+                                    <td colSpan={6} style={{ border: "1px solid black", textAlign: "center", padding: "8px", fontWeight: "bold", fontSize: "12px", fontFamily: "Arial" }}>
+                                        FIRST NAME
+                                    </td>
+                                    <td colSpan={34} style={{ border: "1px solid black", padding: "8px" }}>
+                                        <input
+                                            type="text"
+                                            value={person?.first_name?.toUpperCase() || ""}
+
+                                            readOnly
+                                            style={{
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontWeight: "bold",
+                                                fontSize: "15px",
+                                                letterSpacing: '3px',
+                                                fontFamily: "Arial"
+                                            }}
+                                        />
+                                    </td>
+                                </tr>
+
+                                {/* MIDDLE NAME */}
+                                <tr>
+                                    {/* MIDDLE NAME */}
+                                    <td colSpan={6} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+
+                                        textAlign: "Center",
+                                        fontWeight: "bold",
+                                        fontSize: "12px",
+                                        fontFamily: "Arial"
+
+                                    }}>
+                                        MIDDLE NAME
+                                    </td>
+
+                                    <td colSpan={19} style={{
+                                        border: "1px solid black",
+                                        padding: "8px",
+
+                                    }}>
+                                        <input
+                                            type="text"
+                                            value={person?.middle_name?.toUpperCase() || ""}
+                                            readOnly
+                                            style={{
+
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontWeight: "bold",
+                                                fontSize: "15px",
+                                                letterSpacing: '3px',
+                                                fontFamily: "Arial"
+                                            }}
+                                        />
+                                    </td>
+
+                                    {/* NAME EXTENSION */}
+                                    <td colSpan={15} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+
+                                        fontWeight: "bold",
+                                        fontSize: "12px",
+                                        verticalAlign: "top",
+                                        fontFamily: "Arial",
+
+                                    }}>
+                                        NAME EXTENSION (e.g. Jr., Sr.)
+                                        <input
+                                            type="text"
+                                            value={person?.extension?.toUpperCase() || ""}
+                                            readOnly
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "12px",
+                                                fontFamily: "Arial",
+                                            }}
+                                        />
+                                    </td>
+                                </tr>
+
+
+                                {/* COURSE */}
+                                <tr>
+                                    {/* COURSE (COMPLETE NAME) */}
+                                    <td
+                                        colSpan={30}
+                                        style={{
+                                            border: "1px solid black",
+                                            textAlign: "left",
+                                            fontSize: "12px",
+                                            fontFamily: "Arial",
+                                            verticalAlign: "top",
+                                        }}
+                                    >
+                                        <div style={{ fontWeight: "bold" }}>COURSE (COMPLETE NAME)</div>
+                                        <input
+                                            type="text"
+                                            value={
+                                                curriculumOptions.length > 0
+                                                    ? curriculumOptions.find(
+                                                        (item) =>
+                                                            item?.curriculum_id?.toString() ===
+                                                            (person?.program ?? "").toString()
+                                                    )?.program_description?.toUpperCase() ||
+                                                    (person?.program?.toString()?.toUpperCase() ?? "")
+                                                    : "LOADING..."
+                                            }
+                                            readOnly
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "12px",
+                                                fontFamily: "Arial",
+                                                textTransform: "uppercase", // visual effect
+                                            }}
+                                        />
+                                    </td>
+
+                                    {/* YEAR LEVEL */}
+                                    <td colSpan={10} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+
+
+                                        fontFamily: "Arial",
+                                        fontSize: "12px",
+                                        verticalAlign: "top"
+                                    }}>
+                                        <div style={{ fontWeight: "bold" }}>YEAR LEVEL (1,2,3,4,5)</div>
+                                        <input
+                                            type="text"
+                                            value={person?.yearLevel?.toUpperCase() || ""}
+
+                                            readOnly
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+                                                textTransform: "uppercase",
+                                            }}
+                                        />
+                                    </td>
+                                </tr>
+
+
+                                <tr>
+                                    {/* DATE OF BIRTH */}
+                                    <td colSpan={11} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        fontFamily: "Arial",
+
+                                        fontSize: "12px",
+                                        verticalAlign: "top"
+                                    }}>
+                                        <div style={{ fontWeight: "bold" }}>DATE OF BIRTH (e.g. June 15, 2019)</div>
+                                        <input
+                                            type="text"
+                                            value={
+                                                person.birthOfDate
+                                                    ? new Date(person.birthOfDate).toLocaleDateString("en-US", {
+                                                        year: "numeric",
+                                                        month: "long",
+                                                        day: "numeric"
+                                                    })
+                                                    : ""
+                                            }
+                                            readOnly
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+                                                textTransform: "uppercase"
+                                            }}
+                                        />
+                                    </td>
+
+
+                                    {/* PLACE OF BIRTH */}
+                                    <td colSpan={15} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+
+
+                                        fontSize: "12px",
+                                        verticalAlign: "top",
+                                        fontFamily: "Arial",
+                                    }}>
+                                        <div style={{ fontWeight: "bold" }}>PLACE OF BIRTH</div>
+                                        <input
+                                            type="text"
+                                            value={person.birthPlace || ""}
+                                            readOnly
+                                            style={{
+                                                marginTop: "5px",
+                                                fontFamily: "Arial",
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+
+
+                                            }}
+                                        />
+                                    </td>
+
+                                    {/* ETHNICITY */}
+                                    <td colSpan={14} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+
+                                        fontFamily: "Arial",
+                                        fontSize: "12px",
+                                        verticalAlign: "top"
+                                    }}>
+                                        <div style={{ fontWeight: "bold" }}>ETHNICITY (e.g. Tagbanua, Palaw’an)<br />
+                                            Pangkat etniko / Kinaanibang pangkat</div>
+
+                                        <input
+                                            type="text"
+                                            value={person.tribeEthnicGroup || ""}
+                                            readOnly
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+                                            }}
+                                        />
+                                    </td>
+                                </tr>
+                                {/* STUDENT ID NUMBER */}
+                                <tr>
+                                    {/* STUDENT ID NUMBER */}
+                                    <td colSpan={11}
+                                        style={{
+                                            border: "1px solid black",
+                                            textAlign: "left",
+                                            fontFamily: "Arial",
+                                            fontWeight: "bold",
+                                            fontSize: "12px",
+                                            verticalAlign: "top"
+                                        }}
+                                    >
+                                        <div style={{ fontWeight: "bold" }}>APPLICANT ID:</div>
+
+                                        <input
+                                            type="text"
+                                            value={person.applicant_number || ""}
+                                            readOnly
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                fontWeight: "normal",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+
+                                            }}
+                                        />
+                                    </td>
+
+
+                                    {/* LEARNER’S REFERENCE NUMBER */}
+                                    <td colSpan={15}
+
+                                        style={{
+                                            border: "1px solid black",
+                                            textAlign: "left",
+                                            fontFamily: "Arial",
+
+                                            fontSize: "12px",
+                                            verticalAlign: "top"
+                                        }}>
+                                        <div style={{ fontWeight: "bold" }}>LEARNER’S REFERENCE NUMBER</div>
+                                        <input
+                                            type="text"
+                                            readOnly
+                                            value={person.lrnNumber || ""}
+
+                                            style={{
+                                                marginTop: "5px",
+
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+                                            }}
+                                        />
+                                    </td>
+
+                                    {/* DISABILITY */}
+                                    <td colSpan={14} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+
+                                        fontFamily: "Arial",
+                                        fontSize: "12px",
+                                        verticalAlign: "top"
+                                    }}>
+                                        <div style={{ fontWeight: "bold" }}>DISABILITY</div>
+
+                                        <input
+
+                                            type="text"
+                                            readOnly
+                                            value={person.pwdType || ""}
+
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+                                            }}
+                                        />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    {/* SEX */}
+                                    <td
+                                        colSpan={11}
+                                        style={{
+                                            border: "1px solid black",
+                                            textAlign: "left",
+
+                                            fontWeight: "bold",
+                                            fontSize: "12px",
+                                            verticalAlign: "top",
+                                            fontFamily: "Arial",
+                                        }}
+                                    >
+                                        SEX
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                justifyContent: "center",
+                                                gap: "40px",
+                                                alignItems: "center",
+                                                fontFamily: "Arial",
+                                                width: "100%",
+                                                marginTop: "5px",
+                                            }}
+                                        >
+                                            <label
+                                                style={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    gap: "5px",
+                                                    fontSize: "15px",
+                                                    fontFamily: "Arial",
+                                                    marginBottom: "10px"
+                                                }}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={person.gender === 0}
+                                                    readOnly
+                                                    style={{
+                                                        width: "20px",
+                                                        height: "20px",
+                                                        border: "1px solid black",
+                                                        backgroundColor: "white",
+
+                                                        appearance: "none",
+                                                        WebkitAppearance: "none",
+                                                        MozAppearance: "none",
+                                                        display: "inline-block",
+                                                        position: "relative",
+                                                    }}
+                                                    className="custom-checkbox"
+                                                />
+                                                Male
+                                            </label>
+
+                                            <label
+                                                style={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    gap: "5px",
+                                                    fontSize: "15px",
+                                                    fontFamily: "Arial",
+                                                    marginBottom: "10px"
+                                                }}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={person.gender === 1}
+                                                    readOnly
+                                                    style={{
+                                                        width: "20px",
+                                                        height: "20px",
+                                                        border: "1px solid black",
+                                                        backgroundColor: "white",
+                                                        appearance: "none",
+                                                        WebkitAppearance: "none",
+                                                        MozAppearance: "none",
+
+                                                        display: "inline-block",
+                                                        position: "relative",
+                                                    }}
+                                                    className="custom-checkbox"
+                                                />
+                                                Female
+                                            </label>
+                                        </div>
+
+                                        {/* ✅ Style block for ✓ checkmark */}
+                                        <style>
+                                            {`
+      .custom-checkbox:checked::after {
+        content: '✓';
+        position: absolute;
+        top: -2px;
+        left: 3px;
+        font-size: 16px;
+        color: black;
+      }
+    `}
+                                        </style>
+                                    </td>
+
+
+
+
+                                    {/* E-MAIL ADDRESS */}
+                                    <td colSpan={15} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+
+                                        fontSize: "12px",
+                                        verticalAlign: "top",
+                                        fontFamily: "Arial",
+                                    }}>
+                                        <div style={{ fontWeight: "bold" }}>E-MAIL ADDRESS</div>
+                                        <input
+                                            type="text"
+                                            value={person.emailAddress || ""}
+                                            readOnly
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+                                            }}
+                                        />
+                                    </td>
+                                    <td colSpan={14} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+
+                                        fontSize: "12px",
+                                        verticalAlign: "top",
+                                        fontFamily: "Arial",
+                                    }}>
+                                        <div style={{ fontWeight: "bold" }}>YEAR GRADUATED</div>
+                                        <input
+                                            type="text"
+                                            value={person.yearGraduated1 || ""}
+                                            readOnly
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+                                            }}
+                                        />
+                                    </td>
+                                </tr>
+
+
+                                <tr>
+                                    <td
+                                        colSpan={18}
+                                        style={{
+                                            border: "1px solid black",
+                                            verticalAlign: "top",
+                                            fontSize: "12px",
+
+                                            padding: "8px",
+                                            fontFamily: "Arial",
+                                        }}
+                                    >
+                                        <div style={{ fontWeight: "bold", paddingLeft: "-10px" }}>CIVIL STATUS</div>
+                                        <div
+                                            style={{
+                                                marginTop: "5px",
+                                                display: "flex",
+                                                flexWrap: "wrap",
+                                                alignItems: "center",
+                                                paddingLeft: "50px",
+                                            }}
+                                        >
+                                            {/* Standard Civil Status Options */}
+                                            {["Single", "Married", "Widowed", "Separated", "Annulled"].map((status) => (
+                                                <label
+                                                    key={status}
+                                                    style={{
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        width: "50%",
+
+                                                        fontSize: "15px",
+                                                        fontFamily: "Arial",
+                                                    }}
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={person.civilStatus === status}
+                                                        readOnly
+                                                        style={{
+                                                            width: "20px",
+                                                            height: "20px",
+                                                            border: "1px solid black",
+                                                            backgroundColor: "white",
+                                                            appearance: "none",
+                                                            WebkitAppearance: "none",
+                                                            MozAppearance: "none",
+                                                            display: "inline-block",
+                                                            position: "relative",
+                                                            marginRight: "5px",
+                                                        }}
+                                                        className="custom-checkbox"
+                                                    />
+                                                    {status}
+                                                </label>
+                                            ))}
+
+                                            {/* Others, specify */}
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    width: "100%",
+                                                    fontSize: "15px",
+                                                    fontFamily: "Arial",
+
+
+                                                }}
+                                            >
+                                                <label style={{ display: "flex", alignItems: "center", marginRight: "10px" }}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={
+                                                            person.civilStatus &&
+                                                            !["Single", "Married", "Widowed", "Separated", "Annulled"].includes(person.civilStatus)
+                                                        }
+                                                        readOnly
+                                                        style={{
+                                                            width: "20px",
+
+                                                            height: "20px",
+
+                                                            border: "1px solid black",
+                                                            backgroundColor: "white",
+                                                            appearance: "none",
+                                                            WebkitAppearance: "none",
+                                                            MozAppearance: "none",
+                                                            display: "inline-block",
+                                                            position: "relative",
+                                                            marginRight: "5px",
+                                                        }}
+                                                        className="custom-checkbox"
+                                                    />
+                                                    Others, specify:
+                                                </label>
+                                                <span
+                                                    style={{
+                                                        borderBottom: "1px solid black",
+                                                        width: "100px",
+                                                        display: "inline-block",
+                                                        marginTop: "10px",
+                                                    }}
+                                                >
+                                                    {person.civilStatus &&
+                                                        !["Single", "Married", "Widowed", "Separated", "Annulled"].includes(person.civilStatus)
+                                                        ? person.civilStatus
+                                                        : ""}
+                                                </span>
+                                            </div>
+                                        </div>
+
+
+                                        <style>
+                                            {`
+      .custom-checkbox:checked::after {
+        content: '✓';
+        position: absolute;
+        top: -2px;
+        left: 4px;
+        font-size: 16px;
+        color: black;
+      }
+    `}
+                                        </style>
+                                    </td>
+
+
+
+
+                                    {/* PERMANENT / HOME ADDRESS */}
+                                    <td
+                                        colSpan={16}
+                                        style={{
+                                            border: "1px solid black",
+                                            verticalAlign: "top",
+                                            fontSize: "12px",
+                                            fontFamily: "Arial",
+                                            textAlign: "left",
+                                        }}
+                                    >
+                                        <div style={{ fontWeight: "bold" }}>PERMANENT / HOME ADDRESS</div>
+
+                                        <input
+                                            type="text"
+                                            value={
+                                                person.presentStreet || person.presentBarangay || person.presentMunicipality
+                                                    ? `${person.presentStreet || ""} ${person.presentBarangay || ""}, ${person.presentMunicipality || ""}`
+                                                    : ""
+                                            }
+                                            readOnly
+                                            style={{
+                                                marginTop: "5px",
+                                                border: "none",
+                                                width: "100%",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+                                                outline: "none",
+                                                padding: "2px 4px",
+                                            }}
+                                        />
+
+
+
+                                        <div
+                                            style={{
+                                                marginTop: "10px",
+                                                borderTop: "1px solid black",
+                                                paddingTop: "8px",
+
+                                                fontSize: "12px",
+                                            }}
+                                        >
+                                            <div style={{ fontWeight: "bold" }}>HOUSEHOLD</div>
+                                            <input
+                                                readOnly
+                                                type="text"
+                                                value={person.presentDswdHouseholdNumber || ""}
+
+                                                style={{
+                                                    width: "100%",
+                                                    marginTop: "5px",
+                                                    border: "none",
+
+                                                    fontSize: "15px",
+                                                    fontFamily: "Arial",
+                                                    outline: "none",
+                                                    padding: "2px 4px",
+                                                }}
+                                            />
+
+                                        </div>
+                                    </td>
+
+
+                                    {/* ZIP CODE */}
+                                    <td colSpan={6} style={{
+                                        border: "1px solid black",
+                                        verticalAlign: "top",
+                                        fontSize: "12px",
+
+
+                                        fontFamily: "Arial"
+                                    }}>
+                                        <div style={{ fontWeight: "bold" }}>ZIP CODE</div>
+                                        <input
+                                            readOnly
+                                            type="text"
+                                            value={person.presentZipCode || ""}
+                                            style={{
+                                                width: "100%",
+                                                marginTop: "5px",
+                                                border: "none",
+
+                                                fontSize: "15px",
+
+                                                fontFamily: "Arial",
+                                                outline: "none",
+                                                padding: "2px 4px",
+                                            }}
+                                        />
+                                    </td>
+                                </tr>
+
+
+                                <tr>
+                                    {/* CITIZENSHIP */}
+                                    <td colSpan={8} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+
+                                        fontFamily: "Arial",
+
+                                        fontSize: "12px"
+                                    }}>
+                                        <div style={{ fontWeight: "bold" }}>CITIZENSHIP</div>
+                                        <input
+                                            readOnly
+                                            type="text"
+                                            value={person.citizenship || ""}
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+                                            }}
+                                        />
+                                    </td>
+
+                                    {/* HEIGHT (m) */}
+                                    <td colSpan={6} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        fontFamily: "Arial",
+                                        fontSize: "12px"
+                                    }}>
+                                        <div style={{ fontWeight: "bold" }}>HEIGHT (m)</div>
+                                        <input
+                                            readOnly
+                                            type="text"
+                                            value={person.height || ""}
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+                                            }}
+                                        />
+                                    </td>
+
+                                    {/* WEIGHT (kg) */}
+                                    <td colSpan={6} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        fontFamily: "Arial",
+                                        fontSize: "12px"
+                                    }}>
+                                        <div style={{ fontWeight: "bold" }}>WEIGHT (kg)</div>
+                                        <input
+                                            readOnly
+                                            type="text"
+                                            value={person.weight || ""}
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+                                            }}
+                                        />
+                                    </td>
+
+                                    {/* BLOOD TYPE */}
+                                    <td colSpan={6} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+
+                                        fontFamily: "Arial",
+                                        fontSize: "12px"
+                                    }}>
+                                        <div style={{ fontWeight: "bold" }}>BLOOD TYPE</div>
+                                        <input
+                                            type="text"
+
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+                                            }}
+                                        />
+                                    </td>
+
+                                    {/* PERMANENT CONTACT NUMBER */}
+                                    <td colSpan={14} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        fontFamily: "Arial",
+
+                                        fontSize: "12px"
+                                    }}>
+                                        <div style={{ fontWeight: "bold" }}> PERMANENT CONTACT NUMBER</div>
+
+                                        <input
+                                            type="text"
+                                            value={person.cellphoneNumber || ""}
+                                            readOnly
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+                                            }}
+                                        />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td
+                                        colSpan={40}
+                                        style={{
+                                            height: "0.2in",
+                                            fontSize: "72.5%",
+
+                                            color: "white",
+                                        }}
+                                    >
+                                        <b>
+                                            <b style={{
+                                                color: "black",
+                                                fontFamily: "Arial",
+                                                fontSize: '15px',
+                                                textAlign: "left",
+                                                display: "block",
+                                                fontStyle: 'italic'
+                                            }}>
+                                                {"\u00A0\u00A0"}II. FAMILY BACKGROUND
+                                            </b>
+
+                                        </b>
+                                    </td>
+                                </tr>
+
+                                <tr>
+
+                                    <td colSpan={10}
+                                        style={{
+                                            border: "1px solid black",
+                                            textAlign: "left",
+                                            paddingLeft: "10px",
+                                            fontWeight: "bold",
+                                            fontFamily: "Arial",
+                                            fontSize: "12px"
+                                        }}>
+                                        FATHER'S NAME
+
+                                    </td>
+
+                                    {/* GIVEN NAME */}
+                                    <td colSpan={10} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+
+                                        fontFamily: "Arial",
+                                        fontSize: "13px"
+                                    }}>
+                                        <div style={{ fontWeight: "bold" }}>SURNAME / FAMILY NAME</div>
+
+                                        <input
+                                            type="text"
+                                            value={person.father_family_name || ""}
+                                            readOnly
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+                                            }}
+                                        />
+                                    </td>
+
+                                    {/* MIDDLE NAME */}
+                                    <td colSpan={10} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+
+                                        fontFamily: "Arial",
+                                        fontSize: "13px"
+                                    }}>
+                                        <div style={{ fontWeight: "bold" }}>GIVEN NAME</div>
+                                        <input
+                                            type="text"
+                                            value={person.father_given_name || ""}
+                                            readOnly
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+                                            }}
+                                        />
+                                    </td>
+
+                                    {/* PERMANENT CONTACT NUMBER */}
+                                    <td colSpan={10} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+
+                                        fontFamily: "Arial",
+                                        fontSize: "13px"
+                                    }}>
+                                        <div style={{ fontWeight: "bold" }}>MIDDLE NAME</div>
+                                        <input
+                                            type="text"
+                                            value={person.father_middle_name || ""}
+                                            readOnly
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+                                            }}
+                                        />
+                                    </td>
+                                </tr>
+
+
+
+
+
+
+
+
+
+
+                                <tr>
+
+                                    <td colSpan={10}
+                                        style={{
+                                            border: "1px solid black",
+                                            textAlign: "left",
+                                            paddingLeft: "10px",
+                                            fontWeight: "bold",
+                                            fontSize: "12px",
+                                            fontFamily: "Arial",
+                                        }}>
+                                        MOTHER`S NAME
+
+                                    </td>
+
+                                    {/* GIVEN NAME */}
+                                    <td colSpan={10} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+
+                                        fontFamily: "Arial",
+                                        fontSize: "13px"
+                                    }}>
+                                        <div style={{ fontWeight: "bold", fontFamily: "Arial", }}>SURNAME (Not Yet Married)</div>
+
+                                        <input
+                                            type="text"
+                                            value={person.mother_family_name || ""}
+                                            readOnly
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+                                            }}
+                                        />
+                                    </td>
+
+                                    {/* MIDDLE NAME (Not yet married) */}
+                                    <td colSpan={10} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+
+                                        fontFamily: "Arial",
+
+                                        fontSize: "13px"
+                                    }}>
+                                        <div style={{ fontWeight: "bold" }}>GIVEN NAME</div>
+                                        <input
+                                            type="text"
+                                            value={person.mother_given_name || ""}
+                                            readOnly
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+                                            }}
+                                        />
+                                    </td>
+                                    {/* MIDDLE NAME (Not yet married) */}
+                                    <td colSpan={10} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+
+                                        fontFamily: "Arial",
+                                        fontSize: "13px"
+                                    }}>
+                                        <div style={{ fontWeight: "bold", fontFamily: "Arial", }}>   MIDDLE NAME (Not yet married)</div>
+
+                                        <input
+                                            type="text"
+                                            value={person.mother_middle_name || ""}
+                                            readOnly
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+                                            }}
+                                        />
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td
+                                        colSpan={40}
+                                        style={{
+                                            height: "0.2in",
+                                            fontSize: "72.5%",
+
+                                            color: "white",
+                                        }}
+                                    >
+                                        <b>
+                                            <b style={{
+                                                color: "black",
+                                                fontFamily: "Arial",
+                                                fontSize: '15px',
+                                                textAlign: "left",
+                                                display: "block",
+                                                fontStyle: 'italic'
+                                            }}>
+                                                {"\u00A0\u00A0"}FAMILY PER CAPITA INCOME
+                                            </b>
+
+                                        </b>
+                                    </td>
+                                </tr>
+
+                                {/* STUDENT ID NUMBER */}
+                                <tr>
+                                    {/* STUDENT ID NUMBER */}
+                                    <td colSpan={20} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        padding: "8px",
+                                        fontWeight: "bold",
+                                        fontFamily: "Arial",
+                                        fontSize: "12px",
+                                        verticalAlign: "top"
+                                    }}>
+                                        NAME OF FAMILY MEMBER
+
+                                    </td>
+
+                                    {/* LEARNER’S REFERENCE NUMBER */}
+                                    <td colSpan={10} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        padding: "8px",
+                                        fontWeight: "bold",
+                                        fontSize: "12px",
+                                        verticalAlign: "top",
+                                        fontFamily: "Arial",
+                                    }}>
+                                        OCCUPATION
+
+                                    </td>
+
+                                    {/* DISABILITY */}
+                                    <td colSpan={10} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        padding: "8px",
+                                        fontWeight: "bold",
+                                        fontSize: "12px",
+                                        verticalAlign: "top",
+                                        fontFamily: "Arial",
+                                    }}>
+                                        MONTHLY INCOME
+
+                                    </td>
+                                </tr>
+
+                                <tr style={{ height: "5px" }}>
+
+                                    <td colSpan={7} style={{
+                                        border: "1px solid black",
+                                        textAlign: "center",
+                                        padding: "2px",
+                                        fontWeight: "bold",
+                                        fontSize: "12px",
+                                        fontFamily: "Arial"
+                                    }}>
+                                        Father
+
+                                    </td>
+
+
+                                    <td colSpan={13}
+
+                                        style={{
+                                            border: "1px solid black",
+                                            textAlign: "left",
+                                            padding: "2px",
+                                            fontFamily: "Arial",
+                                            fontSize: "12px"
+                                        }}>
+                                        <input
+                                            type="text"
+                                            value={`${person.father_given_name || ""} ${person.father_middle_name || ""} ${person.father_family_name || ""}`}
+                                            readOnly
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+                                            }}
+                                        />
+
+
+                                    </td>
+
+
+                                    <td colSpan={10}
+                                        style={{
+                                            border: "1px solid black",
+                                            textAlign: "left",
+                                            padding: "2px",
+                                            fontFamily: "Arial",
+                                            fontSize: "12px"
+                                        }}>
+                                        <input
+                                            type="text"
+                                            value={person.father_occupation || ""}
+                                            readOnly
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+                                            }}
+                                        />
+
+
+                                    </td>
+
+                                    <td colSpan={10} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        padding: "2px",
+                                        fontFamily: "Arial",
+                                        fontSize: "12px"
+                                    }}>
+                                        <input
+                                            type="text"
+                                            value={person.father_income || ""}
+                                            readOnly
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+                                            }}
+                                        />
+
+
+
+                                    </td>
+                                </tr>
+
+                                <tr style={{ height: "5px" }}>
+                                    <td colSpan={7} style={{
+                                        border: "1px solid black",
+                                        textAlign: "center",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontWeight: "bold",
+                                        fontFamily: "Arial",
+                                        fontSize: "12px"
+                                    }}>
+                                        Mother
+
+                                    </td>
+
+                                    {/* GIVEN NAME */}
+                                    <td colSpan={13} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontFamily: "Arial",
+                                        fontSize: "12px"
+                                    }}>
+                                        <input
+                                            type="text"
+                                            value={`${person.mother_given_name || ""} ${person.mother_middle_name || ""} ${person.mother_family_name || ""}`}
+                                            readOnly
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+                                            }}
+                                        />
+
+
+
+                                    </td>
+
+                                    {/* MIDDLE NAME */}
+                                    <td colSpan={10} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontFamily: "Arial",
+                                        fontSize: "12px"
+                                    }}>
+                                        <input
+                                            type="text"
+                                            value={person.mother_occupation || ""}
+                                            readOnly
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+                                            }}
+                                        />
+
+
+
+                                    </td>
+
+                                    {/* PERMANENT CONTACT NUMBER */}
+                                    <td colSpan={10} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontFamily: "Arial",
+                                        fontSize: "12px"
+                                    }}>
+                                        <input
+                                            type="text"
+                                            value={person.mother_income || ""}
+                                            readOnly
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Arial",
+                                            }}
+                                        />
+
+
+                                    </td>
+                                </tr>
+
+
+
+                                <tr style={{ height: "5px" }}>
+
+                                    <td colSpan={7} style={{
+                                        border: "1px solid black",
+                                        textAlign: "center",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontWeight: "bold",
+                                        fontSize: "12px",
+                                        fontFamily: "Arial",
+                                    }}>
+                                        Siblings
+
+                                    </td>
+
+                                    {/* GIVEN NAME */}
+                                    <td colSpan={13} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontWeight: "bold",
+                                        fontSize: "15px"
+                                    }}>
+
+
+                                    </td>
+
+                                    {/* MIDDLE NAME */}
+                                    <td colSpan={10} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontWeight: "bold",
+                                        fontSize: "15px"
+                                    }}>
+
+
+                                    </td>
+
+                                    {/* PERMANENT CONTACT NUMBER */}
+                                    <td colSpan={10} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontWeight: "bold",
+                                        fontSize: "15px"
+                                    }}>
+
+
+                                    </td>
+                                </tr>
+
+
+
+                                <tr style={{ height: "5px" }}>
+
+                                    <td colSpan={7} style={{
+                                        border: "1px solid black",
+                                        textAlign: "right",
+                                        fontFamily: "Arial",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontWeight: "bold",
+                                        fontSize: "15px"
+                                    }}>
+                                        1.
+
+                                    </td>
+
+                                    {/* GIVEN NAME */}
+                                    <td colSpan={13} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontWeight: "bold",
+                                        fontSize: "12px"
+                                    }}>
+
+
+                                    </td>
+
+                                    {/* MIDDLE NAME */}
+                                    <td colSpan={10} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontWeight: "bold",
+                                        fontSize: "12px"
+                                    }}>
+
+
+                                    </td>
+
+                                    {/* PERMANENT CONTACT NUMBER */}
+                                    <td colSpan={10} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontWeight: "bold",
+                                        fontSize: "12px"
+                                    }}>
+
+
+                                    </td>
+                                </tr>
+
+
+
+                                <tr style={{ height: "5px" }}>
+
+                                    <td colSpan={7} style={{
+                                        border: "1px solid black",
+                                        textAlign: "right",
+                                        fontFamily: "Arial",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontWeight: "bold",
+                                        fontSize: "15px"
+                                    }}>
+                                        2.
+
+                                    </td>
+
+
+                                    {/* GIVEN NAME */}
+                                    <td colSpan={13} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontWeight: "bold",
+                                        fontSize: "12px"
+                                    }}>
+
+
+                                    </td>
+
+                                    {/* MIDDLE NAME */}
+                                    <td colSpan={10} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontWeight: "bold",
+                                        fontSize: "12px"
+                                    }}>
+
+
+                                    </td>
+
+                                    {/* PERMANENT CONTACT NUMBER */}
+                                    <td colSpan={10} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontWeight: "bold",
+                                        fontSize: "12px"
+                                    }}>
+
+
+                                    </td>
+                                </tr>
+
+
+
+                                <tr style={{ height: "5px" }}>
+
+                                    <td colSpan={7} style={{
+                                        border: "1px solid black",
+                                        textAlign: "right",
+                                        fontFamily: "Arial",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontWeight: "bold",
+                                        fontSize: "15px"
+                                    }}>
+                                        3.
+
+                                    </td>
+
+                                    {/* GIVEN NAME */}
+                                    <td colSpan={13} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontWeight: "bold",
+                                        fontSize: "12px"
+                                    }}>
+
+
+                                    </td>
+
+                                    {/* MIDDLE NAME */}
+                                    <td colSpan={10} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontWeight: "bold",
+                                        fontSize: "12px"
+                                    }}>
+
+
+                                    </td>
+
+                                    {/* PERMANENT CONTACT NUMBER */}
+                                    <td colSpan={10} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontWeight: "bold",
+                                        fontSize: "12px"
+                                    }}>
+
+
+                                    </td>
+                                </tr>
+
+
+
+                                <tr style={{ height: "5px" }}>
+
+                                    <td colSpan={7} style={{
+                                        border: "1px solid black",
+                                        textAlign: "right",
+                                        fontFamily: "Arial",
+                                        padding: "2px",
+                                        fontWeight: "bold",
+                                        fontSize: "15px"
+                                    }}>
+                                        4.
+
+                                    </td>
+
+
+                                    {/* GIVEN NAME */}
+                                    <td colSpan={13} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontWeight: "bold",
+                                        fontSize: "12px"
+                                    }}>
+
+
+                                    </td>
+
+                                    {/* MIDDLE NAME */}
+                                    <td colSpan={10} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontWeight: "bold",
+                                        fontSize: "12px"
+                                    }}>
+
+
+                                    </td>
+
+                                    {/* PERMANENT CONTACT NUMBER */}
+                                    <td colSpan={10} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontWeight: "bold",
+                                        fontSize: "12px"
+                                    }}>
+
+
+                                    </td>
+                                </tr>
+
+
+                                <tr style={{ height: "5px" }}>
+
+                                    <td colSpan={7} style={{
+                                        border: "1px solid black",
+                                        textAlign: "right",
+                                        fontFamily: "Arial",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontWeight: "bold",
+                                        fontSize: "15px"
+                                    }}>
+                                        5.
+
+                                    </td>
+
+
+                                    {/* GIVEN NAME */}
+                                    <td colSpan={13} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontWeight: "bold",
+                                        fontSize: "12px"
+                                    }}>
+
+
+                                    </td>
+
+                                    {/* MIDDLE NAME */}
+                                    <td colSpan={10} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        padding: "2px",  // Reduced padding to fit in 10px height
+                                        fontWeight: "bold",
+                                        fontSize: "12px"
+                                    }}>
+
+
+                                    </td>
+
+
+                                    {/* PERMANENT CONTACT NUMBER */}
+                                    <td colSpan={10} style={{
+                                        border: "1px solid black",
+                                        textAlign: "left",
+                                        padding: "2px",
+
+                                        fontSize: "15px",
+                                        fontFamily: "Arial",
+                                    }}>
+                                        Total: ₱{(Number(person.father_income || 0) + Number(person.mother_income || 0)).toLocaleString("en-PH", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        })}
+                                    </td>
+                                </tr>
+
+
+
+
+
+
+
+                            </tbody>
+                        </table>
+
+                        <table
+                            style={{
+                                marginTop: "-50px",
+                                borderCollapse: "collapse",
+                                fontFamily: "Arial",
+                                width: "8in",
+                                margin: "0 auto",
+                                textAlign: "center",
+                                tableLayout: "fixed",
+                            }}
+                        >
+                            <tbody>
+                                {/* Other table rows here... */}
+
+                                <tr>
+                                    <td colSpan={40} style={{ paddingTop: '5px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                            <div
+                                                style={{
+                                                    display: 'inline-block',
+                                                    width: '250px',
+                                                    textAlign: 'center',
+                                                }}
+                                            >
+                                                <div
+                                                    style={{
+                                                        borderBottom: '1px solid black',
+                                                        height: '40px',
+                                                        marginBottom: '5px',
+                                                    }}
+                                                ></div>
+                                                <div
+                                                    style={{
+                                                        fontSize: '12px',
+                                                        fontWeight: 'bold',
+                                                        fontFamily: "Arial",
+                                                    }}
+                                                >
+                                                    Signature
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                {/* Additional rows if needed... */}
+                            </tbody>
+                        </table>
+
+                    </form>
+                </div>
+
+            </Container>
+
+
+        </Box >
+
+    );
 };
 
 export default StudentPersonalDataForm;

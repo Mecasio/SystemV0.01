@@ -323,7 +323,7 @@ const RequirementsForm = () => {
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
 
-      <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+      <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
@@ -333,23 +333,23 @@ const RequirementsForm = () => {
         </Table>
       </TableContainer>
 
-      <TableContainer component={Paper} sx={{ border: `2px solid ${borderColor}` }}>
+      <TableContainer component={Paper} sx={{ border: `1px solid ${borderColor}` }}>
         <Table stickyHeader size="small">
 
           {/* HEADER */}
           <TableHead>
             <TableRow>
-              <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>#</TableCell>
-              <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>Description</TableCell>
-              <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>Short Label</TableCell>
-              <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>Category</TableCell>
-              <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+              <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>#</TableCell>
+              <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>Description</TableCell>
+              <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>Short Label</TableCell>
+              <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>Category</TableCell>
+              <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                 Applicant Type
               </TableCell>
-              <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>Original Documents</TableCell>
-              <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>Xerox Copies</TableCell>
-              <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>Optional</TableCell>
-              <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>Actions</TableCell>
+              <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>Original Documents</TableCell>
+              <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>Xerox Copies</TableCell>
+              <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>Optional</TableCell>
+              <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>Actions</TableCell>
 
 
             </TableRow>
@@ -360,47 +360,47 @@ const RequirementsForm = () => {
             {requirements.map((req, index) => (
               <TableRow key={req.id}>
 
-                <TableCell sx={{ border: `2px solid ${borderColor}` }}>
+                <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                   {index + 1}
                 </TableCell>
 
                 {/* DESCRIPTION */}
-                <TableCell sx={{ border: `2px solid ${borderColor}` }}>
+                <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                   {req.description}
                 </TableCell>
 
                 {/* SHORT LABEL */}
-                <TableCell sx={{ border: `2px solid ${borderColor}` }}>
+                <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                   {req.short_label || "N/A"}
                 </TableCell>
 
                 {/* CATEGORY */}
-                <TableCell sx={{ border: `2px solid ${borderColor}` }}>
+                <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                   {req.category || "Main"}
                 </TableCell>
-                <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                   {req.applicant_type || "All"}
                 </TableCell>
 
                 {/* ORIGINAL */}
-                <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                   {req.requires_original ? "Yes" : "No"}
                 </TableCell>
 
                 {/* XEROX */}
-                <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                   {req.xerox_copies > 0
                     ? `${req.xerox_copies} ${req.xerox_copies > 1 ? "copies" : "copy"}`
                     : "-"}
                 </TableCell>
-                <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                   {req.is_optional ? "Yes" : "No"}
                 </TableCell>
 
                 {/* ACTIONS */}
                 <TableCell
                   sx={{
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     textAlign: "center",
                     display: "flex",
                     gap: "10px",
@@ -456,7 +456,7 @@ const RequirementsForm = () => {
       <br />
       <br />
 
-      <TableContainer component={Paper} sx={{ width: '50%', border: `2px solid ${borderColor}`, }}>
+      <TableContainer component={Paper} sx={{ width: '50%', border: `1px solid ${borderColor}`, }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
@@ -467,7 +467,7 @@ const RequirementsForm = () => {
       </TableContainer>
 
       <div
-        style={{ border: `2px solid ${borderColor}`, width: "50%" }}
+        style={{ border: `1px solid ${borderColor}`, width: "50%" }}
         className=" bg-gray-50 p-6 shadow-sm"
       >
 

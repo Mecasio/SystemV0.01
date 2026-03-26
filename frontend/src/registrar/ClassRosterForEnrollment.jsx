@@ -416,8 +416,8 @@ const ClassRoster = () => {
         <img src="${logoSrc}" alt="School Logo" />
         <div>
           <div>Republic of the Philippines</div>
-          ${name ? `<b style="letter-spacing:1px;font-size:20px;font-family:'Times New Roman',serif;">${line1}</b>
-          ${line2 ? `<div style="letter-spacing:1px;font-size:20px;font-family:'Times New Roman',serif;"><b>${line2}</b></div>` : ""}` : ""}
+          ${name ? `<b style="letter-spacing:1px;font-size:20px;font-family:Arial">${line1}</b>
+          ${line2 ? `<div style="letter-spacing:1px;font-size:20px;font-family:Arial"><b>${line2}</b></div>` : ""}` : ""}
           <div style="font-size:12px;">${resolvedAddress}</div>
           <div style="margin-top:30px;"><b style="font-size:20px;letter-spacing:1px;">STUDENT LIST</b></div>
         </div>
@@ -490,7 +490,7 @@ const ClassRoster = () => {
                 height: 100,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 cursor: "pointer", borderRadius: 2,
-                border: `2px solid ${borderColor}`,
+                border: `1px solid ${borderColor}`,
                 backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
                 color: activeStep === index ? "#fff" : "#000",
                 boxShadow: activeStep === index ? "0px 4px 10px rgba(0,0,0,0.3)" : "0px 2px 6px rgba(0,0,0,0.15)",
@@ -515,7 +515,7 @@ const ClassRoster = () => {
         <Table size="small">
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
             <TableRow>
-              <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+              <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                 <Box display="flex" justifyContent="space-between" alignItems="center">
                   <Typography fontSize="14px" fontWeight="bold" color="white">
                     Total Students: {filteredStudents.length}
@@ -575,7 +575,7 @@ const ClassRoster = () => {
       </TableContainer>
 
       {/* ── Filter panel ── */}
-      <TableContainer component={Paper} sx={{ width: "100%", border: `2px solid ${borderColor}`, p: 2 }}>
+      <TableContainer component={Paper} sx={{ width: "100%", border: `1px solid ${borderColor}`, p: 2 }}>
         <Box sx={{ display: "flex", flexDirection: "column", flexWrap: "wrap", gap: "2rem" }}>
 
           {/* Row 1: print + campus */}
@@ -711,7 +711,7 @@ const ClassRoster = () => {
             <TableRow>
               {["#","Student Number","Name","Program Description","Program Code",
                 "Year Level","Semester","Remarks","Date Enrolled","Student Status"].map(h => (
-                <TableCell key={h} sx={{ color: "white", textAlign: "center", fontSize: "12px", border: `2px solid ${borderColor}` }}>
+                <TableCell key={h} sx={{ color: "white", textAlign: "center", fontSize: "12px", border: `1px solid ${borderColor}` }}>
                   {h}
                 </TableCell>
               ))}
@@ -720,27 +720,27 @@ const ClassRoster = () => {
           <TableBody>
             {paginatedStudents.map((s, i) => (
               <TableRow key={`${s.student_number}-${i}`}>
-                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                   {(currentPage - 1) * itemsPerPage + i + 1}
                 </TableCell>
-                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>{s.student_number}</TableCell>
-                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{s.student_number}</TableCell>
+                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                   {s.last_name}, {s.first_name} {s.middle_name || ""}
                 </TableCell>
-                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>{s.program_description}</TableCell>
-                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>{s.program_code}</TableCell>
-                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>{s.year_level_description}</TableCell>
-                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>{s.semester_description}</TableCell>
-                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>{remarksMap[s.en_remarks] || ""}</TableCell>
-                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>{s.created_at || ""}</TableCell>
-                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{s.program_description}</TableCell>
+                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{s.program_code}</TableCell>
+                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{s.year_level_description}</TableCell>
+                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{s.semester_description}</TableCell>
+                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{remarksMap[s.en_remarks] || ""}</TableCell>
+                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{s.created_at || ""}</TableCell>
+                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                   {Number(s.status) === 1 ? "Regular" : "Irregular"}
                 </TableCell>
               </TableRow>
             ))}
             {paginatedStudents.length === 0 && (
               <TableRow>
-                <TableCell colSpan={10} sx={{ textAlign: "center", border: `2px solid ${borderColor}`, color: "#777", py: 3 }}>
+                <TableCell colSpan={10} sx={{ textAlign: "center", border: `1px solid ${borderColor}`, color: "#777", py: 3 }}>
                   No students found for the selected filters.
                 </TableCell>
               </TableRow>

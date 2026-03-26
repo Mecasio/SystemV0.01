@@ -342,7 +342,7 @@ const PageCRUD = () => {
             <Paper
                 elevation={4}
                 sx={{
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     overflow: "hidden",
                     backgroundColor: "#ffffff",
                 }}
@@ -351,10 +351,10 @@ const PageCRUD = () => {
                     <Table>
                         <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
                             <TableRow>
-                                <TableCell sx={{ color: "white", fontWeight: "bold", border: `2px solid ${borderColor}`, }}>#</TableCell>
-                                <TableCell sx={{ color: "white", fontWeight: "bold", border: `2px solid ${borderColor}`, }}>Page Description</TableCell>
-                                <TableCell sx={{ color: "white", fontWeight: "bold", border: `2px solid ${borderColor}`, }}>Page Group</TableCell>
-                                <TableCell align="center" sx={{ color: "white", fontWeight: "bold", border: `2px solid ${borderColor}`, }}>
+                                <TableCell sx={{ color: "white", fontWeight: "bold", border: `1px solid ${borderColor}`, }}>#</TableCell>
+                                <TableCell sx={{ color: "white", fontWeight: "bold", border: `1px solid ${borderColor}`, }}>Page Description</TableCell>
+                                <TableCell sx={{ color: "white", fontWeight: "bold", border: `1px solid ${borderColor}`, }}>Page Group</TableCell>
+                                <TableCell align="center" sx={{ color: "white", fontWeight: "bold", border: `1px solid ${borderColor}`, }}>
                                     Actions
                                 </TableCell>
                             </TableRow>
@@ -363,19 +363,19 @@ const PageCRUD = () => {
                             {pages.length > 0 ? (
                                 pages.map((page) => (
                                     <TableRow key={page.id} hover>
-                                        <TableCell style={{ border: `2px solid ${borderColor}` }}>
+                                        <TableCell style={{ border: `1px solid ${borderColor}` }}>
                                             {page.id}
                                         </TableCell>
-                                        <TableCell style={{ border: `2px solid ${borderColor}` }}>
+                                        <TableCell style={{ border: `1px solid ${borderColor}` }}>
                                             {page.page_description}
                                         </TableCell>
-                                        <TableCell style={{ border: `2px solid ${borderColor}` }}>
+                                        <TableCell style={{ border: `1px solid ${borderColor}` }}>
                                             {page.page_group}
                                         </TableCell>
                                         <TableCell
                                             align="center"
                                             sx={{
-                                                border: `2px solid ${borderColor}`,
+                                                border: `1px solid ${borderColor}`,
                                                 display: "flex",
                                                 justifyContent: "center",
                                                 alignItems: "center",

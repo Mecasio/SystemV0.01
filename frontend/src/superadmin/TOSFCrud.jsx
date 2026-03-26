@@ -624,7 +624,7 @@ const TOSF = () => {
 
 
       {/* TITLE */}
-      <TableContainer component={Paper} sx={{ width: "100%", border: `2px solid ${borderColor}` }}>
+      <TableContainer component={Paper} sx={{ width: "100%", border: `1px solid ${borderColor}` }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
             <TableRow>
@@ -637,7 +637,7 @@ const TOSF = () => {
       </TableContainer>
 
       {/* FORM CONTAINER */}
-      <Paper sx={{ padding: 2, mb: 3, border: `2px solid ${borderColor}` }}>
+      <Paper sx={{ padding: 2, mb: 3, border: `1px solid ${borderColor}` }}>
         <form onSubmit={handleSubmit}>
           <Box
             sx={{
@@ -703,43 +703,43 @@ const TOSF = () => {
       </Paper>
 
       {/* TABLE SECTION */}
-      <TableContainer component={Paper} sx={{ border: `2px solid ${borderColor}` }}>
+      <TableContainer component={Paper} sx={{ border: `1px solid ${borderColor}` }}>
         <Table>
           <TableHead
             style={{
-              border: `2px solid ${borderColor}`,
+              border: `1px solid ${borderColor}`,
               backgroundColor: settings?.header_color || "#1976d2",
             }}
           >
             <TableRow>
-              <TableCell style={{ border: `2px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
+              <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
                 ID
               </TableCell>
-              <TableCell style={{ border: `2px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
+              <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
                 Athletic Fee
               </TableCell>
-              <TableCell style={{ border: `2px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
+              <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
                 Cultural Fee
               </TableCell>
-              <TableCell style={{ border: `2px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
+              <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
                 Developmental Fee
               </TableCell>
-              <TableCell style={{ border: `2px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
+              <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
                 Guidance Fee
               </TableCell>
-              <TableCell style={{ border: `2px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
+              <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
                 Library Fee
               </TableCell>
-              <TableCell style={{ border: `2px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
+              <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
                 Medical & Dental
               </TableCell>
-              <TableCell style={{ border: `2px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
+              <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
                 Registration Fee
               </TableCell>
 
               <TableCell
                 style={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   color: "white",
                   textAlign: "center",
                   fontWeight: "bold",
@@ -750,16 +750,16 @@ const TOSF = () => {
 
 
 
-              <TableCell style={{ border: `2px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
+              <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
                 NSTP Fee
               </TableCell>
-              <TableCell style={{ border: `2px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
+              <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
                 Computer Fee
               </TableCell>
-              <TableCell style={{ border: `2px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
+              <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
                 Laboratory Fee
               </TableCell>
-              <TableCell style={{ border: `2px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
+              <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
                 Actions
               </TableCell>
 
@@ -770,52 +770,52 @@ const TOSF = () => {
           <TableBody>
             {tosfData.map((item, index) => (
               <TableRow key={item.tosf_id}>
-                <TableCell style={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                <TableCell style={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                   {index + 1}
                 </TableCell>
 
-                <TableCell style={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                <TableCell style={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                   {item.athletic_fee}
                 </TableCell>
 
-                <TableCell style={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                <TableCell style={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                   {item.cultural_fee}
                 </TableCell>
 
-                <TableCell style={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                <TableCell style={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                   {item.developmental_fee}
                 </TableCell>
 
-                <TableCell style={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                <TableCell style={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                   {item.guidance_fee}
                 </TableCell>
 
-                <TableCell style={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                <TableCell style={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                   {item.library_fee}
                 </TableCell>
 
-                <TableCell style={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                <TableCell style={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                   {item.medical_and_dental_fee}
                 </TableCell>
 
-                <TableCell style={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                <TableCell style={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                   {item.registration_fee}
                 </TableCell>
 
-                <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                   {item.school_id_fees}
                 </TableCell>
 
 
-                <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                   {item.nstp_fees}
                 </TableCell>
 
-                <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                   {item.computer_fees}
                 </TableCell>
 
-                <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                   {item.laboratory_fees}
                 </TableCell>
 
@@ -823,7 +823,7 @@ const TOSF = () => {
                 {/* ACTIONS SIDE BY SIDE */}
                 <TableCell
                   style={{
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     textAlign: "center",
                     whiteSpace: "nowrap",
                   }}
@@ -864,7 +864,7 @@ const TOSF = () => {
       </TableContainer>
 
       <Box sx={{ mt: 4 }}>
-        <TableContainer component={Paper} sx={{ width: "100%", border: `2px solid ${borderColor}` }}>
+        <TableContainer component={Paper} sx={{ width: "100%", border: `1px solid ${borderColor}` }}>
           <Table>
             <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
               <TableRow>
@@ -876,7 +876,7 @@ const TOSF = () => {
           </Table>
         </TableContainer>
 
-        <Paper sx={{ padding: 2, mb: 3, border: `2px solid ${borderColor}` }}>
+        <Paper sx={{ padding: 2, mb: 3, border: `1px solid ${borderColor}` }}>
           <form onSubmit={handleScholarshipSubmit}>
             <Grid container spacing={2}>
               <Grid item xs={12} md={8}>
@@ -936,43 +936,43 @@ const TOSF = () => {
           </form>
         </Paper>
 
-        <TableContainer component={Paper} sx={{ border: `2px solid ${borderColor}` }}>
+        <TableContainer component={Paper} sx={{ border: `1px solid ${borderColor}` }}>
           <Table>
             <TableHead
               style={{
-                border: `2px solid ${borderColor}`,
+                border: `1px solid ${borderColor}`,
                 backgroundColor: settings?.header_color || "#1976d2",
               }}
             >
               <TableRow>
-                <TableCell style={{ border: `2px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
+                <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
                   ID
                 </TableCell>
-                <TableCell style={{ border: `2px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
+                <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
                   Scholarship Name
                 </TableCell>
-                <TableCell style={{ border: `2px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
+                <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
                   Status
                 </TableCell>
-                <TableCell style={{ border: `2px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
+                <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
                   RFD (%)
                 </TableCell>
-                <TableCell style={{ border: `2px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
+                <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
                   TFD (%)
                 </TableCell>
-                <TableCell style={{ border: `2px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
+                <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
                   MFD (%)
                 </TableCell>
-                <TableCell style={{ border: `2px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
+                <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
                   NFD (%)
                 </TableCell>
-                <TableCell style={{ border: `2px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
+                <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
                   AFD
                 </TableCell>
-                <TableCell style={{ border: `2px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
+                <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
                   Created At
                 </TableCell>
-                <TableCell style={{ border: `2px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
+                <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
                   Actions
                 </TableCell>
               </TableRow>
@@ -982,7 +982,7 @@ const TOSF = () => {
                 <TableRow>
                   <TableCell
                     colSpan={10}
-                    sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}
+                    sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}
                   >
                     No scholarship types found.
                   </TableCell>
@@ -991,16 +991,16 @@ const TOSF = () => {
 
               {scholarshipTypes.map((item, index) => (
                 <TableRow key={item.id}>
-                  <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                  <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                     {index + 1}
                   </TableCell>
-                  <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                  <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                     {item.scholarship_name}
                   </TableCell>
-                  <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                  <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                     {Number(item.scholarship_status) === 1 ? "Active" : "Inactive"}
                   </TableCell>
-                  <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                  <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                     <TextField
                       name="rfd"
                       value={editingScholarshipId === item.id ? scholarshipForm.rfd : (item.rfd?.toString() ?? "50")}
@@ -1016,7 +1016,7 @@ const TOSF = () => {
                       inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
                     />
                   </TableCell>
-                  <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                  <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                     <TextField
                       name="tfd"
                       value={editingScholarshipId === item.id ? scholarshipForm.tfd : (item.tfd?.toString() ?? "50")}
@@ -1032,7 +1032,7 @@ const TOSF = () => {
                       inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
                     />
                   </TableCell>
-                  <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                  <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                     <TextField
                       name="mfd"
                       value={editingScholarshipId === item.id ? scholarshipForm.mfd : (item.mfd?.toString() ?? "50")}
@@ -1048,7 +1048,7 @@ const TOSF = () => {
                       inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
                     />
                   </TableCell>
-                  <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                  <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                     <TextField
                       name="nfd"
                       value={editingScholarshipId === item.id ? scholarshipForm.nfd : (item.nfd?.toString() ?? "50")}
@@ -1064,7 +1064,7 @@ const TOSF = () => {
                       inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
                     />
                   </TableCell>
-                  <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                  <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                     <TextField
                       name="afd"
                       value={editingScholarshipId === item.id ? scholarshipForm.afd : (item.afd?.toString() ?? "0")}
@@ -1077,14 +1077,14 @@ const TOSF = () => {
                       inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
                     />
                   </TableCell>
-                  <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                  <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                     {item.created_at
                       ? new Date(Number(item.created_at) * 1000).toLocaleString()
                       : "-"}
                   </TableCell>
                   <TableCell
                     sx={{
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                       textAlign: "center",
                       whiteSpace: "nowrap",
                     }}
@@ -1151,7 +1151,7 @@ const TOSF = () => {
 
 
         {/* 
-        <Paper sx={{ p: 3, mb: 4, border: `2px solid ${borderColor}` }}>
+        <Paper sx={{ p: 3, mb: 4, border: `1px solid ${borderColor}` }}>
           <form onSubmit={handleFeeSubmit}>
             <Grid container spacing={3}>
 
@@ -1309,14 +1309,14 @@ const TOSF = () => {
 
         {/* Fee Rules Table */}
         {/* Fee Rules Table */}
-        {/* <TableContainer component={Paper} sx={{ border: `2px solid ${borderColor}` }}>
+        {/* <TableContainer component={Paper} sx={{ border: `1px solid ${borderColor}` }}>
           <Table>
             <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
               <TableRow>
                 {["ID", "Fee Code", "Description", "Amount", "Year Level", "Semester", "Department", "Program", "Actions"].map((header) => (
                   <TableCell
                     key={header}
-                    sx={{ color: "white", fontWeight: "bold", textAlign: "center", border: `2px solid ${borderColor}` }}
+                    sx={{ color: "white", fontWeight: "bold", textAlign: "center", border: `1px solid ${borderColor}` }}
                   >
                     {header}
                   </TableCell>
@@ -1326,29 +1326,29 @@ const TOSF = () => {
             <TableBody>
               {feeRules.map((fee, index) => (
                 <TableRow key={fee.fee_code}>
-                  <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                  <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                     {index + 1}
                   </TableCell>
-                  <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>{fee.fee_code}</TableCell>
-                  <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>{fee.description}</TableCell>
-                  <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>{fee.amount}</TableCell>
+                  <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{fee.fee_code}</TableCell>
+                  <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{fee.description}</TableCell>
+                  <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{fee.amount}</TableCell>
 
-                  <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                  <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                     {fee.year_level_id ? yearLevelMap[fee.year_level_id] : "ALL"}
                   </TableCell>
 
-                  <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                  <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                     {fee.semester_id ? semesterMap[fee.semester_id] : "ALL"}
                   </TableCell>
 
 
-                  <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                  <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                     {fee.dprtmnt_id
                       ? departments.find((d) => d.dprtmnt_id === fee.dprtmnt_id)?.dprtmnt_name || "NONE"
                       : "NONE"}
                   </TableCell>
 
-                  <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                  <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                     {(() => {
                       const prog = programs.find(p => p.program_id === fee.program_id);
                       if (!prog) return "NONE";
@@ -1357,7 +1357,7 @@ const TOSF = () => {
                   </TableCell>
 
 
-                  <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                  <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                     <Button
                       onClick={() => handleEditFee(fee)}
                       size="small"
@@ -1395,7 +1395,7 @@ const TOSF = () => {
       </Box>
 
       {miscFee && (
-        <Paper sx={{ mt: 3, p: 2, border: `2px solid ${borderColor}` }}>
+        <Paper sx={{ mt: 3, p: 2, border: `1px solid ${borderColor}` }}>
           <Typography sx={{ fontWeight: "bold", mb: 1 }}>
             Miscellaneous Fee
           </Typography>

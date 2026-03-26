@@ -1284,7 +1284,7 @@ const CourseTaggingForSummer = () => {
                   selectedDepartment === dept.dprtmnt_id
                     ? "white"
                     : `${mainButtonColor}`,
-                border: `2px solid ${borderColor}`,
+                border: `1px solid ${borderColor}`,
                 "&:hover": {
                   backgroundColor: `${mainButtonColor}`,
                   color: "white",
@@ -1316,7 +1316,7 @@ const CourseTaggingForSummer = () => {
           component={Paper}
           backgroundColor={"#f1f1f1"}
           p={2}
-          sx={{ border: `2px solid ${borderColor}`, overflowX: "auto", width: "100%" }}
+          sx={{ border: `1px solid ${borderColor}`, overflowX: "auto", width: "100%" }}
         >
           {/* Search Student */}
 
@@ -1385,7 +1385,7 @@ const CourseTaggingForSummer = () => {
               <TableRow>
                 <TableCell
                   style={{
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     textAlign: "center",
                     width: 120,
                   }}
@@ -1394,7 +1394,7 @@ const CourseTaggingForSummer = () => {
                 </TableCell>
                 <TableCell
                   style={{
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     textAlign: "center",
                   }}
                 >
@@ -1404,7 +1404,7 @@ const CourseTaggingForSummer = () => {
 
                 <TableCell
                   style={{
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     textAlign: "center",
                   }}
                 >
@@ -1412,7 +1412,7 @@ const CourseTaggingForSummer = () => {
                 </TableCell>
                 <TableCell
                   style={{
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     textAlign: "center",
                   }}
                 >
@@ -1420,7 +1420,7 @@ const CourseTaggingForSummer = () => {
                 </TableCell>
                 <TableCell
                   style={{
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     textAlign: "center",
                   }}
                 >
@@ -1429,7 +1429,7 @@ const CourseTaggingForSummer = () => {
 
                 <TableCell
                   style={{
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     textAlign: "center",
                   }}
                 >
@@ -1449,19 +1449,19 @@ const CourseTaggingForSummer = () => {
                 .map((c) => (
 
                   <TableRow key={c.course_id} sx={getCourseRowSx(c)}>
-                    <TableCell style={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                    <TableCell style={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                       {c.course_code}
                     </TableCell>
-                    <TableCell style={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                    <TableCell style={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                       {c.course_description}
                     </TableCell>
 
-                    <TableCell style={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                    <TableCell style={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                       {c.course_unit}
                     </TableCell>
                     <TableCell
                       style={{
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         textAlign: "center",
                       }}
                     >
@@ -1472,13 +1472,13 @@ const CourseTaggingForSummer = () => {
 
                     <TableCell
                       style={{
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         textAlign: "center",
                       }}
                     >
                       {subjectCounts[c.course_id] || 0}
                     </TableCell>
-                    <TableCell style={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                    <TableCell style={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                       {!isEnrolledCourse(c.course_id) ? (
                         <Button
                           variant="contained"
@@ -1505,7 +1505,7 @@ const CourseTaggingForSummer = () => {
           backgroundColor="#f1f1f1"
           p={2}
           sx={{
-            border: `2px solid ${borderColor}`,
+            border: `1px solid ${borderColor}`,
             width: "100%",
             overflowX: "auto",   // ✅ horizontal scroll here
           }}
@@ -1639,7 +1639,7 @@ const CourseTaggingForSummer = () => {
                 <TableCell
                   style={{
                     display: "none",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   Enrolled Subject ID
@@ -1647,7 +1647,7 @@ const CourseTaggingForSummer = () => {
                 <TableCell
                   style={{
                     display: "none",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   Subject ID
@@ -1655,7 +1655,7 @@ const CourseTaggingForSummer = () => {
                 <TableCell
                   style={{
                     textAlign: "center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   SUBJECT CODE
@@ -1663,7 +1663,7 @@ const CourseTaggingForSummer = () => {
                 <TableCell
                   style={{
                     textAlign: "center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   LEC UNIT
@@ -1671,7 +1671,7 @@ const CourseTaggingForSummer = () => {
                 <TableCell
                   style={{
                     textAlign: "center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   LAB UNIT
@@ -1679,7 +1679,7 @@ const CourseTaggingForSummer = () => {
                 <TableCell
                   style={{
                     textAlign: "center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   CREDIT UNIT
@@ -1687,7 +1687,7 @@ const CourseTaggingForSummer = () => {
                 <TableCell
                   style={{
                     textAlign: "center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   SECTION
@@ -1695,7 +1695,7 @@ const CourseTaggingForSummer = () => {
                 <TableCell
                   style={{
                     textAlign: "center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   DAY
@@ -1703,7 +1703,7 @@ const CourseTaggingForSummer = () => {
                 <TableCell
                   style={{
                     textAlign: "center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   TIME
@@ -1711,7 +1711,7 @@ const CourseTaggingForSummer = () => {
                 <TableCell
                   style={{
                     textAlign: "center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   ROOM
@@ -1719,7 +1719,7 @@ const CourseTaggingForSummer = () => {
                 <TableCell
                   style={{
                     textAlign: "center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   FACULTY
@@ -1727,7 +1727,7 @@ const CourseTaggingForSummer = () => {
                 <TableCell
                   style={{
                     textAlign: "center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   ENROLLED STUDENTS
@@ -1735,7 +1735,7 @@ const CourseTaggingForSummer = () => {
                 <TableCell
                   style={{
                     textAlign: "center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   Action
@@ -1749,7 +1749,7 @@ const CourseTaggingForSummer = () => {
                   <TableCell
                     style={{
                       display: "none",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                     }}
                   >
                     {e.id}
@@ -1757,7 +1757,7 @@ const CourseTaggingForSummer = () => {
                   <TableCell
                     style={{
                       display: "none",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                     }}
                   >
                     {e.course_id}
@@ -1766,7 +1766,7 @@ const CourseTaggingForSummer = () => {
                   <TableCell
                     style={{
                       textAlign: "center",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                     }}
                   >
                     {e.course_code}
@@ -1774,7 +1774,7 @@ const CourseTaggingForSummer = () => {
                   <TableCell
                     style={{
                       textAlign: "center",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                     }}
                   >
                     {e.lec_unit}
@@ -1782,7 +1782,7 @@ const CourseTaggingForSummer = () => {
                   <TableCell
                     style={{
                       textAlign: "center",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                     }}
                   >
                     {e.lab_unit}
@@ -1790,7 +1790,7 @@ const CourseTaggingForSummer = () => {
                   <TableCell
                     style={{
                       textAlign: "center",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                     }}
                   >
                     {e.course_unit}
@@ -1798,7 +1798,7 @@ const CourseTaggingForSummer = () => {
                   <TableCell
                     style={{
                       textAlign: "center",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                     }}
                   >
                     {e.program_code}-{e.description}
@@ -1806,7 +1806,7 @@ const CourseTaggingForSummer = () => {
                   <TableCell
                     style={{
                       textAlign: "center",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                     }}
                   >
                     {e.day_description}
@@ -1814,7 +1814,7 @@ const CourseTaggingForSummer = () => {
                   <TableCell
                     style={{
                       textAlign: "center",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                     }}
                   >
                     {e.school_time_start}-{e.school_time_end}
@@ -1822,7 +1822,7 @@ const CourseTaggingForSummer = () => {
                   <TableCell
                     style={{
                       textAlign: "center",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                     }}
                   >
                     {e.room_description}
@@ -1830,7 +1830,7 @@ const CourseTaggingForSummer = () => {
                   <TableCell
                     style={{
                       textAlign: "center",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                     }}
                   >
                     Prof. {e.lname}
@@ -1838,7 +1838,7 @@ const CourseTaggingForSummer = () => {
                   <TableCell
                     style={{
                       textAlign: "center",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                     }}
                   >
                     ({e.number_of_enrolled})
@@ -1846,7 +1846,7 @@ const CourseTaggingForSummer = () => {
                   <TableCell
                     style={{
                       textAlign: "center",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                     }}
                   >
                     <Button
@@ -1867,7 +1867,7 @@ const CourseTaggingForSummer = () => {
                   sx={{
                     textAlign: "center",
                     fontWeight: "600",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   Total Unit
@@ -1877,7 +1877,7 @@ const CourseTaggingForSummer = () => {
                   colSpan={2}
                   sx={{
                     textAlign: "center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   {enrolled.reduce(
@@ -1893,7 +1893,7 @@ const CourseTaggingForSummer = () => {
                 {/* Spacer */}
                 <TableCell
                   colSpan={7}
-                  sx={{ border: `2px solid ${borderColor}` }}
+                  sx={{ border: `1px solid ${borderColor}` }}
                 />
 
                 {/* ACTION CELL — must fit remaining columns */}
@@ -1901,7 +1901,7 @@ const CourseTaggingForSummer = () => {
                   colSpan={1}
                   sx={{
                     textAlign: "center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   <Button

@@ -597,7 +597,7 @@ const FacultyMasterList = () => {
               <TableCell
                 colSpan={10}
                 sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   py: 0.5,
                   backgroundColor: settings?.header_color || "#1976d2",
                   color: "white",
@@ -912,7 +912,7 @@ const FacultyMasterList = () => {
       </TableContainer>
       <TableContainer
         component={Paper}
-        sx={{ width: "98%", border: `2px solid ${borderColor}`, p: 2 }}
+        sx={{ width: "98%", border: `1px solid ${borderColor}`, p: 2 }}
       >
         <Box
           sx={{
@@ -1074,7 +1074,7 @@ const FacultyMasterList = () => {
                   color: "white",
                   textAlign: "center",
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 #
@@ -1084,7 +1084,7 @@ const FacultyMasterList = () => {
                   color: "white",
                   textAlign: "center",
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Student Number
@@ -1094,7 +1094,7 @@ const FacultyMasterList = () => {
                   color: "white",
                   textAlign: "center",
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Student Name
@@ -1104,7 +1104,7 @@ const FacultyMasterList = () => {
                   color: "white",
                   textAlign: "center",
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Section
@@ -1114,7 +1114,7 @@ const FacultyMasterList = () => {
                   color: "white",
                   textAlign: "center",
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Student Status
@@ -1124,7 +1124,7 @@ const FacultyMasterList = () => {
                   color: "white",
                   textAlign: "center",
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Room
@@ -1138,7 +1138,7 @@ const FacultyMasterList = () => {
                   <TableCell
                     sx={{
                       textAlign: "center",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                     }}
                   >
                     {index + 1}
@@ -1146,14 +1146,14 @@ const FacultyMasterList = () => {
                   <TableCell
                     sx={{
                       textAlign: "center",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                     }}
                   >
                     {student.student_number}
                   </TableCell>
                   <TableCell
                     sx={{
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                       cursor: "pointer",
                       transition: "all 0.2s ease",
                       "&:hover": {
@@ -1178,7 +1178,7 @@ const FacultyMasterList = () => {
                   <TableCell
                     sx={{
                       textAlign: "center",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                     }}
                   >
                     {student.program_code}-{student.section_description}
@@ -1186,7 +1186,7 @@ const FacultyMasterList = () => {
                   <TableCell
                     sx={{
                       textAlign: "center",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                     }}
                   >
                     {student.status === 1 ? "Regular" : "Irregular"}
@@ -1194,7 +1194,7 @@ const FacultyMasterList = () => {
                   <TableCell
                     sx={{
                       textAlign: "center",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                     }}
                   >
                     {[...new Set(student.schedules.map((sch) => sch.room))].map(
@@ -1210,7 +1210,7 @@ const FacultyMasterList = () => {
                 <TableCell
                   colSpan={7}
                   align="center"
-                  sx={{ border: `2px solid ${borderColor}` }}
+                  sx={{ border: `1px solid ${borderColor}` }}
                 >
                   No class details available
                 </TableCell>
@@ -1271,7 +1271,7 @@ const FacultyMasterList = () => {
                 marginRight: "10px",
               }}
             >
-              <span style={{ margin: 0, fontSize: "12px" }}>
+              <span style={{ margin: 0,  fontFamily: "Arial", fontSize: "13px" }}>
                 Republic of the Philippines
               </span>
               <h2

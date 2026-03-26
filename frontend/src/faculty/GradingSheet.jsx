@@ -1199,7 +1199,7 @@ const GradingSheet = () => {
               <TableCell
                 colSpan={10}
                 sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   py: 0.5,
                   backgroundColor: settings?.header_color || "#1976d2",
                   color: "white",
@@ -1515,7 +1515,7 @@ const GradingSheet = () => {
         component={Paper}
         sx={{
           width: "100%",
-          border: `2px solid ${borderColor}`,
+          border: `1px solid ${borderColor}`,
           p: 2,
           marginRight: "4rem",
         }}
@@ -1768,7 +1768,7 @@ const GradingSheet = () => {
                   color: "white",
                   textAlign: "center",
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 #
@@ -1778,7 +1778,7 @@ const GradingSheet = () => {
                   color: "white",
                   textAlign: "center",
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Student Number
@@ -1788,7 +1788,7 @@ const GradingSheet = () => {
                   color: "white",
                   textAlign: "center",
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Name
@@ -1798,7 +1798,7 @@ const GradingSheet = () => {
                   color: "white",
                   textAlign: "center",
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Section
@@ -1808,7 +1808,7 @@ const GradingSheet = () => {
                   color: "white",
                   textAlign: "center",
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Midterm
@@ -1818,7 +1818,7 @@ const GradingSheet = () => {
                   color: "white",
                   textAlign: "center",
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Equivalent
@@ -1828,7 +1828,7 @@ const GradingSheet = () => {
                   color: "white",
                   textAlign: "center",
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Finals
@@ -1838,7 +1838,7 @@ const GradingSheet = () => {
                   color: "white",
                   textAlign: "center",
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Equivalent
@@ -1848,7 +1848,7 @@ const GradingSheet = () => {
                   color: "white",
                   textAlign: "center",
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Final Grade
@@ -1858,7 +1858,7 @@ const GradingSheet = () => {
                   color: "white",
                   textAlign: "center",
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Remarks
@@ -1868,7 +1868,7 @@ const GradingSheet = () => {
                   color: "white",
                   textAlign: "center",
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Action
@@ -1897,7 +1897,7 @@ const GradingSheet = () => {
                   <TableCell
                     sx={{
                       textAlign: "center",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                     }}
                   >
                     {index + 1}
@@ -1905,13 +1905,13 @@ const GradingSheet = () => {
                   <TableCell
                     sx={{
                       textAlign: "center",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                     }}
                   >
                     {student.student_number}
                   </TableCell>
                   <TableCell
-                    sx={{ border: `2px solid ${borderColor}`, width: "350px" }}
+                    sx={{ border: `1px solid ${borderColor}`, width: "350px" }}
                   >
                     {student.last_name}, {student.first_name}{" "}
                     {student.middle_name}
@@ -1919,12 +1919,12 @@ const GradingSheet = () => {
                   <TableCell
                     sx={{
                       textAlign: "center",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                     }}
                   >
                     {student.program_code}-{student.section_description}
                   </TableCell>
-                  <TableCell sx={{ border: `2px solid ${borderColor}` }}>
+                  <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                     <GradeSelect
                       value={student.midterm}
                       onChange={(val) => handleChanges(index, "midterm", val)}
@@ -1933,13 +1933,13 @@ const GradingSheet = () => {
                   </TableCell>
                   <TableCell
                     sx={{
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                       textAlign: "center",
                     }}
                   >
                     {convertRawToRating(student.midterm)}
                   </TableCell>
-                  <TableCell sx={{ border: `2px solid ${borderColor}` }}>
+                  <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                     <GradeSelect
                       value={student.finals}
                       onChange={(val) => handleChanges(index, "finals", val)}
@@ -1948,13 +1948,13 @@ const GradingSheet = () => {
                   </TableCell>
                   <TableCell
                     sx={{
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                       textAlign: "center",
                     }}
                   >
                     {convertRawToRating(student.finals)}
                   </TableCell>
-                  <TableCell sx={{ border: `2px solid ${borderColor}` }}>
+                  <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                     <input
                       type="text"
                       value={convertRawToRating(student.finals)}
@@ -1969,7 +1969,7 @@ const GradingSheet = () => {
                       }}
                     />
                   </TableCell>
-                  <TableCell sx={{ border: `2px solid ${borderColor}` }}>
+                  <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                     <span
                       className="w-full inline-block text-center"
                       style={{ width: 100 }}
@@ -1980,7 +1980,7 @@ const GradingSheet = () => {
                   <TableCell
                     sx={{
                       textAlign: "center",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                     }}
                   >
                     <Button
@@ -2054,7 +2054,7 @@ const GradingSheet = () => {
                 marginRight: "10px",
               }}
             >
-              <span style={{ margin: 0, fontSize: "12px" }}>
+              <span style={{ margin: 0, fontFamily: "Arial", fontSize: "13px"}}>
                 Republic of the Philippines
               </span>
               <h2

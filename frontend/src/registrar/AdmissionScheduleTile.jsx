@@ -57,17 +57,17 @@ const ScheduleHoverTile = () => {
     });
 
 
-  const tabs = [
-     { label: "Room Registration", to: "/room_registration", icon: <KeyIcon fontSize="large" /> },
-     { label: "Verify Documents Room Assignment", to: "/verify_document_schedule", icon: <MeetingRoomIcon fontSize="large" /> },
-     // { label: "Verify Documents Schedule Management", to: "/verify_schedule", icon: <ScheduleIcon fontSize="large" /> },
-     { label: "Evaluator's Applicant List", to: "/evaluator_schedule_room_list", icon: <PeopleIcon fontSize="large" /> },
-     { label: "Entrance Exam Room Assignment", to: "/assign_entrance_exam", icon: <MeetingRoomIcon fontSize="large" /> },
-     // { label: "Entrance Exam Schedule Management", to: "/assign_schedule_applicant", icon: <ScheduleIcon fontSize="large" /> },
-     { label: "Proctor's Applicant List", to: "/admission_schedule_room_list", icon: <PeopleIcon fontSize="large" /> },
-     // { label: "Examination Permit", to: "/registrar_examination_profile", icon: <PersonSearchIcon fontSize="large" /> },
-     { label: "Announcement", to: "/announcement_for_admission", icon: <CampaignIcon fontSize="large" /> },
-   ];
+    const tabs = [
+        { label: "Room Registration", to: "/room_registration", icon: <KeyIcon fontSize="large" /> },
+        { label: "Verify Documents Room Assignment", to: "/verify_document_schedule", icon: <MeetingRoomIcon fontSize="large" /> },
+        // { label: "Verify Documents Schedule Management", to: "/verify_schedule", icon: <ScheduleIcon fontSize="large" /> },
+        { label: "Evaluator's Applicant List", to: "/evaluator_schedule_room_list", icon: <PeopleIcon fontSize="large" /> },
+        { label: "Entrance Exam Room Assignment", to: "/assign_entrance_exam", icon: <MeetingRoomIcon fontSize="large" /> },
+        // { label: "Entrance Exam Schedule Management", to: "/assign_schedule_applicant", icon: <ScheduleIcon fontSize="large" /> },
+        { label: "Proctor's Applicant List", to: "/admission_schedule_room_list", icon: <PeopleIcon fontSize="large" /> },
+        // { label: "Examination Permit", to: "/registrar_examination_profile", icon: <PersonSearchIcon fontSize="large" /> },
+        { label: "Announcement", to: "/announcement_for_admission", icon: <CampaignIcon fontSize="large" /> },
+    ];
 
 
     const [activeStep, setActiveStep] = useState(4);
@@ -294,7 +294,7 @@ const ScheduleHoverTile = () => {
                             justifyContent: "center",
                             cursor: "pointer",
                             borderRadius: 2,
-                            border: `2px solid ${borderColor}`,
+                            border: `1px solid ${borderColor}`,
                             backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
                             color: activeStep === index ? "#fff" : "#000",
                             boxShadow:
@@ -319,7 +319,7 @@ const ScheduleHoverTile = () => {
 
             <br />
             <br />
-            <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+            <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
                 <Table>
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
                         <TableRow>
@@ -333,7 +333,7 @@ const ScheduleHoverTile = () => {
                 component={Paper}
                 sx={{
                     maxWidth: "100%",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     p: 2,
                 }}
             >
@@ -462,7 +462,7 @@ const ScheduleHoverTile = () => {
                                 value={person.fromDate}
                                 onChange={(e) => setPerson(prev => ({ ...prev, fromDate: e.target.value }))}
                                 sx={{ minWidth: 150 }}
-                             />
+                            />
                         </Box>
 
                         {/* To Date */}
@@ -473,7 +473,7 @@ const ScheduleHoverTile = () => {
                                 value={person.toDate}
                                 onChange={(e) => setPerson(prev => ({ ...prev, toDate: e.target.value }))}
                                 sx={{ minWidth: 150 }}
-                             />
+                            />
                         </Box>
                     </Box>
                 </Box>
@@ -520,7 +520,7 @@ const ScheduleHoverTile = () => {
                                 borderRadius: "16px",
                                 overflow: "hidden",
                                 boxShadow: 4,
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 transition: "0.3s ease",
                                 "&:hover": {
                                     transform: "translateY(-4px) scale(1.03)",

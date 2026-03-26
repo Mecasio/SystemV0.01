@@ -696,7 +696,7 @@ ${loginUrl}`;
             <br />
             <br />
 
-            <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+            <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
                 <Table>
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
                         <TableRow>
@@ -705,7 +705,7 @@ ${loginUrl}`;
                     </TableHead>
                 </Table>
             </TableContainer>
-            <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, p: 2 }}>
+            <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, p: 2 }}>
                 <Box display="flex" justifyContent="space-between" flexWrap="wrap" rowGap={3} columnGap={5}>
 
                     {/* LEFT COLUMN: Sorting & Status Filters */}
@@ -863,7 +863,7 @@ ${loginUrl}`;
                             <TableCell
                                 colSpan={10}
                                 sx={{
-                                    border: `2px solid ${borderColor}`,
+                                    border: `1px solid ${borderColor}`,
                                     py: 0.5,
                                     backgroundColor: settings?.header_color || "#1976d2",
                                     color: "white"
@@ -1033,7 +1033,7 @@ ${loginUrl}`;
             </TableContainer>
 
             {/* ✅ Applicant List */}
-            <Box sx={{ display: 'flex', gap: 4, border: `2px solid ${borderColor}`, padding: "10px" }}>
+            <Box sx={{ display: 'flex', gap: 4, border: `1px solid ${borderColor}`, padding: "10px" }}>
                 <Box flex={1}>
                     {currentPersons.length === 0 && <Typography>No matching students.</Typography>}
                     {currentPersons.map((person, index) => (
@@ -1045,7 +1045,7 @@ ${loginUrl}`;
                                 p: 1,
                                 mb: 0.5,
 
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 cursor: 'pointer',
                                 backgroundColor:
                                     selectedPerson?.person_id === person.person_id ? '#800000' : 'white',
@@ -1127,7 +1127,7 @@ ${loginUrl}`;
                             <TableCell
                                 colSpan={10}
                                 sx={{
-                                    border: `2px solid ${borderColor}`,
+                                    border: `1px solid ${borderColor}`,
                                     py: 0.5,
                                     backgroundColor: settings?.header_color || "#1976d2",
                                     color: "white"

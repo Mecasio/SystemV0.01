@@ -516,7 +516,7 @@ const ReportOfGrade = () => {
                                 justifyContent: "center",
                                 cursor: "pointer",
                                 borderRadius: 2,
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
                                 color: activeStep === index ? "#fff" : "#000",
                                 boxShadow:
@@ -601,7 +601,7 @@ const ReportOfGrade = () => {
             </style>
             <TableContainer component={Paper} sx={{ width: '100%' }}>
                 <Table>
-                    <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `2px solid ${borderColor}`, }}>
+                    <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `1px solid ${borderColor}`, }}>
                         <TableRow>
                             {/* Left cell: Student Number */}
                             <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: "Poppins, sans-serif", border: 'none' }}>
@@ -628,7 +628,7 @@ const ReportOfGrade = () => {
                     </TableHead>
                 </Table>
             </TableContainer>
-            <TableContainer component={Paper} sx={{ maxWidth: '100%', border: `2px solid ${borderColor}`, p: 2, position: "relative", }}>
+            <TableContainer component={Paper} sx={{ maxWidth: '100%', border: `1px solid ${borderColor}`, p: 2, position: "relative", }}>
                 <Box sx={{ display: "flex", alignItems: "center", margin: "1rem 0", padding: "0 1rem", }} gap={20}>
                     <Box style={{ display: "flex", flexDirection: "column" }}>
                         <Box display="flex" alignItems="center" gap={1}>
@@ -741,15 +741,9 @@ const ReportOfGrade = () => {
                                     lineHeight: "1.5",
                                 }}
                             >
-                                <div
-                                    style={{
-                                        fontSize: "12px",
-                                        letterSpacing: "1px",
-                                    }}
-                                >
+                                <div style={{ fontFamily: "Arial", fontSize: "13px" }}>
                                     Republic of the Philippines
                                 </div>
-
                                 {/* ✅ Dynamically split company name into two lines */}
                                 {companyName ? (
                                     (() => {

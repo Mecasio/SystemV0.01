@@ -556,16 +556,16 @@ const ExaminationProfile = ({ personId }) => {
                                     <TableHead
                                         sx={{
                                             backgroundColor: settings?.header_color || "#1976d2",
-                                            border: `2px solid ${borderColor}`,
+                                            border: `1px solid ${borderColor}`,
                                         }}
                                     >
                                         <TableRow>
-                                            <TableCell sx={{ color: "white", fontWeight: "bold" }}>Applicant No.</TableCell>
-                                            <TableCell sx={{ color: "white", fontWeight: "bold" }}>Name</TableCell>
-                                            <TableCell sx={{ color: "white", fontWeight: "bold" }}>Email</TableCell>
+                                            <TableCell sx={{ color: "white", fontWeight: "bold", border: `1px solid ${borderColor}` }}>Applicant No.</TableCell>
+                                            <TableCell sx={{ color: "white", fontWeight: "bold", border: `1px solid ${borderColor}` }}>Name</TableCell>
+                                            <TableCell sx={{ color: "white", fontWeight: "bold", border: `1px solid ${borderColor}` }}>Email</TableCell>
                                             <TableCell
                                                 align="center"
-                                                sx={{ color: "white", fontWeight: "bold" }}
+                                                sx={{ color: "white", fontWeight: "bold", border: `1px solid ${borderColor}` }}
                                             >
                                                 Select
                                             </TableCell>
@@ -649,7 +649,7 @@ const ExaminationProfile = ({ personId }) => {
                                 justifyContent: "center",
                                 cursor: "pointer",
                                 borderRadius: 2,
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
                                 color: activeStep === index ? "#fff" : "#000",
                                 boxShadow:
@@ -678,7 +678,7 @@ const ExaminationProfile = ({ personId }) => {
 
                 <TableContainer component={Paper} sx={{ width: '100%', }}>
                     <Table>
-                        <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `2px solid ${borderColor}`, }}>
+                        <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `1px solid ${borderColor}`, }}>
                             <TableRow>
                                 {/* Left cell: Applicant ID */}
                                 <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: "Arial", border: 'none' }}>
@@ -917,12 +917,13 @@ const ExaminationProfile = ({ personId }) => {
                                                             fontFamily: "Arial",
                                                             fontWeight: "bold"
                                                         }}>
-                                                            <div style={{ fontSize: "14px", fontWeight: "normal", fontFamily: "Arial" }}>Republic of the Philippines</div>
+                                                            <div style={{ fontSize: "13px", fontFamily: "Arial" }}>Republic of the Philippines</div>
                                                             <div
                                                                 style={{
-                                                                    fontSize: "14px",
-                                                                    letterSpacing: "2px",
+                                                                    fontWeight: "bold",
                                                                     fontFamily: "Arial",
+                                                                    fontSize: "16px",
+                                                                    textTransform: "Uppercase",
                                                                     fontWeight: "bold"
                                                                 }}
                                                             >
@@ -931,10 +932,10 @@ const ExaminationProfile = ({ personId }) => {
 
                                                             <div
                                                                 style={{
-                                                                    fontSize: "14px",
-                                                                    letterSpacing: "2px",
+                                                                    fontWeight: "bold",
                                                                     fontFamily: "Arial",
-                                                                    fontWeight: "bold"
+                                                                    fontSize: "16px",
+                                                                    textTransform: "Uppercase"
                                                                 }}
                                                             >
                                                                 {secondLine}
@@ -1511,7 +1512,7 @@ const ExaminationProfile = ({ personId }) => {
                                         paddingBottom: 0,
                                     }}
                                 >
-                                    <div style={{ fontSize: "14px", fontWeight: "normal", fontFamily: "Arial" }}>Republic of the Philippines</div>
+                                    <div style={{ fontSize: "13px", fontFamily: "Arial" }}>Republic of the Philippines</div>
                                     <div
                                         style={{
                                             fontSize: "14px",
@@ -2284,7 +2285,7 @@ const ExaminationProfile = ({ personId }) => {
                                         paddingBottom: 0,
                                     }}
                                 >
-                                    <div style={{ fontSize: "14px", fontWeight: "normal", fontFamily: "Arial" }}>Republic of the Philippines</div>
+                                    <div style={{ fontSize: "13px", fontFamily: "Arial" }}>Republic of the Philippines</div>
                                     <div
                                         style={{
                                             fontSize: "14px",
@@ -3019,7 +3020,7 @@ const ExaminationProfile = ({ personId }) => {
                                         lineHeight: 1.4,
                                     }}
                                 >
-                                    <div style={{ fontSize: "14px" }}>
+                                    <div style={{ fontFamily: "Arial", fontSize: "13px" }}>
                                         Republic of the Philippines
                                     </div>
 
@@ -3698,7 +3699,7 @@ const ExaminationProfile = ({ personId }) => {
                                         lineHeight: 1.4,
                                     }}
                                 >
-                                    <div style={{ fontSize: "14px" }}>
+                                    <div style={{ fontFamily: "Arial", fontSize: "13px" }}>
                                         Republic of the Philippines
                                     </div>
 

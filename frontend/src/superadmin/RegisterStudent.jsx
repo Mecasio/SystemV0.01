@@ -454,7 +454,7 @@ const RegisterStudents = () => {
                             <TableCell
                                 colSpan={10}
                                 sx={{
-                                    border: `2px solid ${borderColor}`,
+                                    border: `1px solid ${borderColor}`,
                                     py: 0.5,
                                     backgroundColor: settings?.header_color || "#1976d2",
                                     color: "white"
@@ -625,7 +625,7 @@ const RegisterStudents = () => {
                 component={Paper}
                 sx={{
                     width: "100%",
-                    border: `2px solid ${borderColor}`
+                    border: `1px solid ${borderColor}`
                 }}
             >
                 <Table>
@@ -788,7 +788,7 @@ const RegisterStudents = () => {
                 </Table>
             </TableContainer>
 
-            <TableContainer component={Paper} sx={{ width: "100%", border: `2px solid ${borderColor}`, mb: 4 }}>
+            <TableContainer component={Paper} sx={{ width: "100%", border: `1px solid ${borderColor}`, mb: 4 }}>
                 <Table>
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
                         <TableRow>
@@ -810,7 +810,7 @@ const RegisterStudents = () => {
                                         color: "white",
                                         fontWeight: "bold",
                                         textAlign: "center",
-                                        border: `2px solid ${borderColor}`
+                                        border: `1px solid ${borderColor}`
                                     }}
                                 >
                                     {header}
@@ -823,14 +823,14 @@ const RegisterStudents = () => {
                         {filteredStudent.length > 0 ? (
                             filteredStudent.map((r) => (
                                 <TableRow key={r.user_id}>
-                                    <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>{r.student_number}</TableCell>
+                                    <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{r.student_number}</TableCell>
 
-                                    <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                                    <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                                         {r.profile_picture ? (
                                             <Avatar
                                                 src={`${API_BASE_URL}/uploads/Student1by1/${r.profile_picture}`}
                                                 alt={r.first_name}
-                                                sx={{ width: 60, height: 60, margin: "auto", border: `2px solid ${borderColor}` }}
+                                                sx={{ width: 60, height: 60, margin: "auto", border: `1px solid ${borderColor}` }}
                                             />
                                         ) : (
                                             <Avatar sx={{ bgcolor: "#6D2323", margin: "auto" }}>
@@ -839,24 +839,24 @@ const RegisterStudents = () => {
                                         )}
                                     </TableCell>
 
-                                    <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                                    <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                                         {`${r.first_name || ""} ${r.middle_name || ""} ${r.last_name || ""}`}
                                     </TableCell>
 
-                                    <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>{r.email}</TableCell>
+                                    <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{r.email}</TableCell>
 
-                                    <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                                    <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                                         {r.program_description || "N/A"}
                                     </TableCell>
 
-                                    <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                                    <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                                         {r.year_level_description || "None"}
                                     </TableCell>
 
 
 
                                     {/* ✅ EDIT BUTTON */}
-                                    <TableCell sx={{ border: `2px solid ${borderColor}`, }}>
+                                    <TableCell sx={{ border: `1px solid ${borderColor}`, }}>
                                         <Button
                                             onClick={() => handleEdit(r)}
                                             sx={{
@@ -873,7 +873,7 @@ const RegisterStudents = () => {
                                     </TableCell>
 
                                     {/* ✅ STATUS TOGGLE BUTTON */}
-                                    <TableCell sx={{ border: `2px solid ${borderColor}` }}>
+                                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                                         <Button
                                             onClick={() => handleToggleStatus(r.user_id, r.status)}
                                             sx={{
@@ -929,7 +929,7 @@ const RegisterStudents = () => {
                                 sx={{
                                     width: 80,
                                     height: 80,
-                                    border: `2px solid ${borderColor}`,
+                                    border: `1px solid ${borderColor}`,
                                     boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
                                 }}
                             />

@@ -185,7 +185,7 @@ function Settings({ onUpdate }) {
 
       <TableContainer
         component={Paper}
-        sx={{ width: "100%", border: `2px solid ${borderColor}` }}
+        sx={{ width: "100%", border: `1px solid ${borderColor}` }}
       >
         <Table>
           <TableHead
@@ -206,7 +206,7 @@ function Settings({ onUpdate }) {
 
           display: "flex",
           gap: 5,
-          border: `2px solid ${borderColor}`,
+          border: `1px solid ${borderColor}`,
           flexDirection: { xs: "column", md: "row" },
         }}
       >
@@ -362,7 +362,7 @@ function Settings({ onUpdate }) {
                 sx={{
                   width: "100%",
                   height: "400px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   borderRadius: 2,
                   objectFit: "cover",
                 }}
@@ -465,7 +465,7 @@ function Settings({ onUpdate }) {
             sx={{
               mt: 4,
               py: 1.5,
-              border: `2px solid ${borderColor}`,
+              border: `1px solid ${borderColor}`,
               width: "250px",
               marginRight: "190px",
               fontWeight: "bold",

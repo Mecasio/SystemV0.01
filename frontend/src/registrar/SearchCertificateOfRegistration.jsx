@@ -421,7 +421,7 @@ const SearchCertificateOfRegistration = () => {
                 justifyContent: "center",
                 cursor: "pointer",
                 borderRadius: 2,
-                border: `2px solid ${borderColor}`,
+                border: `1px solid ${borderColor}`,
                 backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
                 color: activeStep === index ? "#fff" : "#000",
                 boxShadow:
@@ -467,7 +467,7 @@ const SearchCertificateOfRegistration = () => {
       <br />
        <TableContainer component={Paper} sx={{ width: '100%' }}>
         <Table>
-          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `2px solid ${borderColor}`, }}>
+          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `1px solid ${borderColor}`, }}>
             <TableRow>
               {/* Left cell: Student Number */}
               <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: "Poppins, sans-serif", border: 'none' }}>

@@ -209,7 +209,7 @@ const ApplicantTable = ({ data }) => {
         <Table
           sx={{
             "& th, & td": {
-              border: `2px solid ${borderColor}`,
+              border: `1px solid ${borderColor}`,
               textAlign: "center",
             },
             borderCollapse: "collapse",

@@ -249,7 +249,7 @@ const AdminBranches = () => {
       <br />
       <br />
 
-      <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+      <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
@@ -261,7 +261,7 @@ const AdminBranches = () => {
 
 
       {/* ADD FORM */}
-      <Card sx={{ mb: 4, border: `2px solid ${borderColor}` }}>
+      <Card sx={{ mb: 4, border: `1px solid ${borderColor}` }}>
         <CardContent>
           <Typography fontWeight={600} mb={2}>
             Add New Branch
@@ -305,7 +305,7 @@ const AdminBranches = () => {
       <Grid container spacing={3}>
         {branches.map((b, index) => (
           <Grid item xs={12} md={6} key={b.id}>
-            <Card sx={{ border: `2px solid ${borderColor}`, boxShadow: 4 }}>
+            <Card sx={{ border: `1px solid ${borderColor}`, boxShadow: 4 }}>
               <CardContent>
                 <Stack spacing={2}>
                   {/* HEADER */}

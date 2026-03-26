@@ -257,7 +257,7 @@ const SuperAdminApplicantResetPassword = () => {
     color: "white",
     textAlign: "center",
     fontSize: "12px",
-    border: `2px solid ${borderColor}`,
+    border: `1px solid ${borderColor}`,
   };
 
   const paginationButtonStyle = {
@@ -294,7 +294,7 @@ const SuperAdminApplicantResetPassword = () => {
   const headerStyle = {
     textAlign: "center",
     fontSize: "12px",
-    border: `2px solid ${borderColor}`,
+    border: `1px solid ${borderColor}`,
   };
 
 
@@ -450,7 +450,7 @@ const SuperAdminApplicantResetPassword = () => {
               justifyContent: "center",
               cursor: "pointer",
               borderRadius: 2,
-              border: `2px solid ${borderColor}`,
+              border: `1px solid ${borderColor}`,
               backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
               color: activeStep === index ? "#fff" : "#000",
               boxShadow:
@@ -485,7 +485,7 @@ const SuperAdminApplicantResetPassword = () => {
               <TableCell
                 colSpan={6}
                 sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   py: 0.5,
                   backgroundColor: settings?.header_color || "#1976d2",
                   color: "white",
@@ -593,18 +593,18 @@ const SuperAdminApplicantResetPassword = () => {
             ) : (
               currentRows.map((applicant, index) => (
                 <TableRow key={index}>
-                  <TableCell align="center" sx={{ border: `2px solid ${borderColor}` }}>
+                  <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>
                     {indexOfFirstRow + index + 1}
                   </TableCell>
 
-                  <TableCell align="center" sx={{ border: `2px solid ${borderColor}` }}>
+                  <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>
                     {applicant.applicant_number}
                   </TableCell>
 
                   <TableCell
                     align="left"
                     sx={{
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                       color: "blue",
                       cursor: "pointer",
                       fontWeight: 500,
@@ -618,18 +618,18 @@ const SuperAdminApplicantResetPassword = () => {
                   </TableCell>
 
 
-                  <TableCell align="center" sx={{ border: `2px solid ${borderColor}` }}>
+                  <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>
                     {formatDateLong(applicant.birthdate)}
                   </TableCell>
 
-                  <TableCell align="center" sx={{ border: `2px solid ${borderColor}` }}>
+                  <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>
                     {applicant.email}
                   </TableCell>
 
                   <TableCell
                     align="center"
                     sx={{
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                       fontWeight: "bold",
                       color: applicant.status === 1 ? "green" : "red",
                     }}
@@ -654,7 +654,7 @@ const SuperAdminApplicantResetPassword = () => {
               <TableCell
                 colSpan={6}
                 sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   py: 0.5,
                   backgroundColor: settings?.header_color || "#1976d2",
                   color: "white",
@@ -749,7 +749,7 @@ const SuperAdminApplicantResetPassword = () => {
 
       <br />
       <br />
-      <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+      <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
@@ -762,7 +762,7 @@ const SuperAdminApplicantResetPassword = () => {
 
 
       {/* Info Panel */}
-      <Paper sx={{ p: 3, border: `2px solid ${borderColor}`, }}>
+      <Paper sx={{ p: 3, border: `1px solid ${borderColor}`, }}>
         <Box display="grid" gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr" }} gap={2}>
           <TextField
             label="Applicant Number"

@@ -269,13 +269,13 @@ const CoursePanelMap = () => {
     const headerStyle = {
         backgroundColor: settings?.header_color || "#1976d2",
         color: "#fff",
-        border: `2px solid ${borderColor}`,
+        border: `1px solid ${borderColor}`,
         padding: "8px",
         textAlign: "center",
     };
 
     const cellStyle = {
-        border: `2px solid ${borderColor}`,
+        border: `1px solid ${borderColor}`,
         padding: "8px",
     };
 
@@ -405,7 +405,7 @@ const CoursePanelMap = () => {
                             key={year}
                             sx={{
                                 mb: 6,
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 borderRadius: 2,
                                 p: 2,
                                 backgroundColor: "#fafafa",
@@ -421,7 +421,7 @@ const CoursePanelMap = () => {
                                     textTransform: "uppercase",
                                     letterSpacing: "1px",
                                     backgroundColor: settings?.header_color || "#1976d2",
-                                    border: `2px solid ${borderColor}`,
+                                    border: `1px solid ${borderColor}`,
                                     borderRadius: 1,
                                     p: 1,
                                     mb: 3,
@@ -450,7 +450,7 @@ const CoursePanelMap = () => {
                                             <Box
                                                 key={sem}
                                                 sx={{
-                                                    border: `2px solid ${borderColor}`,
+                                                    border: `1px solid ${borderColor}`,
                                                     borderRadius: 1,
                                                     p: 2,
                                                     mb: 6,
@@ -474,9 +474,7 @@ const CoursePanelMap = () => {
                                                                     colSpan={3}
                                                                     style={{
                                                                         backgroundColor: "#f5f5f5",
-                                                                        borderLeft: `2px solid ${borderColor}`,
-                                                                        borderTop: `2px solid ${borderColor}`,
-                                                                        borderBottom: `2px solid ${borderColor}`,
+                                                                    border: `1px solid ${borderColor}`,
                                                                         padding: "10px",
                                                                         fontWeight: "bold",
                                                                         textAlign: "left",
@@ -492,9 +490,7 @@ const CoursePanelMap = () => {
                                                                     colSpan={3}
                                                                     style={{
                                                                         backgroundColor: "#f5f5f5",
-                                                                        borderRight: `2px solid ${borderColor}`,
-                                                                        borderTop: `2px solid ${borderColor}`,
-                                                                        borderBottom: `2px solid ${borderColor}`,
+                                                                        border: `1px solid ${borderColor}`,
                                                                         padding: "10px",
                                                                         fontWeight: "bold",
                                                                         fontSize: "21px",

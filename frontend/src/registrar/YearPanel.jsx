@@ -168,7 +168,7 @@ const YearPanel = () => {
         <Table size="small">
           <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
             <TableRow>
-              <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+              <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                 <Box display="flex" justifyContent="space-between" alignItems="center">
                   {/* Left: Total Count */}
                   <Typography fontSize="14px" fontWeight="bold" color="white">
@@ -339,14 +339,14 @@ const YearPanel = () => {
         style={{
           width: "100%",
           borderCollapse: "collapse",
-          border: `2px solid ${borderColor}`,
+          border: `1px solid ${borderColor}`,
           textAlign: "center",
         }}
       >
         <thead>
           <tr style={{ color: "#000" }}>
-            <th style={{ border: `2px solid ${borderColor}`, padding: "10px", backgroundColor: "#f5f5f5", color: "#000" }}>Year</th>
-            <th style={{ border: `2px solid ${borderColor}`, padding: "10px", backgroundColor: "#f5f5f5", color: "#000" }}>Status</th>
+            <th style={{ border: `1px solid ${borderColor}`, padding: "10px", backgroundColor: "#f5f5f5", color: "#000" }}>Year</th>
+            <th style={{ border: `1px solid ${borderColor}`, padding: "10px", backgroundColor: "#f5f5f5", color: "#000" }}>Status</th>
           </tr>
         </thead>
         <tbody>
@@ -361,10 +361,10 @@ const YearPanel = () => {
                   fontWeight: year.status === 1 ? "bold" : "normal",
                 }}
               >
-                <td style={{ border: `2px solid ${borderColor}`, padding: "8px" }}>
+                <td style={{ border: `1px solid ${borderColor}`, padding: "8px" }}>
                   {year.year_description}
                 </td>
-                <td style={{ border: `2px solid ${borderColor}`, padding: "8px" }}>
+                <td style={{ border: `1px solid ${borderColor}`, padding: "8px" }}>
                   {year.status === 1 ? "Active" : "Inactive"}
                 </td>
               </tr>
@@ -384,7 +384,7 @@ const YearPanel = () => {
         <Table size="small">
           <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
             <TableRow>
-              <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+              <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                 <Box display="flex" justifyContent="space-between" alignItems="center">
                   {/* Left: Total Count */}
                   <Typography fontSize="14px" fontWeight="bold" color="white">
@@ -553,7 +553,7 @@ const YearPanel = () => {
       <br />
 
 
-      <TableContainer component={Paper} sx={{ width: '50%', border: `2px solid ${borderColor}`, }}>
+      <TableContainer component={Paper} sx={{ width: '50%', border: `1px solid ${borderColor}`, }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
@@ -567,7 +567,7 @@ const YearPanel = () => {
       <Box
         sx={{
           flex: 1,
-          border: `2px solid ${borderColor}`,
+          border: `1px solid ${borderColor}`,
           backgroundColor: "#fff",
           width: "50%",
           boxShadow: "0 3px 10px rgba(0,0,0,0.1)",

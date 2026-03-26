@@ -263,81 +263,81 @@ const ProgramEvaluationForRegistrar = () => {
   //}
 
   return (
-   <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
-              <Box
-                  sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      flexWrap: "wrap",
-                      mb: 2,
-                      
-                  }}
-              >
-      
-          {/* Left: Title */}
-          <Typography
-            variant="h4"
-            sx={{
+    <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          mb: 2,
+
+        }}
+      >
+
+        {/* Left: Title */}
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: "bold",
+            color: titleColor,
+            fontSize: "36px",
+            background: "white",
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          PROGRAM EVALUATION
+        </Typography>
+
+        {/* Right: Search + Print Button */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <TextField
+            variant="outlined"
+            placeholder="Enter Student Number"
+            size="small"
+            value={studentNumber}
+            onChange={(e) => {
+              setStudentNumber(e.target.value);
+              setSearchQuery(e.target.value);
+            }}
+            InputProps={{ startAdornment: <Search sx={{ mr: 1 }} /> }}
+            sx={{ width: 425, background: "white" }}
+          />
+          <button
+            onClick={printDiv}
+            style={{
+              width: "300px",
+              padding: "10px 20px",
+              border: "2px solid black",
+              backgroundColor: "#f0f0f0",
+              color: "black",
+              borderRadius: "5px",
+              cursor: "pointer",
+              fontSize: "16px",
               fontWeight: "bold",
-              color: titleColor,
-              fontSize: "36px",
-              background: "white",
+              transition: "background-color 0.3s, transform 0.2s",
               display: "flex",
               alignItems: "center",
+              justifyContent: "center",
             }}
+            onMouseEnter={(e) => (e.target.style.backgroundColor = "#d3d3d3")}
+            onMouseLeave={(e) => (e.target.style.backgroundColor = "#f0f0f0")}
+            onMouseDown={(e) => (e.target.style.transform = "scale(0.95)")}
+            onMouseUp={(e) => (e.target.style.transform = "scale(1)")}
           >
-            PROGRAM EVALUATION
-          </Typography>
-
-          {/* Right: Search + Print Button */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <TextField
-              variant="outlined"
-              placeholder="Enter Student Number"
-              size="small"
-              value={studentNumber}
-              onChange={(e) => {
-                setStudentNumber(e.target.value);
-                setSearchQuery(e.target.value);
-              }}
-              InputProps={{ startAdornment: <Search sx={{ mr: 1 }} /> }}
-              sx={{ width: 425, background: "white" }}
-            />
-            <button
-              onClick={printDiv}
+            <span
               style={{
-                width: "300px",
-                padding: "10px 20px",
-                border: "2px solid black",
-                backgroundColor: "#f0f0f0",
-                color: "black",
-                borderRadius: "5px",
-                cursor: "pointer",
-                fontSize: "16px",
-                fontWeight: "bold",
-                transition: "background-color 0.3s, transform 0.2s",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
+                gap: "8px",
               }}
-              onMouseEnter={(e) => (e.target.style.backgroundColor = "#d3d3d3")}
-              onMouseLeave={(e) => (e.target.style.backgroundColor = "#f0f0f0")}
-              onMouseDown={(e) => (e.target.style.transform = "scale(0.95)")}
-              onMouseUp={(e) => (e.target.style.transform = "scale(1)")}
             >
-              <span
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                }}
-              >
-                <FcPrint size={20} />
-                Print Evaluation
-              </span>
-            </button>
-         
+              <FcPrint size={20} />
+              Print Evaluation
+            </span>
+          </button>
+
         </Box>
 
         {/* Divider and spacing below - CHANGED to span full width */}
@@ -451,12 +451,7 @@ const ProgramEvaluationForRegistrar = () => {
                   lineHeight: "1.5",
                 }}
               >
-                <div
-                  style={{
-                    fontSize: "12px",
-                    letterSpacing: "1px",
-                  }}
-                >
+                <div style={{ fontFamily: "Arial", fontSize: "13px" }}>
                   Republic of the Philippines
                 </div>
 
@@ -507,7 +502,7 @@ const ProgramEvaluationForRegistrar = () => {
               </div>
             </Box>
           </Box>
-          
+
           {/* Centered Headers */}
           <Box style={{ display: "flex", justifyContent: "center", width: "100%" }}>
             <Typography
@@ -523,7 +518,7 @@ const ProgramEvaluationForRegistrar = () => {
               OFFICE OF THE REGISTRAR
             </Typography>
           </Box>
-          
+
           <Box style={{ display: "flex", justifyContent: "center", width: "100%" }}>
             <Typography
               style={{
@@ -532,14 +527,14 @@ const ProgramEvaluationForRegistrar = () => {
                 fontSize: "1.8rem",
                 letterSpacing: "-1px",
                 fontWeight: "600",
-                textAlign:"center",
+                textAlign: "center",
                 marginLeft: "11rem",
               }}
             >
               ACADEMIC PROGRAM EVALUATION
             </Typography>
           </Box>
-          
+
           <Box style={{ display: "flex" }}>
             <Box>
               <Box

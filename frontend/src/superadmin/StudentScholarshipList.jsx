@@ -414,56 +414,56 @@ const StudentScholarshipList = () => {
             <TableHead >
               <TableRow >
                 <TableCell sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   padding: "10px",
                   color: "white",
                   backgroundColor: settings?.header_color || "#1976d2",
                 }}
                 >Student Number</TableCell>
                 <TableCell sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   padding: "10px",
                   color: "white",
                   backgroundColor: settings?.header_color || "#1976d2",
                 }}
                 >Last Name</TableCell>
                 <TableCell sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   padding: "10px",
                   color: "white",
                   backgroundColor: settings?.header_color || "#1976d2",
                 }}
                 >First Name</TableCell>
                 <TableCell sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   padding: "10px",
                   color: "white",
                   backgroundColor: settings?.header_color || "#1976d2",
                 }}
                 > Middle Name</TableCell>
                 <TableCell sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   padding: "10px",
                   color: "white",
                   backgroundColor: settings?.header_color || "#1976d2",
                 }}
                 >Extension</TableCell>
                 <TableCell sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   padding: "10px",
                   color: "white",
                   backgroundColor: settings?.header_color || "#1976d2",
                 }}
                 >Program Code</TableCell>
                 <TableCell sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   padding: "10px",
                   color: "white",
                   backgroundColor: settings?.header_color || "#1976d2",
                 }}
                 >Program Descriptio</TableCell>
                 <TableCell sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   padding: "10px",
                   color: "white",
                   backgroundColor: settings?.header_color || "#1976d2",
@@ -482,7 +482,7 @@ const StudentScholarshipList = () => {
 
               {notAssignedStudents.map((student) => (
                 <TableRow key={student.student_number} hover>
-                  <TableCell sx={{  border: `2px solid ${borderColor}`}}>
+                  <TableCell sx={{  border: `1px solid ${borderColor}`}}>
                     <Button
                       variant="text"
                       onClick={() => handleOpenCorModal(student.student_number)}
@@ -491,13 +491,13 @@ const StudentScholarshipList = () => {
                       {student.student_number}
                     </Button>
                   </TableCell>
-                  <TableCell sx={{  border: `2px solid ${borderColor}`}}>{student.last_name || "-"}</TableCell>
-                  <TableCell sx={{  border: `2px solid ${borderColor}`}}>{student.first_name || "-"}</TableCell>
-                  <TableCell sx={{  border: `2px solid ${borderColor}`}}>{student.middle_name || "-"}</TableCell>
-                  <TableCell sx={{  border: `2px solid ${borderColor}`}}>{student.extension || "-"}</TableCell>
-                  <TableCell sx={{  border: `2px solid ${borderColor}`}}>{student.program_code || "-"}</TableCell>
-                  <TableCell sx={{  border: `2px solid ${borderColor}`}}>{student.program_description || "-"}</TableCell>
-                  <TableCell sx={{  border: `2px solid ${borderColor}`}}>{student.major || "-"}</TableCell>
+                  <TableCell sx={{  border: `1px solid ${borderColor}`}}>{student.last_name || "-"}</TableCell>
+                  <TableCell sx={{  border: `1px solid ${borderColor}`}}>{student.first_name || "-"}</TableCell>
+                  <TableCell sx={{  border: `1px solid ${borderColor}`}}>{student.middle_name || "-"}</TableCell>
+                  <TableCell sx={{  border: `1px solid ${borderColor}`}}>{student.extension || "-"}</TableCell>
+                  <TableCell sx={{  border: `1px solid ${borderColor}`}}>{student.program_code || "-"}</TableCell>
+                  <TableCell sx={{  border: `1px solid ${borderColor}`}}>{student.program_description || "-"}</TableCell>
+                  <TableCell sx={{  border: `1px solid ${borderColor}`}}>{student.major || "-"}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

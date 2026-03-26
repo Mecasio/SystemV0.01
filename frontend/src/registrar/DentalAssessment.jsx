@@ -566,7 +566,7 @@ const DentalAssessment = () => {
             <Box
                 sx={{
                     backgroundColor: "#fff",
-                    border: "2px solid #6D2323",
+                    border: `1px solid ${borderColor}`,
                     borderRadius: 3,
                     boxShadow: "0 3px 8px rgba(0,0,0,0.15)",
                     p: 2,
@@ -581,7 +581,7 @@ const DentalAssessment = () => {
                         fontWeight: "bold",
                         mb: 1,
                         color: "#6D2323",
-                        borderBottom: "2px solid #6D2323",
+                        border: `1px solid ${borderColor}`,
                         display: "inline-block",
                         px: 1.5,
                         borderRadius: "5px",
@@ -739,7 +739,7 @@ const DentalAssessment = () => {
                             justifyContent: "center",
                             cursor: "pointer",
                             borderRadius: 2,
-                            border: `2px solid ${borderColor}`,
+                            border: `1px solid ${borderColor}`,
                             backgroundColor:
                                 activeStep === index
                                     ? settings?.header_color || "#1976d2"
@@ -806,7 +806,7 @@ const DentalAssessment = () => {
                 maxWidth="100%"
                 sx={{
                     backgroundColor: "#f1f1f1",
-                    border: "2px solid black",
+                    border: `1px solid ${borderColor}`,
                     padding: 2,
 
                     boxShadow: 3,
@@ -833,7 +833,7 @@ const DentalAssessment = () => {
                                 height: 60,
                                 width: 260, // ✅ same fixed width
                                 borderRadius: 2,
-                                border: "2px solid #6D2323",
+                                border: `1px solid ${borderColor}`,
                                 backgroundColor: "#fff",
                                 display: "flex",
                                 flexDirection: "row",
@@ -881,7 +881,7 @@ const DentalAssessment = () => {
                                 height: 60,
                                 width: 260, // ✅ same fixed width as above
                                 borderRadius: 2,
-                                border: "2px solid #6D2323",
+                                border: `1px solid ${borderColor}`,
                                 backgroundColor: "#fff",
                                 display: "flex",
                                 flexDirection: "row",

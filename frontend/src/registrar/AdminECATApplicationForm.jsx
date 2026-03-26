@@ -358,7 +358,7 @@ const ECATApplicationForm = () => {
           style={{
             marginBottom: "1rem",
             padding: "10px 20px",
-            border: "2px solid black",
+            border: "1px solid black",
             backgroundColor: "#f0f0f0",
             color: "black",
             borderRadius: "5px",
@@ -395,7 +395,7 @@ const ECATApplicationForm = () => {
             textAlign: "center",
             marginBottom: "20px",
             tableLayout: "fixed",
-            border: "2px solid black"
+            border: "1px solid black"
           }}
         >
           <tbody>
@@ -429,8 +429,7 @@ const ECATApplicationForm = () => {
               >
                 <div
                   style={{
-                    fontSize: "12px",
-                    letterSpacing: "1px",
+                    fontFamily: "Arial", fontSize: "13px",
                     marginLeft: "-60px",
                   }}
                 >
@@ -452,28 +451,30 @@ const ECATApplicationForm = () => {
                       <>
                         <div
                           style={{
-                            fontSize: "14px",
-                            letterSpacing: "2px",
-                            fontFamily: "Arial",
-                            fontWeight: "bold",
+
                             marginLeft: "-60px",
+                            fontWeight: "bold",
+                            fontFamily: "Arial",
+                            fontSize: "14px",
+                            textTransform: "Uppercase"
 
                           }}
                         >
-                          <b>{firstLine}</b>
+                          {firstLine}
                         </div>
                         {secondLine && (
                           <div
                             style={{
 
                               marginLeft: "-60px",
-                              fontSize: "14px",
-                              letterSpacing: "2px",
+                              fontWeight: "bold",
                               fontFamily: "Arial",
-                              fontWeight: "bold"
+                              fontSize: "14px",
+                              textTransform: "Uppercase"
+
                             }}
                           >
-                            <b>{secondLine}</b>
+                            {secondLine}
                           </div>
                         )}
                       </>
@@ -486,7 +487,7 @@ const ECATApplicationForm = () => {
 
                 {/* ✅ Only dynamic campus address */}
                 {campusAddress && (
-                  <div style={{ fontSize: "10px", letterSpacing: "1px", marginLeft: "-60px" }}>
+                  <div style={{ fontFamily: "Arial", fontSize: "13px", marginLeft: "-60px" }}>
                     {campusAddress}
                   </div>
                 )}
@@ -519,8 +520,8 @@ const ECATApplicationForm = () => {
                       "Effective Date:",
                     ].map((label, index) => (
                       <tr key={index}>
-                        <td style={{ border: "2px solid black", padding: "4px", fontWeight: "bold" }}>{label}</td>
-                        <td style={{ border: "2px solid black", padding: "4px" }}>
+                        <td style={{ border: "1px solid black", padding: "4px", fontWeight: "bold" }}>{label}</td>
+                        <td style={{ border: "1px solid black", padding: "4px" }}>
                           <input
                             type="text"
                             style={{
@@ -538,7 +539,7 @@ const ECATApplicationForm = () => {
 
                     {/* Page Number */}
                     <tr>
-                      <td colSpan={2} style={{ border: "2px solid black", textAlign: "center", padding: "4px", fontWeight: "bold" }}>
+                      <td colSpan={2} style={{ border: "1px solid black", textAlign: "center", padding: "4px", fontWeight: "bold" }}>
                         Page 1 of 1
                       </td>
                     </tr>
@@ -583,7 +584,7 @@ const ECATApplicationForm = () => {
                 colSpan={24}
                 rowSpan={3}
                 style={{
-                  border: "2px solid black",
+                  border: "1px solid black",
                   textAlign: "justify",
                   padding: "8px",
                   fontWeight: "bold",
@@ -600,7 +601,7 @@ const ECATApplicationForm = () => {
               <td
                 colSpan={15}
                 style={{
-                  border: "2px solid black",
+                  border: "1px solid black",
                   textAlign: "left",
                   padding: "8px",
                   fontWeight: "bold",
@@ -616,7 +617,7 @@ const ECATApplicationForm = () => {
               <td
                 colSpan={15}
                 style={{
-                  border: "2px solid black",
+                  border: "1px solid black",
                   textAlign: "left",
                   padding: "8px",
                   fontWeight: "bold",
@@ -788,7 +789,7 @@ const ECATApplicationForm = () => {
                     textAlign: "center",
                     display: "block",
                     fontStyle: 'italic',
-                    border: "2px solid black"
+                    border: "1px solid black"
                   }}>
                     PERSONAL INFORMATION (Please print your name as written in your NSO/PSA Birth Certificate)
                   </b>
@@ -1041,7 +1042,7 @@ const ECATApplicationForm = () => {
                     textAlign: "center",
                     display: "block",
                     fontStyle: 'italic',
-                    border: "2px solid black"
+                    border: "1px solid black"
                   }}>
                     {"\u00A0\u00A0"}FAMILY BACKGROUND
                   </b>
@@ -1213,7 +1214,7 @@ const ECATApplicationForm = () => {
                     textAlign: "center",
                     display: "block",
                     fontStyle: 'italic',
-                    border: "2px solid black"
+                    border: "1px solid black"
                   }}>
                     {"\u00A0\u00A0"}EDUCATIONAL BACKGROUND
                   </b>
@@ -1349,7 +1350,7 @@ const ECATApplicationForm = () => {
 
         <table
           style={{
-            border: "2px solid black",
+            border: "1px solid black",
             borderCollapse: "collapse",
             fontFamily: "Arial",
             width: "8in",
@@ -1377,7 +1378,7 @@ const ECATApplicationForm = () => {
                     fontSize: '12px',
                     textAlign: "center",
                     display: "block",
-                    border: "2px solid black",
+                    border: "1px solid black",
                     fontStyle: 'italic'
                   }}>
                     {"\u00A0\u00A0"}ATTESTATION
@@ -1483,7 +1484,7 @@ const ECATApplicationForm = () => {
                 colSpan={30}
                 rowSpan={3}
                 style={{
-                  border: "2px solid black",
+                  border: "1px solid black",
                   textAlign: "left",
                   padding: "8px",
                   fontWeight: "bold",
@@ -1499,8 +1500,8 @@ const ECATApplicationForm = () => {
               <td
                 colSpan={5}
                 style={{
-                  borderLeft: "2px solid black",
-                  borderTop: "2px solid black",
+                  borderLeft: "1px solid black",
+                  borderTop: "1px solid black",
                   padding: "8px",
                   fontSize: "12px",
                 }}
@@ -1510,8 +1511,8 @@ const ECATApplicationForm = () => {
               <td
                 colSpan={5}
                 style={{
-                  borderRight: "2px solid black",
-                  borderTop: "2px solid black",
+                  borderRight: "1px solid black",
+                  borderTop: "1px solid black",
                   padding: "8px",
                   fontSize: "12px",
                 }}
@@ -1525,7 +1526,7 @@ const ECATApplicationForm = () => {
               <td
                 colSpan={5}
                 style={{
-                  border: "2px solid black",
+                  border: "1px solid black",
                   padding: "8px",
                   fontSize: "12px",
                 }}
@@ -1535,7 +1536,7 @@ const ECATApplicationForm = () => {
               <td
                 colSpan={5}
                 style={{
-                  border: "2px solid black",
+                  border: "1px solid black",
                   padding: "8px",
                   fontSize: "12px",
                 }}
@@ -1549,7 +1550,7 @@ const ECATApplicationForm = () => {
               <td
                 colSpan={5}
                 style={{
-                  border: "2px solid black",
+                  border: "1px solid black",
                   padding: "8px",
                   fontSize: "12px",
                 }}
@@ -1559,7 +1560,7 @@ const ECATApplicationForm = () => {
               <td
                 colSpan={5}
                 style={{
-                  border: "2px solid black",
+                  border: "1px solid black",
                   padding: "8px",
                   fontSize: "12px",
                 }}

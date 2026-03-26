@@ -858,7 +858,7 @@ const CORExportingModule = () => {
 
       <TableContainer
         component={Paper}
-        sx={{ width: "100%", border: `2px solid ${borderColor}` }}
+        sx={{ width: "100%", border: `1px solid ${borderColor}` }}
       >
         <Table>
           <TableHead
@@ -873,7 +873,7 @@ const CORExportingModule = () => {
         </Table>
       </TableContainer>
 
-      <Paper sx={{ p: 3, mb: 4, border: `2px solid ${borderColor}` }}>
+      <Paper sx={{ p: 3, mb: 4, border: `1px solid ${borderColor}` }}>
         <Grid container spacing={2}>
           {/* ROW 1 */}
           <Grid item xs={12} md={1.5}>
@@ -1012,7 +1012,7 @@ const CORExportingModule = () => {
               <TableCell
                 colSpan={10}
                 sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   py: 0.5,
                   backgroundColor: settings?.header_color || "#1976d2",
                   color: "white",

@@ -681,7 +681,7 @@ const PhysicalNeuroExam = () => {
                             justifyContent: "center",
                             cursor: "pointer",
                             borderRadius: 2,
-                            border: `2px solid ${borderColor}`,
+                            border: `1px solid ${borderColor}`,
                             backgroundColor:
                                 activeStep === index
                                     ? settings?.header_color || "#1976d2"
@@ -747,7 +747,7 @@ const PhysicalNeuroExam = () => {
                 maxWidth="100%"
                 sx={{
                     backgroundColor: "#f1f1f1",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     padding: 4,
 
                     boxShadow: 3,
@@ -774,7 +774,7 @@ const PhysicalNeuroExam = () => {
                                 height: 60,
                                 width: 260, // ✅ same fixed width
                                 borderRadius: 2,
-                                border: "2px solid #6D2323",
+                                border: `1px solid ${borderColor}`,
                                 backgroundColor: "#fff",
                                 display: "flex",
                                 flexDirection: "row",
@@ -822,7 +822,7 @@ const PhysicalNeuroExam = () => {
                                 height: 60,
                                 width: 260, // ✅ same fixed width as above
                                 borderRadius: 2,
-                                border: "2px solid #6D2323",
+                                border: `1px solid ${borderColor}`,
                                 backgroundColor: "#fff",
                                 display: "flex",
                                 flexDirection: "row",

@@ -512,7 +512,7 @@ const StudentDashboard4 = () => {
               sx={{
                 minHeight: 60,
                 borderRadius: 2,
-                border: `2px solid ${borderColor}`,
+                border: `1px solid ${borderColor}`,
                 backgroundColor: "#fff",
                 display: "flex",
                 flexDirection: "row",
@@ -620,7 +620,7 @@ const StudentDashboard4 = () => {
                       width: 50,
                       height: 50,
                       borderRadius: "50%",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                       backgroundColor:
                         activeStep === index
                           ? settings?.header_color || "#1976d2"
@@ -670,7 +670,7 @@ const StudentDashboard4 = () => {
             maxWidth="100%"
             sx={{
               backgroundColor: settings?.header_color || "#1976d2",
-              border: "2px solid black",
+              border: `1px solid ${borderColor}`,
               maxHeight: "500px",
               overflowY: "auto",
               color: "white",
@@ -696,7 +696,7 @@ const StudentDashboard4 = () => {
             maxWidth="100%"
             sx={{
               backgroundColor: "#f1f1f1",
-              border: "2px solid black",
+              border: `1px solid ${borderColor}`,
               padding: 4,
               borderRadius: 2,
               boxShadow: 3,
@@ -1553,7 +1553,7 @@ const StudentDashboard4 = () => {
                 }
                 sx={{
                   backgroundColor: subButtonColor,
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   color: "#000",
                   "&:hover": {
                     backgroundColor: "#000000",
@@ -1584,7 +1584,7 @@ const StudentDashboard4 = () => {
                 }
                 sx={{
                   backgroundColor: mainButtonColor,
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   color: "#fff",
                   "&:hover": {
                     backgroundColor: "#000000",

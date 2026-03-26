@@ -207,7 +207,7 @@ const SchoolYearActivatorPanel = () => {
                 <Table size="small">
                     <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
                         <TableRow>
-                            <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+                            <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                                 <Box display="flex" justifyContent="space-between" alignItems="center">
                                     <Typography fontSize="14px" fontWeight="bold" color="white">
                                         Total Records: {filteredSchoolYears.length}
@@ -374,13 +374,13 @@ const SchoolYearActivatorPanel = () => {
             </TableContainer>
 
             <Box sx={{ maxHeight: 750, overflowY: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", border: `1px solid ${borderColor}`, textAlign: "center" }}>
                     <thead>
                         <tr style={{ backgroundColor: "#F5F5F5", color: "#000" }}>
-                            <th style={{ border: `2px solid ${borderColor}`, padding: "10px" }}>Year Level</th>
-                            <th style={{ border: `2px solid ${borderColor}`, padding: "10px" }}>Semester</th>
-                            <th style={{ border: `2px solid ${borderColor}`, padding: "10px" }}>Status</th>
-                            <th style={{ border: `2px solid ${borderColor}`, padding: "10px" }}>Action</th>
+                            <th style={{ border: `1px solid ${borderColor}`, padding: "10px" }}>Year Level</th>
+                            <th style={{ border: `1px solid ${borderColor}`, padding: "10px" }}>Semester</th>
+                            <th style={{ border: `1px solid ${borderColor}`, padding: "10px" }}>Status</th>
+                            <th style={{ border: `1px solid ${borderColor}`, padding: "10px" }}>Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -389,12 +389,12 @@ const SchoolYearActivatorPanel = () => {
                                 backgroundColor: sy.astatus === 1 ? "#d4edda" : "transparent",
                                 color: sy.astatus === 1 ? "#155724" : "inherit"
                             }}>
-                                <td style={{ border: `2px solid ${borderColor}`, padding: "8px" }}>
+                                <td style={{ border: `1px solid ${borderColor}`, padding: "8px" }}>
                                     {`${sy.year_description}-${parseInt(sy.year_description) + 1}`}
                                 </td>
-                                <td style={{ border: `2px solid ${borderColor}`, padding: "8px" }}>{sy.semester_description}</td>
-                                <td style={{ border: `2px solid ${borderColor}`, padding: "8px" }}>{sy.astatus === 1 ? "Active" : "Inactive"}</td>
-                                <td style={{ border: `2px solid ${borderColor}`, padding: "8px" }}>
+                                <td style={{ border: `1px solid ${borderColor}`, padding: "8px" }}>{sy.semester_description}</td>
+                                <td style={{ border: `1px solid ${borderColor}`, padding: "8px" }}>{sy.astatus === 1 ? "Active" : "Inactive"}</td>
+                                <td style={{ border: `1px solid ${borderColor}`, padding: "8px" }}>
                                     <button
                                         onClick={() => openConfirm(sy)}
                                         style={{
@@ -422,7 +422,7 @@ const SchoolYearActivatorPanel = () => {
                     <Table size="small">
                         <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
                             <TableRow>
-                                <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+                                <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                                     <Box display="flex" justifyContent="space-between" alignItems="center">
                                         <Typography fontSize="14px" fontWeight="bold" color="white">
                                             Total Records: {filteredSchoolYears.length}

@@ -252,7 +252,7 @@ const SchoolYearPanel = () => {
         <Table size="small">
           <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
             <TableRow>
-              <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+              <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                 <Box display="flex" justifyContent="space-between" alignItems="center">
                   <Typography fontSize="14px" fontWeight="bold">
                     Total School Years: {filteredSchoolYears.length}
@@ -420,24 +420,24 @@ const SchoolYearPanel = () => {
 
 
       <Box sx={{ maxHeight: 750, overflowY: "auto" }}>
-        <table className="w-full text-sm" style={{ borderCollapse: "collapse", border: `2px solid ${borderColor}` }}>
+        <table className="w-full text-sm" style={{ borderCollapse: "collapse", border: `1px solid ${borderColor}` }}>
           <thead>
             <tr style={{ backgroundColor: "#F5f5f5", color: "#000" }}>
-              <th className="p-2 text-center" style={{ border: `2px solid ${borderColor}` }}>ID</th>
-              <th className="p-2 text-center" style={{ border: `2px solid ${borderColor}` }}>Year Level</th>
-              <th className="p-2 text-center" style={{ border: `2px solid ${borderColor}` }}>Semester</th>
-              <th className="p-2 text-center" style={{ border: `2px solid ${borderColor}` }}>Status</th>
-              <th className="p-2 text-center" style={{ border: `2px solid ${borderColor}` }}>Actions</th>
+              <th className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>ID</th>
+              <th className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>Year Level</th>
+              <th className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>Semester</th>
+              <th className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>Status</th>
+              <th className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredSchoolYears.length > 0 ? paginatedSchoolYears.map((sy, index) => (
               <tr key={index} style={{ backgroundColor: sy.astatus === 1 ? "#d4edda" : "transparent", color: sy.astatus === 1 ? "#155724" : "inherit" }}>
-                <td className="p-2 text-center" style={{ border: `2px solid ${borderColor}` }}>{startIndex + index + 1}</td>
-                <td className="p-2 text-center" style={{ border: `2px solid ${borderColor}` }}>{`${sy.year_description}-${parseInt(sy.year_description) + 1}`}</td>
-                <td className="p-2 text-center" style={{ border: `2px solid ${borderColor}` }}>{sy.semester_description}</td>
-                <td className="p-2 text-center" style={{ border: `2px solid ${borderColor}` }}>{sy.astatus === 1 ? "Active" : "Inactive"}</td>
-                <td className="p-2 text-center" style={{ border: `2px solid ${borderColor}` }}>
+                <td className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>{startIndex + index + 1}</td>
+                <td className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>{`${sy.year_description}-${parseInt(sy.year_description) + 1}`}</td>
+                <td className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>{sy.semester_description}</td>
+                <td className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>{sy.astatus === 1 ? "Active" : "Inactive"}</td>
+                <td className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>
                   <Button size="small" sx={{ backgroundColor: "green", color: "white", mr: 1, "&:hover": { backgroundColor: "#006400" } }} onClick={() => handleEdit(sy)}>Edit</Button>
                   <Button size="small" sx={{ backgroundColor: "#B22222", color: "white", "&:hover": { backgroundColor: "#8B0000" } }} onClick={() => {
                     setSchoolYearToDelete(sy);
@@ -457,7 +457,7 @@ const SchoolYearPanel = () => {
         <Table size="small">
           <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
             <TableRow>
-              <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+              <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                 <Box display="flex" justifyContent="space-between" alignItems="center">
                   <Typography fontSize="14px" fontWeight="bold" color="white">
                     Total School Years: {filteredSchoolYears.length}
@@ -626,7 +626,7 @@ const SchoolYearPanel = () => {
       <br />
       <br />
 
-      <TableContainer component={Paper} sx={{ width: '50%', border: `2px solid ${borderColor}`, }}>
+      <TableContainer component={Paper} sx={{ width: '50%', border: `1px solid ${borderColor}`, }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
@@ -636,7 +636,7 @@ const SchoolYearPanel = () => {
         </Table>
       </TableContainer>
 
-      <Box sx={{ flex: 1, p: 3, bgcolor: "#fff", width: "50%", border: `2px solid ${borderColor}`, boxShadow: 2 }}>
+      <Box sx={{ flex: 1, p: 3, bgcolor: "#fff", width: "50%", border: `1px solid ${borderColor}`, boxShadow: 2 }}>
 
         <form onSubmit={handleSubmitOrUpdate} className="grid gap-4">
           <div>

@@ -556,7 +556,7 @@ const MedicalCertificate = () => {
                                 <div>
                                     {/* Top Line: Republic */}
                                     <div style={{
-                                        fontSize: "14px",
+                                        fontSize: "13px",
                                         fontFamily: "Arial",
                                         textAlign: "left",
                                         marginBottom: "5px"
@@ -979,7 +979,7 @@ const MedicalCertificate = () => {
                                 <div>
                                     {/* Top Line: Republic */}
                                     <div style={{
-                                        fontSize: "14px",
+                                        fontSize: "13px",
                                         fontFamily: "Arial",
                                         textAlign: "left",
                                         marginBottom: "5px"

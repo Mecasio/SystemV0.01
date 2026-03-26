@@ -296,7 +296,7 @@ const OfficeOfTheRegistrar = () => {
 
 
 
-    return (
+   return (
           <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
               <Box
                   sx={{
@@ -422,10 +422,10 @@ const OfficeOfTheRegistrar = () => {
                                       <div
                                           style={{
                                               marginLeft: "-155px",
-                                              letterSpacing: "1px",
                                               fontWeight: "bold",
                                               fontFamily: "Arial",
-                                              fontSize: "18px"
+                                              fontSize: "16px",
+                                              textTransform: "Uppercase"
                                           }}
                                       >
                                           {firstLine}
@@ -434,10 +434,10 @@ const OfficeOfTheRegistrar = () => {
                                           <div
                                               style={{
                                                   marginLeft: "-155px",
-                                                  letterSpacing: "1px",
                                                   fontWeight: "bold",
                                                   fontFamily: "Arial",
-                                                  fontSize: "18px"
+                                                  fontSize: "16px",
+                                                  textTransform: "Uppercase"
                                               }}
                                           >
                                               {secondLine}

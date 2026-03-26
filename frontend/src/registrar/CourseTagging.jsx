@@ -454,7 +454,7 @@ const CourseTagging = () => {
                   mt: 1, width: "auto", height: 50, fontWeight: "bold",
                   backgroundColor: selectedDepartment === dept.dprtmnt_id ? mainButtonColor : "white",
                   color: selectedDepartment === dept.dprtmnt_id ? "white" : mainButtonColor,
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   "&:hover": { backgroundColor: mainButtonColor, color: "white" },
                   fontSize: { xs: "11px", sm: "13px" },
                   whiteSpace: "normal",
@@ -480,7 +480,7 @@ const CourseTagging = () => {
         }}
       >
         {/* LEFT PANEL — Available Courses */}
-        <Box component={Paper} sx={{ backgroundColor: "#f1f1f1", p: { xs: 1.5, sm: 2 }, border: `2px solid ${borderColor}`, overflowX: "auto", width: "100%" }}>
+        <Box component={Paper} sx={{ backgroundColor: "#f1f1f1", p: { xs: 1.5, sm: 2 }, border: `1px solid ${borderColor}`, overflowX: "auto", width: "100%" }}>
           {/* Student Info */}
           <Box mb={2}>
             <Typography variant="h6" sx={{ fontSize: { xs: "13px", sm: "20px" }, mb: 1 }}>
@@ -506,7 +506,7 @@ const CourseTagging = () => {
               <TableHead>
                 <TableRow>
                   {["Course Code", "Description", "Credit Unit", "Prerequisites", "Enrolled Students", "Action"].map((h) => (
-                    <TableCell key={h} style={{ border: `2px solid ${borderColor}`, textAlign: "center", fontSize: "12px", fontWeight: "bold", whiteSpace: "nowrap" }}>{h}</TableCell>
+                    <TableCell key={h} style={{ border: `1px solid ${borderColor}`, textAlign: "center", fontSize: "12px", fontWeight: "bold", whiteSpace: "nowrap" }}>{h}</TableCell>
                   ))}
                 </TableRow>
               </TableHead>
@@ -516,12 +516,12 @@ const CourseTagging = () => {
                   return c.course_code.toLowerCase().includes(text) || c.course_description.toLowerCase().includes(text);
                 }).map((c) => (
                   <TableRow key={c.course_id} sx={getCourseRowSx(c)}>
-                    <TableCell style={{ border: `2px solid ${borderColor}`, textAlign: "center", fontSize: "12px" }}>{c.course_code}</TableCell>
-                    <TableCell style={{ border: `2px solid ${borderColor}`, textAlign: "center", fontSize: "12px" }}>{c.course_description}</TableCell>
-                    <TableCell style={{ border: `2px solid ${borderColor}`, textAlign: "center", fontSize: "12px" }}>{c.course_unit}</TableCell>
-                    <TableCell style={{ border: `2px solid ${borderColor}`, textAlign: "center", fontSize: "12px" }}>{c.prereq ? c.prereq.split(",").map(p => p.trim()).join(", ") : "None"}</TableCell>
-                    <TableCell style={{ border: `2px solid ${borderColor}`, textAlign: "center", fontSize: "12px" }}>{subjectCounts[c.course_id] || 0}</TableCell>
-                    <TableCell style={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                    <TableCell style={{ border: `1px solid ${borderColor}`, textAlign: "center", fontSize: "12px" }}>{c.course_code}</TableCell>
+                    <TableCell style={{ border: `1px solid ${borderColor}`, textAlign: "center", fontSize: "12px" }}>{c.course_description}</TableCell>
+                    <TableCell style={{ border: `1px solid ${borderColor}`, textAlign: "center", fontSize: "12px" }}>{c.course_unit}</TableCell>
+                    <TableCell style={{ border: `1px solid ${borderColor}`, textAlign: "center", fontSize: "12px" }}>{c.prereq ? c.prereq.split(",").map(p => p.trim()).join(", ") : "None"}</TableCell>
+                    <TableCell style={{ border: `1px solid ${borderColor}`, textAlign: "center", fontSize: "12px" }}>{subjectCounts[c.course_id] || 0}</TableCell>
+                    <TableCell style={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                       {!isEnrolledCourse(c.course_id) ? (
                         <Button variant="contained" size="small" sx={{ fontSize: "11px", py: 0.3 }} onClick={() => handleEnrollClick(c)} disabled={!userId}>Enroll</Button>
                       ) : (
@@ -536,7 +536,7 @@ const CourseTagging = () => {
         </Box>
 
         {/* RIGHT PANEL — Enrolled Courses */}
-        <Box component={Paper} sx={{ backgroundColor: "#f1f1f1", p: { xs: 1.5, sm: 2 }, border: `2px solid ${borderColor}`, overflowX: "auto", width: "100%" }}>
+        <Box component={Paper} sx={{ backgroundColor: "#f1f1f1", p: { xs: 1.5, sm: 2 }, border: `1px solid ${borderColor}`, overflowX: "auto", width: "100%" }}>
           {/* Header row */}
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
             <Typography variant="h6" sx={{ fontWeight: "bold", fontSize: { xs: "14px", sm: "16px" } }}>Department Section:</Typography>
@@ -596,37 +596,37 @@ const CourseTagging = () => {
               <TableHead>
                 <TableRow>
                   {["SUBJECT CODE", "COMPONENTS", "LEC UNIT", "LAB UNIT", "CREDIT UNIT", "SECTION", "DAY", "TIME", "ROOM", "FACULTY", "ENROLLED", "ACTION"].map((h) => (
-                    <TableCell key={h} style={{ textAlign: "center", border: `2px solid ${borderColor}`, fontSize: "11px", fontWeight: "bold", whiteSpace: "nowrap" }}>{h}</TableCell>
+                    <TableCell key={h} style={{ textAlign: "center", border: `1px solid ${borderColor}`, fontSize: "11px", fontWeight: "bold", whiteSpace: "nowrap" }}>{h}</TableCell>
                   ))}
                 </TableRow>
               </TableHead>
               <TableBody>
                 {enrolled.map((e, idx) => (
                   <TableRow key={idx}>
-                    <TableCell style={{ textAlign: "center", border: `2px solid ${borderColor}`, fontSize: "11px" }}>{e.course_code}</TableCell>
-                    <TableCell style={{ textAlign: "center", border: `2px solid ${borderColor}`, fontSize: "11px" }}>{e.components}</TableCell>
-                    <TableCell style={{ textAlign: "center", border: `2px solid ${borderColor}`, fontSize: "11px" }}>{e.lec_unit}</TableCell>
-                    <TableCell style={{ textAlign: "center", border: `2px solid ${borderColor}`, fontSize: "11px" }}>{e.lab_unit}</TableCell>
-                    <TableCell style={{ textAlign: "center", border: `2px solid ${borderColor}`, fontSize: "11px" }}>{e.course_unit}</TableCell>
-                    <TableCell style={{ textAlign: "center", border: `2px solid ${borderColor}`, fontSize: "11px" }}>{e.program_code}-{e.description}</TableCell>
-                    <TableCell style={{ textAlign: "center", border: `2px solid ${borderColor}`, fontSize: "11px" }}>{e.day_description}</TableCell>
-                    <TableCell style={{ textAlign: "center", border: `2px solid ${borderColor}`, fontSize: "11px", whiteSpace: "nowrap" }}>{e.school_time_start}-{e.school_time_end}</TableCell>
-                    <TableCell style={{ textAlign: "center", border: `2px solid ${borderColor}`, fontSize: "11px" }}>{e.room_description}</TableCell>
-                    <TableCell style={{ textAlign: "center", border: `2px solid ${borderColor}`, fontSize: "11px" }}>Prof. {e.lname}</TableCell>
-                    <TableCell style={{ textAlign: "center", border: `2px solid ${borderColor}`, fontSize: "11px" }}>({e.number_of_enrolled})</TableCell>
-                    <TableCell style={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}`, fontSize: "11px" }}>{e.course_code}</TableCell>
+                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}`, fontSize: "11px" }}>{e.components}</TableCell>
+                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}`, fontSize: "11px" }}>{e.lec_unit}</TableCell>
+                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}`, fontSize: "11px" }}>{e.lab_unit}</TableCell>
+                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}`, fontSize: "11px" }}>{e.course_unit}</TableCell>
+                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}`, fontSize: "11px" }}>{e.program_code}-{e.description}</TableCell>
+                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}`, fontSize: "11px" }}>{e.day_description}</TableCell>
+                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}`, fontSize: "11px", whiteSpace: "nowrap" }}>{e.school_time_start}-{e.school_time_end}</TableCell>
+                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}`, fontSize: "11px" }}>{e.room_description}</TableCell>
+                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}`, fontSize: "11px" }}>Prof. {e.lname}</TableCell>
+                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}`, fontSize: "11px" }}>({e.number_of_enrolled})</TableCell>
+                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                       <Button variant="contained" color="error" size="small" sx={{ fontSize: "10px", py: 0.3 }} onClick={() => deleteFromCart(e.id)}>Unenroll</Button>
                     </TableCell>
                   </TableRow>
                 ))}
                 {/* Total Row */}
                 <TableRow>
-                  <TableCell colSpan={1} sx={{ textAlign: "center", fontWeight: "600", border: `2px solid ${borderColor}`, fontSize: "12px" }}>Total Unit</TableCell>
-                  <TableCell colSpan={2} sx={{ textAlign: "center", border: `2px solid ${borderColor}`, fontSize: "12px" }}>
+                  <TableCell colSpan={1} sx={{ textAlign: "center", fontWeight: "600", border: `1px solid ${borderColor}`, fontSize: "12px" }}>Total Unit</TableCell>
+                  <TableCell colSpan={2} sx={{ textAlign: "center", border: `1px solid ${borderColor}`, fontSize: "12px" }}>
                     {enrolled.reduce((sum, item) => sum + (parseFloat(item.course_unit) || 0), 0) + enrolled.reduce((sum, item) => sum + (parseFloat(item.lab_unit) || 0), 0)}
                   </TableCell>
-                  <TableCell colSpan={7} sx={{ border: `2px solid ${borderColor}` }} />
-                  <TableCell colSpan={1} sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                  <TableCell colSpan={7} sx={{ border: `1px solid ${borderColor}` }} />
+                  <TableCell colSpan={1} sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                     <Button variant="contained" color="error" size="small" sx={{ fontSize: "10px" }} onClick={deleteAllCart}>Unenroll All</Button>
                   </TableCell>
                 </TableRow>

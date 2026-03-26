@@ -153,7 +153,7 @@ const YearLevelPanel = () => {
       <br />
       <br />
 
-      <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+      <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
@@ -167,7 +167,7 @@ const YearLevelPanel = () => {
       <Box sx={{ overflowY: "auto", maxHeight: 400 }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
-            <tr style={{ backgroundColor: "#F5F5F5", color: "#000", border: `2px solid ${borderColor}` }}>
+            <tr style={{ backgroundColor: "#F5F5F5", color: "#000", border: `1px solid ${borderColor}` }}>
               <th style={styles.tableCell}>Year Level ID</th>
               <th style={styles.tableCell}>Year Level Description</th>
             </tr>
@@ -186,7 +186,7 @@ const YearLevelPanel = () => {
       <br />
 
 
-      <TableContainer component={Paper} sx={{ width: '50%', border: `2px solid ${borderColor}`, }}>
+      <TableContainer component={Paper} sx={{ width: '50%', border: `1px solid ${borderColor}`, }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
@@ -195,7 +195,7 @@ const YearLevelPanel = () => {
           </TableHead>
         </Table>
       </TableContainer>
-      <Box sx={{ flex: 1, p: 3, width: "50%", bgcolor: "#fff", border: `2px solid ${borderColor}`, boxShadow: 2, }}>
+      <Box sx={{ flex: 1, p: 3, width: "50%", bgcolor: "#fff", border: `1px solid ${borderColor}`, boxShadow: 2, }}>
 
         <Typography fontWeight={500}>Year Level Description:</Typography>
         <TextField

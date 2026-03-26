@@ -263,7 +263,7 @@ const SuperAdminProfessorEducation = () => {
             <Grid container spacing={4} mt={1}>
                 {/* FORM */}
                 <Grid item xs={12} md={5}>
-                    <Paper sx={{ p: 3, border: `2px solid ${borderColor}`, }}>
+                    <Paper sx={{ p: 3, border: `1px solid ${borderColor}`, }}>
                         <Typography variant="h6">
                             {editing ? "Edit Education" : "Add Education"}
                         </Typography>
@@ -320,27 +320,27 @@ const SuperAdminProfessorEducation = () => {
 
                 {/* TABLE */}
                 <Grid item xs={12} md={7}>
-                    <Paper sx={{ p: 3, border: `2px solid ${borderColor}`, }}>
+                    <Paper sx={{ p: 3, border: `1px solid ${borderColor}`, }}>
                         <Typography variant="h6">Records</Typography>
 
                         <Table size="small">
                             <TableHead>
-                                <TableRow sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
-                                    <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>Professor</TableCell>
-                                    <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>Bachelor</TableCell>
-                                    <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>Master</TableCell>
-                                    <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>Doctor</TableCell>
-                                    <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>Actions</TableCell>
+                                <TableRow sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
+                                    <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>Professor</TableCell>
+                                    <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>Bachelor</TableCell>
+                                    <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>Master</TableCell>
+                                    <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>Doctor</TableCell>
+                                    <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>Actions</TableCell>
                                 </TableRow>
                             </TableHead>
-                            <TableBody sx={{ border: `2px solid ${borderColor}`, }}>
+                            <TableBody sx={{ border: `1px solid ${borderColor}`, }}>
                                 {list.map((row) => (
                                     <TableRow key={row.person_id}>
-                                        <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>{row.lname}, {row.fname} {row.mname || ""}</TableCell>
-                                        <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>{row.bachelor}</TableCell>
-                                        <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>{row.master}</TableCell>
-                                        <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>{row.doctor}</TableCell>
-                                        <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                                        <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>{row.lname}, {row.fname} {row.mname || ""}</TableCell>
+                                        <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>{row.bachelor}</TableCell>
+                                        <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>{row.master}</TableCell>
+                                        <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>{row.doctor}</TableCell>
+                                        <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                                             <Box sx={{ display: "flex", gap: 1 }}>
                                                 <Button
                                                     variant="contained"

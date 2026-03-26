@@ -160,7 +160,7 @@ const StudentAdmissionFormProcess = () => {
       if (row && typeof row === "object") {
         setPerson(row);
       }
-      
+
     } catch (err) {
       console.error("Error fetching admission form data:", err);
     }
@@ -191,11 +191,11 @@ const StudentAdmissionFormProcess = () => {
   const divToPrintRef = useRef();
 
   const printDiv = () => {
-  const divToPrint = divToPrintRef.current;
-  if (divToPrint) {
-    const newWin = window.open("", "Print-Window");
-    newWin.document.open();
-    newWin.document.write(`
+    const divToPrint = divToPrintRef.current;
+    if (divToPrint) {
+      const newWin = window.open("", "Print-Window");
+      newWin.document.open();
+      newWin.document.write(`
       <html>
         <head>
           <title>Print</title>
@@ -256,11 +256,11 @@ const StudentAdmissionFormProcess = () => {
         </body>
       </html>
     `);
-    newWin.document.close();
-  } else {
-    console.error("divToPrintRef is not set.");
-  }
-};
+      newWin.document.close();
+    } else {
+      console.error("divToPrintRef is not set.");
+    }
+  };
 
   const [campusAddress, setCampusAddress] = useState("");
 
@@ -294,7 +294,7 @@ const StudentAdmissionFormProcess = () => {
   }
 
 
- return (
+  return (
     <Box
       sx={{
         height: "calc(100vh - 150px)",
@@ -412,15 +412,15 @@ const StudentAdmissionFormProcess = () => {
                     paddingBottom: 0,
                   }}
                 >
-                  <div style={{ fontFamily: "Arial", fontSize: "12px" }}>
+                  <div style={{ fontFamily: "Arial", fontSize: "13px" }}>
                     Republic of the Philippines
                   </div>
                   <div
                     style={{
-                      letterSpacing: "2px",
                       fontWeight: "bold",
                       fontFamily: "Arial",
-                      fontSize: "12px"
+                      fontSize: "16px",
+                      textTransform: "Uppercase"
                     }}
                   >
                     {firstLine}
@@ -428,10 +428,10 @@ const StudentAdmissionFormProcess = () => {
                   {secondLine && (
                     <div
                       style={{
-                        letterSpacing: "2px",
                         fontWeight: "bold",
-                          fontFamily: "Arial",
-                      fontSize: "12px"
+                        fontFamily: "Arial",
+                        fontSize: "16px",
+                        textTransform: "Uppercase"
                       }}
                     >
                       {secondLine}
@@ -440,8 +440,7 @@ const StudentAdmissionFormProcess = () => {
                   {campusAddress && (
                     <div
                       style={{
-                        fontSize: "12px",
-                        letterSpacing: "1px",
+                        fontSize: "13px",
                         fontFamily: "Arial",
                       }}
                     >
@@ -1168,11 +1167,11 @@ const StudentAdmissionFormProcess = () => {
                     >
                       {curriculumOptions.length > 0
                         ? curriculumOptions.find(
-                            (item) =>
-                              item?.curriculum_id?.toString() ===
-                              (person?.program ?? "").toString(),
-                          )?.program_description ||
-                          (person?.program ?? "")
+                          (item) =>
+                            item?.curriculum_id?.toString() ===
+                            (person?.program ?? "").toString(),
+                        )?.program_description ||
+                        (person?.program ?? "")
                         : "Loading..."}
                     </div>
                   </div>
@@ -1208,10 +1207,10 @@ const StudentAdmissionFormProcess = () => {
                     >
                       {curriculumOptions.length > 0
                         ? curriculumOptions.find(
-                            (item) =>
-                              item?.curriculum_id?.toString() ===
-                              (person?.program ?? "").toString(),
-                          )?.major || ""
+                          (item) =>
+                            item?.curriculum_id?.toString() ===
+                            (person?.program ?? "").toString(),
+                        )?.major || ""
                         : "Loading..."}
                     </div>
                   </div>
@@ -1593,13 +1592,16 @@ const StudentAdmissionFormProcess = () => {
                     paddingBottom: 0,
                   }}
                 >
-                  <div style={{ fontFamily: "Arial", fontSize: "12px" }}>
+                  <div style={{ fontFamily: "Arial", fontSize: "13px" }}>
                     Republic of the Philippines
                   </div>
                   <div
                     style={{
-                      letterSpacing: "2px",
                       fontWeight: "bold",
+                      fontFamily: "Arial",
+                      fontSize: "16px",
+                      textTransform: "Uppercase"
+
                     }}
                   >
                     {firstLine}
@@ -1607,8 +1609,11 @@ const StudentAdmissionFormProcess = () => {
                   {secondLine && (
                     <div
                       style={{
-                        letterSpacing: "2px",
                         fontWeight: "bold",
+                        fontFamily: "Arial",
+                        fontSize: "16px",
+                        textTransform: "Uppercase"
+
                       }}
                     >
                       {secondLine}
@@ -1617,8 +1622,7 @@ const StudentAdmissionFormProcess = () => {
                   {campusAddress && (
                     <div
                       style={{
-                        fontSize: "12px",
-                        letterSpacing: "1px",
+                        fontSize: "13px",
                         fontFamily: "Arial",
                       }}
                     >
@@ -2344,11 +2348,11 @@ const StudentAdmissionFormProcess = () => {
                     >
                       {curriculumOptions.length > 0
                         ? curriculumOptions.find(
-                            (item) =>
-                              item?.curriculum_id?.toString() ===
-                              (person?.program ?? "").toString(),
-                          )?.program_description ||
-                          (person?.program ?? "")
+                          (item) =>
+                            item?.curriculum_id?.toString() ===
+                            (person?.program ?? "").toString(),
+                        )?.program_description ||
+                        (person?.program ?? "")
                         : "Loading..."}
                     </div>
                   </div>
@@ -2384,10 +2388,10 @@ const StudentAdmissionFormProcess = () => {
                     >
                       {curriculumOptions.length > 0
                         ? curriculumOptions.find(
-                            (item) =>
-                              item?.curriculum_id?.toString() ===
-                              (person?.program ?? "").toString(),
-                          )?.major || ""
+                          (item) =>
+                            item?.curriculum_id?.toString() ===
+                            (person?.program ?? "").toString(),
+                        )?.major || ""
                         : "Loading..."}
                     </div>
                   </div>
@@ -2685,7 +2689,7 @@ const StudentAdmissionFormProcess = () => {
                   {" "}
                 </td>
               </tr>
-                 <tr>
+              <tr>
                 <td
                   colSpan={40}
                   style={{
@@ -2708,7 +2712,7 @@ const StudentAdmissionFormProcess = () => {
                 </td>
               </tr>
 
-        
+
             </tbody>
           </table>
         </div>

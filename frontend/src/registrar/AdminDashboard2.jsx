@@ -72,43 +72,43 @@ const AdminDashboard2 = () => {
 
   const stepsData = [
     {
-        label: "Admission Process for Registrar",
-        to: "/applicant_list_admin",
-        icon: <SchoolIcon fontSize="large" />,
-      },
-      {
-        label: "Applicant Form",
-        to: "/admin_dashboard1",
-        icon: <DashboardIcon fontSize="large" />,
-      },
-      {
-        label: "Student Requirements",
-        to: "/student_requirements",
-        icon: <AssignmentIcon fontSize="large" />,
-      },
-      {
-        label: "Verify Schedule Management",
-        to: "/verify_schedule",
-        icon: <ScheduleIcon fontSize="large" />,
-      },
-      {
-        label: "Entrance Exam Schedule Management",
-        to: "/assign_schedule_applicant",
-        icon: <ScheduleIcon fontSize="large" />,
-      },
-  
-      {
-        label: "Examination Permit",
-        to: "/registrar_examination_profile",
-        icon: <PersonSearchIcon fontSize="large" />,
-      },
-  
-  
-      {
-        label: "Entrance Examination Score",
-        to: "/applicant_scoring",
-        icon: <ScoreIcon fontSize="large" />,
-      },
+      label: "Admission Process for Registrar",
+      to: "/applicant_list_admin",
+      icon: <SchoolIcon fontSize="large" />,
+    },
+    {
+      label: "Applicant Form",
+      to: "/admin_dashboard1",
+      icon: <DashboardIcon fontSize="large" />,
+    },
+    {
+      label: "Student Requirements",
+      to: "/student_requirements",
+      icon: <AssignmentIcon fontSize="large" />,
+    },
+    {
+      label: "Verify Schedule Management",
+      to: "/verify_schedule",
+      icon: <ScheduleIcon fontSize="large" />,
+    },
+    {
+      label: "Entrance Exam Schedule Management",
+      to: "/assign_schedule_applicant",
+      icon: <ScheduleIcon fontSize="large" />,
+    },
+
+    {
+      label: "Examination Permit",
+      to: "/registrar_examination_profile",
+      icon: <PersonSearchIcon fontSize="large" />,
+    },
+
+
+    {
+      label: "Entrance Examination Score",
+      to: "/applicant_scoring",
+      icon: <ScoreIcon fontSize="large" />,
+    },
   ];
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -663,7 +663,7 @@ const AdminDashboard2 = () => {
     setExamPermitError("");
   };
 
- const handleExamPermitClick = async () => {
+  const handleExamPermitClick = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/verified-exam-applicants`);
       const verified = res.data.some(a => a.person_id === parseInt(userID));
@@ -815,7 +815,7 @@ const AdminDashboard2 = () => {
                 justifyContent: "center",
                 cursor: "pointer",
                 borderRadius: 2,
-                border: `2px solid ${borderColor}`,
+                border: `1px solid ${borderColor}`,
                 backgroundColor: currentStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
                 color: currentStep === index ? "#fff" : "#000",
                 boxShadow:
@@ -864,7 +864,7 @@ const AdminDashboard2 = () => {
 
       <TableContainer component={Paper} sx={{ width: '100%', mb: 1 }}>
         <Table>
-          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `2px solid ${borderColor}`, }}>
+          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `1px solid ${borderColor}`, }}>
             <TableRow>
               {/* Left cell: Applicant ID */}
               <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: "Poppins, sans-serif", border: 'none' }}>
@@ -991,7 +991,7 @@ const AdminDashboard2 = () => {
               sx={{
                 minHeight: 60,
                 borderRadius: 2,
-                border: `2px solid ${borderColor}`,
+                border: `1px solid ${borderColor}`,
                 backgroundColor: "#fff",
                 display: "flex",
                 flexDirection: "row",
@@ -1105,7 +1105,7 @@ const AdminDashboard2 = () => {
                         width: 50,
                         height: 50,
                         borderRadius: "50%",
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
                         color: activeStep === index ? "#fff" : "#000",
                         display: "flex",
@@ -1153,7 +1153,7 @@ const AdminDashboard2 = () => {
             maxWidth="100%"
             sx={{
               backgroundColor: settings?.header_color || "#1976d2",
-              border: "2px solid black",
+              border: `1px solid ${borderColor}`,
               maxHeight: "500px",
               overflowY: "auto",
               color: "white",
@@ -1168,7 +1168,7 @@ const AdminDashboard2 = () => {
           </Container>
 
 
-          <Container maxWidth="100%" sx={{ backgroundColor: "#f1f1f1", border: `2px solid ${borderColor}`, padding: 4, borderRadius: 2, boxShadow: 3 }}>
+          <Container maxWidth="100%" sx={{ backgroundColor: "#f1f1f1", border: `1px solid ${borderColor}`, padding: 4, borderRadius: 2, boxShadow: 3 }}>
             <Typography style={{ fontSize: "20px", color: mainButtonColor, fontWeight: "bold" }}>Family Background:</Typography>
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
@@ -2029,7 +2029,7 @@ const AdminDashboard2 = () => {
                   name="guardian"
                   value={person.guardian || ""}
                   label="Guardian"
-                 onChange={handleGuardianChange}
+                  onChange={handleGuardianChange}
                   onBlur={handleBlur}
                 >
                   <MenuItem value=""><em>Select Guardian</em></MenuItem>
@@ -2269,7 +2269,7 @@ const AdminDashboard2 = () => {
                   transform: "translate(-50%, -50%)",
                   width: 400,
                   bgcolor: "background.paper",
-                  border: "2px solid #6D2323",
+                  border: `1px solid ${borderColor}`,
                   boxShadow: 24,
                   p: 4,
                   borderRadius: 2,
@@ -2314,7 +2314,7 @@ const AdminDashboard2 = () => {
                 }
                 sx={{
                   backgroundColor: subButtonColor,
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   color: "#000",
                   "&:hover": {
                     backgroundColor: "#000000",
@@ -2346,7 +2346,7 @@ const AdminDashboard2 = () => {
                 }
                 sx={{
                   backgroundColor: mainButtonColor,
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   color: '#fff',
                   '&:hover': {
                     backgroundColor: "#000000",

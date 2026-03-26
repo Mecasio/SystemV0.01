@@ -531,7 +531,7 @@ const UploadEnrolledSubject = () => {
 
         <TableContainer
             component={Paper}
-            sx={{ width: "100%", border: `2px solid ${borderColor}` }}
+            sx={{ width: "100%", border: `1px solid ${borderColor}` }}
         >
             <Table>
                 <TableHead
@@ -546,7 +546,7 @@ const UploadEnrolledSubject = () => {
             </Table>
         </TableContainer>
 
-        <Paper sx={{ p: 3, mb: 3, border: `2px solid ${borderColor}` }}>
+        <Paper sx={{ p: 3, mb: 3, border: `1px solid ${borderColor}` }}>
             <Box
                 sx={{
                 display: "grid",
@@ -642,7 +642,7 @@ const UploadEnrolledSubject = () => {
 
         <TableContainer
             component={Paper}
-            sx={{ width: "100%", border: `2px solid ${borderColor}` }}
+            sx={{ width: "100%", border: `1px solid ${borderColor}` }}
         >
             <Table>
                 <TableHead
@@ -657,7 +657,7 @@ const UploadEnrolledSubject = () => {
             </Table>
         </TableContainer>
 
-        <Paper sx={{ p: 3, mb: 3, border: `2px solid ${borderColor}` }}>
+        <Paper sx={{ p: 3, mb: 3, border: `1px solid ${borderColor}` }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" gap={2} flexWrap="wrap">
                 <Box>
                     <TextField
@@ -726,7 +726,7 @@ const UploadEnrolledSubject = () => {
                         <TableCell
                             colSpan={8}
                             sx={{
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 py: 0.5,
                                 backgroundColor: settings?.header_color || "#1976d2",
                                 color: "white",

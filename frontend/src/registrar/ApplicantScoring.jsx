@@ -733,30 +733,30 @@ const ApplicantScoring = () => {
     const divToPrintRef = useRef();
 
 
- const printDiv = () => {
-  const newWin = window.open("", "Print-Window");
-  newWin.document.open();
+    const printDiv = () => {
+        const newWin = window.open("", "Print-Window");
+        newWin.document.open();
 
-  const logoSrc = fetchedLogo || EaristLogo;
-  const name = companyName?.trim() || "";
+        const logoSrc = fetchedLogo || EaristLogo;
+        const name = companyName?.trim() || "";
 
-  // ✅ Balanced split (better than simple half)
-  const words = name.split(" ");
-  const middleIndex = Math.ceil(words.length / 2);
-  const firstLine = words.slice(0, middleIndex).join(" ");
-  const secondLine = words.slice(middleIndex).join(" ");
+        // ✅ Balanced split (better than simple half)
+        const words = name.split(" ");
+        const middleIndex = Math.ceil(words.length / 2);
+        const firstLine = words.slice(0, middleIndex).join(" ");
+        const secondLine = words.slice(middleIndex).join(" ");
 
-  // ✅ Dynamic campus address
-  let campusAddress = "";
-  if (settings?.campus_address && settings.campus_address.trim() !== "") {
-    campusAddress = settings.campus_address;
-  } else if (settings?.address && settings.address.trim() !== "") {
-    campusAddress = settings.address;
-  } else {
-    campusAddress = "No address set in Settings";
-  }
+        // ✅ Dynamic campus address
+        let campusAddress = "";
+        if (settings?.campus_address && settings.campus_address.trim() !== "") {
+            campusAddress = settings.campus_address;
+        } else if (settings?.address && settings.address.trim() !== "") {
+            campusAddress = settings.address;
+        } else {
+            campusAddress = "No address set in Settings";
+        }
 
-  const htmlContent = `
+        const htmlContent = `
   <html>
     <head>
       <title>Entrance Examination Scores</title>
@@ -860,7 +860,7 @@ const ApplicantScoring = () => {
           <img src="${logoSrc}" alt="School Logo"/>
 
           <div class="header-text">
-            <div class="gov">Republic of the Philippines</div>
+            <div style="font-size: 13px; font-family: Arial">Republic of the Philippines</div>
 
             ${name ? `
               <div class="school-name">${firstLine}</div>
@@ -892,16 +892,16 @@ const ApplicantScoring = () => {
 
           <tbody>
             ${filteredPersons.map((person) => {
-              const english = Number(person.english) || 0;
-              const science = Number(person.science) || 0;
-              const filipino = Number(person.filipino) || 0;
-              const math = Number(person.math) || 0;
-              const abstract = Number(person.abstract) || 0;
+            const english = Number(person.english) || 0;
+            const science = Number(person.science) || 0;
+            const filipino = Number(person.filipino) || 0;
+            const math = Number(person.math) || 0;
+            const abstract = Number(person.abstract) || 0;
 
-              const computedFinalRating =
+            const computedFinalRating =
                 (english + science + filipino + math + abstract) / 5;
 
-              return `
+            return `
                 <tr>
                   <td>${person.applicant_number || ""}</td>
                   <td>${person.last_name}, ${person.first_name} ${person.middle_name || ""} ${person.extension || ""}</td>
@@ -915,7 +915,7 @@ const ApplicantScoring = () => {
                   <td>${person.status || ""}</td>
                 </tr>
               `;
-            }).join("")}
+        }).join("")}
           </tbody>
         </table>
 
@@ -924,9 +924,9 @@ const ApplicantScoring = () => {
   </html>
   `;
 
-  newWin.document.write(htmlContent);
-  newWin.document.close();
-};
+        newWin.document.write(htmlContent);
+        newWin.document.close();
+    };
 
 
     const [file, setFile] = useState(null);
@@ -1164,7 +1164,7 @@ const ApplicantScoring = () => {
                             justifyContent: "center",
                             cursor: "pointer",
                             borderRadius: 2,
-                            border: `2px solid ${borderColor}`,
+                            border: `1px solid ${borderColor}`,
                             backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
                             color: activeStep === index ? "#fff" : "#000",
                             boxShadow:
@@ -1190,7 +1190,7 @@ const ApplicantScoring = () => {
 
 
 
-            <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+            <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
                 <Table>
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
                         <TableRow>
@@ -1200,7 +1200,7 @@ const ApplicantScoring = () => {
                 </Table>
             </TableContainer>
 
-            <TableContainer component={Paper} sx={{ width: "100%", border: `2px solid ${borderColor}`, p: 2 }}>
+            <TableContainer component={Paper} sx={{ width: "100%", border: `1px solid ${borderColor}`, p: 2 }}>
                 <Box display="flex" justifyContent="space-between" flexWrap="wrap" rowGap={2}>
                     {/* Left Side: From and To Date */}
                     <Box display="flex" flexDirection="column" gap={2}>
@@ -1394,7 +1394,7 @@ const ApplicantScoring = () => {
                 <Table size="small">
                     <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
                         <TableRow>
-                            <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+                            <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                                 <Box display="flex" justifyContent="space-between" alignItems="center">
                                     {/* Left: Total Count */}
                                     <Typography fontSize="14px" fontWeight="bold" color="white">
@@ -1565,7 +1565,7 @@ const ApplicantScoring = () => {
 
 
 
-            <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, p: 2 }}>
+            <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, p: 2 }}>
                 <Box display="flex" justifyContent="space-between" flexWrap="wrap" rowGap={3} columnGap={5}>
 
                     {/* LEFT COLUMN: Sorting & Status Filters */}
@@ -1711,48 +1711,48 @@ const ApplicantScoring = () => {
                 <Table size="small">
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
                         <TableRow>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "2%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "2%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 #
                             </TableCell>
 
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "8%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "8%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 Applicant ID
                             </TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "25%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "25%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 Name
                             </TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "10%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "10%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 Program
                             </TableCell>
 
                             {/* Exam Columns */}
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 English
                             </TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 Science
                             </TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 Filipino
                             </TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 Math
                             </TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 Abstract
                             </TableCell>
 
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 Final Rating
                             </TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "5%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "5%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 Date Applied
                             </TableCell>
 
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "12%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "12%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 Status
                             </TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "12%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "12%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 Action
                             </TableCell>
                         </TableRow>
@@ -1764,7 +1764,7 @@ const ApplicantScoring = () => {
                                     colSpan={13}
                                     sx={{
                                         textAlign: "center",
-                                        border: `2px solid ${borderColor}`,
+                                        border: `1px solid ${borderColor}`,
                                         color: "#777",
                                         py: 3,
                                     }}
@@ -1793,7 +1793,7 @@ const ApplicantScoring = () => {
                                     <TableCell sx={{
                                         color: "black",
                                         textAlign: "center",
-                                        border: `2px solid ${borderColor}`,
+                                        border: `1px solid ${borderColor}`,
                                         py: 0.5,
                                         fontSize: "15px",
                                     }}
@@ -1804,7 +1804,7 @@ const ApplicantScoring = () => {
                                         sx={{
                                             color: "black",
                                             textAlign: "center",
-                                            border: `2px solid ${borderColor}`,
+                                            border: `1px solid ${borderColor}`,
                                             py: 0.5,
                                             fontSize: "15px",
                                         }}
@@ -1819,7 +1819,7 @@ const ApplicantScoring = () => {
                                         sx={{
                                             color: "black",
                                             textAlign: "center",
-                                            border: `2px solid ${borderColor}`,
+                                            border: `1px solid ${borderColor}`,
                                             py: 0.5,
                                             fontSize: "15px",
                                         }}
@@ -1832,7 +1832,7 @@ const ApplicantScoring = () => {
                                         sx={{
                                             color: "black",
                                             textAlign: "center",
-                                            border: `2px solid ${borderColor}`,
+                                            border: `1px solid ${borderColor}`,
                                             py: 0.5,
                                             fontSize: "15px",
                                         }}
@@ -1848,7 +1848,7 @@ const ApplicantScoring = () => {
                                             sx={{
                                                 color: "black",
                                                 textAlign: "center",
-                                                border: `2px solid ${borderColor}`,
+                                                border: `1px solid ${borderColor}`,
                                                 py: 0.5,
                                                 fontSize: "15px",
                                             }}
@@ -1868,7 +1868,7 @@ const ApplicantScoring = () => {
                                         sx={{
                                             color: "black",
                                             textAlign: "center",
-                                            border: `2px solid ${borderColor}`,
+                                            border: `1px solid ${borderColor}`,
                                             py: 0.5,
                                             fontSize: "15px",
                                         }}
@@ -1878,7 +1878,7 @@ const ApplicantScoring = () => {
 
                                     {/* DATE APPLIED */}
                                     <TableCell
-                                        sx={{ textAlign: "center", border: `2px solid ${borderColor}`, fontSize: "12px" }}
+                                        sx={{ textAlign: "center", border: `1px solid ${borderColor}`, fontSize: "12px" }}
                                     >
                                         {(() => {
                                             if (!person.created_at.split("T")[0]) return "";
@@ -1899,7 +1899,7 @@ const ApplicantScoring = () => {
                                         sx={{
                                             color: "black",
                                             textAlign: "center",
-                                            border: `2px solid ${borderColor}`,
+                                            border: `1px solid ${borderColor}`,
                                             py: 0.5,
                                             fontSize: "15px",
                                         }}
@@ -1927,7 +1927,7 @@ const ApplicantScoring = () => {
                                         sx={{
                                             color: "black",
                                             textAlign: "center",
-                                            border: `2px solid ${borderColor}`,
+                                            border: `1px solid ${borderColor}`,
                                             py: 0.5,
                                             fontSize: "15px",
                                         }}
@@ -1952,7 +1952,7 @@ const ApplicantScoring = () => {
                 <Table size="small">
                     <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
                         <TableRow>
-                            <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+                            <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                                 <Box display="flex" justifyContent="space-between" alignItems="center">
                                     {/* Left: Total Count */}
                                     <Typography fontSize="14px" fontWeight="bold" color="white">

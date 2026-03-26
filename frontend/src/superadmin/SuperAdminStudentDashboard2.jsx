@@ -558,7 +558,7 @@ const handleGuardianChange = (e) => {
 
             <TableContainer component={Paper} sx={{ width: '100%', mb: 1 }}>
                 <Table>
-                    <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `2px solid ${borderColor}`, }}>
+                    <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `1px solid ${borderColor}`, }}>
                         <TableRow>
                             {/* Left cell: Student Number */}
                             <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: "Poppins, sans-serif", border: 'none' }}>
@@ -682,7 +682,7 @@ const handleGuardianChange = (e) => {
                             sx={{
                                 minHeight: 60,
                                 borderRadius: 2,
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
 
 
                                 backgroundColor: "#fff",
@@ -791,7 +791,7 @@ const handleGuardianChange = (e) => {
                                             width: 50,
                                             height: 50,
                                             borderRadius: "50%",
-                                            border: `2px solid ${borderColor}`,
+                                            border: `1px solid ${borderColor}`,
                                             backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
                                             color: activeStep === index ? "#fff" : "#000",
                                             display: "flex",
@@ -839,7 +839,7 @@ const handleGuardianChange = (e) => {
                         maxWidth="100%"
                         sx={{
                             backgroundColor: settings?.header_color || "#1976d2",
-                            border: "2px solid black",
+                            border: `1px solid ${borderColor}`,
                             maxHeight: "500px",
                             overflowY: "auto",
                             color: "white",
@@ -854,7 +854,7 @@ const handleGuardianChange = (e) => {
                     </Container>
 
 
-                    <Container maxWidth="100%" sx={{ backgroundColor: "#f1f1f1", border: `2px solid ${borderColor}`, padding: 4, borderRadius: 2, boxShadow: 3 }}>
+                    <Container maxWidth="100%" sx={{ backgroundColor: "#f1f1f1", border: `1px solid ${borderColor}`, padding: 4, borderRadius: 2, boxShadow: 3 }}>
                         <Typography style={{ fontSize: "20px", color: mainButtonColor, fontWeight: "bold" }}>Family Background:</Typography>
                         <hr style={{ border: "1px solid #ccc", width: "100%" }} />
                         <br />
@@ -1882,7 +1882,7 @@ const handleGuardianChange = (e) => {
                                     transform: "translate(-50%, -50%)",
                                     width: 400,
                                     bgcolor: "background.paper",
-                                    border: "2px solid #6D2323",
+                                    border: `1px solid ${borderColor}`,
                                     boxShadow: 24,
                                     p: 4,
                                     borderRadius: 2,
@@ -1928,7 +1928,7 @@ const handleGuardianChange = (e) => {
                                 }
                                 sx={{
                                     backgroundColor: subButtonColor,
-                                    border: `2px solid ${borderColor}`,
+                                    border: `1px solid ${borderColor}`,
 
 
                                     color: "#000",
@@ -1960,7 +1960,7 @@ const handleGuardianChange = (e) => {
                                 }
                                 sx={{
                                     backgroundColor: mainButtonColor,
-                                    border: `2px solid ${borderColor}`,
+                                    border: `1px solid ${borderColor}`,
                                     color: '#fff',
                                     '&:hover': {
                                         backgroundColor: "#000000",

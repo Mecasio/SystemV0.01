@@ -443,7 +443,7 @@ const AssignQualifyingInterviewExam = () => {
     ).sort();
 
     const cellStyle = {
-        border: `2px solid ${borderColor}`,
+        border: `1px solid ${borderColor}`,
         padding: "6px",
         fontSize: "0.85rem",
     };
@@ -549,7 +549,7 @@ const AssignQualifyingInterviewExam = () => {
                             justifyContent: "center",
                             cursor: "pointer",
                             borderRadius: 2,
-                            border: `2px solid ${borderColor}`,
+                            border: `1px solid ${borderColor}`,
                             backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
                             color: activeStep === index ? "#fff" : "#000",
                             boxShadow:
@@ -581,7 +581,7 @@ const AssignQualifyingInterviewExam = () => {
 
             <TableContainer
                 component={Paper}
-                sx={{ width: "100%", border: `2px solid ${borderColor}` }}
+                sx={{ width: "100%", border: `1px solid ${borderColor}` }}
             >
                 <Table>
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
@@ -598,7 +598,7 @@ const AssignQualifyingInterviewExam = () => {
                 elevation={3}
                 sx={{
                     p: 3,
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
 
                 }}
             >
@@ -611,7 +611,7 @@ const AssignQualifyingInterviewExam = () => {
                     <Table size="small">
                         <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
                             <TableRow>
-                                <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+                                <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                                     <Box
                                         display="flex"
                                         justifyContent="space-between"
@@ -788,7 +788,7 @@ const AssignQualifyingInterviewExam = () => {
                     component={Paper}
                     sx={{
                         width: "100%",
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                     }}
                 >
                     <Table size="small">
@@ -808,7 +808,7 @@ const AssignQualifyingInterviewExam = () => {
                                         key={h}
                                         align="center"
                                         sx={{
-                                            border: `2px solid ${borderColor}`,
+                                            border: `1px solid ${borderColor}`,
                                             fontWeight: "600",
                                             fontSize: "0.9rem",
                                         }}
@@ -891,7 +891,7 @@ const AssignQualifyingInterviewExam = () => {
                     <Table size="small">
                         <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
                             <TableRow>
-                                <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+                                <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                                     <Box
                                         display="flex"
                                         justifyContent="space-between"
@@ -1072,7 +1072,7 @@ const AssignQualifyingInterviewExam = () => {
                 component={Paper}
                 sx={{
                     width: "50%",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
 
                 }}
             >

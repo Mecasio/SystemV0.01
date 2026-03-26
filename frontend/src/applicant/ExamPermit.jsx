@@ -5,6 +5,8 @@ import { QRCodeSVG } from "qrcode.react";
 import EaristLogo from "../assets/EaristLogo.png";
 import "../styles/Print.css";
 import API_BASE_URL from "../apiConfig";
+
+
 // ✅ Accept personId as a prop
 const ExamPermit = ({ personId }) => {
     const settings = useContext(SettingsContext);
@@ -317,35 +319,34 @@ const ExamPermit = ({ personId }) => {
 
                         {/* Center Column - School Information */}
                         <td style={{ width: "60%", textAlign: "center", lineHeight: "1", }}>
-                            <div>Republic of the Philippines</div>
+                            <div style={{ fontFamily: "Arial", fontSize: "13px" }}>
+                                Republic of the Philippines
+                            </div>
                             <div
                                 style={{
-                                    fontSize: "14px",
-                                    letterSpacing: "2px",
-
+                                    fontWeight: "bold",
                                     fontFamily: "Arial",
-                                    fontWeight: "bold"
+                                    fontSize: "20px"
 
                                 }}
                             >
-                                <b>{firstLine}</b>
+                               {firstLine}
                             </div>
                             {secondLine && (
                                 <div
                                     style={{
-                                        fontSize: "14px",
-                                        letterSpacing: "2px",
-
+                                        fontWeight: "bold",
                                         fontFamily: "Arial",
-                                        fontWeight: "bold"
+                                        fontSize: "20px"
+
 
                                     }}
                                 >
-                                    <b>{secondLine}</b>
+                                   {secondLine}
                                 </div>
                             )}
                             {campusAddress && (
-                                <div style={{ fontSize: "16px", letterSpacing: "1px", fontFamily: "Arial" }}>
+                                <div style={{ fontFamily: "Arial", fontSize: "13px" }}>
                                     {campusAddress}
                                 </div>
                             )}
@@ -377,7 +378,7 @@ const ExamPermit = ({ personId }) => {
                                     justifyContent: "center",
                                     alignItems: "center",
                                     position: "relative",
-                                    border: "2px solid black",
+                                    border: `1px solid ${borderColor}`,
                                     overflow: "hidden",
                                     borderRadius: "4px",
                                     marginTop: "10px",

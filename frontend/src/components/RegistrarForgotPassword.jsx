@@ -173,7 +173,7 @@ const RegistrarForgotPassword = () => {
 
           {/* Body */}
           <div className="Body">
-            <label>Student Number / Employee ID:</label>
+            <label>Student Number / Employee:</label>
             <TextField
               fullWidth
               style={{ border: `2px solid ${borderColor}`, marginBottom: "20px", borderRadius: "5px", height: "55px" }}

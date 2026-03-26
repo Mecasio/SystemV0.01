@@ -507,7 +507,7 @@ const FacultyWorkload = () => {
           style={{
             paddingTop: "1rem",
             paddingLeft: "2rem",
-            border: `2px solid ${borderColor}`,
+            border: `1px solid ${borderColor}`,
           }}
         >
           <div

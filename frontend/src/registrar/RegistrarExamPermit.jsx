@@ -69,7 +69,7 @@ const RegistrarExamPermit = ({ personId }) => {
     });
 
 
-    
+
     const [scheduledBy, setScheduledBy] = useState(""); // ✅ added
     const [printed, setPrinted] = useState(false);
 
@@ -346,12 +346,15 @@ const RegistrarExamPermit = ({ personId }) => {
 
                         {/* Center Column - School Information */}
                         <td style={{ width: "60%", textAlign: "center", lineHeight: "1", }}>
-                            <div>Republic of the Philippines</div>
+                            <div style={{ fontFamily: "Arial", fontSize: "13px" }}>
+                                Republic of the Philippines
+                            </div>
                             <div
                                 style={{
-                                    letterSpacing: "1px",
-                                    fontSize: "20px",
+                                    fontWeight: "bold",
                                     fontFamily: "Arial",
+                                    fontSize: "16px",
+                                    textTransform: "Uppercase"
                                 }}
                             >
                                 {firstLine}
@@ -359,12 +362,13 @@ const RegistrarExamPermit = ({ personId }) => {
                             {secondLine && (
                                 <div
                                     style={{
-                                        letterSpacing: "1px",
-                                        fontSize: "20px",
+                                        fontWeight: "bold",
                                         fontFamily: "Arial",
+                                        fontSize: "16px",
+                                        textTransform: "Uppercase"
                                     }}
                                 >
-                                    <b>{secondLine}</b>
+                                    {secondLine}
                                 </div>
                             )}
                             {campusAddress && (

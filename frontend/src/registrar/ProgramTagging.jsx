@@ -757,7 +757,7 @@ const ProgramTagging = () => {
       <br />
 
       <div style={styles.container}>
-        <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, mb: "-30px" }}>
+        <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, mb: "-30px" }}>
           <Table>
             <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
               <TableRow>
@@ -767,7 +767,7 @@ const ProgramTagging = () => {
           </Table>
         </TableContainer>
         {/* Left: Form Section */}
-        <div style={{ ...styles.formSection, border: `2px solid ${borderColor}` }}>
+        <div style={{ ...styles.formSection, border: `1px solid ${borderColor}` }}>
 
           {/* CAMPUS */}
           <div style={styles.formGroup}>
@@ -1052,7 +1052,7 @@ const ProgramTagging = () => {
         <br />
 
 
-        <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, mb: "-30px" }}>
+        <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, mb: "-30px" }}>
           <Table>
             <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
               <TableRow>
@@ -1061,7 +1061,7 @@ const ProgramTagging = () => {
             </TableHead>
           </Table>
         </TableContainer>
-        <div style={{ ...styles.displaySection, border: `2px solid ${borderColor}` }}>
+        <div style={{ ...styles.displaySection, border: `1px solid ${borderColor}` }}>
           <ProgramTaggingFilter
             curriculumList={curriculumList}
             yearLevelList={yearLevelList}
@@ -1086,7 +1086,7 @@ const ProgramTagging = () => {
                   <TableCell
                     colSpan={10}
                     sx={{
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                       py: 0.5,
                       backgroundColor: settings?.header_color || "#1976d2",
                       color: "white",
@@ -1242,7 +1242,7 @@ const ProgramTagging = () => {
                       style={{
                         ...styles.th,
                         backgroundColor: "#f5f5f5",
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         color: "black",
                         textAlign: "center"
                       }}
@@ -1255,7 +1255,7 @@ const ProgramTagging = () => {
                       style={{
                         ...styles.th,
                         backgroundColor: "#f5f5f5",
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         color: "black",
                         textAlign: "center"
                       }}
@@ -1266,7 +1266,7 @@ const ProgramTagging = () => {
                       style={{
                         ...styles.th,
                         backgroundColor: "#f5f5f5",
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         color: "black",
                         textAlign: "center"
                       }}
@@ -1277,7 +1277,7 @@ const ProgramTagging = () => {
                       style={{
                         ...styles.th,
                         backgroundColor: "#f5f5f5",
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         color: "black",
                         textAlign: "center"
                       }}
@@ -1288,7 +1288,7 @@ const ProgramTagging = () => {
                       style={{
                         ...styles.th,
                         backgroundColor: "#f5f5f5",
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         color: "black",
                         textAlign: "center"
                       }}
@@ -1300,7 +1300,7 @@ const ProgramTagging = () => {
                       style={{
                         ...styles.th,
                         backgroundColor: "#f5f5f5",
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         color: "black",
                         textAlign: "center"
                       }}
@@ -1311,7 +1311,7 @@ const ProgramTagging = () => {
                       style={{
                         ...styles.th,
                         backgroundColor: "#f5f5f5",
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         color: "black",
                         textAlign: "center"
                       }}
@@ -1322,7 +1322,7 @@ const ProgramTagging = () => {
                       style={{
                         ...styles.th,
                         backgroundColor: "#f5f5f5",
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         color: "black",
                         textAlign: "center"
                       }}
@@ -1333,7 +1333,7 @@ const ProgramTagging = () => {
                       style={{
                         ...styles.th,
                         backgroundColor: "#f5f5f5",
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         color: "black",
                         textAlign: "center"
                       }}
@@ -1344,7 +1344,7 @@ const ProgramTagging = () => {
                       style={{
                         ...styles.th,
                         backgroundColor: "#f5f5f5",
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         color: "black",
                         textAlign: "center"
                       }}
@@ -1355,7 +1355,7 @@ const ProgramTagging = () => {
                       style={{
                         ...styles.th,
                         backgroundColor: "#f5f5f5",
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         color: "black",
                         textAlign: "center"
                       }}
@@ -1368,48 +1368,48 @@ const ProgramTagging = () => {
                   {currentPrograms.map((program, index) => (
 
                     <tr key={program.program_tagging_id}>
-                      <td style={{ ...styles.td, border: `2px solid ${borderColor}` }}>
+                      <td style={{ ...styles.td, border: `1px solid ${borderColor}` }}>
                         {indexOfFirstItem + index + 1}
                       </td>
-                      <td style={{ ...styles.td, border: `2px solid ${borderColor}` }}>
+                      <td style={{ ...styles.td, border: `1px solid ${borderColor}` }}>
                         {formatSchoolYear(program.year_description)}  ({program.program_code}) – {program.curriculum_description}
                         {program.major ? ` (${program.major})` : ""}
                       </td>
 
 
 
-                      <td style={{ ...styles.td, border: `2px solid ${borderColor}` }}>
+                      <td style={{ ...styles.td, border: `1px solid ${borderColor}` }}>
                         ({program.course_code}) - {program.course_description} - ({program.prereq})
                       </td>
-                      <td style={{ ...styles.td, border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                      <td style={{ ...styles.td, border: `1px solid ${borderColor}`, textAlign: "center" }}>
                         {program.year_level_description}
                       </td>
-                      <td style={{ ...styles.td, border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                      <td style={{ ...styles.td, border: `1px solid ${borderColor}`, textAlign: "center" }}>
                         {program.semester_description}
                       </td>
-                      <td style={{ ...styles.td, border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                      <td style={{ ...styles.td, border: `1px solid ${borderColor}`, textAlign: "center" }}>
                         {program.lec_fee ?? "—"}
                       </td>
-                      <td style={{ ...styles.td, border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                      <td style={{ ...styles.td, border: `1px solid ${borderColor}`, textAlign: "center" }}>
                         {program.lab_fee ?? "—"}
                       </td>
 
-                      <td style={{ ...styles.td, border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                      <td style={{ ...styles.td, border: `1px solid ${borderColor}`, textAlign: "center" }}>
                         {Number(program.iscomputer_lab) === 1 ? "Yes" : "No"}
                       </td>
 
-                      <td style={{ ...styles.td, border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                      <td style={{ ...styles.td, border: `1px solid ${borderColor}`, textAlign: "center" }}>
                         {Number(program.islaboratory_fee) === 1 ? "Yes" : "No"}
                       </td>
 
-                      <td style={{ ...styles.td, border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                      <td style={{ ...styles.td, border: `1px solid ${borderColor}`, textAlign: "center" }}>
                         {Number(program.is_nstp) === 1 ? "Yes" : "No"}
                       </td>
 
                       {/* <td
                         style={{
                           ...styles.td,
-                          border: `2px solid ${borderColor}`,
+                          border: `1px solid ${borderColor}`,
                           textAlign: "right",
                           fontWeight: "bold",
                           textAlign: "center"
@@ -1422,7 +1422,7 @@ const ProgramTagging = () => {
                         style={{
                           ...styles.td,
                           whiteSpace: "nowrap",
-                          border: `2px solid ${borderColor}`,
+                          border: `1px solid ${borderColor}`,
 
                         }}
                       >

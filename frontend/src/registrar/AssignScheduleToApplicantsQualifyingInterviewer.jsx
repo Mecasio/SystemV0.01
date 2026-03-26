@@ -1245,7 +1245,7 @@ Thank you and good luck!`
                             justifyContent: "center",
                             cursor: "pointer",
                             borderRadius: 2,
-                            border: `2px solid ${borderColor}`,
+                            border: `1px solid ${borderColor}`,
                             backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
                             color: activeStep === index ? "#fff" : "#000",
                             boxShadow:
@@ -1272,7 +1272,7 @@ Thank you and good luck!`
             <div style={{ height: "40px" }}></div>
 
 
-            <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+            <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
                 <Table>
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
                         <TableRow>
@@ -1287,7 +1287,7 @@ Thank you and good luck!`
 
                     p: 3,
 
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     bgcolor: "white",
                     boxShadow: "0 3px 12px rgba(0,0,0,0.1)",
 
@@ -1308,7 +1308,7 @@ Thank you and good luck!`
                                 onChange={(e) => setSelectedSchedule(e.target.value)}
                                 variant="outlined"
                                 sx={{
-                                    border: `2px solid ${borderColor}`,
+                                    border: `1px solid ${borderColor}`,
                                     borderRadius: 2,
                                     "& .MuiOutlinedInput-notchedOutline": { border: "none" },
                                     bgcolor: "white",
@@ -1350,7 +1350,7 @@ Thank you and good luck!`
                                 InputProps={{ readOnly: true }}
                                 variant="outlined"
                                 sx={{
-                                    border: `2px solid ${borderColor}`,
+                                    border: `1px solid ${borderColor}`,
                                     borderRadius: 2,
                                     "& .MuiOutlinedInput-notchedOutline": { border: "none" },
                                     bgcolor: "#f9f9f9",
@@ -1373,7 +1373,7 @@ Thank you and good luck!`
                                 InputProps={{ readOnly: true }}
                                 variant="outlined"
                                 sx={{
-                                    border: `2px solid ${borderColor}`,
+                                    border: `1px solid ${borderColor}`,
                                     borderRadius: 2,
                                     "& .MuiOutlinedInput-notchedOutline": { border: "none" },
                                     bgcolor: "#f9f9f9",
@@ -1399,7 +1399,7 @@ Thank you and good luck!`
                                 InputProps={{ readOnly: true }}
                                 variant="outlined"
                                 sx={{
-                                    border: `2px solid ${borderColor}`,
+                                    border: `1px solid ${borderColor}`,
                                     borderRadius: 2,
                                     "& .MuiOutlinedInput-notchedOutline": { border: "none" },
                                     bgcolor: "#f9f9f9",
@@ -1642,7 +1642,7 @@ Thank you and good luck!`
                 <Table size="small">
                     <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
                         <TableRow>
-                            <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+                            <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                                 <Box display="flex" justifyContent="space-between" alignItems="center">
                                     {/* Left: Total Count */}
                                     <Typography fontSize="14px" fontWeight="bold" color="white">
@@ -1808,18 +1808,18 @@ Thank you and good luck!`
                 </Table>
             </TableContainer>
 
-            <TableContainer component={Paper} sx={{ width: "100%", border: "2px solid maroon" }}>
+            <TableContainer component={Paper} sx={{ width: "100%", border: `1px solid ${borderColor}` }}>
                 <Table size="small">
                     <TableHead sx={{ backgroundColor: "#F1F1F1", }}>
                         <TableRow>
-                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: "2px solid maroon" }}>#</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: "2px solid maroon" }}>Applicant ID</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: "2px solid maroon" }}>Name</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: "2px solid maroon" }}>Program</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: "2px solid maroon" }}>Email Address</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: "2px solid maroon" }}>Final Rating</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: "2px solid maroon" }}>Date Applied</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: "2px solid maroon" }}>Action</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `1px solid ${borderColor}` }}>#</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `1px solid ${borderColor}` }}>Applicant ID</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `1px solid ${borderColor}` }}>Name</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `1px solid ${borderColor}` }}>Program</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `1px solid ${borderColor}` }}>Email Address</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `1px solid ${borderColor}` }}>Final Rating</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `1px solid ${borderColor}` }}>Date Applied</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `1px solid ${borderColor}` }}>Action</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -1841,7 +1841,7 @@ Thank you and good luck!`
                                         <TableCell
                                             sx={{
                                                 textAlign: "center",
-                                                border: `2px solid ${borderColor}`,
+                                                border: `1px solid ${borderColor}`,
 
                                                 fontSize: "12px",
                                             }}
@@ -1854,8 +1854,8 @@ Thank you and good luck!`
                                                 color: "blue",
                                                 cursor: "pointer",
                                                 textAlign: "center",
-                                                border: `2px solid ${borderColor}`,
-                                                borderLeft: "2px solid maroon",
+                                                border: `1px solid ${borderColor}`,
+
                                                 py: 0.5,
                                                 fontSize: "12px",
                                             }}
@@ -1870,8 +1870,8 @@ Thank you and good luck!`
                                                 color: "blue",
                                                 cursor: "pointer",
                                                 textAlign: "left",
-                                                border: `2px solid ${borderColor}`,
-                                                borderLeft: "2px solid maroon",
+                                                border: `1px solid ${borderColor}`,
+
                                                 py: 0.5,
                                                 fontSize: "12px",
                                             }}
@@ -1884,7 +1884,7 @@ Thank you and good luck!`
                                         <TableCell
                                             sx={{
                                                 textAlign: "center",
-                                                border: `2px solid ${borderColor}`,
+                                                border: `1px solid ${borderColor}`,
                                                 fontSize: "12px",
                                             }}
                                         >
@@ -1899,7 +1899,7 @@ Thank you and good luck!`
                                         <TableCell
                                             sx={{
                                                 textAlign: "center",
-                                                border: `2px solid ${borderColor}`,
+                                                border: `1px solid ${borderColor}`,
                                                 fontSize: "12px",
                                             }}
                                         >
@@ -1910,7 +1910,7 @@ Thank you and good luck!`
                                         <TableCell
                                             sx={{
                                                 textAlign: "center",
-                                                border: `2px solid ${borderColor}`,
+                                                border: `1px solid ${borderColor}`,
                                                 fontSize: "12px",
                                             }}
                                         >
@@ -1918,7 +1918,7 @@ Thank you and good luck!`
                                         </TableCell>
 
                                         <TableCell
-                                            sx={{ textAlign: "center", border: `2px solid ${borderColor}`, fontSize: "12px" }}
+                                            sx={{ textAlign: "center", border: `1px solid ${borderColor}`, fontSize: "12px" }}
                                         >
                                             {(() => {
                                                 if (!person.created_at.split("T")[0]) return "";
@@ -1940,7 +1940,7 @@ Thank you and good luck!`
                                         <TableCell
                                             sx={{
                                                 textAlign: "center",
-                                                border: `2px solid ${borderColor}`,
+                                                border: `1px solid ${borderColor}`,
 
                                             }}
                                         >

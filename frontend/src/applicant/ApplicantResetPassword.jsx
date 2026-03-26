@@ -156,7 +156,7 @@ const ApplicantResetPassword = () => {
             maxWidth: "540px",
             borderRadius: 4,
             backgroundColor: "#fff",
-            border: `2px solid ${borderColor}`,   // ✅ APPLY DYNAMIC BORDER COLOR
+            border: `1px solid ${borderColor}`,   // ✅ APPLY DYNAMIC BORDER COLOR
             boxShadow: "0px 4px 20px rgba(0,0,0,0.1)",
             mb: 12,
           }}
@@ -294,7 +294,7 @@ const ApplicantResetPassword = () => {
                 py: 1.2,
                 borderRadius: 2,
                 backgroundColor: mainButtonColor,   // ✅ dynamic
-                border: `2px solid ${borderColor}`,
+                border: `1px solid ${borderColor}`,
                 textTransform: "none",
                 fontWeight: "bold",
                 "&:hover": {

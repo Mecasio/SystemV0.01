@@ -571,7 +571,7 @@ const CurriculumPanel = () => {
               <TableCell
                 colSpan={5}
                 sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   py: 0.5,
                   backgroundColor: settings?.header_color || "#6D2323",
                   color: "white",
@@ -668,27 +668,27 @@ const CurriculumPanel = () => {
             <TableRow>
               <TableCell sx={{
 
-                border: `2px solid ${borderColor}`, textAlign: "center",
+                border: `1px solid ${borderColor}`, textAlign: "center",
                 color: "black",
               }}>ID</TableCell>
               <TableCell sx={{
 
-                border: `2px solid ${borderColor}`, textAlign: "center",
+                border: `1px solid ${borderColor}`, textAlign: "center",
                 color: "black",
               }}>Year</TableCell>
               <TableCell sx={{
 
-                border: `2px solid ${borderColor}`, textAlign: "center",
+                border: `1px solid ${borderColor}`, textAlign: "center",
                 color: "black",
               }}>Program</TableCell>
               <TableCell sx={{
 
-                border: `2px solid ${borderColor}`, textAlign: "center",
+                border: `1px solid ${borderColor}`, textAlign: "center",
                 color: "black",
               }} align="center">Active</TableCell>
               <TableCell sx={{
 
-                border: `2px solid ${borderColor}`, textAlign: "center",
+                border: `1px solid ${borderColor}`, textAlign: "center",
                 color: "black",
               }} align="center">Actions</TableCell>
             </TableRow>
@@ -702,11 +702,11 @@ const CurriculumPanel = () => {
                 hover
                 sx={{ "&:last-child td": { borderBottom: 0 } }}
               >
-                <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}> {index + 1}</TableCell>
-                <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}> {index + 1}</TableCell>
+                <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                   {formatAcademicYear(item.year_description)}
                 </TableCell >
-                <TableCell sx={{ border: `2px solid ${borderColor}` }}>
+                <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                   <Typography fontWeight={500}>
 
                     {`(${item.program_code}): ${item.program_description} (${getBranchLabel(item.components)})`}
@@ -715,7 +715,7 @@ const CurriculumPanel = () => {
                     {item.major ? ` (${item.major})` : ""}
                   </Typography>
                 </TableCell>
-                <TableCell sx={{ border: `2px solid ${borderColor}` }} align="center">
+                <TableCell sx={{ border: `1px solid ${borderColor}` }} align="center">
                   <Switch
                     checked={item.lock_status === 1}
                     onChange={() =>
@@ -728,7 +728,7 @@ const CurriculumPanel = () => {
                   />
                 </TableCell>
                 <TableCell
-                  sx={{ border: `2px solid ${borderColor}` }}
+                  sx={{ border: `1px solid ${borderColor}` }}
                   align="center"
                 >
                   <Button
@@ -781,7 +781,7 @@ const CurriculumPanel = () => {
               <TableCell
                 colSpan={5}
                 sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   py: 0.5,
                   backgroundColor: settings?.header_color || "#6D2323",
                   color: "white",
@@ -876,7 +876,7 @@ const CurriculumPanel = () => {
       <br />
 
 
-      <TableContainer component={Paper} sx={{ width: '50%', border: `2px solid ${borderColor}`, }}>
+      <TableContainer component={Paper} sx={{ width: '50%', border: `1px solid ${borderColor}`, }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
@@ -901,7 +901,7 @@ const CurriculumPanel = () => {
               padding: "20px",
               width: "600px",
               backgroundColor: "#fff",
-              border: `2px solid ${borderColor}`,
+              border: `1px solid ${borderColor}`,
               boxShadow: "0 0 10px rgba(0,0,0,0.1)",
             }}
           >

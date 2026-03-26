@@ -501,7 +501,7 @@ const checkBranchStatus = (branchIdToCheck) => {
 
                   style={{
                     height: "45px",
-                    border: `2px solid ${borderColor}`,
+                    border: "2px solid black",
                     width: "100%",
                   }}
                 >
@@ -550,7 +550,7 @@ const checkBranchStatus = (branchIdToCheck) => {
                   className="border"
                   style={{
                     paddingLeft: "2.5rem",
-                    border: `2px solid ${borderColor}`,
+                    border: "2px solid black",
                   }}
                 />
                 <BadgeIcon
@@ -576,7 +576,7 @@ const checkBranchStatus = (branchIdToCheck) => {
                   className="border"
                   style={{
                     paddingLeft: "2.5rem",
-                    border: `2px solid ${borderColor}`,
+                    border: "2px solid black",
                   }}
                 />
                 <PersonIcon
@@ -601,7 +601,7 @@ const checkBranchStatus = (branchIdToCheck) => {
                   className="border"
                   style={{
                     paddingLeft: "2.5rem",
-                    border: `2px solid ${borderColor}`,
+                    border: "2px solid black",
                   }}
                 />
                 <PersonIcon
@@ -626,7 +626,7 @@ const checkBranchStatus = (branchIdToCheck) => {
                   className="border"
                   style={{
                     paddingLeft: "2.5rem",
-                    border: `2px solid ${borderColor}`,
+                    border: "2px solid black",
                   }}
                 />
                 <CakeIcon
@@ -652,7 +652,7 @@ const checkBranchStatus = (branchIdToCheck) => {
                   style={{
                     paddingLeft: "1rem",
                     height: "45px",
-                    border: `2px solid ${borderColor}`,
+                    border: "2px solid black",
                     width: "100%",
                   }}
                 >
@@ -675,7 +675,7 @@ const checkBranchStatus = (branchIdToCheck) => {
                   style={{
                     paddingLeft: "1rem",
                     height: "45px",
-                    border: `2px solid ${borderColor}`,
+                    border: "2px solid black",
                     width: "100%",
                   }}
                 >
@@ -706,7 +706,7 @@ const checkBranchStatus = (branchIdToCheck) => {
                   value={usersData.email}
                   onChange={handleChanges}
                   onKeyDown={handleKeyDownRegister}
-                  style={{ paddingLeft: "2.5rem", border: `2px solid ${borderColor}` }}
+                  style={{ paddingLeft: "2.5rem", border: "2px solid black" }}
                 />
                 <EmailIcon
                   style={{
@@ -731,7 +731,7 @@ const checkBranchStatus = (branchIdToCheck) => {
                   onChange={handleChanges}
                   onKeyDown={handleKeyDownRegister}
                   required
-                  style={{ paddingLeft: "2.5rem", border: `2px solid ${borderColor}` }}
+                  style={{ paddingLeft: "2.5rem", border: "2px solid black" }}
                 />
                 <LockIcon
                   style={{
@@ -775,7 +775,7 @@ const checkBranchStatus = (branchIdToCheck) => {
                   disabled={!usersData.password} // ✅ Disabled until password is filled
                   style={{
                     paddingLeft: "2.5rem",
-                    border: `2px solid ${borderColor}`,
+                    border: "2px solid black",
                     backgroundColor: !usersData.password ? "#f0f0f0" : "white", // Optional: gray background when disabled
                     cursor: !usersData.password ? "not-allowed" : "text",
                   }}
@@ -846,7 +846,7 @@ const checkBranchStatus = (branchIdToCheck) => {
                   marginTop: "40px",
                   backgroundColor: mainButtonColor,
                   height: "50px",
-                  border: `2px solid ${borderColor}`,
+                  border: "2px solid black",
                   borderRadius: "10px",
                   display: "flex",
                   alignItems: "center",

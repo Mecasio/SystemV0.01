@@ -296,7 +296,7 @@ export default function EmailTemplateManager() {
         <Table size="small">
           <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
             <TableRow>
-              <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+              <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                 <Box display="flex" justifyContent="space-between" alignItems="center">
                   {/* Left: Total Count */}
                   <Typography fontSize="14px" fontWeight="bold" color="white">
@@ -469,7 +469,7 @@ export default function EmailTemplateManager() {
             overflowY: "auto",
             backgroundColor: "#f5f5f5", // Table container bg
             color: "black",
-            border: `2px solid ${borderColor}`, // Outer border
+            border: `1px solid ${borderColor}`, // Outer border
             borderRadius: 1, // optional: rounded corners
           }}
         >
@@ -480,31 +480,31 @@ export default function EmailTemplateManager() {
                   backgroundColor: "#F5F5F5", // Header color from settings
                 }}
               >
-                <TableCell sx={{ border: `2px solid ${borderColor}`, backgroundColor: "#F5F5F5", color: "#000" }}>#</TableCell>
-                <TableCell sx={{ border: `2px solid ${borderColor}`, backgroundColor: "#F5F5F5", color: "#000" }}>Gmail Account</TableCell>
-                <TableCell sx={{ border: `2px solid ${borderColor}`, backgroundColor: "#F5F5F5", color: "#000" }}>Department</TableCell>
-                <TableCell sx={{ border: `2px solid ${borderColor}`, backgroundColor: "#F5F5F5", color: "#000" }}>Employee ID</TableCell>
-                <TableCell sx={{ border: `2px solid ${borderColor}`, backgroundColor: "#F5F5F5", color: "#000" }}>Active</TableCell>
-                <TableCell sx={{ width: "150px", border: `2px solid ${borderColor}`, backgroundColor: "#F5F5F5", color: "#000", textAlign: "center" }}>Actions</TableCell>
+                <TableCell sx={{ border: `1px solid ${borderColor}`, backgroundColor: "#F5F5F5", color: "#000" }}>#</TableCell>
+                <TableCell sx={{ border: `1px solid ${borderColor}`, backgroundColor: "#F5F5F5", color: "#000" }}>Gmail Account</TableCell>
+                <TableCell sx={{ border: `1px solid ${borderColor}`, backgroundColor: "#F5F5F5", color: "#000" }}>Department</TableCell>
+                <TableCell sx={{ border: `1px solid ${borderColor}`, backgroundColor: "#F5F5F5", color: "#000" }}>Employee ID</TableCell>
+                <TableCell sx={{ border: `1px solid ${borderColor}`, backgroundColor: "#F5F5F5", color: "#000" }}>Active</TableCell>
+                <TableCell sx={{ width: "150px", border: `1px solid ${borderColor}`, backgroundColor: "#F5F5F5", color: "#000", textAlign: "center" }}>Actions</TableCell>
               </TableRow>
             </TableHead>
 
             <TableBody>
               {rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ border: `2px solid ${borderColor}` }}>
+                  <TableCell colSpan={6} align="center" sx={{ border: `1px solid ${borderColor}` }}>
                     No templates found.
                   </TableCell>
                 </TableRow>
               ) : (
                 paginatedRows.map((r, index) => (
                   <TableRow key={r.template_id}>
-                    <TableCell sx={{ border: `2px solid ${borderColor}` }}>{(currentPage - 1) * rowsPerPage + index + 1}</TableCell>
-                    <TableCell sx={{ border: `2px solid ${borderColor}` }}>{r.sender_name}</TableCell>
-                    <TableCell sx={{ border: `2px solid ${borderColor}` }}>{r.department_name || "N/A"}</TableCell>
-                    <TableCell sx={{ border: `2px solid ${borderColor}` }}>{r.employee_id || "N/A"}</TableCell>
-                    <TableCell sx={{ border: `2px solid ${borderColor}` }}>{r.is_active ? "Yes" : "No"}</TableCell>
-                    <TableCell sx={{ width: "150px", border: `2px solid ${borderColor}` }}>
+                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>{(currentPage - 1) * rowsPerPage + index + 1}</TableCell>
+                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>{r.sender_name}</TableCell>
+                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>{r.department_name || "N/A"}</TableCell>
+                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>{r.employee_id || "N/A"}</TableCell>
+                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>{r.is_active ? "Yes" : "No"}</TableCell>
+                    <TableCell sx={{ width: "150px", border: `1px solid ${borderColor}` }}>
                       <Box sx={{ display: "flex", gap: 1 }}>
                         <Button
                           variant="contained"
@@ -569,7 +569,7 @@ export default function EmailTemplateManager() {
         <Table size="small">
           <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
             <TableRow>
-              <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+              <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                 <Box display="flex" justifyContent="space-between" alignItems="center">
                   {/* Left: Total Count */}
                   <Typography fontSize="14px" fontWeight="bold" color="white">
@@ -737,7 +737,7 @@ export default function EmailTemplateManager() {
 
       <br />
       <br />
-      <TableContainer component={Paper} sx={{ width: '50%', border: `2px solid ${borderColor}`, }}>
+      <TableContainer component={Paper} sx={{ width: '50%', border: `1px solid ${borderColor}`, }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
@@ -754,7 +754,7 @@ export default function EmailTemplateManager() {
 
         <Paper
           elevation={3}
-          sx={{ p: 3, border: `2px solid ${borderColor}`, width: "50%" }}
+          sx={{ p: 3, border: `1px solid ${borderColor}`, width: "50%" }}
         >
 
 

@@ -380,26 +380,26 @@ const AdmissionServices = () => {
                                             <div
                                                 style={{
                                                     marginLeft: "-145px",
-                                                    letterSpacing: "1px",
                                                     fontWeight: "bold",
                                                     fontFamily: "Arial",
-                                                    fontSize: "20px"
+                                                    fontSize: "16px",
+                                                    textTransform: "Uppercase"
                                                 }}
                                             >
-                                                <b>{firstLine}</b>
+                                               {firstLine}
                                             </div>
 
                                             {secondLine && (
                                                 <div
                                                     style={{
                                                         marginLeft: "-145px",
-                                                        letterSpacing: "1px",
                                                         fontWeight: "bold",
                                                         fontFamily: "Arial",
-                                                        fontSize: "20px"
+                                                        fontSize: "16px",
+                                                        textTransform: "Uppercase"
                                                     }}
                                                 >
-                                                    <b>{secondLine}</b>
+                                                   {secondLine}
                                                 </div>
                                             )}
 

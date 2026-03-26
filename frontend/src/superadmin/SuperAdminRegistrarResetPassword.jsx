@@ -287,7 +287,7 @@ const SuperAdminRegistrarResetPassword = () => {
     color: "white",
     textAlign: "center",
     fontSize: "12px",
-    border: `2px solid ${borderColor}`,
+    border: `1px solid ${borderColor}`,
   };
 
 
@@ -295,7 +295,7 @@ const SuperAdminRegistrarResetPassword = () => {
   const headerStyle = {
     textAlign: "center",
     fontSize: "12px",
-    border: `2px solid ${borderColor}`,
+    border: `1px solid ${borderColor}`,
   };
 
   const paginationSelectStyle = {
@@ -406,7 +406,7 @@ const SuperAdminRegistrarResetPassword = () => {
               justifyContent: "center",
               cursor: "pointer",
               borderRadius: 2,
-              border: `2px solid ${borderColor}`,
+              border: `1px solid ${borderColor}`,
               backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
               color: activeStep === index ? "#fff" : "#000",
               boxShadow:
@@ -439,7 +439,7 @@ const SuperAdminRegistrarResetPassword = () => {
               <TableCell
                 colSpan={6}
                 sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   py: 0.5,
                   backgroundColor: settings?.header_color || "#1976d2",
                   color: "white",
@@ -538,13 +538,13 @@ const SuperAdminRegistrarResetPassword = () => {
           <TableBody>
             {currentRows.map((r, index) => (
               <TableRow key={index}>
-                <TableCell align="center" sx={{ border: `2px solid ${borderColor}` }}>{indexOfFirstRow + index + 1}</TableCell>
+                <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>{indexOfFirstRow + index + 1}</TableCell>
 
-                <TableCell align="center" sx={{ border: `2px solid ${borderColor}` }}>{r.employee_id}</TableCell>
+                <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>{r.employee_id}</TableCell>
 
                 <TableCell
                   sx={{
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     color: "blue",
                     cursor: "pointer",
                     fontWeight: 500,
@@ -557,11 +557,11 @@ const SuperAdminRegistrarResetPassword = () => {
                   {r.fullName}
                 </TableCell>
 
-                <TableCell align="center" sx={{ border: `2px solid ${borderColor}` }}>{r.email}</TableCell>
+                <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>{r.email}</TableCell>
 
                 <TableCell
                   sx={{
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     fontWeight: "bold",
                     color: r.status === 1 ? "green" : "red",
                     textAlign: "center"
@@ -585,7 +585,7 @@ const SuperAdminRegistrarResetPassword = () => {
               <TableCell
                 colSpan={6}
                 sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   py: 0.5,
                   backgroundColor: settings?.header_color || "#1976d2",
                   color: "white",
@@ -681,7 +681,7 @@ const SuperAdminRegistrarResetPassword = () => {
       <br />
       <br />
 
-      <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+      <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
@@ -690,7 +690,7 @@ const SuperAdminRegistrarResetPassword = () => {
           </TableHead>
         </Table>
       </TableContainer>
-      <Paper sx={{ p: 3, border: `2px solid ${borderColor}` }}>
+      <Paper sx={{ p: 3, border: `1px solid ${borderColor}` }}>
         <Box
           display="grid"
           gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr" }}

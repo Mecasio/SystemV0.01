@@ -126,7 +126,7 @@ const ChangeGradingPeriod = () => {
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
       <br />
-      
+
 
 
       <Box sx={{ mt: 3 }}>
@@ -137,7 +137,7 @@ const ChangeGradingPeriod = () => {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              border: `2px solid ${borderColor}`,
+              border: `1px solid ${borderColor}`,
               padding: "15px",
               backgroundColor: "#fff",
               margin: "20px auto",

@@ -283,7 +283,7 @@ const RegistrarResetPassword = () => {
             maxWidth: "540px",
             borderRadius: 4,
             backgroundColor: "#fff",
-            border: `2px solid ${borderColor}`,
+            border: `1px solid ${borderColor}`,
 
             boxShadow: "0px 4px 20px rgba(0,0,0,0.1)",
             mb: 12,
@@ -456,7 +456,7 @@ const RegistrarResetPassword = () => {
                 py: 1.2,
                 borderRadius: 2,
                 backgroundColor: mainButtonColor,
-                border: `2px solid ${borderColor}`,
+                border: `1px solid ${borderColor}`,
                 textTransform: "none",
                 fontWeight: "bold",
                 "&:hover": { backgroundColor: "#1565c0" },

@@ -11,182 +11,182 @@ import { FcPrint } from "react-icons/fc";
 import axios from "axios";
 import API_BASE_URL from "../apiConfig";
 const StudentAdmissionServices = () => {
-  const settings = useContext(SettingsContext);
+    const settings = useContext(SettingsContext);
 
-  const [titleColor, setTitleColor] = useState("#000000");
-  const [subtitleColor, setSubtitleColor] = useState("#555555");
-  const [borderColor, setBorderColor] = useState("#000000");
-  const [mainButtonColor, setMainButtonColor] = useState("#1976d2");
-  const [subButtonColor, setSubButtonColor] = useState("#ffffff"); // ✅ NEW
-  const [stepperColor, setStepperColor] = useState("#000000"); // ✅ NEW
+    const [titleColor, setTitleColor] = useState("#000000");
+    const [subtitleColor, setSubtitleColor] = useState("#555555");
+    const [borderColor, setBorderColor] = useState("#000000");
+    const [mainButtonColor, setMainButtonColor] = useState("#1976d2");
+    const [subButtonColor, setSubButtonColor] = useState("#ffffff"); // ✅ NEW
+    const [stepperColor, setStepperColor] = useState("#000000"); // ✅ NEW
 
-  const [fetchedLogo, setFetchedLogo] = useState(null);
-  const [companyName, setCompanyName] = useState("");
-  const [shortTerm, setShortTerm] = useState("");
+    const [fetchedLogo, setFetchedLogo] = useState(null);
+    const [companyName, setCompanyName] = useState("");
+    const [shortTerm, setShortTerm] = useState("");
 
-  useEffect(() => {
-    if (!settings) return;
+    useEffect(() => {
+        if (!settings) return;
 
-    // 🎨 Colors
-    if (settings.title_color) setTitleColor(settings.title_color);
-    if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
-    if (settings.border_color) setBorderColor(settings.border_color);
-    if (settings.main_button_color)
-      setMainButtonColor(settings.main_button_color);
-    if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color); // ✅ NEW
-    if (settings.stepper_color) setStepperColor(settings.stepper_color); // ✅ NEW
+        // 🎨 Colors
+        if (settings.title_color) setTitleColor(settings.title_color);
+        if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
+        if (settings.border_color) setBorderColor(settings.border_color);
+        if (settings.main_button_color)
+            setMainButtonColor(settings.main_button_color);
+        if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color); // ✅ NEW
+        if (settings.stepper_color) setStepperColor(settings.stepper_color); // ✅ NEW
 
-    // 🏫 Logo
-    if (settings.logo_url) {
-      setFetchedLogo(`${API_BASE_URL}${settings.logo_url}`);
-    } else {
-      setFetchedLogo(EaristLogo);
-    }
+        // 🏫 Logo
+        if (settings.logo_url) {
+            setFetchedLogo(`${API_BASE_URL}${settings.logo_url}`);
+        } else {
+            setFetchedLogo(EaristLogo);
+        }
 
-    // 🏷️ School Information
-    if (settings.company_name) setCompanyName(settings.company_name);
-    if (settings.short_term) setShortTerm(settings.short_term);
-    if (settings.campus_address) setCampusAddress(settings.campus_address);
-  }, [settings]);
+        // 🏷️ School Information
+        if (settings.company_name) setCompanyName(settings.company_name);
+        if (settings.short_term) setShortTerm(settings.short_term);
+        if (settings.campus_address) setCampusAddress(settings.campus_address);
+    }, [settings]);
 
-  const words = companyName.trim().split(" ");
-  const middleIndex = Math.ceil(words.length / 2);
-  const firstLine = words.slice(0, middleIndex).join(" ");
-  const secondLine = words.slice(middleIndex).join(" ");
+    const words = companyName.trim().split(" ");
+    const middleIndex = Math.ceil(words.length / 2);
+    const firstLine = words.slice(0, middleIndex).join(" ");
+    const secondLine = words.slice(middleIndex).join(" ");
 
-  const [person, setPerson] = useState({
-    profile_img: "",
-    campus: "",
-    academicProgram: "",
-    classifiedAs: "",
-    program: "",
-    program2: "",
-    program3: "",
-    yearLevel: "",
-    last_name: "",
-    first_name: "",
-    middle_name: "",
-    extension: "",
-    nickname: "",
-    height: "",
-    weight: "",
-    lrnNumber: "",
-    gender: "",
-    pwdType: "",
-    pwdId: "",
-    birthOfDate: "",
-    age: "",
-    birthPlace: "",
-    languageDialectSpoken: "",
-    citizenship: "",
-    religion: "",
-    civilStatus: "",
-    tribeEthnicGroup: "",
-    otherEthnicGroup: "",
-    cellphoneNumber: "",
-    emailAddress: "",
-    telephoneNumber: "",
-    facebookAccount: "",
-    presentStreet: "",
-    presentBarangay: "",
-    presentZipCode: "",
-    presentRegion: "",
-    presentProvince: "",
-    presentMunicipality: "",
-    presentDswdHouseholdNumber: "",
-    permanentStreet: "",
-    permanentBarangay: "",
-    permanentZipCode: "",
-    permanentRegion: "",
-    permanentProvince: "",
-    permanentMunicipality: "",
-    permanentDswdHouseholdNumber: "",
-    father_deceased: "",
-    father_family_name: "",
-    father_given_name: "",
-    father_middle_name: "",
-    father_ext: "",
-    father_contact: "",
-    father_occupation: "",
-    father_income: "",
-    father_email: "",
-    mother_deceased: "",
-    mother_family_name: "",
-    mother_given_name: "",
-    mother_middle_name: "",
-    mother_contact: "",
-    mother_occupation: "",
-    mother_income: "",
-    guardian: "",
-    guardian_family_name: "",
-    guardian_given_name: "",
-    guardian_middle_name: "",
-    guardian_ext: "",
-    guardian_nickname: "",
-    guardian_address: "",
-    guardian_contact: "",
-    guardian_email: "",
-  });
+    const [person, setPerson] = useState({
+        profile_img: "",
+        campus: "",
+        academicProgram: "",
+        classifiedAs: "",
+        program: "",
+        program2: "",
+        program3: "",
+        yearLevel: "",
+        last_name: "",
+        first_name: "",
+        middle_name: "",
+        extension: "",
+        nickname: "",
+        height: "",
+        weight: "",
+        lrnNumber: "",
+        gender: "",
+        pwdType: "",
+        pwdId: "",
+        birthOfDate: "",
+        age: "",
+        birthPlace: "",
+        languageDialectSpoken: "",
+        citizenship: "",
+        religion: "",
+        civilStatus: "",
+        tribeEthnicGroup: "",
+        otherEthnicGroup: "",
+        cellphoneNumber: "",
+        emailAddress: "",
+        telephoneNumber: "",
+        facebookAccount: "",
+        presentStreet: "",
+        presentBarangay: "",
+        presentZipCode: "",
+        presentRegion: "",
+        presentProvince: "",
+        presentMunicipality: "",
+        presentDswdHouseholdNumber: "",
+        permanentStreet: "",
+        permanentBarangay: "",
+        permanentZipCode: "",
+        permanentRegion: "",
+        permanentProvince: "",
+        permanentMunicipality: "",
+        permanentDswdHouseholdNumber: "",
+        father_deceased: "",
+        father_family_name: "",
+        father_given_name: "",
+        father_middle_name: "",
+        father_ext: "",
+        father_contact: "",
+        father_occupation: "",
+        father_income: "",
+        father_email: "",
+        mother_deceased: "",
+        mother_family_name: "",
+        mother_given_name: "",
+        mother_middle_name: "",
+        mother_contact: "",
+        mother_occupation: "",
+        mother_income: "",
+        guardian: "",
+        guardian_family_name: "",
+        guardian_given_name: "",
+        guardian_middle_name: "",
+        guardian_ext: "",
+        guardian_nickname: "",
+        guardian_address: "",
+        guardian_contact: "",
+        guardian_email: "",
+    });
 
-  const [campusAddress, setCampusAddress] = useState("");
+    const [campusAddress, setCampusAddress] = useState("");
 
-  useEffect(() => {
-    if (settings && settings.address) {
-      setCampusAddress(settings.address);
-    }
-  }, [settings]);
+    useEffect(() => {
+        if (settings && settings.address) {
+            setCampusAddress(settings.address);
+        }
+    }, [settings]);
 
-  const [userID, setUserID] = useState("");
-  const [user, setUser] = useState("");
-  const [userRole, setUserRole] = useState("");
+    const [userID, setUserID] = useState("");
+    const [user, setUser] = useState("");
+    const [userRole, setUserRole] = useState("");
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("email");
-    const storedRole = localStorage.getItem("role");
-    const storedID = localStorage.getItem("person_id");
+    useEffect(() => {
+        const storedUser = localStorage.getItem("email");
+        const storedRole = localStorage.getItem("role");
+        const storedID = localStorage.getItem("person_id");
 
-    if (storedUser && storedRole && storedID) {
-      setUser(storedUser);
-      setUserRole(storedRole);
-      setUserID(storedID);
-    } else {
-      window.location.href = "/login";
-    }
-  }, []);
+        if (storedUser && storedRole && storedID) {
+            setUser(storedUser);
+            setUserRole(storedRole);
+            setUserID(storedID);
+        } else {
+            window.location.href = "/login";
+        }
+    }, []);
 
-  useEffect(() => {
-    if(user && userID && userRole){
-      if (userRole === "student") {
-        fetchPersonData(userID);
-      } else {
-        window.location.href = "/login";
-      }
-    }
-  }, [user, userID, userRole]);
+    useEffect(() => {
+        if (user && userID && userRole) {
+            if (userRole === "student") {
+                fetchPersonData(userID);
+            } else {
+                window.location.href = "/login";
+            }
+        }
+    }, [user, userID, userRole]);
 
-  const fetchPersonData = async (userID) => {
-    try {
-      const res = await axios.get(
-        `${API_BASE_URL}/api/person/student/${userID}`,
-      );
-      const row = res.data?.rows?.[0] ?? res.data;
-      if (row && typeof row === "object") {
-        setPerson(row);
-      }
-      
-    } catch (err) {
-      console.error("Error fetching admission form data:", err);
-    }
-  };
+    const fetchPersonData = async (userID) => {
+        try {
+            const res = await axios.get(
+                `${API_BASE_URL}/api/person/student/${userID}`,
+            );
+            const row = res.data?.rows?.[0] ?? res.data;
+            if (row && typeof row === "object") {
+                setPerson(row);
+            }
 
-  const divToPrintRef = useRef();
+        } catch (err) {
+            console.error("Error fetching admission form data:", err);
+        }
+    };
 
-  const printDiv = () => {
-    const divToPrint = divToPrintRef.current;
-    if (divToPrint) {
-      const newWin = window.open("", "Print-Window");
-      newWin.document.open();
-      newWin.document.write(`
+    const divToPrintRef = useRef();
+
+    const printDiv = () => {
+        const divToPrint = divToPrintRef.current;
+        if (divToPrint) {
+            const newWin = window.open("", "Print-Window");
+            newWin.document.open();
+            newWin.document.write(`
       <html>
         <head>
           <title>Print</title>
@@ -244,15 +244,15 @@ const StudentAdmissionServices = () => {
         </body>
       </html>
     `);
-      newWin.document.close();
-    } else {
-      console.error("divToPrintRef is not set.");
-    }
-  };
+            newWin.document.close();
+        } else {
+            console.error("divToPrintRef is not set.");
+        }
+    };
 
-  
 
- return (
+
+   return (
         <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
             <Box
                 sx={{
@@ -367,10 +367,9 @@ const StudentAdmissionServices = () => {
                                         }}>
                                             <div style={{
                                                 marginLeft: "-145px",
-                                                fontSize: "12px",
+                                                fontSize: "13px",
                                                 fontFamily: "Arial",
-                                                letterSpacing: '2px',
-                                                fontWeight: "normal"
+
                                             }}>
                                                 Republic of the Philippines
                                             </div>
@@ -378,39 +377,40 @@ const StudentAdmissionServices = () => {
                                             <div
                                                 style={{
                                                     marginLeft: "-145px",
+                                                    fontWeight: "bold",
                                                     fontFamily: "Arial",
-                                                    fontSize: "12px",
-                                                    letterSpacing: "2px",
-
+                                                    fontSize: "16px",
+                                                    textTransform: "Uppercase"
                                                 }}
                                             >
-                                                <b>{firstLine}</b>
+                                               {firstLine}
                                             </div>
 
                                             {secondLine && (
                                                 <div
                                                     style={{
                                                         marginLeft: "-145px",
+                                                        fontWeight: "bold",
                                                         fontFamily: "Arial",
-                                                        fontSize: "12px",
-                                                        letterSpacing: "2px",
-                                                       
+                                                        fontSize: "16px",
+                                                        textTransform: "Uppercase"
                                                     }}
                                                 >
-                                                    <b>{secondLine}</b>
+                                                   {secondLine}
                                                 </div>
                                             )}
 
                                             <div style={{
                                                 marginLeft: "-145px",
-                                                fontSize: "12px",
-                                                fontFamily: "Arial",
-                                                letterSpacing: '1px',
+                                                fontFamily: "Arial", fontSize: "13px"
 
                                             }}>
                                                 {/* ✅ Only dynamic campus address */}
                                                 {campusAddress && (
-                                                    <div style={{ fontSize: "12px", letterSpacing: "1px", }}>
+                                                    <div style={{
+                                                        fontSize: "13px",
+                                                        fontFamily: "Arial",
+                                                    }}>
                                                         {campusAddress}
                                                     </div>
                                                 )}
@@ -996,7 +996,7 @@ const StudentAdmissionServices = () => {
                                                 fontFamily: "Arial",
                                             }}
                                         >
-                                           <b>SQD1.</b>  I spent a reasonable amount of time for my transaction
+                                            <b>SQD1.</b>  I spent a reasonable amount of time for my transaction
 
                                         </td>
                                         <td
@@ -1155,7 +1155,7 @@ const StudentAdmissionServices = () => {
                                                 fontFamily: "Arial",
                                             }}
                                         >
-                                           <b>SQD3.</b>  The steps (including payment) I needed to do for my transaction were easy and simple.
+                                            <b>SQD3.</b>  The steps (including payment) I needed to do for my transaction were easy and simple.
 
                                         </td>
                                         <td

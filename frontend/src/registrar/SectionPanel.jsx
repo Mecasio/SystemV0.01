@@ -232,7 +232,7 @@ const SectionPanel = () => {
         <Table size="small">
           <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
             <TableRow>
-              <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+              <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                 <Box display="flex" justifyContent="space-between" alignItems="center">
                   {/* Left: Total Count */}
                   <Typography fontSize="14px" fontWeight="bold" color="white">
@@ -410,19 +410,19 @@ const SectionPanel = () => {
         <Table>
           <TableHead style={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
-              <TableCell sx={{ fontWeight: "bold", textAlign: "center", border: `2px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "#000" }}>ID</TableCell>
-              <TableCell sx={{ fontWeight: "bold", textAlign: "center", border: `2px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "#000" }}>Section Description</TableCell>
-              <TableCell sx={{ fontWeight: "bold", textAlign: "center", border: `2px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "#000" }}>Action</TableCell>
+              <TableCell sx={{ fontWeight: "bold", textAlign: "center", border: `1px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "#000" }}>ID</TableCell>
+              <TableCell sx={{ fontWeight: "bold", textAlign: "center", border: `1px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "#000" }}>Section Description</TableCell>
+              <TableCell sx={{ fontWeight: "bold", textAlign: "center", border: `1px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "#000" }}>Action</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {paginatedSections.map((section, index) => (
 
               <TableRow key={section.id}>
-                <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>{startIndex + index + 1}</TableCell>
-                <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>{section.description}</TableCell>
+                <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>{startIndex + index + 1}</TableCell>
+                <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>{section.description}</TableCell>
 
-                <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                   <Box sx={{ display: "flex", gap: 1, justifyContent: "center" }}>
                     <Button
                       variant="contained"
@@ -468,7 +468,7 @@ const SectionPanel = () => {
         <Table size="small">
           <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
             <TableRow>
-              <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+              <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                 <Box display="flex" justifyContent="space-between" alignItems="center">
                   {/* Left: Total Count */}
                   <Typography fontSize="14px" fontWeight="bold" color="white">
@@ -637,7 +637,7 @@ const SectionPanel = () => {
 
       <br />
       <br />
-      <TableContainer component={Paper} sx={{ width: '50%', border: `2px solid ${borderColor}` }}>
+      <TableContainer component={Paper} sx={{ width: '50%', border: `1px solid ${borderColor}` }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
@@ -648,7 +648,7 @@ const SectionPanel = () => {
       </TableContainer>
 
 
-      <Paper elevation={3} sx={{ flex: 1, p: 3, border: `2px solid ${borderColor}`, width: "50%" }}>
+      <Paper elevation={3} sx={{ flex: 1, p: 3, border: `1px solid ${borderColor}`, width: "50%" }}>
 
         <form onSubmit={handleSubmit}>
           <Box display="flex" flexDirection="column" gap={2}>

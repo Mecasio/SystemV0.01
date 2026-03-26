@@ -35,7 +35,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import InputAdornment from "@mui/material/InputAdornment";
 import EditIcon from "@mui/icons-material/Edit";
 import DateField from "../components/DateField";
-import DeleteIcon from "@mui/icons-material/Delete";  
+import DeleteIcon from "@mui/icons-material/Delete";
 
 
 
@@ -92,17 +92,17 @@ const AssignEntranceExam = () => {
 
   }, [settings]);
 
- const tabs = [
-     { label: "Room Registration", to: "/room_registration", icon: <KeyIcon fontSize="large" /> },
-     { label: "Verify Documents Room Assignment", to: "/verify_document_schedule", icon: <MeetingRoomIcon fontSize="large" /> },
-     // { label: "Verify Documents Schedule Management", to: "/verify_schedule", icon: <ScheduleIcon fontSize="large" /> },
-     { label: "Evaluator's Applicant List", to: "/evaluator_schedule_room_list", icon: <PeopleIcon fontSize="large" /> },
-     { label: "Entrance Exam Room Assignment", to: "/assign_entrance_exam", icon: <MeetingRoomIcon fontSize="large" /> },
-     // { label: "Entrance Exam Schedule Management", to: "/assign_schedule_applicant", icon: <ScheduleIcon fontSize="large" /> },
-     { label: "Proctor's Applicant List", to: "/admission_schedule_room_list", icon: <PeopleIcon fontSize="large" /> },
-     // { label: "Examination Permit", to: "/registrar_examination_profile", icon: <PersonSearchIcon fontSize="large" /> },
-     { label: "Announcement", to: "/announcement_for_admission", icon: <CampaignIcon fontSize="large" /> },
-   ];
+  const tabs = [
+    { label: "Room Registration", to: "/room_registration", icon: <KeyIcon fontSize="large" /> },
+    { label: "Verify Documents Room Assignment", to: "/verify_document_schedule", icon: <MeetingRoomIcon fontSize="large" /> },
+    // { label: "Verify Documents Schedule Management", to: "/verify_schedule", icon: <ScheduleIcon fontSize="large" /> },
+    { label: "Evaluator's Applicant List", to: "/evaluator_schedule_room_list", icon: <PeopleIcon fontSize="large" /> },
+    { label: "Entrance Exam Room Assignment", to: "/assign_entrance_exam", icon: <MeetingRoomIcon fontSize="large" /> },
+    // { label: "Entrance Exam Schedule Management", to: "/assign_schedule_applicant", icon: <ScheduleIcon fontSize="large" /> },
+    { label: "Proctor's Applicant List", to: "/admission_schedule_room_list", icon: <PeopleIcon fontSize="large" /> },
+    // { label: "Examination Permit", to: "/registrar_examination_profile", icon: <PersonSearchIcon fontSize="large" /> },
+    { label: "Announcement", to: "/announcement_for_admission", icon: <CampaignIcon fontSize="large" /> },
+  ];
 
   const [userID, setUserID] = useState("");
   const [user, setUser] = useState("");
@@ -429,7 +429,7 @@ const AssignEntranceExam = () => {
   };
 
   const cellStyle = {
-    border: `2px solid ${borderColor}`,
+    border: `1px solid ${borderColor}`,
     padding: "6px",
     fontSize: "0.85rem",
   };
@@ -532,7 +532,7 @@ const AssignEntranceExam = () => {
               justifyContent: "center",
               cursor: "pointer",
               borderRadius: 2,
-              border: `2px solid ${borderColor}`,
+              border: `1px solid ${borderColor}`,
               backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
               color: activeStep === index ? "#fff" : "#000",
               boxShadow:
@@ -559,7 +559,7 @@ const AssignEntranceExam = () => {
       <br />
       <TableContainer
         component={Paper}
-        sx={{ width: "100%", border: `2px solid ${borderColor}` }}
+        sx={{ width: "100%", border: `1px solid ${borderColor}` }}
       >
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
@@ -576,7 +576,7 @@ const AssignEntranceExam = () => {
         elevation={3}
         sx={{
           p: 3,
-          border: `2px solid ${borderColor}`,
+          border: `1px solid ${borderColor}`,
 
         }}
       >
@@ -586,7 +586,7 @@ const AssignEntranceExam = () => {
         <TableContainer component={Paper} sx={{ width: '100%', }}>
           <Box
             sx={{
-              border: `2px solid ${borderColor}`,
+              border: `1px solid ${borderColor}`,
               borderRadius: 2,
               p: 3,
               mb: 3,
@@ -675,7 +675,7 @@ const AssignEntranceExam = () => {
           <Table size="small">
             <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
               <TableRow>
-                <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+                <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                   <Box
                     display="flex"
                     justifyContent="space-between"
@@ -851,7 +851,7 @@ const AssignEntranceExam = () => {
           component={Paper}
           sx={{
             width: "100%",
-            border: `2px solid ${borderColor}`,
+            border: `1px solid ${borderColor}`,
           }}
         >
           <Table size="small">
@@ -877,7 +877,7 @@ const AssignEntranceExam = () => {
                     key={header}
                     align="center"
                     sx={{
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                       fontWeight: "600",
                       fontSize: "0.9rem",
                     }}
@@ -914,41 +914,41 @@ const AssignEntranceExam = () => {
                         size="small"
                         variant="contained"
                         sx={{
-                              backgroundColor: "green",
-        color: "white",
-        borderRadius: "5px",
-        width: "100px",
-        height: "40px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "5px",
+                          backgroundColor: "green",
+                          color: "white",
+                          borderRadius: "5px",
+                          width: "100px",
+                          height: "40px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "5px",
                         }}
                         onClick={() => handleEdit(s)}
                       >
-                       <EditIcon fontSize="small" /> Edit
+                        <EditIcon fontSize="small" /> Edit
                       </Button>
 
                       <Button
                         size="small"
                         variant="contained"
                         sx={{
-                            backgroundColor: "#9E0000",
-        color: "white",
-        borderRadius: "5px",
-        width: "100px",
-        height: "40px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "5px",
+                          backgroundColor: "#9E0000",
+                          color: "white",
+                          borderRadius: "5px",
+                          width: "100px",
+                          height: "40px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "5px",
                         }}
                         onClick={() => {
                           setScheduleToDelete(s);
                           setOpenDeleteDialog(true);
                         }}
                       >
-                     <DeleteIcon fontSize="small" /> Delete
+                        <DeleteIcon fontSize="small" /> Delete
                       </Button>
                     </Box>
                   </TableCell>
@@ -963,7 +963,7 @@ const AssignEntranceExam = () => {
           <Table size="small">
             <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
               <TableRow>
-                <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+                <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                   <Box
                     display="flex"
                     justifyContent="space-between"
@@ -1142,7 +1142,7 @@ const AssignEntranceExam = () => {
       <TableContainer
         component={Paper}
         sx={{
-          border: `2px solid ${borderColor}`,
+          border: `1px solid ${borderColor}`,
           width: "50%"
         }}
       >

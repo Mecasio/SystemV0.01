@@ -436,10 +436,10 @@ const OfficeOfTheRegistrar = () => {
                                     <div
                                         style={{
                                             marginLeft: "-155px",
-                                            letterSpacing: "1px",
                                             fontWeight: "bold",
                                             fontFamily: "Arial",
-                                            fontSize: "18px"
+                                            fontSize: "16px",
+                                            textTransform: "Uppercase"
                                         }}
                                     >
                                         {firstLine}
@@ -448,10 +448,10 @@ const OfficeOfTheRegistrar = () => {
                                         <div
                                             style={{
                                                 marginLeft: "-155px",
-                                                letterSpacing: "1px",
                                                 fontWeight: "bold",
                                                 fontFamily: "Arial",
-                                                fontSize: "18px"
+                                                fontSize: "16px",
+                                                textTransform: "Uppercase"
                                             }}
                                         >
                                             {secondLine}

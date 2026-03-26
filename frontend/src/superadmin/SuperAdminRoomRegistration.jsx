@@ -427,7 +427,7 @@ const RoomRegistration = () => {
 
       {/* ✅ TABLE SECTION */}
       <Grid item xs={12} md={7}>
-        <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+        <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
           <Table>
             <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
               <TableRow>
@@ -441,7 +441,7 @@ const RoomRegistration = () => {
           elevation={3}
           sx={{
             p: 3,
-            border: `2px solid ${borderColor}`,
+            border: `1px solid ${borderColor}`,
 
           }}
         >
@@ -449,7 +449,7 @@ const RoomRegistration = () => {
 
           <Box
             sx={{
-              border: `2px solid ${borderColor}`,
+              border: `1px solid ${borderColor}`,
               borderRadius: 2,
               p: 3,
               mb: 3,
@@ -572,7 +572,7 @@ const RoomRegistration = () => {
                   <TableCell
                     colSpan={8}
                     sx={{
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                       py: 0.5,
                       backgroundColor: settings?.header_color || "#1976d2",
                       color: "white",
@@ -665,55 +665,55 @@ const RoomRegistration = () => {
             <Table stickyHeader size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ border: `2px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "black" }}>Room ID</TableCell>
-                  <TableCell sx={{ border: `2px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "black" }}>Building</TableCell>
-                  <TableCell sx={{ border: `2px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "black" }}>Room Name</TableCell>
+                  <TableCell sx={{ border: `1px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "black" }}>Room ID</TableCell>
+                  <TableCell sx={{ border: `1px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "black" }}>Building</TableCell>
+                  <TableCell sx={{ border: `1px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "black" }}>Room Name</TableCell>
 
                   {/* ✅ NEW */}
-                  <TableCell sx={{ border: `2px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "black" }}>Floor</TableCell>
-                  <TableCell sx={{ border: `2px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "black" }}>Type</TableCell>
-                  <TableCell sx={{ border: `2px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "black" }}>Branch</TableCell>
-                  <TableCell sx={{ border: `2px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "black" }}>Aircon</TableCell>
+                  <TableCell sx={{ border: `1px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "black" }}>Floor</TableCell>
+                  <TableCell sx={{ border: `1px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "black" }}>Type</TableCell>
+                  <TableCell sx={{ border: `1px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "black" }}>Branch</TableCell>
+                  <TableCell sx={{ border: `1px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "black" }}>Aircon</TableCell>
 
-                  <TableCell sx={{ border: `2px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "black",    width: "250px", }}>Actions</TableCell>
+                  <TableCell sx={{ border: `1px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "black",    width: "250px", }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {paginatedRooms.map((room, index) => (
                   <TableRow key={index}>
-                    <TableCell sx={{ border: `2px solid ${borderColor}` }}>{index + 1}</TableCell>
+                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>{index + 1}</TableCell>
 
-                    <TableCell sx={{ border: `2px solid ${borderColor}` }}>
+                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                       {room.building_description || "N/A"}
                     </TableCell>
 
-                    <TableCell sx={{ border: `2px solid ${borderColor}` }}>
+                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                       {room.room_description}
                     </TableCell>
 
                     {/* ✅ NEW COLUMNS */}
 
-                    <TableCell sx={{ border: `2px solid ${borderColor}` }}>
+                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                       {room.floor || "N/A"}
                     </TableCell>
 
-                    <TableCell sx={{ border: `2px solid ${borderColor}` }}>
+                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                       {room.type || "N/A"}
                     </TableCell>
 
-                    <TableCell sx={{ border: `2px solid ${borderColor}` }}>
+                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                       {branches.find(
                         (b) => b.id === Number(room.branch)
                       )?.branch || "N/A"}
                     </TableCell>
 
-                    <TableCell sx={{ border: `2px solid ${borderColor}` }}>
+                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                       {AIRCON_OPTIONS.find((a) => a.value === Number(room.is_airconditioned))?.label || "N/A"}
                     </TableCell>
 
                     <TableCell
                       sx={{
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         textAlign: "center",
                         width: "250px",
                         display: "flex",
@@ -777,7 +777,7 @@ const RoomRegistration = () => {
                   <TableCell
                     colSpan={8}
                     sx={{
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                       py: 0.5,
                       backgroundColor: settings?.header_color || "#1976d2",
                       color: "white",
@@ -874,7 +874,7 @@ const RoomRegistration = () => {
       <br />
 
 
-      <TableContainer component={Paper} sx={{ width: '50%', border: `2px solid ${borderColor}`, }}>
+      <TableContainer component={Paper} sx={{ width: '50%', border: `1px solid ${borderColor}`, }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
@@ -891,7 +891,7 @@ const RoomRegistration = () => {
           elevation={3}
           sx={{
             p: 3,
-            border: `2px solid ${borderColor}`,
+            border: `1px solid ${borderColor}`,
             width: "50%"
 
           }}

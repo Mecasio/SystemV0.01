@@ -253,7 +253,7 @@ const ProgramEvaluation = () => {
                     alignItems: "center",
                     flexWrap: "wrap",
                     mb: 2,
-                    
+
                 }}
             >
 
@@ -404,15 +404,9 @@ const ProgramEvaluation = () => {
                                     lineHeight: "1.5",
                                 }}
                             >
-                                <div
-                                    style={{
-                                        fontSize: "12px",
-                                        letterSpacing: "1px",
-                                    }}
-                                >
+                                <div style={{ fontFamily: "Arial", fontSize: "13px" }}>
                                     Republic of the Philippines
                                 </div>
-
                                 {/* ✅ Dynamically split company name into two lines */}
                                 {companyName ? (
                                     (() => {

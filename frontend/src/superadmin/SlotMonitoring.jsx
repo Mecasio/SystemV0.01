@@ -606,7 +606,7 @@ const SectionSlotMonitoring = () => {
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
 
-            <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+            <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
                 <Table>
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
                         <TableRow>
@@ -616,7 +616,7 @@ const SectionSlotMonitoring = () => {
                 </Table>
             </TableContainer>
 
-            <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+            <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
                 <Table>
                     <TableHead>
                         <TableRow>
@@ -863,7 +863,7 @@ const SectionSlotMonitoring = () => {
                 </Table>
             </TableContainer>
 
-            <TableContainer component={Paper} sx={{ width: "100%", border: `2px solid ${borderColor}`, mt: 2 }}>
+            <TableContainer component={Paper} sx={{ width: "100%", border: `1px solid ${borderColor}`, mt: 2 }}>
                 <Table>
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
                         <TableRow>

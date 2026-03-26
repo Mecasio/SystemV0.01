@@ -346,7 +346,7 @@ export default function DepartmentCurriculumPanel() {
 
       <br />
       <br />
-      <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+      <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
@@ -359,7 +359,7 @@ export default function DepartmentCurriculumPanel() {
         elevation={3}
         sx={{
           p: 3,
-          border: `2px solid ${borderColor}`,
+          border: `1px solid ${borderColor}`,
 
         }}
       >
@@ -447,16 +447,16 @@ export default function DepartmentCurriculumPanel() {
             <Table size="small">
               <TableHead>
                 <TableRow style={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   backgroundColor: settings?.header_color || "#1976d2",
                   color: "#fff",
                   width: "10%",
                   textAlign: "center",
                 }}>
-                  <TableCell sx={{ color: "#fff", border: `2px solid ${borderColor}`, textAlign: "center", }}>ID</TableCell>
-                  <TableCell sx={{ color: "#fff", border: `2px solid ${borderColor}`, textAlign: "center", }}>Department</TableCell>
-                  <TableCell sx={{ color: "#fff", border: `2px solid ${borderColor}`, textAlign: "center", }}>Program Code / Description</TableCell>
-                  <TableCell sx={{ color: "#fff", border: `2px solid ${borderColor}`, textAlign: "center", }}>Action</TableCell>
+                  <TableCell sx={{ color: "#fff", border: `1px solid ${borderColor}`, textAlign: "center", }}>ID</TableCell>
+                  <TableCell sx={{ color: "#fff", border: `1px solid ${borderColor}`, textAlign: "center", }}>Department</TableCell>
+                  <TableCell sx={{ color: "#fff", border: `1px solid ${borderColor}`, textAlign: "center", }}>Program Code / Description</TableCell>
+                  <TableCell sx={{ color: "#fff", border: `1px solid ${borderColor}`, textAlign: "center", }}>Action</TableCell>
                 </TableRow>
               </TableHead>
 
@@ -470,21 +470,21 @@ export default function DepartmentCurriculumPanel() {
                   mappings.map((m, index) => (
                     <TableRow key={m.dprtmnt_curriculum_id}>
 
-                      <TableCell sx={{ border: `2px solid ${borderColor}`, }}>{index + 1}</TableCell>
+                      <TableCell sx={{ border: `1px solid ${borderColor}`, }}>{index + 1}</TableCell>
 
                       {/* Department */}
-                      <TableCell sx={{ border: `2px solid ${borderColor}`, }}>
+                      <TableCell sx={{ border: `1px solid ${borderColor}`, }}>
                         {m.dprtmnt_code} — {m.dprtmnt_name}
                       </TableCell>
 
                       {/* Program Code / Description */}
-                      <TableCell sx={{ border: `2px solid ${borderColor}` }}>
+                      <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                         {m.p_code || ""} — {m.p_description || ""}
                         {m.year_description ? ` (${m.year_description})` : ""} ({m.p_major || ""})
                       </TableCell>
 
                       {/* Actions */}
-                      <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center", width: "250px" }}>
+                      <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center", width: "250px" }}>
                         <Box
                           sx={{
                             display: "flex",

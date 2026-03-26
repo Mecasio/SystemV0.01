@@ -683,7 +683,7 @@ const StudentNumbering = () => {
                             justifyContent: "center",
                             cursor: "pointer",
                             borderRadius: 2,
-                            border: `2px solid ${borderColor}`,
+                            border: `1px solid ${borderColor}`,
                             backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
                             color: activeStep === index ? "#fff" : "#000",
                             boxShadow:
@@ -709,7 +709,7 @@ const StudentNumbering = () => {
             <div style={{ height: "40px" }}></div>
 
 
-            <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+            <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
                 <Table>
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
                         <TableRow>
@@ -718,7 +718,7 @@ const StudentNumbering = () => {
                     </TableHead>
                 </Table>
             </TableContainer>
-            <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, p: 2 }}>
+            <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, p: 2 }}>
                 <Box display="flex" justifyContent="space-between" flexWrap="wrap" rowGap={3} columnGap={5}>
 
                     {/* LEFT COLUMN: Sorting & Status Filters */}
@@ -875,7 +875,7 @@ const StudentNumbering = () => {
                             <TableCell
                                 colSpan={10}
                                 sx={{
-                                    border: `2px solid ${borderColor}`,
+                                    border: `1px solid ${borderColor}`,
                                     py: 0.5,
                                     backgroundColor: settings?.header_color || "#1976d2",
                                     color: "white"
@@ -1045,7 +1045,7 @@ const StudentNumbering = () => {
             </TableContainer>
 
             {/* ✅ Applicant List */}
-            <Box sx={{ display: 'flex', gap: 4, border: `2px solid ${borderColor}`, padding: "10px" }}>
+            <Box sx={{ display: 'flex', gap: 4, border: `1px solid ${borderColor}`, padding: "10px" }}>
                 <Box flex={1}>
                     {currentPersons.length === 0 && <Typography>No matching students.</Typography>}
                     {currentPersons.map((person, index) => (
@@ -1139,7 +1139,7 @@ const StudentNumbering = () => {
                             <TableCell
                                 colSpan={10}
                                 sx={{
-                                    border: `2px solid ${borderColor}`,
+                                    border: `1px solid ${borderColor}`,
                                     py: 0.5,
                                     backgroundColor: settings?.header_color || "#1976d2",
                                     color: "white"

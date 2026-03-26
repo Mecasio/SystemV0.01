@@ -234,7 +234,7 @@ const Login = ({ setIsAuthenticated }) => {
                   width: "100%",
                   padding: "0.8rem 2.5rem 0.8rem 2.5rem",
                   borderRadius: "6px",
-                  border: `2px solid ${borderColor}`,
+                  border: "2px solid black",
                   fontSize: "1rem",
                   height: "55px",
                   backgroundColor: "white",
@@ -287,7 +287,7 @@ const Login = ({ setIsAuthenticated }) => {
                 style={{
                   paddingLeft: "2.5rem",
                   height: "55px",
-                  border: `2px solid ${borderColor}`,
+                  border: "2px solid black",
                 }}
               />
               <EmailIcon
@@ -315,7 +315,7 @@ const Login = ({ setIsAuthenticated }) => {
                 style={{
                   paddingLeft: "2.5rem",
                   height: "55px",
-                  border: `2px solid ${borderColor}`,
+                  border: "2px solid black",
                 }}
               />
               <LockIcon
@@ -349,7 +349,7 @@ const Login = ({ setIsAuthenticated }) => {
               style={{
                 height: "50px",
                 borderRadius: "10px",
-                border: `2px solid ${borderColor}`,
+                border: "2px solid black",
                 backgroundColor: mainButtonColor, // ✅ same color (prevents mismatch)
               }}
               className="Button"

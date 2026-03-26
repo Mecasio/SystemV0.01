@@ -607,160 +607,202 @@ const StudentList = () => {
 
 
     const printDiv = () => {
-        // ✅ Determine dynamic campus address (dropdown or custom)
-        let campusAddress = "";
-        if (settings?.campus_address && settings.campus_address.trim() !== "") {
-            campusAddress = settings.campus_address;
-        } else if (settings?.address && settings.address.trim() !== "") {
-            campusAddress = settings.address;
-        } else {
-            campusAddress = "No address set in Settings";
-        }
-
-        // ✅ Dynamic logo and company name
-        const logoSrc = fetchedLogo || EaristLogo;
-        const name = companyName?.trim() || "";
-
-        // ✅ Split company name into two balanced lines
-        const words = name.split(" ");
-        const middleIndex = Math.ceil(words.length / 2);
-        const firstLine = words.slice(0, middleIndex).join(" ");
-        const secondLine = words.slice(middleIndex).join(" ");
-
-        // ✅ Generate printable HTML
-        const newWin = window.open("", "Print-Window");
-        newWin.document.open();
-        newWin.document.write(`
+     // ✅ Determine dynamic campus address (dropdown or custom)
+     let campusAddress = "";
+     if (settings?.campus_address && settings.campus_address.trim() !== "") {
+       campusAddress = settings.campus_address;
+     } else if (settings?.address && settings.address.trim() !== "") {
+       campusAddress = settings.address;
+     } else {
+       campusAddress = "No address set in Settings";
+     }
+ 
+     // ✅ Dynamic logo and company name
+     const logoSrc = fetchedLogo || EaristLogo;
+     const name = companyName?.trim() || "";
+ 
+     // ✅ Split company name into two balanced lines
+     const words = name.split(" ");
+     const middleIndex = Math.ceil(words.length / 2);
+     const firstLine = words.slice(0, middleIndex).join(" ");
+     const secondLine = words.slice(middleIndex).join(" ");
+ 
+     // ✅ Generate printable HTML
+     const newWin = window.open("", "Print-Window");
+     newWin.document.open();
+     newWin.document.write(`
        <html>
          <head>
-           <title>Student List</title>
-           <style>
-             @page { size: A4; margin: 10mm; }
-             body { font-family: Arial; margin: 0; padding: 0; }
-             .print-container {
-               display: flex;
-               flex-direction: column;
-               align-items: center;
-               text-align: center;
-             }
-             .print-header {
-               display: flex;
-               align-items: center;
-               justify-content: center;
-               position: relative;
-               width: 100%;
-             }
-             .print-header img {
-               width: 120px;
-               height: 120px;
-               border-radius: 50%;
-               object-fit: cover;
-             }
-   
-       /* ✅ Uniform and visible table borders (fix thin right side) */
+           <title>Applicant List</title>
+          <style>
+   @page { size: A4 landscape; margin: 10mm; }
+ 
+   body {
+     font-family: Arial;
+     margin: 0;
+     padding: 0;
+   }
+ 
+   .print-container {
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     text-align: center;
+     padding-left: 10px;
+     padding-right: 10px;
+   }
+ 
+ .print-header {
+   position: relative;
+   width: 100%;
+   text-align: center;
+   margin-top: 20px;
+ }
+ 
+ .print-header img {
+   position: absolute;
+   left: 220px; /* adjust if needed */
+   top: -10px;
+   width: 120px;
+   height: 120px;
+   border-radius: 50%;
+   object-fit: cover;
+ }
+ 
+ .header-top {
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   gap: 15px;
+   margin-left: 50px; /* ✅ your requested spacing */
+ }
+ 
+ .header-top img {
+   width: 80px;
+   height: 80px;
+   border-radius: 50%;
+   object-fit: cover;
+ }
+ 
+ .header-text {
+   display: inline-block;
+   padding-left: 100px; /* ✅ VERY IMPORTANT (logo width + spacing) */
+ }
+ 
    table {
-     border-collapse: collapse; /* better for print consistency */
+     border-collapse: collapse;
      width: 100%;
      margin-top: 20px;
-     border: 1.2px solid black; /* slightly thicker for print clarity */
+     border: 1.5px solid black; /* slightly thicker for landscape clarity */
      table-layout: fixed;
    }
-   
+ 
    th, td {
-     border: 1.2px solid black;
-     padding: 4px 6px;
-     font-size: 12px;
+     border: 1.5px solid black;
+     padding: 6px 8px;
+     font-size: 13px; /* slightly bigger (more space in landscape) */
      text-align: center;
-     box-sizing: border-box;
-   }
-   
-   th, td {
      word-wrap: break-word;
    }
-   
-   /* ✅ Ensure rightmost edge doesn’t fade out */
+ 
    table tr td:last-child,
    table tr th:last-child {
-     border-right: 1.2px solid black !important;
+     border-right: 1.5px solid black !important;
    }
-   
-   /* ✅ Optional: add slight table padding to prevent cutoff at page edge */
-   .print-container {
-     padding-right: 10px; /* ensures right border isn’t cut off */
-     padding-left: 10px;
-   }
-   
+ 
    th {
-     background-color: #800000;
-     color: white;
+     background-color: lightgray;
+     color: black;
      -webkit-print-color-adjust: exact;
      print-color-adjust: exact;
    }
-   
-           </style>
+ </style>
          </head>
          <body onload="window.print(); setTimeout(() => window.close(), 100);">
            <div class="print-container">
    
              <!-- ✅ HEADER -->
-             <div class="print-header">
-               <img src="${logoSrc}" alt="School Logo" class="logo" style="width: 18%;"/>
-               <div style="width: 64%;">
-                 <div>Republic of the Philippines</div>
+        <div class="print-header">
+   <img src="${logoSrc}" alt="School Logo" />
+ 
+   <div class="header-text">
+                 <div style="font-size: 13px; font-family: Arial">Republic of the Philippines</div>
    
                  <!-- ✅ Dynamic company name -->
                  ${name
-                ? `
-                       <b style="letter-spacing: 1px; font-size: 20px;">
+         ? `
+                       <b style="letter-spacing: 1px; font-size: 20px; font-family: Arial, sans-serif;">
                          ${firstLine}
                        </b>
                        ${secondLine
-                    ? `<div style="letter-spacing: 1px; font-size: 20px;">
+           ? `<div style="letter-spacing: 1px; font-size: 20px; font-family: Arial, sans-serif;">
                                <b>${secondLine}</b>
                              </div>`
-                    : ""
-                }
+           : ""
+         }
                      `
-                : ""
-            }
+         : ""
+       }
    
                  <!-- ✅ Dynamic campus address -->
-                 <div style="font-size: 12px;">${campusAddress}</div>
+                 <div style="font-size: 13px; font-family: Arial">${campusAddress}</div>
+   
+                 <div style="margin-top: 30px;">
+                   <b style="font-size: 24px; letter-spacing: 1px;">Applicant List</b>
+                 </div>
                </div>
-               <div style="min-width: 18%;"></div>
              </div>
-           
-             <div style="font-size: 24px; letter-spacing: 1px; font-weight: bold;">Student List</div>
    
              <!-- ✅ TABLE -->
              <table>
                <thead>
+                
                  <tr>
-                   <th>Student ID</th>
-                   <th>Student Name</th>
-                   <th>Program</th>
+     <th style="width:10%">Student ID</th>
+     <th style="width:40%">Student Name</th>
+     <th style="width:15%">Program</th>
+     <th style="width:10%">SHS GWA</th>
+     <th style="width:10%">Date Applied</th>
+     <th style="width:15%">Status</th>
+ 
                  </tr>
                </thead>
                <tbody>
-                         ${filteredPersons
-                .map(
-                    (person) => `
+                 ${filteredPersons
+         .map(
+           (person) => `
                        <tr>
-                         <td>${person.student_number ?? person.applicant_number ?? "N/A"}</td>
-                         <td>${person.last_name}, ${person.first_name} ${person.middle_name ?? ""} ${person.extension ?? ""}</td>
-                         <td>${(person.program_description || (curriculumOptions.find((item) => String(item.curriculum_id) === String(person.program ?? person.curriculum_id))?.program_code) || "N/A")}</td>
+                         <td style="width:10%">${person.student_number ?? "N/A"}</td>
+                         <td style="width:40%">${person.last_name}, ${person.first_name} ${person.middle_name || ""} ${person.extension || ""}</td>
+                         <td style="width:15%">${person.program_code || ""}</td>
+                         <td style="width:10%">${person.generalAverage1 || ""}</td>
+                         <td style="width:10%">${new Date(
+             person.created_at.split("T")[0],
+           ).toLocaleDateString("en-PH", {
+             year: "numeric",
+             month: "short",
+             day: "2-digit",
+           })}</td>
+                         <td style="width:15%">${person.submitted_medical === 1
+                            ? "On Process"
+                            : person.submitted_medical === 0
+                                ? "No Submitted Documents"
+                                : ""
+                        }</td>
+
                        </tr>
-                     `
-                )
-                .join("")}
+                     `,
+         )
+         .join("")}
                </tbody>
              </table>
            </div>
          </body>
        </html>
      `);
-        newWin.document.close();
-    };
+     newWin.document.close();
+   };
+ 
 
 
 
@@ -839,7 +881,7 @@ const StudentList = () => {
                                 cursor: "pointer",
                                 borderRadius: 2,
 
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
 
                                 color: activeStep === index ? "#fff" : "#000",
@@ -885,7 +927,7 @@ const StudentList = () => {
             <div style={{ height: "20px" }}></div>
 
 
-            <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+            <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
                 <Table>
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
                         <TableRow>
@@ -895,7 +937,7 @@ const StudentList = () => {
                 </Table>
             </TableContainer>
 
-            <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, p: 2 }}>
+            <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, p: 2 }}>
                 <Box display="flex" justifyContent="space-between" flexWrap="wrap" rowGap={2}>
 
 
@@ -966,7 +1008,7 @@ const StudentList = () => {
                 <Table size="small">
                     <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
                         <TableRow>
-                            <TableCell colSpan={12} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+                            <TableCell colSpan={12} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                                 <Box display="flex" justifyContent="space-between" alignItems="center">
                                     {/* Left: Total Count */}
                                     <Typography fontSize="14px" fontWeight="bold" color="white">
@@ -1137,7 +1179,7 @@ const StudentList = () => {
 
 
 
-            <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, p: 2 }}>
+            <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, p: 2 }}>
                 <Box display="flex" justifyContent="space-between" flexWrap="wrap" rowGap={3} columnGap={5}>
 
                     {/* LEFT COLUMN: Sorting & Status Filters */}
@@ -1263,34 +1305,34 @@ const StudentList = () => {
                 <Table size="small">
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
                         <TableRow>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "2%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "2%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 #
                             </TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "4%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "4%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 Student's Documents
                             </TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "4%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "4%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 Student Number
                             </TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "25%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "25%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 Name
                             </TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "10%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "10%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 Program
                             </TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 Year Level
                             </TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "8%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "8%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 Birth Date
                             </TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "8%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "8%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 Sex
                             </TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "8%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "8%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 Remarks
                             </TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "8%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "8%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 Action
                             </TableCell>
                         </TableRow>
@@ -1304,11 +1346,11 @@ const StudentList = () => {
                                 key={`${person.student_number ?? ""}-${person.year_id ?? ""}-${person.semester_id ?? ""}`}
                             >
                                 {/* # */}
-                                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                                     {index + 1}
                                 </TableCell>
 
-                                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                                     <Checkbox
                                         readOnly
                                         checked
@@ -1328,7 +1370,7 @@ const StudentList = () => {
                                 <TableCell
                                     sx={{
                                         textAlign: "center",
-                                        border: `2px solid ${borderColor}`,
+                                        border: `1px solid ${borderColor}`,
                                         color: "blue",
                                         cursor: "pointer",
                                     }}
@@ -1341,7 +1383,7 @@ const StudentList = () => {
                                 <TableCell
                                     sx={{
                                         textAlign: "left",
-                                        border: `2px solid ${borderColor}`,
+                                        border: `1px solid ${borderColor}`,
                                         color: "blue",
                                         cursor: "pointer",
                                     }}
@@ -1352,30 +1394,30 @@ const StudentList = () => {
 
 
                                 {/* Program */}
-                                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                                     {person.program_description ||
                                         (curriculumOptions.find(item => String(item.curriculum_id) === String(person.program ?? person.curriculum_id))?.program_code) ||
                                         " "}
                                 </TableCell>
 
                                 {/* Year Level */}
-                                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                                     {person.year_level_description ?? ""}
                                 </TableCell>
 
-                                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                                     {person.birthOfDate}
                                 </TableCell>
 
-                                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                                     {person.gender === 0 ? "MALE" : person.gender === 1 ? "FEMALE" : ""}
                                 </TableCell>
 
-                                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                                     {getRemarkText(person.en_remarks) ?? ""}
                                 </TableCell>
 
-                                <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                                <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                                     <Button
                                         variant="contained"
                                         size="small"
@@ -1392,7 +1434,7 @@ const StudentList = () => {
                                     colSpan={10}
                                     sx={{
                                         textAlign: "center",
-                                        border: `2px solid ${borderColor}`,
+                                        border: `1px solid ${borderColor}`,
                                         color: "#777",
                                         py: 3,
                                     }}

@@ -1049,7 +1049,7 @@ const StudentDashboard1 = () => {
               sx={{
                 minHeight: 60,
                 borderRadius: 2,
-                border: `2px solid ${borderColor}`,
+                border: `1px solid ${borderColor}`,
                 backgroundColor: "#fff",
                 display: "flex",
                 flexDirection: "row",
@@ -1159,7 +1159,7 @@ const StudentDashboard1 = () => {
                       width: 50,
                       height: 50,
                       borderRadius: "50%",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                       backgroundColor:
                         activeStep === index
                           ? settings?.header_color || "#1976d2"
@@ -1209,7 +1209,7 @@ const StudentDashboard1 = () => {
             maxWidth="100%"
             sx={{
               backgroundColor: settings?.header_color || "#1976d2",
-              border: "2px solid black",
+              border: `1px solid ${borderColor}`,
               maxHeight: "500px",
               overflowY: "auto",
               color: "white",
@@ -1235,7 +1235,7 @@ const StudentDashboard1 = () => {
             maxWidth="100%"
             sx={{
               backgroundColor: "#f1f1f1",
-              border: "2px solid black",
+             border: `1px solid ${borderColor}`,
               padding: 4,
               borderRadius: 2,
               boxShadow: 3,
@@ -3263,7 +3263,7 @@ const StudentDashboard1 = () => {
                     onClick={handleUpload}
                     sx={{
                       backgroundcolor: mainButtonColor,
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                       color: "white",
                       fontWeight: "bold",
                       "&:hover": {
@@ -3286,7 +3286,7 @@ const StudentDashboard1 = () => {
                 disabled={isReadOnly}
                 sx={{
                   backgroundColor: mainButtonColor,
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   color: "#fff", // Set text color to white
                   marginRight: "5px", // Add margin between buttons
                   "&:hover": {
@@ -3323,7 +3323,7 @@ const StudentDashboard1 = () => {
                 }
                 sx={{
                   backgroundColor: mainButtonColor,
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   color: "#fff",
                   "&:hover": {
                     backgroundColor: "#000000",

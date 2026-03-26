@@ -432,7 +432,7 @@ const CoursePanel = () => {
   const styles = {
     section: {
       padding: 16,
-      border: `2px solid ${borderColor}`,
+      border: `1px solid ${borderColor}`,
       borderRadius: 6,
       marginBottom: 24,
       backgroundColor: "#fff",
@@ -449,7 +449,7 @@ const CoursePanel = () => {
       textAlign: "center",
     },
     tableCell: {
-      border: `2px solid ${borderColor}`,
+      border: `1px solid ${borderColor}`,
       padding: "8px",
       textAlign: "center",
     },
@@ -538,7 +538,7 @@ const CoursePanel = () => {
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
-      <TableContainer component={Paper} sx={{ width: "100%", border: `2px solid ${borderColor}` }}>
+      <TableContainer component={Paper} sx={{ width: "100%", border: `1px solid ${borderColor}` }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
             <TableRow>
@@ -553,7 +553,7 @@ const CoursePanel = () => {
       <Paper
         elevation={2}
         sx={{
-          border: `2px solid ${borderColor}`,
+          border: `1px solid ${borderColor}`,
           borderRadius: 2,
           p: 3,
           mb: 4,
@@ -694,7 +694,7 @@ const CoursePanel = () => {
               <TableCell
                 colSpan={10}
                 sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   py: 0.5,
                   backgroundColor: settings?.header_color || "#1976d2",
                   color: "white",
@@ -860,7 +860,7 @@ const CoursePanel = () => {
                 <th
                   key={header}
                   style={{
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     backgroundColor: "#f5f5f5",
                     color: "#000",
                     padding: "8px",
@@ -974,7 +974,7 @@ const CoursePanel = () => {
               <TableCell
                 colSpan={10}
                 sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   py: 0.5,
                   backgroundColor: settings?.header_color || "#1976d2",
                   color: "white",

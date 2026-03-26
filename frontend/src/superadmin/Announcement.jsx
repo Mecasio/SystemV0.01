@@ -276,7 +276,7 @@ const AnnouncementPanel = () => {
 
             <TableContainer
                 component={Paper}
-                sx={{ width: "100%", border: `2px solid ${borderColor}` }}
+                sx={{ width: "100%", border: `1px solid ${borderColor}` }}
             >
                 <Table size="small">
                     <TableHead
@@ -288,7 +288,7 @@ const AnnouncementPanel = () => {
                             <TableCell
                                 colSpan={6}
                                 sx={{
-                                    border: `2px solid ${borderColor}`,
+                                    border: `1px solid ${borderColor}`,
                                     py: 0.5,
                                     color: "white",
                                 }}
@@ -413,7 +413,7 @@ const AnnouncementPanel = () => {
                             <tr>
                                 <th
                                     style={{
-                                        border: `2px solid ${borderColor}`,
+                                        border: `1px solid ${borderColor}`,
                                         padding: "12px",
                                         backgroundColor: "#f5f5f5",
                                         color: "black",
@@ -424,7 +424,7 @@ const AnnouncementPanel = () => {
                                 </th>
                                 <th
                                     style={{
-                                        border: `2px solid ${borderColor}`,
+                                        border: `1px solid ${borderColor}`,
                                         padding: "12px",
                                         backgroundColor: "#f5f5f5",
                                         color: "black",
@@ -435,7 +435,7 @@ const AnnouncementPanel = () => {
                                 </th>
                                 <th
                                     style={{
-                                        border: `2px solid ${borderColor}`,
+                                        border: `1px solid ${borderColor}`,
                                         padding: "12px",
                                         backgroundColor: "#f5f5f5",
                                         color: "black",
@@ -446,7 +446,7 @@ const AnnouncementPanel = () => {
                                 </th>
                                 <th
                                     style={{
-                                        border: `2px solid ${borderColor}`,
+                                        border: `1px solid ${borderColor}`,
                                         padding: "12px",
                                         backgroundColor: "#f5f5f5",
                                         color: "black",
@@ -457,7 +457,7 @@ const AnnouncementPanel = () => {
                                 </th>
                                 <th
                                     style={{
-                                        border: `2px solid ${borderColor}`,
+                                        border: `1px solid ${borderColor}`,
                                         padding: "12px",
                                         backgroundColor: "#f5f5f5",
                                         color: "black",
@@ -468,7 +468,7 @@ const AnnouncementPanel = () => {
                                 </th>
                                 <th
                                     style={{
-                                        border: `2px solid ${borderColor}`,
+                                        border: `1px solid ${borderColor}`,
                                         padding: "12px",
                                         backgroundColor: "#f5f5f5",
                                         color: "black",
@@ -482,17 +482,17 @@ const AnnouncementPanel = () => {
                         <tbody>
                             {paginatedAnnouncements.map((a) => (
                                 <tr key={a.id} style={{ height: "75px" }}>
-                                    <td style={{ border: `2px solid ${borderColor}`, padding: "8px", textAlign: "center", width: "200px" }}>
+                                    <td style={{ border: `1px solid ${borderColor}`, padding: "8px", textAlign: "center", width: "200px" }}>
                                         {a.title}
                                     </td>
-                                    <td style={{ border: `2px solid ${borderColor}`, padding: "8px", textAlign: "center", width: "200px" }}>
+                                    <td style={{ border: `1px solid ${borderColor}`, padding: "8px", textAlign: "center", width: "200px" }}>
                                         {a.content}
                                     </td>
 
                                     {/* Image Cell */}
                                     <td
                                         style={{
-                                            border: `2px solid ${borderColor}`,
+                                            border: `1px solid ${borderColor}`,
                                             padding: "8px",
                                             width: "200px",
                                             height: "150px",
@@ -516,20 +516,20 @@ const AnnouncementPanel = () => {
                                         )}
                                     </td>
 
-                                    <td style={{ border: `2px solid ${borderColor}`, padding: "8px", textAlign: "center" }}>
+                                    <td style={{ border: `1px solid ${borderColor}`, padding: "8px", textAlign: "center" }}>
                                         {a.valid_days === null || a.valid_days === 0 || a.valid_days === "permanent"
                                             ? "Permanent"
                                             : `${a.valid_days} Day(s)`
                                         }
                                     </td>
-                                    <td style={{ border: `2px solid ${borderColor}`, padding: "8px", textAlign: "center" }}>
+                                    <td style={{ border: `1px solid ${borderColor}`, padding: "8px", textAlign: "center" }}>
                                         {a.target_role}
                                     </td>
 
                                     {/* Actions Cell */}
                                     <td
                                         style={{
-                                            border: `2px solid ${borderColor}`,
+                                            border: `1px solid ${borderColor}`,
                                             padding: "8px",
                                             textAlign: "center",
                                             width: "150px",
@@ -591,7 +591,7 @@ const AnnouncementPanel = () => {
             </Grid>
             <TableContainer
                 component={Paper}
-                sx={{ width: "100%", border: `2px solid ${borderColor}` }}
+                sx={{ width: "100%", border: `1px solid ${borderColor}` }}
             >
                 <Table size="small">
                     <TableHead
@@ -603,7 +603,7 @@ const AnnouncementPanel = () => {
                             <TableCell
                                 colSpan={6}
                                 sx={{
-                                    border: `2px solid ${borderColor}`,
+                                    border: `1px solid ${borderColor}`,
                                     py: 0.5,
                                     color: "white",
                                 }}
@@ -709,7 +709,7 @@ const AnnouncementPanel = () => {
             <br />
             <br />
 
-            <TableContainer component={Paper} sx={{ width: '50%', border: `2px solid ${borderColor}`, }}>
+            <TableContainer component={Paper} sx={{ width: '50%', border: `1px solid ${borderColor}`, }}>
                 <Table>
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
                         <TableRow>
@@ -724,7 +724,7 @@ const AnnouncementPanel = () => {
                         ref={formRef}
                         sx={{
                             p: 3,
-                            border: `2px solid ${borderColor}`,
+                            border: `1px solid ${borderColor}`,
                             width: "50%",
                             boxShadow: 2,
                         }}

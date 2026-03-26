@@ -776,11 +776,15 @@ const CertificateOfRegistration = forwardRef(
                                   lineHeight: "1",
                                 }}
                               >
-                                <div>Republic of the Philippines</div>
+                                <div style={{ fontFamily: "Arial", fontSize: "13px" }}>
+                                  Republic of the Philippines
+                                </div>
                                 <div
                                   style={{
                                     fontWeight: "bold",
                                     fontFamily: "Arial",
+                                    fontSize: "16px",
+                                    textTransform: "Uppercase"
                                   }}
                                 >
                                   {firstLine}
@@ -790,12 +794,23 @@ const CertificateOfRegistration = forwardRef(
                                     style={{
                                       fontWeight: "bold",
                                       fontFamily: "Arial",
+                                      fontSize: "16px",
+                                      textTransform: "Uppercase"
                                     }}
                                   >
                                     {secondLine}
                                   </div>
                                 )}
-                                <div>{campusAddress}</div>
+                                {campusAddress && (
+                                  <div
+                                    style={{
+                                      fontSize: "13px",
+                                      fontFamily: "Arial",
+                                    }}
+                                  >
+                                    {campusAddress}
+                                  </div>
+                                )}
 
                                 {/* Add spacing here */}
                                 <div style={{ marginTop: "30px" }}>
@@ -1019,13 +1034,13 @@ const CertificateOfRegistration = forwardRef(
                         />
                         {curriculumOptions.length > 0
                           ? curriculumOptions
-                              .find(
-                                (item) =>
-                                  item?.curriculum_id?.toString() ===
-                                  (person?.program ?? "").toString(),
-                              )
-                              ?.program_description?.toUpperCase() ||
-                            (person?.program?.toString()?.toUpperCase() ?? "")
+                            .find(
+                              (item) =>
+                                item?.curriculum_id?.toString() ===
+                                (person?.program ?? "").toString(),
+                            )
+                            ?.program_description?.toUpperCase() ||
+                          (person?.program?.toString()?.toUpperCase() ?? "")
                           : "LOADING..."}
                       </td>
                     </tr>
@@ -1182,7 +1197,7 @@ const CertificateOfRegistration = forwardRef(
                           value={
                             major
                               ? major.charAt(0).toUpperCase() +
-                                major.slice(1).toLowerCase()
+                              major.slice(1).toLowerCase()
                               : ""
                           }
                           style={{

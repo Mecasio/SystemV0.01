@@ -72,44 +72,44 @@ const AdminDashboard3 = () => {
 
 
   const stepsData = [
-   {
-       label: "Admission Process for Registrar",
-       to: "/applicant_list_admin",
-       icon: <SchoolIcon fontSize="large" />,
-     },
-     {
-       label: "Applicant Form",
-       to: "/admin_dashboard1",
-       icon: <DashboardIcon fontSize="large" />,
-     },
-     {
-       label: "Student Requirements",
-       to: "/student_requirements",
-       icon: <AssignmentIcon fontSize="large" />,
-     },
-     {
-       label: "Verify Schedule Management",
-       to: "/verify_schedule",
-       icon: <ScheduleIcon fontSize="large" />,
-     },
-     {
-       label: "Entrance Exam Schedule Management",
-       to: "/assign_schedule_applicant",
-       icon: <ScheduleIcon fontSize="large" />,
-     },
- 
-     {
-       label: "Examination Permit",
-       to: "/registrar_examination_profile",
-       icon: <PersonSearchIcon fontSize="large" />,
-     },
- 
- 
-     {
-       label: "Entrance Examination Score",
-       to: "/applicant_scoring",
-       icon: <ScoreIcon fontSize="large" />,
-     },
+    {
+      label: "Admission Process for Registrar",
+      to: "/applicant_list_admin",
+      icon: <SchoolIcon fontSize="large" />,
+    },
+    {
+      label: "Applicant Form",
+      to: "/admin_dashboard1",
+      icon: <DashboardIcon fontSize="large" />,
+    },
+    {
+      label: "Student Requirements",
+      to: "/student_requirements",
+      icon: <AssignmentIcon fontSize="large" />,
+    },
+    {
+      label: "Verify Schedule Management",
+      to: "/verify_schedule",
+      icon: <ScheduleIcon fontSize="large" />,
+    },
+    {
+      label: "Entrance Exam Schedule Management",
+      to: "/assign_schedule_applicant",
+      icon: <ScheduleIcon fontSize="large" />,
+    },
+
+    {
+      label: "Examination Permit",
+      to: "/registrar_examination_profile",
+      icon: <PersonSearchIcon fontSize="large" />,
+    },
+
+
+    {
+      label: "Entrance Examination Score",
+      to: "/applicant_scoring",
+      icon: <ScoreIcon fontSize="large" />,
+    },
   ];
   const [currentStep, setCurrentStep] = useState(1);
   const [visitedSteps, setVisitedSteps] = useState(Array(stepsData.length).fill(false));
@@ -544,28 +544,28 @@ const AdminDashboard3 = () => {
   };
 
   const handleExamPermitClick = async () => {
-     try {
-       const res = await axios.get(`${API_BASE_URL}/api/verified-exam-applicants`);
-       const verified = res.data.some(a => a.person_id === parseInt(userID));
- 
-       if (!verified) {
-         setExamPermitError("❌ You cannot print the Exam Permit until all required documents are verified.");
-         setExamPermitModalOpen(true);
-         return;
-       }
- 
-       // ✅ Render permit and print
-       setShowPrintView(true);
-       setTimeout(() => {
-         printDiv();
-         setShowPrintView(false);
-       }, 500);
-     } catch (err) {
-       console.error("Error verifying exam permit eligibility:", err);
-       setExamPermitError("⚠️ Unable to check document verification status right now.");
-       setExamPermitModalOpen(true);
-     }
-   };
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/verified-exam-applicants`);
+      const verified = res.data.some(a => a.person_id === parseInt(userID));
+
+      if (!verified) {
+        setExamPermitError("❌ You cannot print the Exam Permit until all required documents are verified.");
+        setExamPermitModalOpen(true);
+        return;
+      }
+
+      // ✅ Render permit and print
+      setShowPrintView(true);
+      setTimeout(() => {
+        printDiv();
+        setShowPrintView(false);
+      }, 500);
+    } catch (err) {
+      console.error("Error verifying exam permit eligibility:", err);
+      setExamPermitError("⚠️ Unable to check document verification status right now.");
+      setExamPermitModalOpen(true);
+    }
+  };
 
   const links = [
     {
@@ -629,7 +629,7 @@ const AdminDashboard3 = () => {
 
   // Put this at the very bottom before the return 
   if (loading || hasAccess === null) {
-   return <LoadingOverlay open={loading} message="Loading..." />;
+    return <LoadingOverlay open={loading} message="Loading..." />;
   }
 
   if (!hasAccess) {
@@ -640,7 +640,7 @@ const AdminDashboard3 = () => {
 
 
   return (
-     <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
+    <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
       {showPrintView && (
         <div ref={divToPrintRef} style={{ display: "block" }}>
           <ExamPermit personId={userID} />   {/* ✅ pass the searched person_id */}
@@ -670,7 +670,7 @@ const AdminDashboard3 = () => {
           ADMISSION SHIFTING FORM - EDUCATIONAL ATTAINMENT
         </Typography>
       </Box>
-     <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+      <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
       <br />
 
@@ -698,7 +698,7 @@ const AdminDashboard3 = () => {
                 justifyContent: "center",
                 cursor: "pointer",
                 borderRadius: 2,
-                border: `2px solid ${borderColor}`,
+                border: `1px solid ${borderColor}`,
                 backgroundColor: currentStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
                 color: currentStep === index ? "#fff" : "#000",
                 boxShadow:
@@ -747,7 +747,7 @@ const AdminDashboard3 = () => {
 
       <TableContainer component={Paper} sx={{ width: '100%', mb: 1 }}>
         <Table>
-          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `2px solid ${borderColor}`, }}>
+          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `1px solid ${borderColor}`, }}>
             <TableRow>
               {/* Left cell: Applicant ID */}
               <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: "Poppins, sans-serif", }}>
@@ -872,7 +872,7 @@ const AdminDashboard3 = () => {
               sx={{
                 minHeight: 60,
                 borderRadius: 2,
-                border: `2px solid ${borderColor}`,
+                border: `1px solid ${borderColor}`,
                 backgroundColor: "#fff",
                 display: "flex",
                 flexDirection: "row",
@@ -985,7 +985,7 @@ const AdminDashboard3 = () => {
                         width: 50,
                         height: 50,
                         borderRadius: "50%",
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
                         color: activeStep === index ? "#fff" : "#000",
                         display: "flex",
@@ -1033,7 +1033,7 @@ const AdminDashboard3 = () => {
             maxWidth="100%"
             sx={{
               backgroundColor: settings?.header_color || "#1976d2",
-              border: "2px solid black",
+              border: `1px solid ${borderColor}`,
               maxHeight: "500px",
               overflowY: "auto",
               color: "white",
@@ -1047,7 +1047,7 @@ const AdminDashboard3 = () => {
             </Box>
           </Container>
 
-          <Container maxWidth="100%" sx={{ backgroundColor: "#f1f1f1", border: `2px solid ${borderColor}`, padding: 4, borderRadius: 2, boxShadow: 3 }}>
+          <Container maxWidth="100%" sx={{ backgroundColor: "#f1f1f1", border: `1px solid ${borderColor}`, padding: 4, borderRadius: 2, boxShadow: 3 }}>
             <Typography style={{ fontSize: "20px", color: mainButtonColor, fontWeight: "bold" }}>Junior High School - Background:</Typography>
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
@@ -1492,7 +1492,7 @@ const AdminDashboard3 = () => {
                   transform: "translate(-50%, -50%)",
                   width: 400,
                   bgcolor: "background.paper",
-                  border: "2px solid #6D2323",
+                  border: `1px solid ${borderColor}`,
                   boxShadow: 24,
                   p: 4,
                   borderRadius: 2,
@@ -1538,7 +1538,7 @@ const AdminDashboard3 = () => {
                 }
                 sx={{
                   backgroundColor: subButtonColor,
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   color: "#000",
                   "&:hover": {
                     backgroundColor: "#000000",
@@ -1572,7 +1572,7 @@ const AdminDashboard3 = () => {
 
 
                   backgroundColor: mainButtonColor,
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   color: '#fff',
                   '&:hover': {
                     backgroundColor: "#000000",

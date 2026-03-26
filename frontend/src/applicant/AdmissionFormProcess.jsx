@@ -489,12 +489,10 @@ const AdmissionFormProcess = () => {
                   </div>
                   <div
                     style={{
-                       letterSpacing: "1px",
                       fontWeight: "bold",
                       fontFamily: "Arial",
-                      fontSize: "20px"
-
-
+                      fontSize: "16px",
+                      textTransform: "Uppercase"
                     }}
                   >
                     {firstLine}
@@ -502,12 +500,10 @@ const AdmissionFormProcess = () => {
                   {secondLine && (
                     <div
                       style={{
-                          letterSpacing: "1px",
-                      fontWeight: "bold",
-                      fontFamily: "Arial",
-                      fontSize: "20px"
-
-
+                        fontWeight: "bold",
+                        fontFamily: "Arial",
+                        fontSize: "16px",
+                        textTransform: "Uppercase"
                       }}
                     >
                       {secondLine}
@@ -1673,11 +1669,10 @@ const AdmissionFormProcess = () => {
                   </div>
                   <div
                     style={{
-                       letterSpacing: "1px",
                       fontWeight: "bold",
                       fontFamily: "Arial",
-                      fontSize: "20px"
-
+                      fontSize: "16px",
+                      textTransform: "Uppercase"
 
                     }}
                   >
@@ -1686,11 +1681,10 @@ const AdmissionFormProcess = () => {
                   {secondLine && (
                     <div
                       style={{
-                           letterSpacing: "1px",
-                      fontWeight: "bold",
-                      fontFamily: "Arial",
-                      fontSize: "20px"
-
+                        fontWeight: "bold",
+                        fontFamily: "Arial",
+                        fontSize: "16px",
+                        textTransform: "Uppercase"
 
                       }}
                     >
@@ -1701,7 +1695,6 @@ const AdmissionFormProcess = () => {
                     <div
                       style={{
                         fontSize: "13px",
-                       
                         fontFamily: "Arial",
                       }}
                     >

@@ -1200,7 +1200,7 @@ ${officeName}`
                             justifyContent: "center",
                             cursor: "pointer",
                             borderRadius: 2,
-                            border: `2px solid ${borderColor}`,
+                            border: `1px solid ${borderColor}`,
                             backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
                             color: activeStep === index ? "#fff" : "#000",
                             boxShadow:
@@ -1226,7 +1226,7 @@ ${officeName}`
             <br />
             <br />
 
-            <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+            <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
                 <Table>
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
                         <TableRow>
@@ -1241,7 +1241,7 @@ ${officeName}`
 
                     p: 3,
 
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     bgcolor: "white",
                     boxShadow: "0 3px 12px rgba(0,0,0,0.1)",
 
@@ -1262,7 +1262,7 @@ ${officeName}`
                                 onChange={(e) => setSelectedSchedule(e.target.value)}
                                 variant="outlined"
                                 sx={{
-                                    border: `2px solid ${borderColor}`,
+                                    border: `1px solid ${borderColor}`,
                                     borderRadius: 2,
                                     "& .MuiOutlinedInput-notchedOutline": { border: "none" },
                                     bgcolor: "white",
@@ -1322,7 +1322,7 @@ ${officeName}`
                                 InputProps={{ readOnly: true }}
                                 variant="outlined"
                                 sx={{
-                                    border: `2px solid ${borderColor}`,
+                                    border: `1px solid ${borderColor}`,
                                     borderRadius: 2,
                                     "& .MuiOutlinedInput-notchedOutline": { border: "none" },
                                     bgcolor: "#f9f9f9",
@@ -1345,7 +1345,7 @@ ${officeName}`
                                 InputProps={{ readOnly: true }}
                                 variant="outlined"
                                 sx={{
-                                    border: `2px solid ${borderColor}`,
+                                    border: `1px solid ${borderColor}`,
                                     borderRadius: 2,
                                     "& .MuiOutlinedInput-notchedOutline": { border: "none" },
                                     bgcolor: "#f9f9f9",
@@ -1371,7 +1371,7 @@ ${officeName}`
                                 InputProps={{ readOnly: true }}
                                 variant="outlined"
                                 sx={{
-                                    border: `2px solid ${borderColor}`,
+                                    border: `1px solid ${borderColor}`,
                                     borderRadius: 2,
                                     "& .MuiOutlinedInput-notchedOutline": { border: "none" },
                                     bgcolor: "#f9f9f9",
@@ -1640,7 +1640,7 @@ ${officeName}`
                     }}>
                         <TableRow>
                             <TableCell colSpan={10} sx={{
-                                border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2",
+                                border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2",
                                 color: "white"
                             }}>
                                 <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -1808,17 +1808,17 @@ ${officeName}`
                 </Table>
             </TableContainer>
 
-            <TableContainer component={Paper} sx={{ width: "100%", border: `2px solid ${borderColor}` }}>
+            <TableContainer component={Paper} sx={{ width: "100%", border: `1px solid ${borderColor}` }}>
                 <Table size="small">
                     <TableHead sx={{ backgroundColor: "#F1F1F1", }}>
                         <TableRow>
-                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `2px solid ${borderColor}` }}>#</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `2px solid ${borderColor}` }}>Applicant ID</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `2px solid ${borderColor}` }}>Name</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `2px solid ${borderColor}` }}>Program</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `2px solid ${borderColor}` }}>Email Address</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `2px solid ${borderColor}` }}>Date Applied</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `2px solid ${borderColor}` }}>Action</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `1px solid ${borderColor}` }}>#</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `1px solid ${borderColor}` }}>Applicant ID</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `1px solid ${borderColor}` }}>Name</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `1px solid ${borderColor}` }}>Program</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `1px solid ${borderColor}` }}>Email Address</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `1px solid ${borderColor}` }}>Date Applied</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `1px solid ${borderColor}` }}>Action</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -1836,7 +1836,7 @@ ${officeName}`
                                 return (
                                     <TableRow key={person.person_id}>
                                         {/* Auto-increment # */}
-                                        <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}`, fontSize: "12px" }}>
+                                        <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}`, fontSize: "12px" }}>
                                             {indexOfFirstItem + index + 1}
                                         </TableCell>
 
@@ -1845,8 +1845,8 @@ ${officeName}`
                                                 color: "blue",
                                                 cursor: "pointer",
                                                 textAlign: "center",
-                                                border: `2px solid ${borderColor}`,
-                                                borderLeft: "2px solid maroon",
+                                                border: `1px solid ${borderColor}`,
+                                                
                                                 py: 0.5,
                                                 fontSize: "12px",
                                             }}
@@ -1861,8 +1861,8 @@ ${officeName}`
                                                 color: "blue",
                                                 cursor: "pointer",
                                                 textAlign: "left",
-                                                border: `2px solid ${borderColor}`,
-                                                borderLeft: "2px solid maroon",
+                                                border: `1px solid ${borderColor}`,
+                                                
                                                 py: 0.5,
                                                 fontSize: "12px",
                                             }}
@@ -1873,19 +1873,19 @@ ${officeName}`
 
 
                                         {/* Program */}
-                                        <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}`, fontSize: "12px" }}>
+                                        <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}`, fontSize: "12px" }}>
                                             {curriculumOptions.find(
                                                 (item) => item.curriculum_id?.toString() === person.program?.toString()
                                             )?.program_code ?? "N/A"}
                                         </TableCell>
 
                                         {/* Email */}
-                                        <TableCell sx={{ textAlign: "center", border: `2px solid ${borderColor}`, fontSize: "12px" }}>
+                                        <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}`, fontSize: "12px" }}>
                                             {person.emailAddress ?? "N/A"}
                                         </TableCell>
 
                                         <TableCell
-                                            sx={{ textAlign: "center", border: `2px solid ${borderColor}`, fontSize: "12px" }}
+                                            sx={{ textAlign: "center", border: `1px solid ${borderColor}`, fontSize: "12px" }}
                                         >
                                             {(() => {
                                                 if (!person.created_at) return "";
@@ -1907,7 +1907,7 @@ ${officeName}`
                                         <TableCell
                                             sx={{
                                                 textAlign: "center",
-                                                border: `2px solid ${borderColor}`,
+                                                border: `1px solid ${borderColor}`,
                                             }}
                                         >
                                             {!isAssigned ? (

@@ -213,12 +213,12 @@ const Notifications = () => {
 
             <TableContainer component={Paper} sx={{ width: '100%' }}>
                 <Table size="small">
-                    <TableHead sx={{ backgroundColor: '#6D2323', color: "white", border: `2px solid ${borderColor}`, }}>
+                    <TableHead sx={{ backgroundColor: '#6D2323', color: "white", border: `1px solid ${borderColor}`, }}>
                         <TableRow>
                             <TableCell
                                 colSpan={10}
                                 sx={{
-                                    border: `2px solid ${borderColor}`,
+                                    border: `1px solid ${borderColor}`,
                                     py: 0.5,
                                     backgroundColor: settings?.header_color || "#1976d2",
                                     color: "white"
@@ -397,7 +397,7 @@ const Notifications = () => {
                                         <TableCell
                                             colSpan={10}
                                             sx={{
-                                                border: `2px solid ${borderColor}`,
+                                                border: `1px solid ${borderColor}`,
                                                 py: 0.5,
                                                 borderRadius: "5px",
                                                 fontSize: "12px",
@@ -434,7 +434,7 @@ const Notifications = () => {
                                     colSpan={10}
                                     sx={{
                                         textAlign: "center",
-                                        border: `2px solid ${borderColor}`,
+                                        border: `1px solid ${borderColor}`,
                                         fontSize: "12px",
                                         py: 0.5,
                                     }}
@@ -449,12 +449,12 @@ const Notifications = () => {
             </TableContainer>
             <TableContainer component={Paper} sx={{ width: '100%' }}>
                 <Table size="small">
-                    <TableHead sx={{ backgroundColor: '#6D2323', color: "white", border: `2px solid ${borderColor}`, }}>
+                    <TableHead sx={{ backgroundColor: '#6D2323', color: "white", border: `1px solid ${borderColor}`, }}>
                         <TableRow>
                             <TableCell
                                 colSpan={10}
                                 sx={{
-                                    border: `2px solid ${borderColor}`,
+                                    border: `1px solid ${borderColor}`,
                                     py: 0.5,
                                     backgroundColor: settings?.header_color || "#1976d2",
                                     color: "white"

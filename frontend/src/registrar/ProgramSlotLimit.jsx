@@ -393,7 +393,7 @@ const ProgramSlotLimit = () => {
 
       <TableContainer
         component={Paper}
-        sx={{ width: "100%", border: `2px solid ${borderColor}` }}
+        sx={{ width: "100%", border: `1px solid ${borderColor}` }}
       >
         <Table>
           <TableHead
@@ -407,7 +407,7 @@ const ProgramSlotLimit = () => {
           </TableHead>
         </Table>
       </TableContainer>
-      <Paper sx={{ p: 3, mb: 4, border: `2px solid ${borderColor}` }}>
+      <Paper sx={{ p: 3, mb: 4, border: `1px solid ${borderColor}` }}>
         <Box display="flex" gap={2}>
           <FormControl fullWidth>
             <Select

@@ -372,7 +372,7 @@ const LoginEnrollment = ({ setIsAuthenticated }) => {
                     width: "100%",
                     padding: "0.8rem 2.5rem 0.8rem 2.5rem",
                     borderRadius: "6px",
-                    border: `2px solid ${borderColor}`,
+                    border: "2px solid black",
                     height: "55px",
                     fontSize: "1rem",
                     backgroundColor: "white",
@@ -421,7 +421,7 @@ const LoginEnrollment = ({ setIsAuthenticated }) => {
                     className="border"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    style={{ paddingLeft: "2.5rem", height: "55px", border: `2px solid ${borderColor}`, }}
+                    style={{ paddingLeft: "2.5rem", height: "55px", border: "2px solid black", }}
                     autoFocus
                   />
                   <EmailIcon
@@ -444,7 +444,7 @@ const LoginEnrollment = ({ setIsAuthenticated }) => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="border"
-                    style={{ paddingLeft: "2.5rem", height: "55px", border: `2px solid ${borderColor}`, }}
+                    style={{ paddingLeft: "2.5rem", height: "55px", border: "2px solid black", }}
                   />
                   <LockIcon
                     style={{
@@ -489,7 +489,7 @@ const LoginEnrollment = ({ setIsAuthenticated }) => {
                         : loading
                           ? "#ccc"
                           : mainButtonColor,
-                      border: `2px solid ${borderColor}`,
+                      border: "2px solid black",
                       color: "white",
                       height: "50px",
                       borderRadius: "10px",

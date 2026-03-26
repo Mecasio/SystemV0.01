@@ -488,7 +488,7 @@ const PersonalDataForm = () => {
                         <table
                             style={{
                                 marginTop: "-23px",
-                                border: "2px solid black",
+                                border: "1px solid black",
                                 borderCollapse: "collapse",
                                 fontFamily: "Arial",
                                 width: "8in",

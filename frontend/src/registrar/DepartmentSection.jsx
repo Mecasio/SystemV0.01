@@ -328,7 +328,7 @@ const DepartmentSection = () => {
         <Table size="small">
           <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
             <TableRow>
-              <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+              <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                 <Box
                   display="flex"
                   justifyContent="space-between" // Left & right sides
@@ -505,14 +505,14 @@ const DepartmentSection = () => {
           style={{
             width: "100%",
             borderCollapse: "collapse",
-            bborder: `2px solid ${borderColor}`, // outer border
+            bborder: `1px solid ${borderColor}`, // outer border
           }}
         >
           <thead style={{ backgroundColor: "#f5f5f5" }}>
             <tr>
               <th
                 style={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   padding: "8px",
 
                   textAlign: "center",
@@ -523,7 +523,7 @@ const DepartmentSection = () => {
               </th>
               <th
                 style={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   padding: "8px",
 
                   textAlign: "center",
@@ -534,7 +534,7 @@ const DepartmentSection = () => {
               </th>
               <th
                 style={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   padding: "8px",
 
                   textAlign: "center",
@@ -545,7 +545,7 @@ const DepartmentSection = () => {
               </th>
               <th
                 style={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   padding: "8px",
 
                   textAlign: "center",
@@ -562,7 +562,7 @@ const DepartmentSection = () => {
               <tr key={`dept-${section.ds_id || section.id || index}`}>
                 <td
                   style={{
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     padding: "8px",
                     textAlign: "center"
                   }}
@@ -571,7 +571,7 @@ const DepartmentSection = () => {
                 </td>
                 <td
                   style={{
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     padding: "8px",
 
                   }}
@@ -581,7 +581,7 @@ const DepartmentSection = () => {
                 </td>
                 <td
                   style={{
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     padding: "8px",
                     textAlign: "center",
                   }}
@@ -590,7 +590,7 @@ const DepartmentSection = () => {
                 </td>
                 <td
                   style={{
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     padding: "8px",
                     textAlign: "center",
                   }}
@@ -605,7 +605,7 @@ const DepartmentSection = () => {
           <Table size="small">
             <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
               <TableRow>
-                <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+                <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                   <Box
                     display="flex"
                     justifyContent="space-between" // Left & right sides
@@ -785,7 +785,7 @@ const DepartmentSection = () => {
       <br />
 
 
-      <TableContainer component={Paper} sx={{ width: '50%', border: `2px solid ${borderColor}`, }}>
+      <TableContainer component={Paper} sx={{ width: '50%', border: `1px solid ${borderColor}`, }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
@@ -802,7 +802,7 @@ const DepartmentSection = () => {
           p: 3,
           width: "50%",
           boxShadow: 2,
-          border: `2px solid ${borderColor}`,
+          border: `1px solid ${borderColor}`,
           bgcolor: 'white',
           minWidth: 300,  // ensures it doesn’t shrink too much
         }}

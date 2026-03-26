@@ -373,7 +373,7 @@ const EvaluationCRUD = () => {
                             <TableCell
                                 colSpan={10}
                                 sx={{
-                                    border: `2px solid ${borderColor}`,
+                                    border: `1px solid ${borderColor}`,
                                     py: 0.5,
                                     backgroundColor: settings?.header_color || "#1976d2",
                                     color: "white"
@@ -541,7 +541,7 @@ const EvaluationCRUD = () => {
                 component={Paper}
                 sx={{
                     width: "100%",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                 }}
             >
                 <Table>
@@ -638,25 +638,25 @@ const EvaluationCRUD = () => {
             </TableContainer>
             <TableContainer
             component={Paper}
-            sx={{ border: `2px solid ${borderColor}`, marginTop: "2rem" }}
+            sx={{ border: `1px solid ${borderColor}`, marginTop: "2rem" }}
             >
             <Table>
                 <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
                 <TableRow>
-                    <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "center",  border: `2px solid ${borderColor}`, }}>#</TableCell>
-                    <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "center",  border: `2px solid ${borderColor}`, }}>Title</TableCell>
-                    <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "center",  border: `2px solid ${borderColor}`, }}>Description</TableCell>
-                    <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "center",  border: `2px solid ${borderColor}`, }}>Action</TableCell>
+                    <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "center",  border: `1px solid ${borderColor}`, }}>#</TableCell>
+                    <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "center",  border: `1px solid ${borderColor}`, }}>Title</TableCell>
+                    <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "center",  border: `1px solid ${borderColor}`, }}>Description</TableCell>
+                    <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "center",  border: `1px solid ${borderColor}`, }}>Action</TableCell>
                 </TableRow>
                 </TableHead>
                 <TableBody>
                 {categories.length > 0 ? (
                     categories.map((cat, index) => (
                     <TableRow key={cat.id}>
-                        <TableCell sx={{ textAlign: "center",  border: `2px solid ${borderColor}`, }}>{index + 1}</TableCell>
-                        <TableCell sx={{ textAlign: "center",  border: `2px solid ${borderColor}`, }}>{cat.title}</TableCell>
-                        <TableCell sx={{ textAlign: "center",  border: `2px solid ${borderColor}`, }}>{cat.description}</TableCell>
-                        <TableCell sx={{ textAlign: "center",  border: `2px solid ${borderColor}`, }}>
+                        <TableCell sx={{ textAlign: "center",  border: `1px solid ${borderColor}`, }}>{index + 1}</TableCell>
+                        <TableCell sx={{ textAlign: "center",  border: `1px solid ${borderColor}`, }}>{cat.title}</TableCell>
+                        <TableCell sx={{ textAlign: "center",  border: `1px solid ${borderColor}`, }}>{cat.description}</TableCell>
+                        <TableCell sx={{ textAlign: "center",  border: `1px solid ${borderColor}`, }}>
                         <Button
                             variant="contained"
                             sx={{ backgroundColor: "#4CAF50", color: "white" }}
@@ -677,37 +677,37 @@ const EvaluationCRUD = () => {
                 </TableBody>
             </Table>
             </TableContainer>
-            <TableContainer component={Paper} sx={{ border: `2px solid ${borderColor}`, marginTop: "2rem" }}>
+            <TableContainer component={Paper} sx={{ border: `1px solid ${borderColor}`, marginTop: "2rem" }}>
                 <Table>
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
                         <TableRow>
-                            <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "center", border: `2px solid ${borderColor}` }} colSpan={8}>QUESTIONS</TableCell>
-                            <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "center", border: `2px solid ${borderColor}` }} rowSpan={2} colSpan={2}>Action</TableCell>
+                            <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "center", border: `1px solid ${borderColor}` }} colSpan={8}>QUESTIONS</TableCell>
+                            <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "center", border: `1px solid ${borderColor}` }} rowSpan={2} colSpan={2}>Action</TableCell>
                         </TableRow>
                         <TableRow>
-                            <TableCell sx={{ color: "white", width: "1rem", textAlign: "center", border: `2px solid ${borderColor}` }}>#</TableCell>
-                            <TableCell sx={{ color: "white", width: "1rem", textAlign: "center", border: `2px solid ${borderColor}` }}>Category</TableCell>
-                            <TableCell sx={{ color: "white", width: "40rem", textAlign: "center", border: `2px solid ${borderColor}` }}>Description</TableCell>
-                            <TableCell sx={{ color: "white", width: "9rem", textAlign: "center", border: `2px solid ${borderColor}` }}>Choice 1</TableCell>
-                            <TableCell sx={{ color: "white", width: "9rem", textAlign: "center", border: `2px solid ${borderColor}` }}>Choice 2</TableCell>
-                            <TableCell sx={{ color: "white", width: "9rem", textAlign: "center", border: `2px solid ${borderColor}` }}>Choice 3</TableCell>
-                            <TableCell sx={{ color: "white", width: "9rem", textAlign: "center", border: `2px solid ${borderColor}` }}>Choice 4</TableCell>
-                            <TableCell sx={{ color: "white", width: "9rem", textAlign: "center", border: `2px solid ${borderColor}` }}>Choice 5</TableCell>
+                            <TableCell sx={{ color: "white", width: "1rem", textAlign: "center", border: `1px solid ${borderColor}` }}>#</TableCell>
+                            <TableCell sx={{ color: "white", width: "1rem", textAlign: "center", border: `1px solid ${borderColor}` }}>Category</TableCell>
+                            <TableCell sx={{ color: "white", width: "40rem", textAlign: "center", border: `1px solid ${borderColor}` }}>Description</TableCell>
+                            <TableCell sx={{ color: "white", width: "9rem", textAlign: "center", border: `1px solid ${borderColor}` }}>Choice 1</TableCell>
+                            <TableCell sx={{ color: "white", width: "9rem", textAlign: "center", border: `1px solid ${borderColor}` }}>Choice 2</TableCell>
+                            <TableCell sx={{ color: "white", width: "9rem", textAlign: "center", border: `1px solid ${borderColor}` }}>Choice 3</TableCell>
+                            <TableCell sx={{ color: "white", width: "9rem", textAlign: "center", border: `1px solid ${borderColor}` }}>Choice 4</TableCell>
+                            <TableCell sx={{ color: "white", width: "9rem", textAlign: "center", border: `1px solid ${borderColor}` }}>Choice 5</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {filteredQuestion.length > 0 ? (
                             filteredQuestion.map((q, index) => (
                                 <TableRow key={q.question_id}>
-                                    <TableCell style={{ textAlign: "center", border: `2px solid ${borderColor}` }}>{index + 1}</TableCell>
-                                    <TableCell style={{ textAlign: "center", border: `2px solid ${borderColor}` }}>{q.category}</TableCell>
-                                    <TableCell style={{ padding: "0px 20px", border: `2px solid ${borderColor}` }}>{q.question_description}</TableCell>
-                                    <TableCell style={{ textAlign: "center", border: `2px solid ${borderColor}` }}>{q.first_choice}</TableCell>
-                                    <TableCell style={{ textAlign: "center", border: `2px solid ${borderColor}` }}>{q.second_choice}</TableCell>
-                                    <TableCell style={{ textAlign: "center", border: `2px solid ${borderColor}` }}>{q.third_choice}</TableCell>
-                                    <TableCell style={{ textAlign: "center", border: `2px solid ${borderColor}` }}>{q.fourth_choice}</TableCell>
-                                    <TableCell style={{ textAlign: "center", border: `2px solid ${borderColor}` }}>{q.fifth_choice}</TableCell>
-                                    <TableCell style={{ textAlign: "center", border: `2px solid ${borderColor}` }}>
+                                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{index + 1}</TableCell>
+                                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{q.category}</TableCell>
+                                    <TableCell style={{ padding: "0px 20px", border: `1px solid ${borderColor}` }}>{q.question_description}</TableCell>
+                                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{q.first_choice}</TableCell>
+                                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{q.second_choice}</TableCell>
+                                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{q.third_choice}</TableCell>
+                                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{q.fourth_choice}</TableCell>
+                                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{q.fifth_choice}</TableCell>
+                                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
                                         <Button style={{ background: "#4CAF50", color: "white", width: "100px" }} onClick={() => handleEdit(q)}>Edit</Button>
                                     </TableCell>
                                 </TableRow>

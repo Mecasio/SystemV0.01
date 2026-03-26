@@ -502,9 +502,7 @@ const HealthRecord = () => {
                                                 paddingBottom: 0,
                                             }}
                                         >
-                                            <div
-                                                style={{ fontFamily: "Arial", fontSize: "12px" }}
-                                            >
+                                            <div style={{ fontFamily: "Arial", fontSize: "13px" }}>
                                                 Republic of the Philippines
                                             </div>
                                             <div

@@ -1049,7 +1049,7 @@ const ScheduleChecker = () => {
       )}
 
       <br />
-      <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}` }}>
+      <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}` }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
@@ -1066,7 +1066,7 @@ const ScheduleChecker = () => {
             style={{
               width: "100%",
               maxWidth: "600px",
-              border: `2px solid ${borderColor}`,
+              border: `1px solid ${borderColor}`,
               backgroundColor: "white",
               padding: "2rem",
               marginTop: "1rem",

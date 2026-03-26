@@ -327,7 +327,7 @@ const SuperAdminStudentResetPassword = () => {
     color: "white",
     textAlign: "center",
     fontSize: "12px",
-    border: `2px solid ${borderColor}`,
+    border: `1px solid ${borderColor}`,
   };
 
   const paginationButtonStyle = {
@@ -394,7 +394,7 @@ const SuperAdminStudentResetPassword = () => {
   const headerStyle = {
     textAlign: "center",
     fontSize: "12px",
-    border: `2px solid ${borderColor}`,
+    border: `1px solid ${borderColor}`,
   };
 
 
@@ -471,7 +471,7 @@ const SuperAdminStudentResetPassword = () => {
               justifyContent: "center",
               cursor: "pointer",
               borderRadius: 2,
-              border: `2px solid ${borderColor}`,
+              border: `1px solid ${borderColor}`,
               backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
               color: activeStep === index ? "#fff" : "#000",
               boxShadow:
@@ -506,7 +506,7 @@ const SuperAdminStudentResetPassword = () => {
               <TableCell
                 colSpan={6}
                 sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   py: 0.5,
                   backgroundColor: settings?.header_color || "#1976d2",
                   color: "white",
@@ -622,18 +622,18 @@ const SuperAdminStudentResetPassword = () => {
 
                 <TableRow key={i}>
 
-                  <TableCell align="center" sx={{ border: `2px solid ${borderColor}` }}>
+                  <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>
                     {indexOfFirst + i + 1}
                   </TableCell>
 
-                  <TableCell align="center" sx={{ border: `2px solid ${borderColor}` }}>
+                  <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>
                     {s.student_number}
                   </TableCell>
 
                   <TableCell
                     align="left"
                     sx={{
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                       color: "blue",
                       cursor: "pointer",
 
@@ -647,18 +647,18 @@ const SuperAdminStudentResetPassword = () => {
                     {s.fullName}
                   </TableCell>
 
-                  <TableCell align="center" sx={{ border: `2px solid ${borderColor}` }}>
+                  <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>
                     {formatDate(s.birthdate)}
                   </TableCell>
 
-                  <TableCell align="center" sx={{ border: `2px solid ${borderColor}` }}>
+                  <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>
                     {s.email}
                   </TableCell>
 
 
                   <TableCell align="center"
                     sx={{
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                       fontWeight: "bold",
                       color: s.status === 0 ? "green" : "red",
                     }}
@@ -688,7 +688,7 @@ const SuperAdminStudentResetPassword = () => {
               <TableCell
                 colSpan={6}
                 sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   py: 0.5,
                   backgroundColor: settings?.header_color || "#1976d2",
                   color: "white",
@@ -784,7 +784,7 @@ const SuperAdminStudentResetPassword = () => {
       <br />
       <br />
 
-      <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+      <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
@@ -795,7 +795,7 @@ const SuperAdminStudentResetPassword = () => {
       </TableContainer>
 
 
-      <Paper sx={{ p: 3, border: `2px solid ${borderColor}` }}>
+      <Paper sx={{ p: 3, border: `1px solid ${borderColor}` }}>
 
         <Box
           display="grid"

@@ -49,9 +49,7 @@ const RegistrarForgotPassword = lazy(
 );
 const SideBar = lazy(() => import("./components/Sidebar"));
 const ApplicantProfile = lazy(() => import("./components/ApplicantProfile"));
-const ApplicantProfilePermit = lazy(
-  () => import("./components/ApplicantProfile"),
-);
+
 const AnnouncementSlider = lazy(
   () => import("./components/AnnouncementSlider"),
 );
@@ -392,7 +390,6 @@ const StudentScholarshipList = lazy(
   () => import("./superadmin/StudentScholarshipList"),
 );
 const TOSFCrud = lazy(() => import("./superadmin/TOSFCrud"));
-const Receipt = lazy(() => import("./superadmin/Receipt"));
 const ReceiptCounterAssignment = lazy(
   () => import("./superadmin/ReceiptCounterAssignment"),
 );
@@ -2066,14 +2063,7 @@ function App() {
                           </ProtectedRoute>
                         }
                       />
-                      <Route
-                        path="/receipt"
-                        element={
-                          <ProtectedRoute>
-                            <Receipt />
-                          </ProtectedRoute>
-                        }
-                      />
+                 
                       <Route
                         path="/program_payment"
                         element={
@@ -2127,10 +2117,7 @@ function App() {
                         path="/exam-permit/:applicant_number"
                         element={<ExamPermit />}
                       />
-                      <Route
-                        path="/applicant-permit/:applicant_number"
-                        element={<ApplicantProfilePermit />}
-                      />
+             
 
                       <Route
                         path="/student_ecat_application_form"

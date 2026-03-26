@@ -457,7 +457,7 @@ const RegisterProf = () => {
                 <TableCell
                   colSpan={10}
                   sx={{
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     py: 0.5,
                     backgroundColor: settings?.header_color || "#1976d2",
                     color: "white"
@@ -630,7 +630,7 @@ const RegisterProf = () => {
           component={Paper}
           sx={{
             width: "100%",
-            border: `2px solid ${borderColor}`,
+            border: `1px solid ${borderColor}`,
             mb: -2,
           }}
         >
@@ -739,7 +739,7 @@ const RegisterProf = () => {
 
 
       </Box>
-      <TableContainer component={Paper} sx={{ width: "100%", border: `2px solid ${borderColor}`, }}>
+      <TableContainer component={Paper} sx={{ width: "100%", border: `1px solid ${borderColor}`, }}>
         <Table>
           <TableHead sx={{
             backgroundColor: settings?.header_color || "#1976d2",
@@ -751,8 +751,8 @@ const RegisterProf = () => {
                   color: "white",
                   fontWeight: "bold",
                   textAlign: "center",
-                  border: `2px solid ${borderColor}`,
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 EMPLOYEE ID
@@ -762,7 +762,7 @@ const RegisterProf = () => {
                   color: "white",
                   fontWeight: "bold",
                   textAlign: "center",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Image
@@ -772,7 +772,7 @@ const RegisterProf = () => {
                   color: "white",
                   fontWeight: "bold",
                   textAlign: "center",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Full Name
@@ -782,7 +782,7 @@ const RegisterProf = () => {
                   color: "white",
                   fontWeight: "bold",
                   textAlign: "center",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Email
@@ -792,7 +792,7 @@ const RegisterProf = () => {
                   color: "white",
                   fontWeight: "bold",
                   textAlign: "center",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Department
@@ -802,7 +802,7 @@ const RegisterProf = () => {
                   color: "white",
                   fontWeight: "bold",
                   textAlign: "center",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Position
@@ -812,8 +812,8 @@ const RegisterProf = () => {
                   color: "white",
                   fontWeight: "bold",
                   textAlign: "center",
-                  border: `2px solid ${borderColor}`,
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Actions
@@ -823,7 +823,7 @@ const RegisterProf = () => {
                   color: "white",
                   fontWeight: "bold",
                   textAlign: "center",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Status
@@ -837,8 +837,8 @@ const RegisterProf = () => {
 
             {currentProfessors.map((prof) => (
               <TableRow key={prof.prof_id}>
-                <TableCell sx={{ border: `2px solid ${borderColor}`, border: `2px solid ${borderColor}`, }}>{prof.person_id ?? "N/A"}</TableCell>
-                <TableCell sx={{ border: `2px solid ${borderColor}` }}>
+                <TableCell sx={{ border: `1px solid ${borderColor}`, border: `1px solid ${borderColor}`, }}>{prof.person_id ?? "N/A"}</TableCell>
+                <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                   <Avatar
                     src={
                       prof.profile_image
@@ -851,11 +851,11 @@ const RegisterProf = () => {
                     {prof.fname?.[0]}
                   </Avatar>
                 </TableCell>
-                <TableCell sx={{ border: `2px solid ${borderColor}` }}>{`${prof.fname} ${prof.mname || ""} ${prof.lname}`}</TableCell>
-                <TableCell sx={{ border: `2px solid ${borderColor}` }}>{prof.email}</TableCell>
-                <TableCell sx={{ border: `2px solid ${borderColor}` }}>{prof.dprtmnt_name} ({prof.dprtmnt_code})</TableCell>
-                <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>{prof.role}</TableCell>
-                <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                <TableCell sx={{ border: `1px solid ${borderColor}` }}>{`${prof.fname} ${prof.mname || ""} ${prof.lname}`}</TableCell>
+                <TableCell sx={{ border: `1px solid ${borderColor}` }}>{prof.email}</TableCell>
+                <TableCell sx={{ border: `1px solid ${borderColor}` }}>{prof.dprtmnt_name} ({prof.dprtmnt_code})</TableCell>
+                <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>{prof.role}</TableCell>
+                <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                   <Button
                     onClick={() => handleEdit(prof)}
                     sx={{
@@ -870,7 +870,7 @@ const RegisterProf = () => {
                     EDIT
                   </Button>
                 </TableCell>
-                <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                   <Button
                     onClick={() => handleToggleStatus(prof.prof_id, prof.status)}
                     sx={{

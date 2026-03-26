@@ -204,7 +204,7 @@ const YearUpdateForm = () => {
         <Table size="small">
           <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
             <TableRow>
-              <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+              <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                 <Box display="flex" justifyContent="space-between" alignItems="center">
                   <Typography fontSize="14px" fontWeight="bold" color="white">
                     Total Records: {filteredYears.length}
@@ -374,16 +374,16 @@ const YearUpdateForm = () => {
         <table
           className="w-full border border-gray-300"
           style={{
-            border: `2px solid ${borderColor}`,
+            border: `1px solid ${borderColor}`,
             textAlign: "center",
             borderCollapse: "collapse",
           }}
         >
           <thead>
             <tr style={{ backgroundColor: "#F5F5F5", color: "#000" }}>
-              <th style={{ border: `2px solid ${borderColor}`, width: "33.33%", padding: "12px 8px" }}>Year</th>
-              <th style={{ border: `2px solid ${borderColor}`, width: "33.33%", padding: "12px 8px" }}>Status</th>
-              <th style={{ border: `2px solid ${borderColor}`, width: "33.33%", padding: "12px 8px" }}>Action</th>
+              <th style={{ border: `1px solid ${borderColor}`, width: "33.33%", padding: "12px 8px" }}>Year</th>
+              <th style={{ border: `1px solid ${borderColor}`, width: "33.33%", padding: "12px 8px" }}>Status</th>
+              <th style={{ border: `1px solid ${borderColor}`, width: "33.33%", padding: "12px 8px" }}>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -395,9 +395,9 @@ const YearUpdateForm = () => {
                   color: year.status === 1 ? "#155724" : "inherit",
                 }}
               >
-                <td style={{ border: `2px solid ${borderColor}`, padding: "12px 8px" }}>{year.year_description}</td>
-                <td style={{ border: `2px solid ${borderColor}`, padding: "12px 8px" }}>{year.status === 1 ? "Active" : "Inactive"}</td>
-                <td style={{ border: `2px solid ${borderColor}`, padding: "12px 8px" }}>
+                <td style={{ border: `1px solid ${borderColor}`, padding: "12px 8px" }}>{year.year_description}</td>
+                <td style={{ border: `1px solid ${borderColor}`, padding: "12px 8px" }}>{year.status === 1 ? "Active" : "Inactive"}</td>
+                <td style={{ border: `1px solid ${borderColor}`, padding: "12px 8px" }}>
                   <button
                     className="px-4 py-2 rounded text-white"
                     style={{
@@ -426,7 +426,7 @@ const YearUpdateForm = () => {
         <Table size="small">
           <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
             <TableRow>
-              <TableCell colSpan={10} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+              <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                 <Box display="flex" justifyContent="space-between" alignItems="center">
                   <Typography fontSize="14px" fontWeight="bold" color="white">
                     Total Records: {filteredYears.length}

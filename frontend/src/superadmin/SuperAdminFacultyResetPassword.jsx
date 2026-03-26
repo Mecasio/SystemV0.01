@@ -234,7 +234,7 @@ const SuperAdminFacultyResetPassword = () => {
     color: "white",
     textAlign: "center",
     fontSize: "12px",
-    border: `2px solid ${borderColor}`,
+    border: `1px solid ${borderColor}`,
   };
 
 
@@ -242,7 +242,7 @@ const SuperAdminFacultyResetPassword = () => {
   const headerStyle = {
     textAlign: "center",
     fontSize: "12px",
-    border: `2px solid ${borderColor}`,
+    border: `1px solid ${borderColor}`,
   };
 
   const paginationSelectStyle = {
@@ -346,7 +346,7 @@ const SuperAdminFacultyResetPassword = () => {
               justifyContent: "center",
               cursor: "pointer",
               borderRadius: 2,
-              border: `2px solid ${borderColor}`,
+              border: `1px solid ${borderColor}`,
               backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
               color: activeStep === index ? "#fff" : "#000",
               boxShadow:
@@ -381,7 +381,7 @@ const SuperAdminFacultyResetPassword = () => {
               <TableCell
                 colSpan={6}
                 sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   py: 0.5,
                   backgroundColor: settings?.header_color || "#1976d2",
                   color: "white",
@@ -480,21 +480,21 @@ const SuperAdminFacultyResetPassword = () => {
           <TableBody>
             {currentRows.map((f, index) => (
               <TableRow key={index}>
-                <TableCell align="center" sx={{ border: `2px solid ${borderColor}`, textAlign: "center", }}>{indexOfFirstRow + index + 1}</TableCell>
-                <TableCell align="center" sx={{ border: `2px solid ${borderColor}`, textAlign: "center", }}>{f.employee_id}</TableCell>
+                <TableCell align="center" sx={{ border: `1px solid ${borderColor}`, textAlign: "center", }}>{indexOfFirstRow + index + 1}</TableCell>
+                <TableCell align="center" sx={{ border: `1px solid ${borderColor}`, textAlign: "center", }}>{f.employee_id}</TableCell>
 
                 <TableCell
-                  sx={{ color: "blue", cursor: "pointer", border: `2px solid ${borderColor}` }}
+                  sx={{ color: "blue", cursor: "pointer", border: `1px solid ${borderColor}` }}
                   onClick={() => handleNameClick(f)}
                 >
                   {f.fullName}
                 </TableCell>
 
-                <TableCell align="center" sx={{ border: `2px solid ${borderColor}` }}>{f.email}</TableCell>
+                <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>{f.email}</TableCell>
                 <TableCell
                   align="center"
                   sx={{
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     fontWeight: "bold",
                     color: f.status === 0 ? "green" : "red",
                   }}
@@ -518,7 +518,7 @@ const SuperAdminFacultyResetPassword = () => {
               <TableCell
                 colSpan={6}
                 sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   py: 0.5,
                   backgroundColor: settings?.header_color || "#1976d2",
                   color: "white",
@@ -613,7 +613,7 @@ const SuperAdminFacultyResetPassword = () => {
       <br />
       <br />
 
-      <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+      <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
@@ -624,7 +624,7 @@ const SuperAdminFacultyResetPassword = () => {
       </TableContainer>
 
       {/* ================= INFO PANEL ================= */}
-      <Paper sx={{ p: 3, border: `2px solid ${borderColor}` }}>
+      <Paper sx={{ p: 3, border: `1px solid ${borderColor}` }}>
         <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
           <TextField label="Employee ID" value={userInfo?.employee_id || ""} InputProps={{ readOnly: true }} />
           <TextField label="Email" value={userInfo?.email || ""} InputProps={{ readOnly: true }} />

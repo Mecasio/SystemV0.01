@@ -912,7 +912,7 @@ const AdminApplicantList = () => {
   const [applicants, setApplicants] = useState([]);
   const divToPrintRef = useRef();
 
-const printDiv = () => {
+  const printDiv = () => {
     // ✅ Determine dynamic campus address (dropdown or custom)
     let campusAddress = "";
     if (settings?.campus_address && settings.campus_address.trim() !== "") {
@@ -967,8 +967,8 @@ const printDiv = () => {
 
 .print-header img {
   position: absolute;
-  left: 300px; /* adjust if needed */
-  top: 10px;
+  left: 220px; /* adjust if needed */
+  top: -10px;
   width: 120px;
   height: 120px;
   border-radius: 50%;
@@ -992,7 +992,7 @@ const printDiv = () => {
 
 .header-text {
   display: inline-block;
-  padding-left: 120px; /* ✅ VERY IMPORTANT (logo width + spacing) */
+  padding-left: 100px; /* ✅ VERY IMPORTANT (logo width + spacing) */
 }
 
   table {
@@ -1252,7 +1252,7 @@ const printDiv = () => {
               justifyContent: "center",
               cursor: "pointer",
               borderRadius: 2,
-              border: `2px solid ${borderColor}`,
+              border: `1px solid ${borderColor}`,
               backgroundColor:
                 activeStep === index
                   ? settings?.header_color || "#1976d2"
@@ -1290,7 +1290,7 @@ const printDiv = () => {
 
       <TableContainer
         component={Paper}
-        sx={{ width: "100%", border: `2px solid ${borderColor}` }}
+        sx={{ width: "100%", border: `1px solid ${borderColor}` }}
       >
         <Table>
           <TableHead
@@ -1307,7 +1307,7 @@ const printDiv = () => {
 
       <TableContainer
         component={Paper}
-        sx={{ width: "100%", border: `2px solid ${borderColor}`, p: 2 }}
+        sx={{ width: "100%", border: `1px solid ${borderColor}`, p: 2 }}
       >
         <Box
           display="flex"
@@ -1426,7 +1426,7 @@ const printDiv = () => {
               <TableCell
                 colSpan={10}
                 sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   py: 0.5,
                   backgroundColor: settings?.header_color || "#1976d2",
                   color: "white",
@@ -1605,7 +1605,7 @@ const printDiv = () => {
 
       <TableContainer
         component={Paper}
-        sx={{ width: "100%", border: `2px solid ${borderColor}`, p: 2 }}
+        sx={{ width: "100%", border: `1px solid ${borderColor}`, p: 2 }}
       >
         <Box
           display="flex"
@@ -1823,7 +1823,7 @@ const printDiv = () => {
                   width: "2%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 #
@@ -1835,7 +1835,7 @@ const printDiv = () => {
                   width: "3%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Submitted Orig Documents
@@ -1847,7 +1847,7 @@ const printDiv = () => {
                   width: "4%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Applicant ID
@@ -1859,7 +1859,7 @@ const printDiv = () => {
                   width: "25%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Name
@@ -1871,7 +1871,7 @@ const printDiv = () => {
                   width: "6%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Birth of Date
@@ -1883,7 +1883,7 @@ const printDiv = () => {
                   width: "6%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Email Address
@@ -1895,7 +1895,7 @@ const printDiv = () => {
                   width: "10%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Program
@@ -1907,7 +1907,7 @@ const printDiv = () => {
                   width: "6%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 JHS GWA
@@ -1919,7 +1919,7 @@ const printDiv = () => {
                   width: "6%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 SHS GWA
@@ -1931,7 +1931,7 @@ const printDiv = () => {
                   width: "8%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Strand
@@ -1943,7 +1943,7 @@ const printDiv = () => {
                   width: "8%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Date Applied
@@ -1956,7 +1956,7 @@ const printDiv = () => {
                   width: "16%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Applicant Status
@@ -1968,12 +1968,12 @@ const printDiv = () => {
                   width: "15%",
                   py: 0.5,
                   fontSize: "12px",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                 }}
               >
                 Remarks
               </TableCell>
-              {/* <TableCell sx={{ color: "white", textAlign: "center", width: "8%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>
+              {/* <TableCell sx={{ color: "white", textAlign: "center", width: "8%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 Registrar Status
                             </TableCell> */}
             </TableRow>
@@ -2035,7 +2035,7 @@ const printDiv = () => {
                 <TableCell
                   sx={{
                     textAlign: "center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     fontSize: "12px",
                   }}
                 >
@@ -2046,7 +2046,7 @@ const printDiv = () => {
                 <TableCell
                   sx={{
                     textAlign: "center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     fontSize: "12px",
                   }}
                 >
@@ -2090,7 +2090,7 @@ const printDiv = () => {
                   className="clickable-cell"
                   sx={{
                     textAlign: "center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     cursor: "pointer",
                     color: "blue",
                     fontSize: "12px",
@@ -2105,7 +2105,7 @@ const printDiv = () => {
                   className="clickable-cell"
                   sx={{
                     textAlign: "left",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     cursor: "pointer",
                     color: "blue",
                     fontSize: "12px",
@@ -2118,7 +2118,7 @@ const printDiv = () => {
                 <TableCell
                   sx={{
                     textAlign: "center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     fontSize: "12px",
                   }}
                 >
@@ -2143,7 +2143,7 @@ const printDiv = () => {
                 <TableCell
                   sx={{
                     textAlign: "center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     fontSize: "12px",
                   }}
                 >
@@ -2154,7 +2154,7 @@ const printDiv = () => {
                 <TableCell
                   sx={{
                     textAlign: "center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     fontSize: "12px",
                   }}
                 >
@@ -2163,7 +2163,7 @@ const printDiv = () => {
                 <TableCell
                   sx={{
                     textAlign: "center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     fontSize: "12px",
                   }}
                 >
@@ -2173,7 +2173,7 @@ const printDiv = () => {
                 <TableCell
                   sx={{
                     textAlign: "center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     fontSize: "12px",
                   }}
                 >
@@ -2184,7 +2184,7 @@ const printDiv = () => {
                 <TableCell
                   sx={{
                     textAlign: "center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     fontSize: "12px",
                   }}
                 >
@@ -2195,7 +2195,7 @@ const printDiv = () => {
                 <TableCell
                   sx={{
                     textAlign: "center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     fontSize: "12px",
                   }}
                 >
@@ -2218,7 +2218,7 @@ const printDiv = () => {
                 <TableCell
                   sx={{
                     textAlign: "center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     fontSize: "12px",
                   }}
                 >
@@ -2228,7 +2228,7 @@ const printDiv = () => {
                 {/* Docs Button */}
                 <TableCell
                   sx={{
-                    border: `2px solid black`,
+                    border: `1px solid ${borderColor}`,
                     textAlign: "center",
                     verticalAlign: "middle",
 
@@ -2262,7 +2262,7 @@ const printDiv = () => {
                               person.missing_documents.length > 0
                               ? "#FFD580"
                               : "#D6F0FF",
-                        border: "3px solid black",
+                        border: `1px solid ${borderColor}`,
                         color:
                           person.submitted_documents === 1 &&
                             person.registrar_status === 1 &&
@@ -2488,7 +2488,7 @@ const printDiv = () => {
                 colSpan={12}
                 sx={{
                   textAlign: "center",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   color: "#777",
                   py: 3,
                 }}
@@ -2507,7 +2507,7 @@ const printDiv = () => {
               <TableCell
                 colSpan={10}
                 sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   py: 0.5,
                   backgroundColor: settings?.header_color || "#1976d2",
                   color: "white",

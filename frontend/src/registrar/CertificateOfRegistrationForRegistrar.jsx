@@ -233,7 +233,7 @@ const CertificateOfRegistration = forwardRef(
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     const queryPersonId = queryParams.get("person_id");
-    
+
     // do not alter
     useEffect(() => {
       const storedUser = localStorage.getItem("email");
@@ -636,7 +636,7 @@ const CertificateOfRegistration = forwardRef(
         showSnackbar("Error fetching data", "error");
       }
     };
-    
+
     const fetchScholarship = async () => {
       try {
         const res = await axios.get(`${API_BASE_URL}/scholarship_types`);
@@ -652,7 +652,7 @@ const CertificateOfRegistration = forwardRef(
     useEffect(() => {
       fetchTosf();
     }, []);
-    
+
     useEffect(() => {
       fetchScholarship();
     }, []);
@@ -722,7 +722,7 @@ const CertificateOfRegistration = forwardRef(
         ? baseTotalSum - tosf[0]?.nstp_fees
         : baseTotalSum;
       const schoolIdFee = isFirstYearFirstSem
-        ? Number(tosf[0]?.school_id_fees || 0)  
+        ? Number(tosf[0]?.school_id_fees || 0)
         : 0;
       const totalTotalTOSF =
         totalSum +
@@ -985,7 +985,7 @@ const CertificateOfRegistration = forwardRef(
       ? "Saved To Matriculation"
       : "Save Matriculation";
 
-   
+
     // Put this at the very bottom before the return
     if (loading || hasAccess === null) {
       return <LoadingOverlay open={loading} message="Loading..." />;
@@ -1167,7 +1167,7 @@ const CertificateOfRegistration = forwardRef(
                     margin: "0 auto", // Center the table inside the form
                     textAlign: "center",
                     tableLayout: "fixed",
-                     marginTop: "-40px"
+                    marginTop: "-40px"
                   }}
                 >
                   <style>
@@ -1282,11 +1282,15 @@ const CertificateOfRegistration = forwardRef(
                                   fontFamily: "Arial",
                                 }}
                               >
-                                <div>Republic of the Philippines</div>
+                                <div style={{ fontFamily: "Arial", fontSize: "13px" }}>
+                                  Republic of the Philippines
+                                </div>
                                 <div
                                   style={{
                                     fontWeight: "bold",
                                     fontFamily: "Arial",
+                                    fontSize: "16px",
+                                    textTransform: "Uppercase"
                                   }}
                                 >
                                   {firstLine}
@@ -1296,6 +1300,8 @@ const CertificateOfRegistration = forwardRef(
                                     style={{
                                       fontWeight: "bold",
                                       fontFamily: "Arial",
+                                      fontSize: "16px",
+                                      textTransform: "Uppercase"
                                     }}
                                   >
                                     {secondLine}
@@ -1399,7 +1405,7 @@ const CertificateOfRegistration = forwardRef(
 
                         }}
                       >
-                      <b
+                        <b
                           style={{
                             fontFamily: "Arial",
                             fontSize: "12px",
@@ -2141,17 +2147,17 @@ const CertificateOfRegistration = forwardRef(
                         </td>
 
                         <td colSpan={1} style={{ border: "1px solid black" }}>
-                        <input
-                          type="text"
-                          value={
-                            item.course_unit == null
-                              ? ""
-                              : toWholeUnit(item.course_unit)
-                          }
-                          readOnly
-                          style={{
-                            width: "98%",
-                            border: "none",
+                          <input
+                            type="text"
+                            value={
+                              item.course_unit == null
+                                ? ""
+                                : toWholeUnit(item.course_unit)
+                            }
+                            readOnly
+                            style={{
+                              width: "98%",
+                              border: "none",
                               background: "none",
                               textAlign: "center",
                               fontSize: "11px",
@@ -2159,15 +2165,15 @@ const CertificateOfRegistration = forwardRef(
                           />
                         </td>
                         <td colSpan={1} style={{ border: "1px solid black" }}>
-                        <input
-                          type="text"
-                          value={
-                            item.lab_unit == null ? "" : toWholeUnit(item.lab_unit)
-                          }
-                          readOnly
-                          style={{
-                            width: "98%",
-                            border: "none",
+                          <input
+                            type="text"
+                            value={
+                              item.lab_unit == null ? "" : toWholeUnit(item.lab_unit)
+                            }
+                            readOnly
+                            style={{
+                              width: "98%",
+                              border: "none",
                               background: "none",
                               textAlign: "center",
                               fontSize: "11px",
@@ -2175,15 +2181,15 @@ const CertificateOfRegistration = forwardRef(
                           />
                         </td>
                         <td colSpan={2} style={{ border: "1px solid black" }}>
-                        <input
-                          type="text"
-                          value={
-                            toWholeUnit(item.course_unit) +
-                            toWholeUnit(item.lab_unit)
-                          }
-                          style={{
-                            width: "98%",
-                            border: "none",
+                          <input
+                            type="text"
+                            value={
+                              toWholeUnit(item.course_unit) +
+                              toWholeUnit(item.lab_unit)
+                            }
+                            style={{
+                              width: "98%",
+                              border: "none",
                               background: "none",
                               textAlign: "center",
                               fontSize: "11px",
@@ -2193,15 +2199,15 @@ const CertificateOfRegistration = forwardRef(
                         </td>
 
                         <td colSpan={2} style={{ border: "1px solid black" }}>
-                        <input
-                          type="text"
-                          value={
-                            toWholeUnit(item.course_unit) +
-                            toWholeUnit(item.lab_unit)
-                          }
-                          style={{
-                            width: "98%",
-                            border: "none",
+                          <input
+                            type="text"
+                            value={
+                              toWholeUnit(item.course_unit) +
+                              toWholeUnit(item.lab_unit)
+                            }
+                            style={{
+                              width: "98%",
+                              border: "none",
                               background: "none",
                               textAlign: "center",
                               fontSize: "11px",

@@ -117,6 +117,7 @@ function buildSidebarStyles(s = {}, hasDepartment = true) {
   .sb-scroll::-webkit-scrollbar-track { background: transparent; }
   .sb-scroll::-webkit-scrollbar-thumb { background: ${border}; border-radius: 4px; }
 
+  
   .sb-section-label {
     font-size: 14px; font-weight: 700; text-transform: uppercase;
     letter-spacing: .08em; color: #000; padding: 10px 8px 4px;

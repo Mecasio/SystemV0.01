@@ -577,7 +577,7 @@ const CurriculumCourseMap = () => {
 
   const headerStyle = {
     backgroundColor: settings?.header_color || "#1976d2",
-    border: `2px solid ${borderColor}`,
+    border: `1px solid ${borderColor}`,
     color: "white",
     textAlign: "center",
     padding: "8px",
@@ -593,7 +593,7 @@ const CurriculumCourseMap = () => {
 
 
   const cellStyle = {
-    border: `2px solid ${borderColor}`,
+    border: `1px solid ${borderColor}`,
     padding: "8px",
     textAlign: "center"
   };
@@ -720,7 +720,7 @@ const CurriculumCourseMap = () => {
               key={year}
               sx={{
                 mb: 6,
-                border: `2px solid ${borderColor}`,
+                border: `1px solid ${borderColor}`,
                 borderRadius: 2,
                 p: 2,
                 backgroundColor: "#fafafa",
@@ -736,7 +736,7 @@ const CurriculumCourseMap = () => {
                   textTransform: "uppercase",
                   letterSpacing: "1px",
                   backgroundColor: settings?.header_color || "#1976d2",
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   borderRadius: 1,
                   p: 1,
                   mb: 3,
@@ -809,7 +809,7 @@ const CurriculumCourseMap = () => {
                       <Box
                         key={sem}
                         sx={{
-                          border: `2px solid ${borderColor}`,
+                          border: `1px solid ${borderColor}`,
                           borderRadius: 1,
                           p: 2,
                           minHeight: 300,
@@ -826,9 +826,7 @@ const CurriculumCourseMap = () => {
                                   colSpan={6}
                                   style={{
                                     backgroundColor: "#f5f5f5",
-                                    borderLeft: `2px solid ${borderColor}`,
-                                    borderTop: `2px solid ${borderColor}`,
-                                    borderBottom: `2px solid ${borderColor}`,
+                                  border: `1px solid ${borderColor}`,
                                     padding: "10px",
                                     fontWeight: "bold",
                                     textAlign: "left",
@@ -843,9 +841,7 @@ const CurriculumCourseMap = () => {
                                   colSpan={4}
                                   style={{
                                     backgroundColor: "#f5f5f5",
-                                    borderRight: `2px solid ${borderColor}`,
-                                    borderTop: `2px solid ${borderColor}`,
-                                    borderBottom: `2px solid ${borderColor}`,
+                                  border: `1px solid ${borderColor}`,
                                     padding: "10px",
                                     fontWeight: "bold",
                                     textAlign: "right",
@@ -1072,7 +1068,7 @@ const CurriculumCourseMap = () => {
                                   colSpan={81}
                                   style={{
                                     backgroundColor: "#f5f5f5",
-                                    border: "2px solid black",
+                                    border: `1px solid ${borderColor}`,
                                     padding: "10px",
                                     fontWeight: "bold",
                                     textAlign: "left",
@@ -1131,7 +1127,7 @@ const CurriculumCourseMap = () => {
                                   colSpan={81}
                                   style={{
                                     backgroundColor: "#f5f5f5",
-                                    border: "2px solid black",
+                                    border: `1px solid ${borderColor}`,
                                     padding: "10px",
                                     fontWeight: "bold",
                                     textAlign: "left",

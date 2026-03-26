@@ -262,7 +262,7 @@ const RequirementUploader = () => {
 
     return (
       <TableRow key={doc.id}>
-        <TableCell sx={{ fontWeight: 'bold', width: '25%', border: `2px solid ${borderColor}` }}>
+        <TableCell sx={{ fontWeight: 'bold', width: '25%', border: `1px solid ${borderColor}` }}>
           {doc.label}
           {doc.is_optional === 1 && (
             <span style={{ marginLeft: 2 }}>
@@ -274,7 +274,7 @@ const RequirementUploader = () => {
             <span style={{ color: "red", marginLeft: 5 }}>*</span>
           )}
         </TableCell>
-        <TableCell sx={{ width: '25%', border: `2px solid ${borderColor}`, textAlign: "Center" }}>
+        <TableCell sx={{ width: '25%', border: `1px solid ${borderColor}`, textAlign: "Center" }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
             <Box sx={{ width: '220px', flexShrink: 0, textAlign: "center" }}>
               {selectedFiles[doc.id] ? (
@@ -330,7 +330,7 @@ const RequirementUploader = () => {
           </Box>
         </TableCell>
 
-        <TableCell sx={{ width: "25%", border: `2px solid ${borderColor}` }}>
+        <TableCell sx={{ width: "25%", border: `1px solid ${borderColor}` }}>
           {typeof uploaded?.remarks === "string" && uploaded.remarks.trim() !== "" && (
             <Typography
               sx={{
@@ -356,7 +356,7 @@ const RequirementUploader = () => {
           ) : null}
         </TableCell>
 
-        <TableCell sx={{ width: '10%', border: `2px solid ${borderColor}` }}>
+        <TableCell sx={{ width: '10%', border: `1px solid ${borderColor}` }}>
           {uploaded && (
             <Button
               variant="contained"
@@ -377,7 +377,7 @@ const RequirementUploader = () => {
         </TableCell>
 
 
-        <TableCell sx={{ width: '10%', border: `2px solid ${borderColor}` }}>
+        <TableCell sx={{ width: '10%', border: `1px solid ${borderColor}` }}>
           {uploaded && (
             <Button
               onClick={() => handleDelete(uploaded.upload_id)}
@@ -737,16 +737,16 @@ const RequirementUploader = () => {
 
             <TableContainer
               component={Paper}
-              sx={{ width: "95%", mt: 2, border: `2px solid ${borderColor}` }}
+              sx={{ width: "95%", mt: 2, border: `1px solid ${borderColor}` }}
             >
               <Table>
-                <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `2px solid ${borderColor}` }}>
+                <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `1px solid ${borderColor}` }}>
                   <TableRow>
-                    <TableCell sx={{ color: "white", border: `2px solid ${borderColor}` }}>Document</TableCell>
-                    <TableCell sx={{ color: "white", border: `2px solid ${borderColor}` }}>Upload</TableCell>
-                    <TableCell sx={{ color: "white", border: `2px solid ${borderColor}` }}>Remarks</TableCell>
-                    <TableCell sx={{ color: "white", border: `2px solid ${borderColor}` }}>Preview</TableCell>
-                    <TableCell sx={{ color: "white", border: `2px solid ${borderColor}` }}>Delete</TableCell>
+                    <TableCell sx={{ color: "white", border: `1px solid ${borderColor}` }}>Document</TableCell>
+                    <TableCell sx={{ color: "white", border: `1px solid ${borderColor}` }}>Upload</TableCell>
+                    <TableCell sx={{ color: "white", border: `1px solid ${borderColor}` }}>Remarks</TableCell>
+                    <TableCell sx={{ color: "white", border: `1px solid ${borderColor}` }}>Preview</TableCell>
+                    <TableCell sx={{ color: "white", border: `1px solid ${borderColor}` }}>Delete</TableCell>
                   </TableRow>
                 </TableHead>
 

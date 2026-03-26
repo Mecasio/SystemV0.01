@@ -581,7 +581,7 @@ const UserPageAccess = () => {
               <TableCell
                 colSpan={10}
                 sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   py: 0.5,
                   backgroundColor: settings?.header_color || "#1976d2",
                   color: "white",
@@ -783,7 +783,7 @@ const UserPageAccess = () => {
                   sx={{
                     color: "black",
                     fontWeight: "bold",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     textAlign: "center",
                   }}
                 >
@@ -793,7 +793,7 @@ const UserPageAccess = () => {
                   sx={{
                     color: "black",
                     fontWeight: "bold",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     textAlign: "center",
                   }}
                 >
@@ -803,7 +803,7 @@ const UserPageAccess = () => {
                   sx={{
                     color: "black",
                     fontWeight: "bold",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     textAlign: "center",
                   }}
                 >
@@ -813,7 +813,7 @@ const UserPageAccess = () => {
                   sx={{
                     color: "black",
                     fontWeight: "bold",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     textAlign: "center",
                   }}
                 >
@@ -823,7 +823,7 @@ const UserPageAccess = () => {
                   sx={{
                     color: "black",
                     fontWeight: "bold",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     textAlign: "center",
                   }}
                 >
@@ -833,7 +833,7 @@ const UserPageAccess = () => {
                   sx={{
                     color: "black",
                     fontWeight: "bold",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     textAlign: "center",
                   }}
                 >
@@ -843,7 +843,7 @@ const UserPageAccess = () => {
                   sx={{
                     color: "black",
                     fontWeight: "bold",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     textAlign: "center",
                   }}
                 >
@@ -858,7 +858,7 @@ const UserPageAccess = () => {
                   <TableCell
                     sx={{
                       color: "black",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                       textAlign: "center",
                     }}
                   >
@@ -867,14 +867,14 @@ const UserPageAccess = () => {
                   <TableCell
                     sx={{
                       color: "black",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                       textAlign: "center",
                     }}
                   >{`${u.last_name}, ${u.first_name} ${u.middle_name || "."}`}</TableCell>
                   <TableCell
                     sx={{
                       color: "black",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                       textAlign: "center",
                     }}
                   >
@@ -883,7 +883,7 @@ const UserPageAccess = () => {
                   <TableCell
                     sx={{
                       color: "black",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                       textAlign: "center",
                     }}
                   >
@@ -892,7 +892,7 @@ const UserPageAccess = () => {
                   <TableCell
                     sx={{
                       color: "black",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                       textAlign: "center",
                     }}
                   >
@@ -902,7 +902,7 @@ const UserPageAccess = () => {
                     sx={{
                       color: "black",
                       textAlign: "center",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                     }}
                     align="center"
                   >
@@ -919,7 +919,7 @@ const UserPageAccess = () => {
                   <TableCell
                     sx={{
                       color: "black",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                       textAlign: "center",
                     }}
                   >
@@ -944,7 +944,7 @@ const UserPageAccess = () => {
               <TableCell
                 colSpan={10}
                 sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   py: 0.5,
                   backgroundColor: settings?.header_color || "#1976d2",
                   color: "white",
@@ -1150,7 +1150,7 @@ const UserPageAccess = () => {
               Remove All Access
             </Button>
           </Box>
-          <Paper sx={{ border: `2px solid ${borderColor}` }}>
+          <Paper sx={{ border: `1px solid ${borderColor}` }}>
             <TableContainer>
               <Table>
                 <TableHead
@@ -1162,7 +1162,7 @@ const UserPageAccess = () => {
                         color: "white",
                         textAlign: "center",
                         fontWeight: "bold",
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                       }}
                     >
                       #
@@ -1172,7 +1172,7 @@ const UserPageAccess = () => {
                         color: "white",
                         textAlign: "center",
                         fontWeight: "bold",
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                       }}
                     >
                       Page Description
@@ -1182,7 +1182,7 @@ const UserPageAccess = () => {
                         color: "white",
                         textAlign: "center",
                         fontWeight: "bold",
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                       }}
                     >
                       Page Group
@@ -1192,7 +1192,7 @@ const UserPageAccess = () => {
                         color: "white",
                         textAlign: "center",
                         fontWeight: "bold",
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                       }}
                       align="center"
                     >
@@ -1208,7 +1208,7 @@ const UserPageAccess = () => {
                         sx={{
                           color: "black",
                           textAlign: "center",
-                          border: `2px solid ${borderColor}`,
+                          border: `1px solid ${borderColor}`,
                         }}
                       >
                         {i + 1}
@@ -1217,7 +1217,7 @@ const UserPageAccess = () => {
                         sx={{
                           color: "black",
                           textAlign: "center",
-                          border: `2px solid ${borderColor}`,
+                          border: `1px solid ${borderColor}`,
                         }}
                       >
                         {p.page_description}
@@ -1226,7 +1226,7 @@ const UserPageAccess = () => {
                         sx={{
                           color: "black",
                           textAlign: "center",
-                          border: `2px solid ${borderColor}`,
+                          border: `1px solid ${borderColor}`,
                         }}
                       >
                         {p.page_group}
@@ -1235,7 +1235,7 @@ const UserPageAccess = () => {
                         sx={{
                           color: "black",
                           textAlign: "center",
-                          border: `2px solid ${borderColor}`,
+                          border: `1px solid ${borderColor}`,
                         }}
                         align="center"
                       >
@@ -1291,7 +1291,7 @@ const UserPageAccess = () => {
             sx={{ mb: 3 }}
           />
 
-          <Paper sx={{ border: `2px solid ${borderColor}` }}>
+          <Paper sx={{ border: `1px solid ${borderColor}` }}>
             <TableContainer>
               <Table>
                 <TableHead
@@ -1430,7 +1430,7 @@ const UserPageAccess = () => {
             </Button>
           </Box>
 
-          <Paper sx={{ border: `2px solid ${borderColor}` }}>
+          <Paper sx={{ border: `1px solid ${borderColor}` }}>
             <TableContainer>
               <Table>
                 <TableHead

@@ -381,7 +381,7 @@ const ProgramPanel = () => {
       padding: "8px",
       textAlign: "center",
       fontWeight: "bold",
-      border: `2px solid ${borderColor}`,
+      border: `1px solid ${borderColor}`,
       fontSize: "16px",
       color: "#000"
     },
@@ -390,7 +390,7 @@ const ProgramPanel = () => {
       textAlign: "left",
       borderBottom: "1px solid #ddd",
       fontSize: "16px",
-      border: `2px solid ${borderColor}`,
+      border: `1px solid ${borderColor}`,
     },
     editButton: {
       backgroundColor: "green",
@@ -502,7 +502,7 @@ const ProgramPanel = () => {
           <Table size="small">
             <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
               <TableRow>
-                <TableCell colSpan={20} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+                <TableCell colSpan={20} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                   <Box
                     display="flex"
                     justifyContent="space-between"
@@ -743,7 +743,7 @@ const ProgramPanel = () => {
           <Table size="small">
             <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
               <TableRow>
-                <TableCell colSpan={20} sx={{ border: `2px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+                <TableCell colSpan={20} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                   <Box
                     display="flex"
                     justifyContent="space-between"
@@ -923,7 +923,7 @@ const ProgramPanel = () => {
 
         <br />
         <br />
-        <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+        <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
           <Table>
             <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
               <TableRow>
@@ -936,7 +936,7 @@ const ProgramPanel = () => {
           component={Paper}
           sx={{
             width: "100%",
-            border: `2px solid ${borderColor}`,
+            border: `1px solid ${borderColor}`,
             mb: "20px",
             p: 3
           }}

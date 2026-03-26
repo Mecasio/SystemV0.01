@@ -576,13 +576,13 @@ const MedicalRequirements = () => {
           sx={{
             fontWeight: "bold",
             width: "20%",
-            border: `2px solid ${borderColor}`,
+            border: `1px solid ${borderColor}`,
           }}
         >
           {doc.label}
         </TableCell>
 
-        <TableCell sx={{ width: "20%", border: `2px solid ${borderColor}` }}>
+        <TableCell sx={{ width: "20%", border: `1px solid ${borderColor}` }}>
           {uploadId && editingRemarkId === uploadId ? (
             <TextField
               disabled
@@ -666,7 +666,7 @@ const MedicalRequirements = () => {
 
         <TableCell
           align="center"
-          sx={{ width: "15%", border: `2px solid ${borderColor}` }}
+          sx={{ width: "15%", border: `1px solid ${borderColor}` }}
         >
           {uploaded ? (
             uploaded.status === 1 ? (
@@ -732,7 +732,7 @@ const MedicalRequirements = () => {
           ) : null}
         </TableCell>
 
-        <TableCell style={{ border: `2px solid ${borderColor}` }}>
+        <TableCell style={{ border: `1px solid ${borderColor}` }}>
           {uploaded?.created_at &&
             new Date(uploaded.created_at).toLocaleString("en-PH", {
               dateStyle: "medium",
@@ -741,13 +741,13 @@ const MedicalRequirements = () => {
             })}
         </TableCell>
 
-        <TableCell style={{ border: `2px solid ${borderColor}` }}>
+        <TableCell style={{ border: `1px solid ${borderColor}` }}>
           {selectedPerson?.student_number || person?.student_number
             ? `[${selectedPerson?.student_number || person?.student_number}] ${(selectedPerson?.last_name || person?.last_name || "").toUpperCase()}, ${(selectedPerson?.first_name || person?.first_name || "").toUpperCase()} ${(selectedPerson?.middle_name || person?.middle_name || "").toUpperCase()} ${(selectedPerson?.extension || person?.extension || "").toUpperCase()}`
             : ""}
         </TableCell>
 
-        <TableCell style={{ border: `2px solid ${borderColor}` }}>
+        <TableCell style={{ border: `1px solid ${borderColor}` }}>
           <Box display="flex" justifyContent="center" gap={1}>
             {uploaded ? (
               <>
@@ -887,7 +887,7 @@ const MedicalRequirements = () => {
               justifyContent: "center",
               cursor: "pointer",
               borderRadius: 2,
-              border: `2px solid ${borderColor}`,
+              border: `1px solid ${borderColor}`,
               backgroundColor:
                 activeStep === index
                   ? settings?.header_color || "#1976d2"
@@ -926,7 +926,7 @@ const MedicalRequirements = () => {
       {/* Student ID and Name */}
       <TableContainer
         component={Paper}
-        sx={{ width: "100%", border: `2px solid ${borderColor}` }}
+        sx={{ width: "100%", border: `1px solid ${borderColor}` }}
       >
         <Table>
           <TableHead
@@ -1002,7 +1002,7 @@ const MedicalRequirements = () => {
 
       <TableContainer
         component={Paper}
-        sx={{ width: "100%", border: `2px solid ${borderColor}` }}
+        sx={{ width: "100%", border: `1px solid ${borderColor}` }}
       >
         {/* SHS GWA and Height */}
 
@@ -1414,7 +1414,7 @@ const MedicalRequirements = () => {
       <>
         <TableContainer
           component={Paper}
-          sx={{ width: "100%", border: `2px solid ${borderColor}` }}
+          sx={{ width: "100%", border: `1px solid ${borderColor}` }}
         >
           <Table>
             <TableHead
@@ -1434,7 +1434,7 @@ const MedicalRequirements = () => {
                     sx={{
                       color: "white",
                       textAlign: "Center",
-                      border: `2px solid ${borderColor}`,
+                      border: `1px solid ${borderColor}`,
                     }}
                   >
                     {header}

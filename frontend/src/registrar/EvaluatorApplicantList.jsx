@@ -87,7 +87,7 @@ const EvaluatorApplicantList = () => {
   const location = useLocation();
 
 
- const tabs = [
+  const tabs = [
     { label: "Room Registration", to: "/room_registration", icon: <KeyIcon fontSize="large" /> },
     { label: "Verify Documents Room Assignment", to: "/verify_document_schedule", icon: <MeetingRoomIcon fontSize="large" /> },
     // { label: "Verify Documents Schedule Management", to: "/verify_schedule", icon: <ScheduleIcon fontSize="large" /> },
@@ -304,7 +304,7 @@ const EvaluatorApplicantList = () => {
     });
 
     const borderColor = "black"; // table border color
-    const headerColor = settings?.header_color || "#1976d2"; // dynamic header color
+    const headerColor = "lightgray"; // dynamic header color
 
     const htmlContent = `
 <html>
@@ -319,12 +319,32 @@ const EvaluatorApplicantList = () => {
       b.header-title { font-size: 18px !important; }
       table { border-collapse: collapse; width: 100%; margin-top: 10px; }
       th, td { border: 1px solid ${borderColor}; padding: 3px 4px; font-size: 10px; line-height: 1.1; }
-      th { text-align: center; background-color: ${headerColor}; color: white; }
+      th { text-align: center; background-color: ${headerColor}; color: black; }
       th:nth-child(1) { width: 3%; }
       th:nth-child(2) { width: 10%; }
       th:nth-child(3) { width: 25%; }
       th:nth-child(4) { width: 25%; }
       th:nth-child(5) { width: 10%; }
+
+      .header-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin-left: 50px; /* ✅ your requested spacing */
+}
+
+.header-top img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.header-text {
+  display: inline-block;
+  padding-left: 100px; /* ✅ VERY IMPORTANT */
+}
     </style>
   </head>
   <body onload="window.print(); setTimeout(() => window.close(), 100);">
@@ -332,9 +352,9 @@ const EvaluatorApplicantList = () => {
       <div class="print-header">
         <img src="${logoSrc}" alt="School Logo" />
         <div>
-          <div>Republic of the Philippines</div>
-          <b style="letter-spacing:1px; font-size:22px; font-family:'Times New Roman', serif;">${firstLine}</b>
-          ${secondLine ? `<div style="letter-spacing:1px; font-size:22px; font-family:'Times New Roman', serif;"><b>${secondLine}</b></div>` : ""}
+          <div style="font-size: 13px; font-family: Arial">Republic of the Philippines</div>
+          <b style="letter-spacing:1px; font-size:22px; font-family:Arial, serif;">${firstLine}</b>
+          ${secondLine ? `<div style="letter-spacing:1px; font-size:22px; font-family:Arial, serif;"><b>${secondLine}</b></div>` : ""}
           <div style="font-size:12px;">${address}</div>
           <div style="margin-top:25px;"><b style="font-size:22px; letter-spacing:1px;">Evaluator Applicant List</b></div>
         </div>
@@ -495,7 +515,7 @@ const EvaluatorApplicantList = () => {
               justifyContent: "center",
               cursor: "pointer",
               borderRadius: 2,
-              border: `2px solid ${borderColor}`,
+              border: `1px solid ${borderColor}`,
               backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
               color: activeStep === index ? "#fff" : "#000",
               boxShadow:
@@ -611,13 +631,13 @@ const EvaluatorApplicantList = () => {
           <Table>
             <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
               <TableRow>
-                <TableCell sx={{ color: "white", textAlign: "center", border: `2px solid ${borderColor}` }}>#</TableCell>
-                <TableCell sx={{ color: "white", textAlign: "center", border: `2px solid ${borderColor}` }}>Applicant</TableCell>
-                <TableCell sx={{ color: "white", textAlign: "center", border: `2px solid ${borderColor}` }}>Name</TableCell>
-                <TableCell sx={{ color: "white", textAlign: "center", border: `2px solid ${borderColor}` }}>Program</TableCell>
-                <TableCell sx={{ color: "white", textAlign: "center", border: `2px solid ${borderColor}` }}>Building</TableCell>
-                <TableCell sx={{ color: "white", textAlign: "center", border: `2px solid ${borderColor}` }}>Room</TableCell>
-                <TableCell sx={{ color: "white", textAlign: "center", border: `2px solid ${borderColor}` }}>Action</TableCell>
+                <TableCell sx={{ color: "white", textAlign: "center", border: `1px solid ${borderColor}` }}>#</TableCell>
+                <TableCell sx={{ color: "white", textAlign: "center", border: `1px solid ${borderColor}` }}>Applicant</TableCell>
+                <TableCell sx={{ color: "white", textAlign: "center", border: `1px solid ${borderColor}` }}>Name</TableCell>
+                <TableCell sx={{ color: "white", textAlign: "center", border: `1px solid ${borderColor}` }}>Program</TableCell>
+                <TableCell sx={{ color: "white", textAlign: "center", border: `1px solid ${borderColor}` }}>Building</TableCell>
+                <TableCell sx={{ color: "white", textAlign: "center", border: `1px solid ${borderColor}` }}>Room</TableCell>
+                <TableCell sx={{ color: "white", textAlign: "center", border: `1px solid ${borderColor}` }}>Action</TableCell>
 
               </TableRow>
             </TableHead>
@@ -625,12 +645,12 @@ const EvaluatorApplicantList = () => {
             <TableBody>
               {applicants.map((a, idx) => (
                 <TableRow key={idx}>
-                  <TableCell align="center" sx={{ border: `2px solid ${borderColor}` }}>{idx + 1}</TableCell>
-                  <TableCell align="left" sx={{ border: `2px solid ${borderColor}` }}>{a.applicant_number}</TableCell>
-                  <TableCell align="left" sx={{ border: `2px solid ${borderColor}` }}>
+                  <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>{idx + 1}</TableCell>
+                  <TableCell align="left" sx={{ border: `1px solid ${borderColor}` }}>{a.applicant_number}</TableCell>
+                  <TableCell align="left" sx={{ border: `1px solid ${borderColor}` }}>
                     {`${a.last_name}, ${a.first_name} ${a.middle_name || ""}`}
                   </TableCell>
-                  <TableCell align="left" sx={{ border: `2px solid ${borderColor}` }}>
+                  <TableCell align="left" sx={{ border: `1px solid ${borderColor}` }}>
                     {(() => {
                       const item = curriculumOptions.find(
                         (x) => x.curriculum_id?.toString() === a.program?.toString()
@@ -642,13 +662,13 @@ const EvaluatorApplicantList = () => {
                     })()}
                   </TableCell>
 
-                  <TableCell align="left" sx={{ border: `2px solid ${borderColor}` }}>
+                  <TableCell align="left" sx={{ border: `1px solid ${borderColor}` }}>
                     {a.building_description || evaluator?.building_description || "N/A"} {/* ✅ NEW */}
                   </TableCell>
-                  <TableCell align="left" sx={{ border: `2px solid ${borderColor}` }}>
+                  <TableCell align="left" sx={{ border: `1px solid ${borderColor}` }}>
                     {a.room_description || evaluator?.room_description || "N/A"} {/* ✅ NEW */}
                   </TableCell>
-                  <TableCell align="center" sx={{ border: `2px solid ${borderColor}` }}>
+                  <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>
                     <IconButton
                       color="error"
                       onClick={() => {

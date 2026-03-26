@@ -113,7 +113,7 @@ const ProgramTaggingFilter = ({
   return (
     <Box
       sx={{
-        border: `2px solid ${borderColor}`,
+        border: `1px solid ${borderColor}`,
         borderRadius: 2,
         p: 3,
         display: "flex",

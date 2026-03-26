@@ -470,7 +470,7 @@ const PaymentExportingModule = () => {
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
 
-            <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+            <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
                 <Table>
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
                         <TableRow>
@@ -480,7 +480,7 @@ const PaymentExportingModule = () => {
                 </Table>
             </TableContainer>
 
-            <Paper sx={{ p: 3, mb: 4, border: `2px solid ${borderColor}` }}>
+            <Paper sx={{ p: 3, mb: 4, border: `1px solid ${borderColor}` }}>
                 <Grid container spacing={2}>
                     {/* ROW 1 */}
                     <Grid item xs={12} md={1.5}>

@@ -341,7 +341,7 @@ const StudentGradingPage = () => {
                   <TableRow>
                     <TableCell
                       style={{
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         color: "#fff",
                         width: "150px",
                         minWidth: "150px",
@@ -353,7 +353,7 @@ const StudentGradingPage = () => {
                     </TableCell>
                     <TableCell
                       style={{
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         color: "#fff",
                         width: "45rem",
                         minWidth: "45rem",
@@ -365,7 +365,7 @@ const StudentGradingPage = () => {
                     </TableCell>
                     <TableCell
                       style={{
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         color: "#fff",
                         width: "15rem",
                         minWidth: "15rem",
@@ -378,7 +378,7 @@ const StudentGradingPage = () => {
                     </TableCell>
                     <TableCell
                       style={{
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         color: "#fff",
                         width: "5rem",
                         minWidth: "5rem",
@@ -391,7 +391,7 @@ const StudentGradingPage = () => {
                     </TableCell>
                     <TableCell
                       style={{
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         color: "#fff",
                         width: "10rem",
                         minWidth: "10rem",
@@ -404,7 +404,7 @@ const StudentGradingPage = () => {
                     </TableCell>
                     <TableCell
                       style={{
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         color: "#fff",
                       }}
                       align="center"
@@ -413,7 +413,7 @@ const StudentGradingPage = () => {
                     </TableCell>
                     <TableCell
                       style={{
-                        border: `2px solid ${borderColor}`,
+                        border: `1px solid ${borderColor}`,
                         color: "#fff",
                       }}
                       align="center"
@@ -438,7 +438,7 @@ const StudentGradingPage = () => {
                       <TableRow key={i} hover>
                         <TableCell
                           style={{
-                            border: `2px solid ${borderColor}`,
+                            border: `1px solid ${borderColor}`,
                             width: "150px",
                             minWidth: "150px",
                             maxWidth: "150px",
@@ -449,7 +449,7 @@ const StudentGradingPage = () => {
                         </TableCell>
                         <TableCell
                           style={{
-                            border: `2px solid ${borderColor}`,
+                            border: `1px solid ${borderColor}`,
                             width: "45rem",
                             minWidth: "45rem",
                             maxWidth: "45rem",
@@ -460,7 +460,7 @@ const StudentGradingPage = () => {
                         </TableCell>
                         <TableCell
                           sx={{
-                            border: `2px solid ${borderColor}`,
+                            border: `1px solid ${borderColor}`,
                             width: "15rem",
                             minWidth: "15rem",
                             maxWidth: "15rem",
@@ -473,7 +473,7 @@ const StudentGradingPage = () => {
                         </TableCell>
                         <TableCell
                           style={{
-                            border: `2px solid ${borderColor}`,
+                            border: `1px solid ${borderColor}`,
                             width: "5rem",
                             minWidth: "5rem",
                             maxWidth: "5rem",
@@ -485,7 +485,7 @@ const StudentGradingPage = () => {
                         </TableCell>
                         <TableCell
                           style={{
-                            border: `2px solid ${borderColor}`,
+                            border: `1px solid ${borderColor}`,
                             width: "10rem",
                             minWidth: "10rem",
                             maxWidth: "10rem",
@@ -496,7 +496,7 @@ const StudentGradingPage = () => {
                         </TableCell>
                         <TableCell
                           style={{
-                            border: `2px solid ${borderColor}`,
+                            border: `1px solid ${borderColor}`,
                             width: "8rem",
                             minWidth: "8rem",
                             maxWidth: "8rem",
@@ -507,7 +507,7 @@ const StudentGradingPage = () => {
                           {convertNumericToGrade(row.final_grade ?? "")}
                         </TableCell>
                         <TableCell
-                          style={{ border: `2px solid ${borderColor}` }}
+                          style={{ border: `1px solid ${borderColor}` }}
                           align="center"
                         >
                           {row.en_remarks ? getRemarks(row.en_remarks) : ""}
@@ -568,7 +568,7 @@ const StudentGradingPage = () => {
                       <TableRow>
                         <TableCell
                           style={{
-                            border: `2px solid ${borderColor}`,
+                            border: `1px solid ${borderColor}`,
                             width: "8rem",
                             minWidth: "8rem",
                             maxWidth: "8rem",
@@ -579,7 +579,7 @@ const StudentGradingPage = () => {
                         ></TableCell>
                         <TableCell
                           style={{
-                            border: `2px solid ${borderColor}`,
+                            border: `1px solid ${borderColor}`,
                             fontWeight: "bold",
                             color: "#9E0000",
                             fontWeight: "bold",
@@ -592,7 +592,7 @@ const StudentGradingPage = () => {
                         </TableCell>
                         <TableCell
                           style={{
-                            border: `2px solid ${borderColor}`,
+                            border: `1px solid ${borderColor}`,
                             width: "8rem",
                             minWidth: "8rem",
                             maxWidth: "8rem",
@@ -605,7 +605,7 @@ const StudentGradingPage = () => {
                         </TableCell>
                         <TableCell
                           style={{
-                            border: `2px solid ${borderColor}`,
+                            border: `1px solid ${borderColor}`,
                             fontWeight: "bold",
                             backgroundColor: "#f9f9f9",
                           }}

@@ -630,7 +630,7 @@ const exportPDF = async () => {
                             variant="contained"
                             sx={{
                                 backgroundColor: settings?.header_color || "#1976d2",
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 color: "white",
                                 height: "50px",
                                 width: "175px",

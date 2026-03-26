@@ -382,7 +382,7 @@ const FacultyEvaluation = () => {
                         }
                         .chart-card {
                             width: 45%;
-                            border: 2px solid black;
+                            border: 1px solid black;
                             padding: 10px;
                             margin-bottom: 20px;    
                             page-break-inside: avoid;
@@ -413,7 +413,7 @@ const FacultyEvaluation = () => {
                         .no-data {
                             text-align: center;
                             padding: 20px;
-                            border: 2px solid black;
+                            border: 1px solid black;
                             width: 95%;
                             margin: 0 auto;
                         }
@@ -425,7 +425,7 @@ const FacultyEvaluation = () => {
                         <div class="print-header">
                             <img src="${logoSrc}" alt="School Logo" />
                             <div>
-                                <div>Republic of the Philippines</div>
+                                 <div style="font-size: 13px; font-family: Arial">Republic of the Philippines</div>
                                 ${
                                   name
                                     ? `
@@ -609,7 +609,7 @@ const FacultyEvaluation = () => {
               <TableCell
                 colSpan={10}
                 sx={{
-                  border: `2px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   py: 0.5,
                   height: "40px",
                   backgroundColor: settings?.header_color || "#1976d2",
@@ -628,7 +628,7 @@ const FacultyEvaluation = () => {
       </TableContainer>
       <TableContainer
         component={Paper}
-        sx={{ width: "99%", border: `2px solid ${borderColor}`, p: 2 }}
+        sx={{ width: "99%", border: `1px solid ${borderColor}`, p: 2 }}
       >
         <Box
           sx={{
@@ -770,7 +770,7 @@ const FacultyEvaluation = () => {
                     borderRadius: 3,
                     width: 550,
                     height: 400,
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     transition: "transform 0.2s ease",
                     boxShadow: 3,
                     "&:hover": { transform: "scale(1.03)" },
@@ -834,7 +834,7 @@ const FacultyEvaluation = () => {
                 mt: 1,
                 ml: 1,
                 width: "97%",
-                border: `2px solid ${borderColor}`,
+                border: `1px solid ${borderColor}`,
                 p: 10,
                 textAlign: "center",
               }}

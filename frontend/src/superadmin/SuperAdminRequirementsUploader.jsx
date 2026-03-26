@@ -619,7 +619,7 @@ const SuperAdminRequirementsUploader = () => {
           sx={{
             fontWeight: "bold",
             width: "20%",
-            border: `2px solid ${borderColor}`,
+            border: `1px solid ${borderColor}`,
           }}
         >
           {doc.label}
@@ -628,7 +628,7 @@ const SuperAdminRequirementsUploader = () => {
           )}
         </TableCell>
 
-        <TableCell sx={{ width: "20%", border: `2px solid ${borderColor}` }}>
+        <TableCell sx={{ width: "20%", border: `1px solid ${borderColor}` }}>
           {uploadId && editingRemarkId === uploadId ? (
             // 🔥 TEXTFIELD ONLY
             <TextField
@@ -721,7 +721,7 @@ const SuperAdminRequirementsUploader = () => {
 
         <TableCell
           align="center"
-          sx={{ width: "15%", border: `2px solid ${borderColor}` }}
+          sx={{ width: "15%", border: `1px solid ${borderColor}` }}
         >
           {uploaded ? (
             uploaded.status === 1 ? (
@@ -787,7 +787,7 @@ const SuperAdminRequirementsUploader = () => {
           ) : null}
         </TableCell>
 
-        <TableCell style={{ border: `2px solid ${borderColor}` }}>
+        <TableCell style={{ border: `1px solid ${borderColor}` }}>
           {uploaded?.created_at &&
             new Date(uploaded.created_at).toLocaleString("en-PH", {
               dateStyle: "medium",
@@ -796,13 +796,13 @@ const SuperAdminRequirementsUploader = () => {
             })}
         </TableCell>
 
-        <TableCell style={{ border: `2px solid ${borderColor}` }}>
+        <TableCell style={{ border: `1px solid ${borderColor}` }}>
           {selectedPerson?.applicant_number || person?.applicant_number
             ? `[${selectedPerson?.applicant_number || person?.applicant_number}] ${(selectedPerson?.last_name || person?.last_name || "").toUpperCase()}, ${(selectedPerson?.first_name || person?.first_name || "").toUpperCase()} ${(selectedPerson?.middle_name || person?.middle_name || "").toUpperCase()} ${(selectedPerson?.extension || person?.extension || "").toUpperCase()}`
             : ""}
         </TableCell>
 
-        <TableCell style={{ border: `2px solid ${borderColor}` }}>
+        <TableCell style={{ border: `1px solid ${borderColor}` }}>
           <Box display="flex" justifyContent="center" gap={1}>
             {uploaded ? (
               <>
@@ -923,7 +923,7 @@ const SuperAdminRequirementsUploader = () => {
       {/* Applicant ID and Name */}
       <TableContainer
         component={Paper}
-        sx={{ width: "100%", border: `2px solid ${borderColor}` }}
+        sx={{ width: "100%", border: `1px solid ${borderColor}` }}
       >
         <Table>
           <TableHead
@@ -999,7 +999,7 @@ const SuperAdminRequirementsUploader = () => {
 
       <TableContainer
         component={Paper}
-        sx={{ width: "100%", border: `2px solid ${borderColor}` }}
+        sx={{ width: "100%", border: `1px solid ${borderColor}` }}
       >
         <Box sx={{ px: 2, mb: 2, mt: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center", mb: 1, }}>
@@ -1478,7 +1478,7 @@ const SuperAdminRequirementsUploader = () => {
       <>
         <TableContainer
           component={Paper}
-          sx={{ width: "100%", border: `2px solid ${borderColor}` }}
+          sx={{ width: "100%", border: `1px solid ${borderColor}` }}
         >
           <Table>
             <TableHead
@@ -1489,7 +1489,7 @@ const SuperAdminRequirementsUploader = () => {
                   sx={{
                     color: "white",
                     textAlign: "Center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   Document Type
@@ -1498,7 +1498,7 @@ const SuperAdminRequirementsUploader = () => {
                   sx={{
                     color: "white",
                     textAlign: "Center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   Remarks
@@ -1507,7 +1507,7 @@ const SuperAdminRequirementsUploader = () => {
                   sx={{
                     color: "white",
                     textAlign: "Center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   Status
@@ -1516,7 +1516,7 @@ const SuperAdminRequirementsUploader = () => {
                   sx={{
                     color: "white",
                     textAlign: "Center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   Date and Time Submitted
@@ -1525,7 +1525,7 @@ const SuperAdminRequirementsUploader = () => {
                   sx={{
                     color: "white",
                     textAlign: "Center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   User
@@ -1534,14 +1534,14 @@ const SuperAdminRequirementsUploader = () => {
                   sx={{
                     color: "white",
                     textAlign: "Center",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   Action
                 </TableCell>
               </TableRow>
             </TableHead>
-            <TableBody sx={{ border: `2px solid ${borderColor}` }}>
+            <TableBody sx={{ border: `1px solid ${borderColor}` }}>
               {requirements.map((doc) =>
                 renderRow({
                   label: doc.description,

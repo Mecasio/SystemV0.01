@@ -299,7 +299,7 @@ const InterviewScheduleHoverTile = () => {
                             justifyContent: "center",
                             cursor: "pointer",
                             borderRadius: 2,
-                            border: `2px solid ${borderColor}`,
+                            border: `1px solid ${borderColor}`,
                             backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
                             color: activeStep === index ? "#fff" : "#000",
                             boxShadow:
@@ -325,7 +325,7 @@ const InterviewScheduleHoverTile = () => {
             <br />
             <br />
 
-            <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+            <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
                 <Table>
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
                         <TableRow>
@@ -339,7 +339,7 @@ const InterviewScheduleHoverTile = () => {
                 component={Paper}
                 sx={{
                     maxWidth: "100%",
-                    border: `2px solid ${borderColor}`,
+                    border: `1px solid ${borderColor}`,
                     p: 2,
                 }}
             >
@@ -475,7 +475,7 @@ const InterviewScheduleHoverTile = () => {
                                 borderRadius: "16px",
                                 overflow: "hidden",
                                 boxShadow: 4,
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 transition: "0.3s ease",
                                 "&:hover": {
                                     transform: "translateY(-4px) scale(1.03)",

@@ -190,7 +190,7 @@ const SemesterPanel = () => {
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
 
-      <TableContainer component={Paper} sx={{ width: '100%', border: `2px solid ${borderColor}`, }}>
+      <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
@@ -203,7 +203,7 @@ const SemesterPanel = () => {
       <Grid container spacing={4}>
         {/* Form Section */}
         <Grid item xs={12} md={5}>
-          <Paper elevation={3} sx={{ p: 3, border: `2px solid ${borderColor}`, }}>
+          <Paper elevation={3} sx={{ p: 3, border: `1px solid ${borderColor}`, }}>
 
             <Typography variant="h6" gutterBottom textAlign="center" style={{ color: subtitleColor, fontWeight: "bold" }} >
               Add Semester
@@ -236,7 +236,7 @@ const SemesterPanel = () => {
 
         {/* Display Section */}
         <Grid item xs={12} md={7}>
-          <Paper elevation={3} sx={{ p: 3, border: `2px solid ${borderColor}`, }}>
+          <Paper elevation={3} sx={{ p: 3, border: `1px solid ${borderColor}`, }}>
 
             <Typography variant="h6" gutterBottom textAlign="center" style={{ color: subtitleColor, fontWeight: "bold" }} >
               Saved Semester
@@ -249,7 +249,7 @@ const SemesterPanel = () => {
                       <TableCell
                         sx={{
                           fontWeight: "bold",
-                          border: `2px solid ${borderColor}`,
+                          border: `1px solid ${borderColor}`,
                           color: "#fff",
                           backgroundColor: settings?.header_color || "#1976d2",
                         }}
@@ -259,7 +259,7 @@ const SemesterPanel = () => {
                       <TableCell
                         sx={{
                           fontWeight: "bold",
-                          border: `2px solid ${borderColor}`,
+                          border: `1px solid ${borderColor}`,
                           color: "#fff",
                           backgroundColor: settings?.header_color || "#1976d2",
                         }}
@@ -272,8 +272,8 @@ const SemesterPanel = () => {
                   <TableBody>
                     {semesters.map((semester, index) => (
                       <TableRow key={index}>
-                        <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>{semester.semester_id}</TableCell>
-                        <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>{semester.semester_description}</TableCell>
+                        <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>{semester.semester_id}</TableCell>
+                        <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>{semester.semester_description}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

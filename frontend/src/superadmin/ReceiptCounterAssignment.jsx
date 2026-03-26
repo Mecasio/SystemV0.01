@@ -434,7 +434,7 @@ const ReceiptCounterAssignment = () => {
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
 
-            <TableContainer component={Paper} sx={{ width: '100%', mt: 1, border: `2px solid ${borderColor}` }}>
+            <TableContainer component={Paper} sx={{ width: '100%', mt: 1, border: `1px solid ${borderColor}` }}>
                 <Table size="small">
                     <TableHead sx={{ backgroundColor: settings?.header_color || '#6D2323', color: "white" }}>
                         <TableRow>
@@ -446,7 +446,7 @@ const ReceiptCounterAssignment = () => {
                 </Table>
             </TableContainer>
 
-            <Paper sx={{ p: 2, border: `2px solid ${borderColor}` }}>
+            <Paper sx={{ p: 2, border: `1px solid ${borderColor}` }}>
                 <Box display="flex" justifyContent="space-between" alignItems="flex-end" flexWrap="wrap" gap={2}>
                     <Box sx={{ minWidth: 220 }}>
                         <FormControl size="small" fullWidth>
@@ -488,7 +488,7 @@ const ReceiptCounterAssignment = () => {
             <br/>
             <br/>
 
-            <TableContainer component={Paper} sx={{ width: '100%',  border: `2px solid ${borderColor}` }}>
+            <TableContainer component={Paper} sx={{ width: '100%',  border: `1px solid ${borderColor}` }}>
                 <Table size="small">
                     <TableHead sx={{ backgroundColor: settings?.header_color || '#6D2323', color: "white" }}>
                         <TableRow>
@@ -646,11 +646,11 @@ const ReceiptCounterAssignment = () => {
                 <Table>
                     <TableHead sx={{ background: 'maroon' }}>
                         <TableRow>
-                            <TableCell sx={{ color: 'black', border: `2px solid ${borderColor}`, backgroundColor: "#f5f5f5" }}><strong>Employee ID</strong></TableCell>
-                            <TableCell sx={{ color: 'black', border: `2px solid ${borderColor}` , textAlign: 'center',  backgroundColor: "#f5f5f5" }}><strong>Name</strong></TableCell>
-                            <TableCell sx={{ color: 'black', border: `2px solid ${borderColor}` , textAlign: 'center',  backgroundColor: "#f5f5f5" }}><strong>Email Address</strong></TableCell>
-                            <TableCell sx={{ color: 'black', border: `2px solid ${borderColor}`,  backgroundColor: "#f5f5f5"  }}><strong>Position</strong></TableCell>
-                            <TableCell sx={{ color: 'black', border: `2px solid ${borderColor}` , textAlign: 'center',  backgroundColor: "#f5f5f5" }}><strong>Action</strong></TableCell>
+                            <TableCell sx={{ color: 'black', border: `1px solid ${borderColor}`, backgroundColor: "#f5f5f5" }}><strong>Employee ID</strong></TableCell>
+                            <TableCell sx={{ color: 'black', border: `1px solid ${borderColor}` , textAlign: 'center',  backgroundColor: "#f5f5f5" }}><strong>Name</strong></TableCell>
+                            <TableCell sx={{ color: 'black', border: `1px solid ${borderColor}` , textAlign: 'center',  backgroundColor: "#f5f5f5" }}><strong>Email Address</strong></TableCell>
+                            <TableCell sx={{ color: 'black', border: `1px solid ${borderColor}`,  backgroundColor: "#f5f5f5"  }}><strong>Position</strong></TableCell>
+                            <TableCell sx={{ color: 'black', border: `1px solid ${borderColor}` , textAlign: 'center',  backgroundColor: "#f5f5f5" }}><strong>Action</strong></TableCell>
                         </TableRow>
                     </TableHead>
 
@@ -661,15 +661,15 @@ const ReceiptCounterAssignment = () => {
 
                             return (
                                 <TableRow key={employee.id}>
-                                    <TableCell sx= {{ border: `2px solid ${borderColor}`}}>{employee.employee_id}</TableCell>
-                                    <TableCell sx= {{ border: `2px solid ${borderColor}`}}>
+                                    <TableCell sx= {{ border: `1px solid ${borderColor}`}}>{employee.employee_id}</TableCell>
+                                    <TableCell sx= {{ border: `1px solid ${borderColor}`}}>
                                         {`${capitalize(employee.first_name)}
                                         ${employee.middle_name ? `${employee.middle_name.charAt(0).toUpperCase()}.` : ""}
                                         ${capitalize(employee.last_name)}`}
                                     </TableCell>
-                                    <TableCell sx= {{ border: `2px solid ${borderColor}`}}>{employee.email}</TableCell>
-                                    <TableCell sx= {{ border: `2px solid ${borderColor}`}}>{employee.position}</TableCell>
-                                    <TableCell sx={{ display: 'flex', borderRight: `2px solid ${borderColor}`, borderTop: `1px solid ${borderColor}`, borderBottom: `2px solid ${borderColor}`,   alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                                    <TableCell sx= {{ border: `1px solid ${borderColor}`}}>{employee.email}</TableCell>
+                                    <TableCell sx= {{ border: `1px solid ${borderColor}`}}>{employee.position}</TableCell>
+                                    <TableCell sx={{ display: 'flex', borderRight: `1px solid ${borderColor}`,   alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                                         <Button
                                             variant='contained'
                                             onClick={() => isAssigned ? openEditDialog(employee, assignment) : openAssignDialog(employee)}

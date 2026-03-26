@@ -489,7 +489,7 @@ const TOR = () => {
 
     // Put this at the very bottom before the return 
     if (loading || hasAccess === null) {
-       return <LoadingOverlay open={loading} message="Loading..." />;
+        return <LoadingOverlay open={loading} message="Loading..." />;
     }
 
     if (!hasAccess) {
@@ -499,7 +499,7 @@ const TOR = () => {
     }
 
     return (
-         <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
+        <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
             <Box
                 className="navbars"
                 sx={{
@@ -590,7 +590,7 @@ const TOR = () => {
 
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
-            
+
             <br />
             <Box
                 sx={{
@@ -609,13 +609,13 @@ const TOR = () => {
                             sx={{
                                 flex: 1,
                                 maxWidth: `${100 / tabs1.length}%`, // evenly fit 100%
-                              height: 140,
+                                height: 140,
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
                                 cursor: "pointer",
                                 borderRadius: 2,
-                                border: `2px solid ${borderColor}`,
+                                border: `1px solid ${borderColor}`,
                                 backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
                                 color: activeStep === index ? "#fff" : "#000",
                                 boxShadow:
@@ -749,7 +749,7 @@ const TOR = () => {
 
             <TableContainer component={Paper} sx={{ width: '100%' }}>
                 <Table>
-                    <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `2px solid ${borderColor}`, }}>
+                    <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `1px solid ${borderColor}`, }}>
                         <TableRow>
                             {/* Left cell: Student Number */}
                             <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: "Poppins, sans-serif", border: 'none' }}>
@@ -776,7 +776,7 @@ const TOR = () => {
                     </TableHead>
                 </Table>
             </TableContainer>
-<br/>
+            <br />
 
 
             <Box style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -788,21 +788,21 @@ const TOR = () => {
                                     <TableCell colSpan={5} align="center" style={{ fontSize: "15px", color: "white", background: mainButtonColor, border: `1px solid ${borderColor}` }}><strong>REGISTRAR USERS</strong></TableCell>
                                 </TableRow>
                                 <TableRow>
-                                    <TableCell style={{ border: `2px solid ${borderColor}`, fontWeight: "600", color: titleColor }}>#</TableCell>
-                                    <TableCell style={{ border: `2px solid ${borderColor}`, fontWeight: "600", color: titleColor }}>Employee ID</TableCell>
-                                    <TableCell style={{ border: `2px solid ${borderColor}`, fontWeight: "600", color: titleColor }} align="center">Fullname</TableCell>
-                                    <TableCell style={{ border: `2px solid ${borderColor}`, fontWeight: "600", color: titleColor }} align="center">Role</TableCell>
-                                    <TableCell style={{ border: `2px solid ${borderColor}`, fontWeight: "600", color: titleColor }} align="center">Action</TableCell>
+                                    <TableCell style={{ border: `1px solid ${borderColor}`, fontWeight: "600", color: titleColor }}>#</TableCell>
+                                    <TableCell style={{ border: `1px solid ${borderColor}`, fontWeight: "600", color: titleColor }}>Employee ID</TableCell>
+                                    <TableCell style={{ border: `1px solid ${borderColor}`, fontWeight: "600", color: titleColor }} align="center">Fullname</TableCell>
+                                    <TableCell style={{ border: `1px solid ${borderColor}`, fontWeight: "600", color: titleColor }} align="center">Role</TableCell>
+                                    <TableCell style={{ border: `1px solid ${borderColor}`, fontWeight: "600", color: titleColor }} align="center">Action</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
                                 {registrars.map((user, index) => (
                                     <TableRow key={user.employee_id}>
-                                        <TableCell style={{ border: `2px solid ${borderColor}`, textAlign: "center", fontSize: "14px", color: titleColor }}>{index + 1}</TableCell>
-                                        <TableCell style={{ border: `2px solid ${borderColor}`, textAlign: "center", fontSize: "14px", color: titleColor }}>{user.employee_id}</TableCell>
-                                        <TableCell style={{ border: `2px solid ${borderColor}`, color: titleColor }}>{`${user.first_name} ${user.middle_name || ""} ${user.last_name}`}</TableCell>
-                                        <TableCell style={{ border: `2px solid ${borderColor}`, textAlign: "center", color: titleColor }}>{user.role}</TableCell>
-                                        <TableCell style={{ border: `2px solid ${borderColor}`, textAlign: "center", color: titleColor }}>
+                                        <TableCell style={{ border: `1px solid ${borderColor}`, textAlign: "center", fontSize: "14px", color: titleColor }}>{index + 1}</TableCell>
+                                        <TableCell style={{ border: `1px solid ${borderColor}`, textAlign: "center", fontSize: "14px", color: titleColor }}>{user.employee_id}</TableCell>
+                                        <TableCell style={{ border: `1px solid ${borderColor}`, color: titleColor }}>{`${user.first_name} ${user.middle_name || ""} ${user.last_name}`}</TableCell>
+                                        <TableCell style={{ border: `1px solid ${borderColor}`, textAlign: "center", color: titleColor }}>{user.role}</TableCell>
+                                        <TableCell style={{ border: `1px solid ${borderColor}`, textAlign: "center", color: titleColor }}>
                                             <Box display="flex" alignItems="center">
                                                 <Box display="flex" alignItems="center" mb={0.5}>
                                                     <Checkbox
@@ -844,7 +844,9 @@ const TOR = () => {
                                     />
                                 </Box>
                                 <Box style={{ marginTop: "1.5rem", textAlign: "center" }}>
-                                    <Typography>Republic of the Philippines</Typography>
+                                    <div style={{ fontFamily: "Arial", fontSize: "13px" }}>
+                                        Republic of the Philippines
+                                    </div>
 
                                     {companyName && (
                                         (() => {
@@ -1101,14 +1103,14 @@ const TOR = () => {
                                                                     </td>
                                                                     <td style={{ display: "flex", width: "38rem" }}>
                                                                         <span style={{ width: "90px", margin: "0", padding: "0", fontSize: "18px", letterSpacing: "-0.5px" }}>{p.course_code}
-                                                                            
+
                                                                         </span>
                                                                         <span style={{ marginLeft: "30px", padding: "0", fontSize: "18px", letterSpacing: "-0.5px" }}>{p.course_description.toUpperCase()}&nbsp;{
-                                                                                p.component === 1 ? "CWTS" :
+                                                                            p.component === 1 ? "CWTS" :
                                                                                 p.component === 2 ? "LTS" :
-                                                                                p.component === 3 ? "MTS" :
-                                                                                ""
-                                                                            }</span>
+                                                                                    p.component === 3 ? "MTS" :
+                                                                                        ""
+                                                                        }</span>
                                                                     </td>
                                                                     <td>
                                                                         <div style={{ display: "flex", alignItems: "center" }}>
@@ -1139,7 +1141,7 @@ const TOR = () => {
                                                                 </tr>
                                                             ))}
 
-                                                          
+
 
                                                         </React.Fragment>
                                                     ))}
