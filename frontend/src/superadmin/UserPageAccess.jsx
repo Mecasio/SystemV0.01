@@ -134,12 +134,16 @@ const UserPageAccess = () => {
 
       const allPages = pagesResp.data || [];
       const accessRows = accessResp.data || [];
+      const accessMap = buildDefaultPermissionState(allPages);
 
-      const accessList = accessRows.map((r) => Number(r.page_id));
-
-      const accessMap = {};
-      allPages.forEach((p) => {
-        accessMap[p.id] = accessList.includes(p.id);
+      accessRows.forEach((row) => {
+        const currentPageId = Number(row.page_id);
+        accessMap[currentPageId] = {
+          access: Number(row.page_privilege) === 1,
+          can_create: Number(row.can_create) === 1,
+          can_edit: Number(row.can_edit) === 1,
+          can_delete: Number(row.can_delete) === 1,
+        };
       });
 
       setPages(allPages);
@@ -158,6 +162,19 @@ const UserPageAccess = () => {
   const [itemsPerPage, setItemsPerPage] = useState(20); // change if you want
 
   const [searchQuery, setSearchQuery] = useState("");
+
+  const buildDefaultPermissionState = (pagesList) => {
+    const defaults = {};
+    pagesList.forEach((page) => {
+      defaults[page.id] = {
+        access: false,
+        can_create: false,
+        can_edit: false,
+        can_delete: false,
+      };
+    });
+    return defaults;
+  };
 
   const filteredUsers = allUsers.filter((u) => {
     const q = searchQuery.toLowerCase();
@@ -189,9 +206,24 @@ const UserPageAccess = () => {
     if (!selectedUser) return;
 
     const newState = !hasAccessNow;
+    const previousState = pageAccess[pageId] || {
+      access: false,
+      can_create: false,
+      can_edit: false,
+      can_delete: false,
+    };
 
     // Optimistic update
-    setPageAccess((prev) => ({ ...prev, [pageId]: newState }));
+    setPageAccess((prev) => ({
+      ...prev,
+      [pageId]: {
+        ...previousState,
+        access: newState,
+        can_create: newState ? true : false,
+        can_edit: newState ? true : false,
+        can_delete: newState ? true : false,
+      },
+    }));
 
     try {
       if (newState) {
@@ -211,11 +243,62 @@ const UserPageAccess = () => {
       });
     } catch {
       // rollback
-      setPageAccess((prev) => ({ ...prev, [pageId]: hasAccessNow }));
+      setPageAccess((prev) => ({ ...prev, [pageId]: previousState }));
       setSnack({
         open: true,
         type: "error",
         message: "Failed to update access",
+      });
+    }
+  };
+
+  const handlePermissionToggle = async (pageId, permissionKey) => {
+    if (!selectedUser) return;
+
+    const currentState = pageAccess[pageId] || {
+      access: false,
+      can_create: false,
+      can_edit: false,
+      can_delete: false,
+    };
+
+    const nextState = {
+      ...currentState,
+      access: true,
+      [permissionKey]: !currentState[permissionKey],
+    };
+
+    setPageAccess((prev) => ({
+      ...prev,
+      [pageId]: nextState,
+    }));
+
+    try {
+      await axios.put(
+        `${API_BASE_URL}/api/page_access/${selectedUser.employee_id}/${pageId}`,
+        {
+          page_privilege: nextState.access ? 1 : 0,
+          can_create: nextState.can_create ? 1 : 0,
+          can_edit: nextState.can_edit ? 1 : 0,
+          can_delete: nextState.can_delete ? 1 : 0,
+        },
+      );
+
+      setSnack({
+        open: true,
+        severity: "success",
+        message: "Page permissions updated",
+      });
+    } catch (err) {
+      console.error(err);
+      setPageAccess((prev) => ({
+        ...prev,
+        [pageId]: currentState,
+      }));
+      setSnack({
+        open: true,
+        severity: "error",
+        message: "Failed to update page permissions",
       });
     }
   };
@@ -451,7 +534,12 @@ const UserPageAccess = () => {
 
       const newAccess = {};
       pages.forEach((p) => {
-        newAccess[p.id] = true;
+        newAccess[p.id] = {
+          access: true,
+          can_create: true,
+          can_edit: true,
+          can_delete: true,
+        };
       });
 
       setPageAccess(newAccess);
@@ -482,7 +570,12 @@ const UserPageAccess = () => {
 
       const newAccess = {};
       pages.forEach((p) => {
-        newAccess[p.id] = false;
+        newAccess[p.id] = {
+          access: false,
+          can_create: false,
+          can_edit: false,
+          can_delete: false,
+        };
       });
 
       setPageAccess(newAccess);
@@ -1201,6 +1294,28 @@ const UserPageAccess = () => {
                     >
                       Access
                     </TableCell>
+                    <TableCell
+                      sx={{
+                        color: "white",
+                        textAlign: "center",
+                        fontWeight: "bold",
+                        border: `1px solid ${borderColor}`,
+                      }}
+                      align="center"
+                    >
+                      EDIT
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        color: "white",
+                        textAlign: "center",
+                        fontWeight: "bold",
+                        border: `1px solid ${borderColor}`,
+                      }}
+                      align="center"
+                    >
+                      DELETE
+                    </TableCell>
                   </TableRow>
                 </TableHead>
 
@@ -1243,10 +1358,41 @@ const UserPageAccess = () => {
                         align="center"
                       >
                         <Switch
-                          checked={pageAccess[p.id] || false}
+                          checked={pageAccess[p.id]?.access || false}
                           onChange={() =>
-                            handleToggleChange(p.id, pageAccess[p.id] || false)
+                            handleToggleChange(
+                              p.id,
+                              pageAccess[p.id]?.access || false,
+                            )
                           }
+                        />
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          color: "black",
+                          textAlign: "center",
+                          border: `1px solid ${borderColor}`,
+                        }}
+                        align="center"
+                      >
+                        <Switch
+                          checked={pageAccess[p.id]?.can_edit || false}
+                          onChange={() => handlePermissionToggle(p.id, "can_edit")}
+                          disabled={!pageAccess[p.id]?.access}
+                        />
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          color: "black",
+                          textAlign: "center",
+                          border: `1px solid ${borderColor}`,
+                        }}
+                        align="center"
+                      >
+                        <Switch
+                          checked={pageAccess[p.id]?.can_delete || false}
+                          onChange={() => handlePermissionToggle(p.id, "can_delete")}
+                          disabled={!pageAccess[p.id]?.access}
                         />
                       </TableCell>
                     </TableRow>

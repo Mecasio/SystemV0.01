@@ -6,6 +6,7 @@ const path = require("path");
 const fs = require("fs");
 const QRCode = require("qrcode");
 const { db, db3 } = require("../database/database");
+const { CanDelete, CanEdit } = require("../../middleware/pagePermissions");
 const router = express.Router();
 
 let otpStore = {};
@@ -507,7 +508,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 });
 
 // DELETE ACCOUNT
-router.delete("/delete-account/:person_id", async (req, res) => {
+router.delete("/delete-account/:person_id", CanDelete, async (req, res) => {
   const { person_id } = req.params;
 
   if (!person_id) {
@@ -518,66 +519,176 @@ router.delete("/delete-account/:person_id", async (req, res) => {
   }
 
   try {
-    // 1. Get applicant number
-    const [applicant] = await db.query(
-      `SELECT applicant_number 
-       FROM applicant_numbering_table 
+    const [result] = await db.query(
+      `UPDATE user_accounts
+       SET is_archived = 1
        WHERE person_id = ?`,
       [person_id]
     );
 
-    let applicantNumber = null;
-
-    if (applicant.length > 0) {
-      applicantNumber = applicant[0].applicant_number;
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Account not found",
+      });
     }
 
-    // 2. Delete dependent records
-    if (applicantNumber) {
-      await db.query(
-        `DELETE FROM interview_applicants 
-         WHERE applicant_id = ?`,
-        [applicantNumber]
-      );
+    res.json({
+      success: true,
+      message: "Account archived successfully",
+    });
 
-      await db.query(
-        `DELETE FROM person_status_table 
-         WHERE applicant_id = ?`,
-        [applicantNumber]
-      );
+  } catch (error) {
+    console.error("Archive account error:", error);
 
-      await db.query(
-        `DELETE FROM applicant_numbering_table 
-         WHERE applicant_number = ?`,
-        [applicantNumber]
-      );
-    }
+    res.status(500).json({
+      success: false,
+      message: "Failed to archive account",
+    });
+  }
+});
 
-    // 3. Delete user account
-    await db.query(
-      `DELETE FROM user_accounts 
-       WHERE person_id = ?`,
-      [person_id]
-    );
-
-    // 4. Delete person record
-    await db.query(
-      `DELETE FROM person_table 
-       WHERE person_id = ?`,
-      [person_id]
+router.get("/archived-accounts", async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT
+         ua.person_id,
+         ua.email,
+         p.extension,
+         p.first_name,
+         p.last_name,
+         p.middle_name,
+         p.campus,
+         p.created_at,
+         ant.applicant_number
+       FROM user_accounts AS ua
+       LEFT JOIN person_table AS p
+         ON p.person_id = ua.person_id
+       LEFT JOIN applicant_numbering_table AS ant
+         ON ant.person_id = ua.person_id
+       WHERE COALESCE(ua.is_archived, 0) = 1
+       ORDER BY p.created_at DESC, ua.person_id DESC`,
     );
 
     res.json({
       success: true,
-      message: "Account deleted successfully",
+      data: rows,
     });
-
   } catch (error) {
-    console.error("Delete account error:", error);
-
+    console.error("Fetch archived accounts error:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to delete account",
+      message: "Failed to fetch archived accounts",
+    });
+  }
+});
+
+router.put("/restore-account/:person_id", CanEdit, async (req, res) => {
+  const { person_id } = req.params;
+
+  if (!person_id) {
+    return res.status(400).json({
+      success: false,
+      message: "Person ID is required",
+    });
+  }
+
+  try {
+    const [result] = await db.query(
+      `UPDATE user_accounts
+       SET is_archived = 0
+       WHERE person_id = ?`,
+      [person_id],
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Account not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Account restored successfully",
+    });
+  } catch (error) {
+    console.error("Restore account error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to restore account",
+    });
+  }
+});
+
+router.delete("/permanent-delete-account/:person_id", CanDelete, async (req, res) => {
+  const { person_id } = req.params;
+
+  if (!person_id) {
+    return res.status(400).json({
+      success: false,
+      message: "Person ID is required",
+    });
+  }
+
+  try {
+    const [applicant] = await db.query(
+      `SELECT applicant_number
+       FROM applicant_numbering_table
+       WHERE person_id = ?`,
+      [person_id],
+    );
+
+    const applicantNumber = applicant?.[0]?.applicant_number || null;
+
+    if (applicantNumber) {
+      await db.query(
+        `DELETE FROM interview_applicants
+         WHERE applicant_id = ?`,
+        [applicantNumber],
+      );
+
+      await db.query(
+        `DELETE FROM person_status_table
+         WHERE applicant_id = ?`,
+        [applicantNumber],
+      );
+
+      await db.query(
+        `DELETE FROM applicant_numbering_table
+         WHERE applicant_number = ?`,
+        [applicantNumber],
+      );
+    }
+
+    await db.query(
+      `DELETE FROM user_accounts
+       WHERE person_id = ?`,
+      [person_id],
+    );
+
+    const [personResult] = await db.query(
+      `DELETE FROM person_table
+       WHERE person_id = ?`,
+      [person_id],
+    );
+
+    if (personResult.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Account not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Account permanently deleted successfully",
+    });
+  } catch (error) {
+    console.error("Permanent delete account error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to permanently delete account",
     });
   }
 });

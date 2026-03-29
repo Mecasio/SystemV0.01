@@ -431,6 +431,7 @@ const CourseTaggingForCollege = lazy(
 const CourseTaggingForSummer = lazy(
   () => import("./registrar/CourseTaggingForSummer"),
 );
+const Archived = lazy(() => import("./superadmin/ArchivedModule"));
 const LoadingOverlay = lazy(() => import("./components/LoadingOverlay"));
 
 
@@ -1420,6 +1421,14 @@ function App() {
                         element={
                           <ProtectedRoute>
                             <ApplicationProcessAdmin />
+                          </ProtectedRoute>
+                        }
+                      />
+                        <Route
+                        path="/archived"
+                        element={
+                          <ProtectedRoute>
+                            <Archived />
                           </ProtectedRoute>
                         }
                       />

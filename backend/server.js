@@ -41,7 +41,7 @@ const applicantDocsDir = path.join(
 const allowedOrigins = [
   "http://localhost:5173",
   "http://192.168.50.77:5173",
-  "http://192.168.50.62:5173",
+  "http://192.168.0.180:5173",
   "http://192.168.50.211:5173",
   "http://136.239.248.62:5173",
   "http://192.168.50.44:5173",
@@ -1962,6 +1962,8 @@ app.get("/api/medical-applicants", async (req, res) => {
         COALESCE(vdocs.verified_count, 0) AS required_docs_verified
 
       FROM admission.person_table AS p
+      LEFT JOIN enrollment.user_accounts AS ua
+        ON ua.person_id = p.person_id
       LEFT JOIN admission.applicant_numbering_table AS a
         ON p.person_id = a.person_id
       LEFT JOIN admission.exam_applicants AS ea
@@ -2011,6 +2013,8 @@ app.get("/api/medical-applicants", async (req, res) => {
           AND requirements_id IN (1,2,3,4)
         GROUP BY person_id
       ) AS vdocs ON vdocs.person_id = p.person_id
+
+      WHERE COALESCE(ua.is_archived, 0) = 0
 
       ORDER BY p.last_name ASC, p.first_name ASC
     `);
@@ -2173,6 +2177,8 @@ app.get("/api/all-applicants", async (req, res) => {
         COALESCE(vdocs.verified_count, 0) AS required_docs_verified
 
       FROM admission.person_table AS p
+      LEFT JOIN enrollment.user_accounts AS ua
+        ON ua.person_id = p.person_id
       LEFT JOIN admission.applicant_numbering_table AS a
         ON p.person_id = a.person_id
       LEFT JOIN admission.exam_applicants AS ea
@@ -2212,6 +2218,8 @@ app.get("/api/all-applicants", async (req, res) => {
 
       LEFT JOIN admission.person_status_table AS ps
         ON p.person_id = ps.person_id
+      INNER JOIN admission.user_accounts AS aua
+        ON p.person_id = aua.person_id
 
       LEFT JOIN (
         SELECT
@@ -2241,6 +2249,8 @@ app.get("/api/all-applicants", async (req, res) => {
           AND rt.is_verifiable = 1
         GROUP BY ru.person_id
       ) AS vdocs ON vdocs.person_id = p.person_id
+
+      WHERE COALESCE(aua.is_archived, 0) = 0
 
       ORDER BY p.last_name ASC, p.first_name ASC
     `);

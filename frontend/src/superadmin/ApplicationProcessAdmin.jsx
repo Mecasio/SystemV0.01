@@ -1102,12 +1102,18 @@ const ApplicationProcessAdmin = () => {
     const handleDeleteAccount = async (person_id) => {
         try {
             await axios.delete(
-                `${API_BASE_URL}/auth/delete-account/${person_id}`
+                `${API_BASE_URL}/auth/delete-account/${person_id}`,
+                {
+                    headers: {
+                        "x-employee-id": employeeID,
+                        "x-page-id": pageId,
+                    },
+                }
             );
 
             setSnack({
                 open: true,
-                message: "Account deleted successfully",
+                message: "Account archived successfully",
                 severity: "success",
             });
 
@@ -1118,7 +1124,7 @@ const ApplicationProcessAdmin = () => {
 
             setSnack({
                 open: true,
-                message: "Failed to delete account",
+                message: "Failed to archive account",
                 severity: "error",
             });
         }
@@ -2743,27 +2749,35 @@ const ApplicationProcessAdmin = () => {
 
             <Dialog
                 open={openDeleteDialog}
-                onClose={() => setOpenDeleteDialog(false)}
+                onClose={() => {
+                    setOpenDeleteDialog(false);
+                    setAccountToDelete(null);
+                }}
             >
-                <DialogTitle>Confirm Delete Account</DialogTitle>
+                <DialogTitle>Delete Account</DialogTitle>
 
                 <DialogContent>
                     <Typography>
-                        Are you sure you want to delete the account of{" "}
+                        Do you want to delete this account?
+                    </Typography>
 
-                        <br />
-                        <br />
-                        Name: <b>{accountToDelete?.first_name}{" "}
-                            {accountToDelete?.last_name}</b>
-
-                        ?
-                        <br />
-                        Applicant Number:{" "}
+                    <Typography sx={{ mt: 2 }}>
+                        Account Name:{" "}
                         <b>
-                            {accountToDelete?.applicant_number || "N/A"}
+                            {accountToDelete?.first_name}{" "}
+                            {accountToDelete?.last_name}
                         </b>
                     </Typography>
 
+                    <Typography sx={{ mt: 1 }}>
+                        Applicant Number:{" "}
+                        <b>{accountToDelete?.applicant_number || "N/A"}</b>
+                    </Typography>
+
+                    <Typography sx={{ mt: 2, color: "text.secondary" }}>
+                        Note: The deleted item will be archived. It will no longer
+                        appear in the applicant list until restored.
+                    </Typography>
                 </DialogContent>
 
                 <DialogActions>
@@ -2787,7 +2801,7 @@ const ApplicationProcessAdmin = () => {
                             setAccountToDelete(null);
                         }}
                     >
-                        Yes, Delete
+                        Delete
                     </Button>
                 </DialogActions>
             </Dialog>
