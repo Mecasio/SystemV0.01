@@ -149,9 +149,9 @@ const PaymentExportingModule = () => {
             setLoading(false);
         }
     };
-    
+
     useEffect(() => {
-      fetchDepartments();
+        fetchDepartments();
     }, [])
 
     useEffect(() => {
@@ -167,7 +167,7 @@ const PaymentExportingModule = () => {
             setSelectedProgram(programs[0].program_id);
         }
     }, [programs, selectedProgram]);
-    
+
     useEffect(() => {
         axios
             .get(`${API_BASE_URL}/get_school_year/`)
@@ -195,8 +195,8 @@ const PaymentExportingModule = () => {
         axios
             .get(`${API_BASE_URL}${endpoint}`)
             .then(res => {
-            setRawData(res.data);
-            setDataFetched(true);
+                setRawData(res.data);
+                setDataFetched(true);
             })
             .catch(err => console.error(err))
             .finally(() => setLoading(false));
@@ -283,7 +283,7 @@ const PaymentExportingModule = () => {
         setSelectedDepartmentFilter(selectedId);
         setSelectedProgram("");
         setPrograms([]);
-        fetchPrograms(selectedId); 
+        fetchPrograms(selectedId);
     };
 
     const getEndpoint = () => {
@@ -355,15 +355,15 @@ const PaymentExportingModule = () => {
     const handleRemoveStudent = (student_number, id) => {
         setVisibleData((prev) =>
             prev.filter(
-            (row) =>
-                row.student_number !== student_number || row.id !== id
+                (row) =>
+                    row.student_number !== student_number || row.id !== id
             )
         );
 
         setFilteredData((prev) =>
             prev.filter(
-            (row) =>
-                row.student_number !== student_number || row.id !== id
+                (row) =>
+                    row.student_number !== student_number || row.id !== id
             )
         );
     };
@@ -397,7 +397,7 @@ const PaymentExportingModule = () => {
             setExportOpen(false);
         }
     };
-    
+
     const openExportConfirm = () => {
         setExportConfirmOpen(true);
     };
@@ -423,22 +423,22 @@ const PaymentExportingModule = () => {
         <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
             <Box
                 sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                flexWrap: "wrap",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    flexWrap: "wrap",
 
-                mb: 2,
+                    mb: 2,
 
                 }}
             >
                 <Typography
-                variant="h4"
-                sx={{
-                    fontWeight: "bold",
-                    color: titleColor,
-                    fontSize: "36px",
-                }}
+                    variant="h4"
+                    sx={{
+                        fontWeight: "bold",
+                        color: titleColor,
+                        fontSize: "36px",
+                    }}
                 >
                     PAYMENT EXPORTING MODULE
                 </Typography>
@@ -495,7 +495,7 @@ const PaymentExportingModule = () => {
                         </FormControl>
                     </Grid>
 
-                    <Grid item xs={12} md={7.5}/>
+                    <Grid item xs={12} md={7.5} />
 
                     <Grid item xs={12} md={1.5}>
                         <FormControl fullWidth>
@@ -505,7 +505,7 @@ const PaymentExportingModule = () => {
                             >
                                 {schoolYears.map((sy) => (
                                     <MenuItem key={sy.year_id} value={sy.year_id}>
-                                    {sy.current_year} - {sy.next_year}
+                                        {sy.current_year} - {sy.next_year}
                                     </MenuItem>
                                 ))}
                             </Select>
@@ -526,7 +526,7 @@ const PaymentExportingModule = () => {
                             </Select>
                         </FormControl>
                     </Grid>
-                    
+
                     <Grid item xs={12} md={1.5}>
                         <FormControl fullWidth>
                             <Select
@@ -553,7 +553,7 @@ const PaymentExportingModule = () => {
                         </FormControl>
                     </Grid>
 
-                    <Grid item xs={12} md={6}/>
+                    <Grid item xs={12} md={6} />
 
                     {/* ROW 2 */}
                     <Grid item xs={12} md={1.5}>
@@ -593,7 +593,7 @@ const PaymentExportingModule = () => {
                             variant="contained"
                             fullWidth
                             onClick={handleViewRecord}
-                            sx={{backgroundColor: mainButtonColor}}
+                            sx={{ backgroundColor: mainButtonColor }}
                             disabled={!filteredData.length}
                         >
                             View Record
@@ -604,7 +604,7 @@ const PaymentExportingModule = () => {
                         <Button
                             variant="contained"
                             fullWidth
-                            sx={{backgroundColor: mainButtonColor}}
+                            sx={{ backgroundColor: mainButtonColor }}
                             onClick={openExportConfirm}
                             disabled={!filteredData.length}
                         >
@@ -619,7 +619,7 @@ const PaymentExportingModule = () => {
             {viewClicked && visibleData.length > 0 ? (
                 <>
                     {personTypeFilter === 1 && (
-                    <ApplicantTable data={visibleData} />
+                        <ApplicantTable data={visibleData} />
                     )}
 
                     {personTypeFilter === 2 && (
@@ -659,7 +659,9 @@ const PaymentExportingModule = () => {
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={closeExportConfirm} color="inherit">
+                    <Button onClick={closeExportConfirm}
+                        color="error"
+                        variant="outlined">
                         Cancel
                     </Button>
                     <Button onClick={handleConfirmExport} variant="contained">

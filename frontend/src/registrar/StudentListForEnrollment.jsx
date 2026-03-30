@@ -1151,7 +1151,10 @@ const StudentListForEnrollment = () => {
                     Do you wish to preview the student's documents?
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCloseDialog}>Cancel</Button>
+                    <Button
+                        color="error"
+                        variant="outlined"
+                        onClick={handleCloseDialog}>Cancel</Button>
                     <Button onClick={handleViewDocuments} variant="contained">View</Button>
                 </DialogActions>
             </Dialog>

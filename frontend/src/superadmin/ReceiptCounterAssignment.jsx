@@ -485,10 +485,10 @@ const ReceiptCounterAssignment = () => {
                 </Box>
             </Paper>
 
-            <br/>
-            <br/>
+            <br />
+            <br />
 
-            <TableContainer component={Paper} sx={{ width: '100%',  border: `1px solid ${borderColor}` }}>
+            <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}` }}>
                 <Table size="small">
                     <TableHead sx={{ backgroundColor: settings?.header_color || '#6D2323', color: "white" }}>
                         <TableRow>
@@ -647,10 +647,10 @@ const ReceiptCounterAssignment = () => {
                     <TableHead sx={{ background: 'maroon' }}>
                         <TableRow>
                             <TableCell sx={{ color: 'black', border: `1px solid ${borderColor}`, backgroundColor: "#f5f5f5" }}><strong>Employee ID</strong></TableCell>
-                            <TableCell sx={{ color: 'black', border: `1px solid ${borderColor}` , textAlign: 'center',  backgroundColor: "#f5f5f5" }}><strong>Name</strong></TableCell>
-                            <TableCell sx={{ color: 'black', border: `1px solid ${borderColor}` , textAlign: 'center',  backgroundColor: "#f5f5f5" }}><strong>Email Address</strong></TableCell>
-                            <TableCell sx={{ color: 'black', border: `1px solid ${borderColor}`,  backgroundColor: "#f5f5f5"  }}><strong>Position</strong></TableCell>
-                            <TableCell sx={{ color: 'black', border: `1px solid ${borderColor}` , textAlign: 'center',  backgroundColor: "#f5f5f5" }}><strong>Action</strong></TableCell>
+                            <TableCell sx={{ color: 'black', border: `1px solid ${borderColor}`, textAlign: 'center', backgroundColor: "#f5f5f5" }}><strong>Name</strong></TableCell>
+                            <TableCell sx={{ color: 'black', border: `1px solid ${borderColor}`, textAlign: 'center', backgroundColor: "#f5f5f5" }}><strong>Email Address</strong></TableCell>
+                            <TableCell sx={{ color: 'black', border: `1px solid ${borderColor}`, backgroundColor: "#f5f5f5" }}><strong>Position</strong></TableCell>
+                            <TableCell sx={{ color: 'black', border: `1px solid ${borderColor}`, textAlign: 'center', backgroundColor: "#f5f5f5" }}><strong>Action</strong></TableCell>
                         </TableRow>
                     </TableHead>
 
@@ -661,26 +661,26 @@ const ReceiptCounterAssignment = () => {
 
                             return (
                                 <TableRow key={employee.id}>
-                                    <TableCell sx= {{ border: `1px solid ${borderColor}`}}>{employee.employee_id}</TableCell>
-                                    <TableCell sx= {{ border: `1px solid ${borderColor}`}}>
+                                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>{employee.employee_id}</TableCell>
+                                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                                         {`${capitalize(employee.first_name)}
                                         ${employee.middle_name ? `${employee.middle_name.charAt(0).toUpperCase()}.` : ""}
                                         ${capitalize(employee.last_name)}`}
                                     </TableCell>
-                                    <TableCell sx= {{ border: `1px solid ${borderColor}`}}>{employee.email}</TableCell>
-                                    <TableCell sx= {{ border: `1px solid ${borderColor}`}}>{employee.position}</TableCell>
-                                    <TableCell sx={{ display: 'flex', borderRight: `1px solid ${borderColor}`,   alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>{employee.email}</TableCell>
+                                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>{employee.position}</TableCell>
+                                    <TableCell sx={{ display: 'flex', border: `1px solid ${borderColor}`, alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                                         <Button
                                             variant='contained'
                                             onClick={() => isAssigned ? openEditDialog(employee, assignment) : openAssignDialog(employee)}
-                                            sx={{  width: '150px' }}
+                                            sx={{ width: '150px' }}
                                         >
                                             {isAssigned ? "EDIT COUNTER" : "ASSIGN"}
                                         </Button>
                                         <Button
                                             variant='contained'
                                             color="error"
-                                            sx={{  width: '150px' }}
+                                            sx={{ width: '150px' }}
                                             disabled={!isAssigned}
                                             onClick={() => {
                                                 setSelectedEmployee(employee);
@@ -754,7 +754,10 @@ const ReceiptCounterAssignment = () => {
                     </Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={resetModalState}>Cancel</Button>
+                    <Button
+                        color="error"
+                        variant="outlined"
+                        onClick={resetModalState}>Cancel</Button>
                     <Button
                         variant="contained"
                         onClick={() => handleOpenConfirm(modalMode === "edit" ? "edit" : "assign")}
@@ -782,7 +785,10 @@ const ReceiptCounterAssignment = () => {
                     </Typography>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setOpenConfirmDialog(false)}>Cancel</Button>
+                    <Button
+                        color="error"
+                        variant="outlined"
+                        onClick={() => setOpenConfirmDialog(false)}>Cancel</Button>
                     <Button variant="contained" onClick={handleConfirmSubmit}>
                         Confirm
                     </Button>

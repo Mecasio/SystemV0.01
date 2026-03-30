@@ -16,6 +16,10 @@ import {
   Snackbar,
   Alert,
   TableContainer,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from "@mui/material";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
@@ -129,6 +133,8 @@ const SemesterPanel = () => {
   useEffect(() => {
     fetchSemesters();
   }, []);
+  const [openDialog, setOpenDialog] = useState(false);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -154,28 +160,7 @@ const SemesterPanel = () => {
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
-  // Disable right-click & DevTools shortcuts
-  useEffect(() => {
-    const handleContextMenu = (e) => e.preventDefault();
-    const handleKeyDown = (e) => {
-      const isBlockedKey =
-        e.key === "F12" ||
-        e.key === "F11" ||
-        (e.ctrlKey && e.shiftKey && ["i", "j"].includes(e.key.toLowerCase())) ||
-        (e.ctrlKey && ["u", "p"].includes(e.key.toLowerCase()));
-      if (isBlockedKey) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    };
 
-    document.addEventListener("contextmenu", handleContextMenu);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("contextmenu", handleContextMenu);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
 
   if (loading || hasAccess === null) return <LoadingOverlay open={loading} message="Loading..." />;
   if (!hasAccess) return <Unauthorized />;
@@ -194,95 +179,175 @@ const SemesterPanel = () => {
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
-              <TableCell sx={{ color: 'white', textAlign: "Center" }}>Change Semester</TableCell>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  width: "100%"
+                }}
+              >
+                <TableCell sx={{ color: "white", textAlign: "center" }}>
+                  Existing Schedules
+                </TableCell>
+
+
+                <Button
+                  variant="contained"
+                  onClick={() => setOpenDialog(true)}
+                  sx={{
+                    backgroundColor: "#1976d2", // ✅ Blue
+                    color: "#fff",
+                    fontWeight: "bold",
+                    borderRadius: "8px",
+                    width: "250px",
+                    textTransform: "none",
+                    px: 2,
+                    mr: "15px",
+                    '&:hover': {
+                      backgroundColor: "#1565c0" // darker blue hover
+                    }
+                  }}
+                >
+                  + Add Schedule
+                </Button>
+              </Box>
             </TableRow>
           </TableHead>
         </Table>
       </TableContainer>
 
-      <Grid container spacing={4}>
-        {/* Form Section */}
-        <Grid item xs={12} md={5}>
-          <Paper elevation={3} sx={{ p: 3, border: `1px solid ${borderColor}`, }}>
 
-            <Typography variant="h6" gutterBottom textAlign="center" style={{ color: subtitleColor, fontWeight: "bold" }} >
-              Add Semester
-            </Typography>
-            <Typography fontWeight={500}>Semester Description:</Typography>
-            <form onSubmit={handleSubmit}>
-              <TextField
-                fullWidth
-                label="Semester Description"
-                placeholder="e.g., First Semester"
-                value={semesterDescription}
-                onChange={(e) => setSemesterDescription(e.target.value)}
-                variant="outlined"
-                sx={{ mb: 2 }}
-              />
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                sx={{
-                  backgroundColor: "primary",
-                  "&:hover": { backgroundColor: "#a00000" },
-                }}
-              >
-                Save
-              </Button>
-            </form>
-          </Paper>
-        </Grid>
+      {/* Display Section */}
+      <Grid item xs={12} md={7}>
+    
 
-        {/* Display Section */}
-        <Grid item xs={12} md={7}>
-          <Paper elevation={3} sx={{ p: 3, border: `1px solid ${borderColor}`, }}>
+          <Box sx={{ maxHeight: 400, overflowY: "auto" }}>
+            <TableContainer sx={{ maxHeight: 400 }}>
+              <Table size="small" stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    <TableCell
+                      sx={{
+                        fontWeight: "bold",
+                        border: `1px solid ${borderColor}`,
+                        color: "black",
+                        backgroundColor: "#f5f5f5",
+                      }}
+                    >
+                      Semester ID
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: "bold",
+                        border: `1px solid ${borderColor}`,
+                        color: "black",
+                        backgroundColor: "#f5f5f5",
+                      }}
+                    >
+                      Description
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
 
-            <Typography variant="h6" gutterBottom textAlign="center" style={{ color: subtitleColor, fontWeight: "bold" }} >
-              Saved Semester
-            </Typography>
-            <Box sx={{ maxHeight: 400, overflowY: "auto" }}>
-              <TableContainer sx={{ maxHeight: 400 }}>
-                <Table size="small" stickyHeader>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell
-                        sx={{
-                          fontWeight: "bold",
-                          border: `1px solid ${borderColor}`,
-                          color: "#fff",
-                          backgroundColor: settings?.header_color || "#1976d2",
-                        }}
-                      >
-                        Semester ID
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          fontWeight: "bold",
-                          border: `1px solid ${borderColor}`,
-                          color: "#fff",
-                          backgroundColor: settings?.header_color || "#1976d2",
-                        }}
-                      >
-                        Description
-                      </TableCell>
+                <TableBody>
+                  {semesters.map((semester, index) => (
+                    <TableRow key={index}>
+                      <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>{semester.semester_id}</TableCell>
+                      <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>{semester.semester_description}</TableCell>
                     </TableRow>
-                  </TableHead>
-
-                  <TableBody>
-                    {semesters.map((semester, index) => (
-                      <TableRow key={index}>
-                        <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>{semester.semester_id}</TableCell>
-                        <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>{semester.semester_description}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Box>
-          </Paper>
-        </Grid>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
+        
       </Grid>
+
+
+      <Dialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            overflow: "hidden",
+            boxShadow: 6
+          }
+        }}
+      >
+        {/* HEADER */}
+        <DialogTitle
+          sx={{
+            background: settings?.header_color || "#1976d2",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "1.1rem",
+            py: 2
+          }}
+        >
+          Add Semester
+        </DialogTitle>
+
+        {/* CONTENT */}
+        <DialogContent sx={{ p: 3 }}>
+          <Typography fontWeight="bold" mb={1} mt={1}>
+            Semester Description
+          </Typography>
+
+          <TextField
+            fullWidth
+            placeholder="Enter semester (e.g., First Semester)"
+            value={semesterDescription}
+            onChange={(e) => setSemesterDescription(e.target.value)}
+            autoFocus
+          />
+        </DialogContent>
+
+        {/* ACTIONS */}
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2,
+            borderTop: "1px solid #e0e0e0"
+          }}
+        >
+          <Button
+            onClick={() => setOpenDialog(false)}
+            color="error"
+            variant="outlined"
+            sx={{
+              textTransform: "none",
+              fontWeight: 600
+            }}
+          >
+            Cancel
+          </Button>
+
+          <Button
+            variant="contained"
+            
+            sx={{
+              px: 4,
+              fontWeight: 600,
+              textTransform: "none",
+            
+            }}
+            onClick={async () => {
+              await handleSubmit({
+                preventDefault: () => { }
+              });
+
+              setOpenDialog(false);
+            }}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
 
       {/* Snackbar */}
       <Snackbar

@@ -533,29 +533,23 @@ const StudentNumbering = () => {
         const loginUrl =
             typeof window !== "undefined" ? `${window.location.origin}/login` : "/login";
 
-        const senderEmail =
-            (typeof import.meta !== "undefined" && import.meta.env?.VITE_EMAIL_USER) ||
-            "EMAIL_USER";
-
         return `
+            Hi, ${firstName} ${middleName || ""} ${lastName},
 
-Hi, ${firstName} ${middleName || ""} ${lastName},
+            🎉 Congratulations! You are now officially accepted and part of the ${schoolName} community.
 
-We would like to inform you that your application account has been deactivated.
+            Please visit your respective college offices to tag your schedule to your account and obtain your class schedule.
 
-As a result, you will no longer be able to access your application using this account.
+            Your Student Number is: [Assigned after confirmation]
+            Your Email Address is: ${emailAddress}
 
-If you need to continue or reapply, please use the official login page and follow the appropriate instructions.
+            Your temporary password is: [Generated automatically]
 
-Your registered email address is: ${emailAddress}
+            You may change your password and keep it secure.
 
-👉 Click the link below to log in:
-[Insert Login Link Here]
-
-If you believe this action was made in error or you require further assistance, please contact the Admissions Office.
-
-Thank you.
-${loginUrl}`;
+            👉 Click the link below to log in:
+            ${loginUrl}
+        `;
     };
 
     const [userEmail, setUserEmail] = useState("");
@@ -612,9 +606,47 @@ ${loginUrl}`;
 
     if (!authPassed) {
         return (
-            <Dialog open={authOpen}>
-                <DialogTitle sx={{ color: "maroon", fontWeight: "bold" }}>
+            <Dialog
+                open={authOpen}
+                onClose={() => {
+                    setAuthOpen(false);
+                    navigate("/registrar_dashboard"); // or wherever you want to go
+                }}
+            >
+                <DialogTitle
+                    sx={{
+                        color: "maroon",
+                        fontWeight: "bold",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                    }}
+                >
                     Enter Password to Continue
+
+                    <IconButton
+                        aria-label="close"
+                        onClick={() => {
+                            setAuthOpen(false);
+                            navigate("/registrar_dashboard"); // optional redirect
+                        }}
+                        sx={{
+                            position: "absolute",
+                            top: 8,
+                            right: 8,
+                            color: "#fff",
+                            backgroundColor: settings?.header_color || "#1976d2",
+
+                            border: `1px solid ${borderColor}`,
+
+                            "&:hover": {
+                                bgcolor: "black",
+                            },
+                        }}
+                    >
+                        <CloseIcon />
+                    </IconButton>
+
                 </DialogTitle>
                 <DialogContent>
                     <Typography mb={2}>
@@ -714,7 +746,7 @@ ${loginUrl}`;
                         <Box display="flex" alignItems="center" gap={1}>
                             <Typography fontSize={13}>Campus:</Typography>
                             <FormControl size="small" sx={{ width: "200px" }}>
-                                
+
                                 <Select
                                     labelId="campus-label"
                                     id="campus-select"
@@ -1313,14 +1345,49 @@ ${loginUrl}`;
                 </Alert>
             </Snackbar>
 
-            <Dialog open={openModal} onClose={() => setOpenModal(false)} maxWidth="md" fullWidth>
-                <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    Acceptance Email Preview
+            <Dialog
+                open={authOpen}
+                onClose={() => {
+                    setAuthOpen(false);
+                    navigate("/registrar_dashboard"); // or wherever you want to go
+                }}
+            >
+                <DialogTitle
+                    sx={{
+                        color: "maroon",
+                        fontWeight: "bold",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                    }}
+                >
+                    Enter Password to Continue
 
-                    <IconButton onClick={() => setOpenModal(false)}>
+                    <IconButton
+                        aria-label="close"
+                        onClick={() => {
+                            setAuthOpen(false);
+                            navigate("/registrar_dashboard"); // optional redirect
+                        }}
+                        sx={{
+                            position: "absolute",
+                            top: 8,
+                            right: 8,
+                            color: "#fff",
+                            backgroundColor: settings?.header_color || "#1976d2",
+
+                            border: `1px solid ${borderColor}`,
+
+                            "&:hover": {
+                                bgcolor: "black",
+                            },
+                        }}
+                    >
                         <CloseIcon />
                     </IconButton>
+
                 </DialogTitle>
+
                 <DialogContent>
                     <Typography sx={{ mb: 1.5, fontSize: 13, color: "#555" }}>
                         Review the email content before assigning the student number.
@@ -1334,7 +1401,10 @@ ${loginUrl}`;
                     />
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setOpenModal(false)} color="inherit">
+                    <Button onClick={() => setOpenModal(false)}
+                        color="error"
+                        variant="outlined"
+                    >
                         Cancel
                     </Button>
                     <Button

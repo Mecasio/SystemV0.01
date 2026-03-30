@@ -2315,15 +2315,15 @@ const ScheduleChecker = () => {
                           }}
                           className={`h-[1.25rem] border border-black border-t-0 border-l-0 flex items-center justify-center
                               ${isTimeInSchedule("8:00 PM", "8:30 PM", day) &&
-                                hasAdjacentSchedule("8:00 PM", "8:30 PM", day, "top") === "same"
-                                ? "border-t-0"
-                                : ""
-                              }
+                              hasAdjacentSchedule("8:00 PM", "8:30 PM", day, "top") === "same"
+                              ? "border-t-0"
+                              : ""
+                            }
                               ${isTimeInSchedule("8:00 PM", "8:30 PM", day) &&
-                                hasAdjacentSchedule("8:00 PM", "8:30 PM", day, "bottom") === "same"
-                                ? "border-b-0"
-                                : ""
-                              }
+                              hasAdjacentSchedule("8:00 PM", "8:30 PM", day, "bottom") === "same"
+                              ? "border-b-0"
+                              : ""
+                            }
                         `}
                         >
                           {getCenterText("8:00 PM", day)}
@@ -2468,7 +2468,8 @@ const ScheduleChecker = () => {
               setOpenDialogue(false);
               setSelectedScheduleId(null);
             }}
-            color="primary"
+            color="error"
+            variant="outlined"
           >
             Cancel
           </Button>
@@ -2493,7 +2494,10 @@ const ScheduleChecker = () => {
           Are you sure you want to assign this schedule as Honorarium Load?
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenConfirmDialog(false)} color="secondary">
+          <Button
+            color="error"
+            variant="outlined"
+            onClick={() => setOpenConfirmDialog(false)}>
             Cancel
           </Button>
           <Button

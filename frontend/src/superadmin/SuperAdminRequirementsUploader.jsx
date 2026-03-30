@@ -759,7 +759,7 @@ const SuperAdminRequirementsUploader = () => {
             ) : (
               <Box display="flex" justifyContent="center" gap={1}>
                 <Button
-                disabled
+                  disabled
                   variant="contained"
                   onClick={() => handleStatusChange(uploaded.upload_id, "1")}
                   sx={{
@@ -771,7 +771,7 @@ const SuperAdminRequirementsUploader = () => {
                   Verified
                 </Button>
                 <Button
-                disabled
+                  disabled
                   variant="contained"
                   onClick={() => handleStatusChange(uploaded.upload_id, "2")}
                   sx={{
@@ -1199,7 +1199,7 @@ const SuperAdminRequirementsUploader = () => {
                 Document Status:
               </Typography>
               <TextField
-              disabled
+                disabled
                 select
                 size="small"
                 name="document_status"
@@ -1594,7 +1594,9 @@ const SuperAdminRequirementsUploader = () => {
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setConfirmOpen(false)} color="error">
+            <Button onClick={() => setConfirmOpen(false)}
+              color="error"
+              variant="outlined">
               Cancel
             </Button>
             <Button

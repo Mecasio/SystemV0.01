@@ -1129,7 +1129,10 @@ const CertificateOfRegistration = forwardRef(
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={closeConfirm} color="inherit">
+            <Button
+              color="error"
+              variant="outlined"
+              onClick={closeConfirm}>
               Cancel
             </Button>
             <Button onClick={handleConfirmSave} variant="contained">

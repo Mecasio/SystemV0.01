@@ -1076,7 +1076,10 @@ const CertificateOfRegistrationForCollege = forwardRef(
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={closeConfirm} color="inherit">
+            <Button
+              color="error"
+              variant="outlined"
+              onClick={closeConfirm}>
               Cancel
             </Button>
             <Button onClick={handleConfirmSave} variant="contained">
@@ -1109,7 +1112,10 @@ const CertificateOfRegistrationForCollege = forwardRef(
             </TextField>
           </DialogContent>
           <DialogActions>
-            <Button onClick={closeScholarshipModal} color="inherit">
+            <Button
+              color="error"
+              variant="outlined"
+              onClick={closeScholarshipModal}>
               Cancel
             </Button>
             <Button onClick={handleConfirmScholarshipModal} variant="contained">

@@ -537,7 +537,7 @@ const StudentGradeFile = () => {
                             </TableCell>
                             <TableCell sx={{ fontWeight: "700" }}>
                                 {studentInfo && studentInfo.length > 0 && (
-                                    <> 
+                                    <>
                                         {studentInfo[0].last_name?.toUpperCase() || ""}{" "}
                                         {studentInfo[0].first_name?.toUpperCase() || ""}{" "}
                                         {studentInfo[0].middle_name?.toUpperCase() || ""}
@@ -870,7 +870,10 @@ const StudentGradeFile = () => {
                 </DialogContent>
 
                 <DialogActions>
-                    <Button onClick={() => setOpenAddSubjectDialog(false)}>
+                    <Button
+                        color="error"
+                        variant="outlined"
+                        onClick={() => setOpenAddSubjectDialog(false)}>
                         Cancel
                     </Button>
                     <Button

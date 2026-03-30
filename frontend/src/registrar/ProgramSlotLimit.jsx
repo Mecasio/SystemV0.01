@@ -583,7 +583,10 @@ const ProgramSlotLimit = () => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmOpen(false)} color="inherit">
+          <Button
+            color="error"
+            variant="outlined"
+            onClick={() => setConfirmOpen(false)} >
             Cancel
           </Button>
           <Button
@@ -614,7 +617,10 @@ const ProgramSlotLimit = () => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmAllOpen(false)} color="inherit">
+          <Button
+            color="error"
+            variant="outlined"
+            onClick={() => setConfirmAllOpen(false)}>
             Cancel
           </Button>
           <Button
@@ -646,7 +652,8 @@ const ProgramSlotLimit = () => {
         <DialogActions>
           <Button
             onClick={() => setConfirmAllProgramsOpen(false)}
-            color="inherit"
+            color="error"
+            variant="outlined"
           >
             Cancel
           </Button>

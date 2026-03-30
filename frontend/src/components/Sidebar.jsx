@@ -421,6 +421,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
         { title: "Proctor's Applicant List", link: "/admission_schedule_room_list", icon: People, page_id: 33 },
         { title: "Announcement", link: "/announcement_for_admission", icon: Campaign, page_id: 98 },
         { title: "Program Slot Remaining", link: "/program_slot_limit", icon: People, page_id: 110 },
+        { title: "Application Process Admin", link: "/application_process_admin", icon: PersonAdd, page_id: 139 },
       ]
     },
   ];
@@ -578,11 +579,11 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
     },
     {
       key: "accountInformation", label: "Account Information", icon: Info, items: [
-        { title: "Application Process Admin", link: "/application_process_admin", icon: PersonAdd, page_id: 139 },
+
         { title: "Applicant Information", link: "/super_admin_applicant_dashboard1", icon: Info, page_id: 75 },
         { title: "Upload Requirements", link: "/super_admin_requirements_uploader", icon: Info, page_id: 84 },
         { title: "Student Information", link: "/super_admin_student_dashboard1", icon: Info, page_id: 86 },
-        { title: "Archive", link: "/archived", icon: Info, page_id: 142}
+        { title: "Archive", link: "/archived", icon: Info, page_id: 142 }
       ]
     },
     {

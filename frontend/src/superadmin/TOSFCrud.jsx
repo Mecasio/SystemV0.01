@@ -662,7 +662,7 @@ const TOSF = () => {
               </Box>
             ))}
           </Box>
-            
+
           <Box sx={{ mt: 2, textAlign: "right" }}>
             <Button
               type="submit"
@@ -691,8 +691,8 @@ const TOSF = () => {
                   });
 
                 }}
+                color="error"
                 variant="outlined"
-                color="secondary"
                 sx={{ ml: 2 }}
               >
                 Cancel
@@ -925,8 +925,8 @@ const TOSF = () => {
               {editingScholarshipId && (
                 <Button
                   onClick={resetScholarshipForm}
+                  color="error"
                   variant="outlined"
-                  color="secondary"
                   sx={{ ml: 2 }}
                 >
                   Cancel
@@ -1436,7 +1436,9 @@ const TOSF = () => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDeleteCancel} color="secondary">
+          <Button onClick={handleDeleteCancel}
+            color="error"
+            variant="outlined">
             Cancel
           </Button>
           <Button onClick={handleDeleteConfirm} color="error">
@@ -1456,7 +1458,10 @@ const TOSF = () => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setTosfUpdateDialogOpen(false)} color="secondary">
+          <Button onClick={() => setTosfUpdateDialogOpen(false)}
+            color="error"
+            variant="outlined"
+          >
             Cancel
           </Button>
           <Button
@@ -1483,7 +1488,10 @@ const TOSF = () => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setScholarshipUpdateDialogOpen(false)} color="secondary">
+          <Button onClick={() => setScholarshipUpdateDialogOpen(false)}
+            color="error"
+            variant="outlined"
+          >
             Cancel
           </Button>
           <Button
@@ -1518,7 +1526,8 @@ const TOSF = () => {
               setScholarshipDeleteDialogOpen(false);
               setSelectedScholarshipId(null);
             }}
-            color="secondary"
+            color="error"
+            variant="outlined"
           >
             Cancel
           </Button>

@@ -80,7 +80,7 @@ const RegistrarRequirements = () => {
 
   // ------------------------------------
   const [requirements, setRequirements] = useState([]);
-   const [selectedPerson, setSelectedPerson] = useState(null);
+  const [selectedPerson, setSelectedPerson] = useState(null);
 
   useEffect(() => {
     axios
@@ -155,7 +155,7 @@ const RegistrarRequirements = () => {
   const [persons, setPersons] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFiles, setSelectedFiles] = useState({});
- 
+
   const [remarksMap, setRemarksMap] = useState({});
   const [userID, setUserID] = useState("");
   const [user, setUser] = useState("");
@@ -527,7 +527,7 @@ const RegistrarRequirements = () => {
           profile_img: "",
           generalAverage1: "",
           program: "",
-    strand: "",
+          strand: "",
           height: "",
           applyingAs: "",
           document_status: "",
@@ -560,7 +560,7 @@ const RegistrarRequirements = () => {
         generalAverage1: "",
         height: "",
         program: "",
-    strand: "",
+        strand: "",
         applyingAs: "",
         document_status: "",
         last_name: "",
@@ -1159,7 +1159,7 @@ const RegistrarRequirements = () => {
         sx={{ width: "100%", border: `1px solid ${borderColor}` }}
       >
         {/* SHS GWA and Height row below Applicant Name */}
-       <Box sx={{ px: 2, mb: 2, mt: 2 }}>
+        <Box sx={{ px: 2, mb: 2, mt: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center", mb: 1, }}>
             <Typography
               sx={{
@@ -1756,7 +1756,10 @@ const RegistrarRequirements = () => {
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setConfirmOpen(false)} color="error">
+            <Button
+              color="error"
+              variant="outlined"
+              onClick={() => setConfirmOpen(false)}>
               Cancel
             </Button>
             <Button

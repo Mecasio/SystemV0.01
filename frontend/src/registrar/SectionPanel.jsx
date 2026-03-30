@@ -47,11 +47,14 @@ const SectionPanel = () => {
   const [sections, setSections] = useState([]);
   const [editId, setEditId] = useState(null);
 
+  const [openFormDialog, setOpenFormDialog] = useState(false);
+
+
   const handleEdit = (section) => {
     setEditId(section.id);
-    setDescription(section.description); // Load text in input field
+    setDescription(section.description);
+    setOpenFormDialog(true);
   };
-
 
   const [sectionSearchQuery, setSectionSearchQuery] = useState("");
 
@@ -141,10 +144,10 @@ const SectionPanel = () => {
         setSnackbar({ open: true, message: "Section added!", severity: "success" });
       }
 
-      setDescription('');
+      setDescription("");
       setEditId(null);
+      setOpenFormDialog(false);
       fetchSections();
-
     } catch (err) {
       const msg = err.response?.data?.error || "Error";
       setSnackbar({ open: true, message: msg, severity: "error" });
@@ -390,6 +393,30 @@ const SectionPanel = () => {
                     >
                       Last
                     </Button>
+
+                    <Button
+                      variant="contained"
+                      onClick={() => {
+                        setEditId(null);
+                        setDescription("");
+                        setOpenFormDialog(true);
+                      }}
+                      sx={{
+                        backgroundColor: "#1976d2", // ✅ Blue
+                        color: "#fff",
+                        fontWeight: "bold",
+                        borderRadius: "8px",
+                        width: "250px",
+                        textTransform: "none",
+                        px: 2,
+                        mr: "15px",
+                        '&:hover': {
+                          backgroundColor: "#1565c0" // darker blue hover
+                        }
+                      }}
+                    >
+                      + Add Schedule
+                    </Button>
                   </Box>
                 </Box>
               </TableCell>
@@ -634,42 +661,88 @@ const SectionPanel = () => {
         </Table>
       </TableContainer>
 
+      <Dialog
+        open={openFormDialog}
+        onClose={() => {
+          setOpenFormDialog(false);
+          setEditId(null);
+          setDescription("");
+        }}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            overflow: "hidden",
+            boxShadow: 6
+          }
+        }}
+      >
+        {/* HEADER */}
+        <DialogTitle
+          sx={{
+            background: settings?.header_color || "#1976d2",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "1.1rem",
+            py: 2
+          }}
+        >
+          {editId ? "Edit Section" : "Create Section"}
+        </DialogTitle>
 
-      <br />
-      <br />
-      <TableContainer component={Paper} sx={{ width: '50%', border: `1px solid ${borderColor}` }}>
-        <Table>
-          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
-            <TableRow>
-              <TableCell sx={{ color: 'white', textAlign: "Center" }}>Create Section Panel</TableCell>
-            </TableRow>
-          </TableHead>
-        </Table>
-      </TableContainer>
+        {/* CONTENT */}
+        <DialogContent sx={{ p: 3 }}>
+          <Typography fontWeight="bold" mb={1} mt={1}>
+            Section Description
+          </Typography>
 
+          <TextField
+            fullWidth
+            placeholder="Enter section description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            autoFocus
+          />
+        </DialogContent>
 
-      <Paper elevation={3} sx={{ flex: 1, p: 3, border: `1px solid ${borderColor}`, width: "50%" }}>
+        {/* ACTIONS */}
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2,
+            borderTop: "1px solid #e0e0e0"
+          }}
+        >
+          <Button
+            onClick={() => {
+              setOpenFormDialog(false);
+              setEditId(null);
+              setDescription("");
+            }}
+            color="error"
+            variant="outlined"
+            sx={{
+              textTransform: "none",
+              fontWeight: 600
+            }}
+          >
+            Cancel
+          </Button>
 
-        <form onSubmit={handleSubmit}>
-          <Box display="flex" flexDirection="column" gap={2}>
-            <Typography fontWeight={500}>Section Description:</Typography>
-            <TextField
-              label="Section Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              fullWidth
-              required
-            />
-            <Button
-              type="submit"
-              variant="contained"
-              sx={{ backgroundColor: "primary", color: '#fff' }}
-            >
-              Insert
-            </Button>
-          </Box>
-        </form>
-      </Paper>
+          <Button
+            variant="contained"
+            sx={{
+              px: 4,
+              fontWeight: 600,
+              textTransform: "none"
+            }}
+            onClick={handleSubmit}
+          >
+            {editId ? "Update" : "Save"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
 
       <Dialog
@@ -678,18 +751,55 @@ const SectionPanel = () => {
           setOpenDeleteDialog(false);
           setSectionToDelete(null);
         }}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            overflow: "hidden",
+            boxShadow: 6
+          }
+        }}
       >
-        <DialogTitle>Confirm Delete Section</DialogTitle>
+        {/* HEADER */}
+        <DialogTitle
+          sx={{
+            background: "#B22222",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "1.1rem",
+            py: 2
+          }}
+        >
+          Confirm Delete
+        </DialogTitle>
 
-        <DialogContent>
+        {/* CONTENT */}
+        <DialogContent sx={{ p: 3 }}>
           <Typography>
-            Are you sure you want to delete the section{" "}
-            <b>{sectionToDelete?.description}</b>?
+            Are you sure you want to delete the section:
+          </Typography>
+
+          <Typography mt={2} fontWeight="bold">
+            {sectionToDelete?.description}
           </Typography>
         </DialogContent>
 
-        <DialogActions>
+        {/* ACTIONS */}
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2,
+            borderTop: "1px solid #e0e0e0"
+          }}
+        >
           <Button
+            variant="outlined"
+            color="error"
+            sx={{
+              textTransform: "none",
+              fontWeight: 600
+            }}
             onClick={() => {
               setOpenDeleteDialog(false);
               setSectionToDelete(null);
@@ -701,12 +811,18 @@ const SectionPanel = () => {
           <Button
             variant="contained"
             color="error"
+            sx={{
+              px: 4,
+              fontWeight: 600,
+              textTransform: "none"
+            }}
             onClick={handleConfirmDelete}
           >
             Yes, Delete
           </Button>
         </DialogActions>
       </Dialog>
+
 
 
       {/* Snackbar */}

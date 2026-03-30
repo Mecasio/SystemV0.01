@@ -542,16 +542,10 @@ const RequirementUploader = () => {
 
           {/* Cancel */}
           <Button
+            color="error"
             variant="outlined"
             onClick={() => setOpenConfirmModal(false)}
-            sx={{
-              color: "red",
-              borderColor: "red",
-              '&:hover': {
-                borderColor: "darkred",
-                backgroundColor: "rgba(255, 0, 0, 0.04)"
-              }
-            }}
+
           >
             Cancel
           </Button>

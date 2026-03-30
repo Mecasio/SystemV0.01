@@ -319,10 +319,10 @@ const DepartmentRoom = () => {
           </Button>
         </Box>
       </Paper>
-      
 
-      <br/>
-      <br/>
+
+      <br />
+      <br />
 
       <Typography variant="h6" gutterBottom>
         Department Room Assignments
@@ -403,7 +403,10 @@ const DepartmentRoom = () => {
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={() => setOpenUnassignDialog(false)}>
+          <Button
+            color="error"
+            variant="outlined" 
+            onClick={() => setOpenUnassignDialog(false)}>
             Cancel
           </Button>
 

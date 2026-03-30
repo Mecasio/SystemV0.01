@@ -474,32 +474,67 @@ const ClassRoster = () => {
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
 
-      {/* ── Navigation tabs ── */}
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", mt: 2 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          width: "100%",
+          mt: 2,
+        }}
+      >
         {tabs1.map((tab, index) => (
           <React.Fragment key={index}>
+            {/* Step Card */}
             <Card
               onClick={() => handleStepClick(index, tab.to)}
               sx={{
                 flex: 1,
-                maxWidth: `${100 / tabs1.length}%`,
-                height: 100,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                cursor: "pointer", borderRadius: 2,
+                maxWidth: `${100 / tabs1.length}%`, // evenly fit 100%
+                height: 140,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                borderRadius: 2,
                 border: `1px solid ${borderColor}`,
                 backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
                 color: activeStep === index ? "#fff" : "#000",
-                boxShadow: activeStep === index ? "0px 4px 10px rgba(0,0,0,0.3)" : "0px 2px 6px rgba(0,0,0,0.15)",
+                boxShadow:
+                  activeStep === index
+                    ? "0px 4px 10px rgba(0,0,0,0.3)"
+                    : "0px 2px 6px rgba(0,0,0,0.15)",
                 transition: "0.3s ease",
-                "&:hover": { backgroundColor: activeStep === index ? "#000000" : "#f5d98f" },
+                "&:hover": {
+                  backgroundColor: activeStep === index ? "#000000" : "#f5d98f",
+                },
               }}
             >
-              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
                 <Box sx={{ fontSize: 32, mb: 0.5 }}>{tab.icon}</Box>
-                <Typography sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}>{tab.label}</Typography>
+                <Typography
+                  sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}
+                >
+                  {tab.label}
+                </Typography>
               </Box>
             </Card>
-            {index < tabs1.length - 1 && <Box sx={{ flex: 0.1, mx: 1 }} />}
+
+            {/* Spacer instead of line */}
+            {index < tabs1.length - 1 && (
+              <Box
+                sx={{
+                  flex: 0.1,
+                  mx: 1, // margin to keep spacing
+                }}
+              />
+            )}
           </React.Fragment>
         ))}
       </Box>

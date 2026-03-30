@@ -1,27 +1,27 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
 import { SettingsContext } from "../App";
 import {
-  Box,
-  Paper,
-  Typography,
-  FormControl,
-  Select,
-  MenuItem,
-  TextField,
-  Button,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  TableContainer,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  Snackbar,
-  Alert,
+    Box,
+    Paper,
+    Typography,
+    FormControl,
+    Select,
+    MenuItem,
+    TextField,
+    Button,
+    Table,
+    TableHead,
+    TableRow,
+    TableCell,
+    TableBody,
+    TableContainer,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
+    Snackbar,
+    Alert,
 } from "@mui/material";
 import axios from "axios";
 import API_BASE_URL from "../apiConfig";
@@ -165,7 +165,7 @@ const MatriculationPaymentModule = () => {
         const keepVisible = String(row?.id) === String(keepVisiblePaidMatriculationId);
         return !isPaid || keepVisible;
     });
-    
+
     const totalPages = Math.max(1, Math.ceil(visibleData.length / pageSize));
 
     // Dialog states
@@ -246,12 +246,12 @@ const MatriculationPaymentModule = () => {
     useEffect(() => {
         const person_id = localStorage.getItem("person_id");
         const role = localStorage.getItem("role");
-    
+
         if (person_id && role) {
-          axios
-            .get(`${API_BASE_URL}/api/person_data/${person_id}/${role}`)
-            .then((res) => setPersonData(res.data))
-            .catch((err) => console.error("Failed to fetch person data:", err));
+            axios
+                .get(`${API_BASE_URL}/api/person_data/${person_id}/${role}`)
+                .then((res) => setPersonData(res.data))
+                .catch((err) => console.error("Failed to fetch person data:", err));
         }
     }, []);
 
@@ -266,59 +266,59 @@ const MatriculationPaymentModule = () => {
 
     const handleTransfer = async (row, payment) => {
         try {
-        const saveEndpoint = "/api/payment_matriculation/";
-        const employeeId = personData?.employee_id || localStorage.getItem("employee_id");
-        const paymentSummary = computePriorityPayment(row, payment);
+            const saveEndpoint = "/api/payment_matriculation/";
+            const employeeId = personData?.employee_id || localStorage.getItem("employee_id");
+            const paymentSummary = computePriorityPayment(row, payment);
 
-        if (!employeeId) {
-            showSnackbar("Employee id is required to save this payment.", "error");
-            return;
-        }
+            if (!employeeId) {
+                showSnackbar("Employee id is required to save this payment.", "error");
+                return;
+            }
 
-        if (paymentSummary.totalPayment <= 0) {
-            showSnackbar("Payment must be greater than zero.", "warning");
-            return;
-        }
+            if (paymentSummary.totalPayment <= 0) {
+                showSnackbar("Payment must be greater than zero.", "warning");
+                return;
+            }
 
-        const saveRes = await axios.put(`${API_BASE_URL}${saveEndpoint}${row.id}`, {
-            payment: paymentSummary.totalPayment,
-            balance: paymentSummary.balance,
-            payment_status: paymentSummary.paymentStatus,
-            employee_id: employeeId,
-        });
-        setKeepVisiblePaidMatriculationId(row?.id ?? null);
-        await fetchStudentData();
-        setReceiptData({
-            transaction_id: saveRes?.data?.transaction_id || "",
-            student_number: row?.student_number || "",
-            student_name: `${row?.last_name || ""}, ${row?.given_name || ""} ${row?.middle_initial || ""}`.trim(),
-            total_tosf: paymentSummary.totalTosf,
-            tuition_fees: row?.tuition_fees ?? 0,
-            total_misc: row?.total_misc ?? 0,
-            nstp_fees: row?.nstp_fees ?? 0,
-            registration_fees: row?.registration_fees ?? 0,
-            athletic_fees: row?.athletic_fees ?? 0,
-            computer_fees: row?.computer_fees ?? 0,
-            cultural_fees: row?.cultural_fees ?? 0,
-            development_fees: row?.development_fees ?? 0,
-            guidance_fees: row?.guidance_fees ?? 0,
-            laboratory_fees: row?.laboratory_fees ?? 0,
-            library_fees: row?.library_fees ?? 0,
-            medical_and_dental_fees: row?.medical_and_dental_fees ?? 0,
-            school_id_fees: row?.school_id_fees ?? 0,
-            payment_entered: paymentSummary.totalPayment,
-            payment_applied: paymentSummary.appliedPayment,
-            balance: paymentSummary.balance,
-            unpaid_total: paymentSummary.unpaidTotal,
-            payment_breakdown: paymentSummary.deductions,
-            employee_id: employeeId,
-            active_school_year_id: saveRes?.data?.active_school_year_id || row?.active_school_year_id || "",
-            remark: "Matriculation payment",
-            created_at: new Date().toLocaleString(),
-        });
-        receiptPrintedRef.current = false;
-        setViewReceiptPromptOpen(true);
-        showSnackbar("Matriculation payment saved successfully.", "success");
+            const saveRes = await axios.put(`${API_BASE_URL}${saveEndpoint}${row.id}`, {
+                payment: paymentSummary.totalPayment,
+                balance: paymentSummary.balance,
+                payment_status: paymentSummary.paymentStatus,
+                employee_id: employeeId,
+            });
+            setKeepVisiblePaidMatriculationId(row?.id ?? null);
+            await fetchStudentData();
+            setReceiptData({
+                transaction_id: saveRes?.data?.transaction_id || "",
+                student_number: row?.student_number || "",
+                student_name: `${row?.last_name || ""}, ${row?.given_name || ""} ${row?.middle_initial || ""}`.trim(),
+                total_tosf: paymentSummary.totalTosf,
+                tuition_fees: row?.tuition_fees ?? 0,
+                total_misc: row?.total_misc ?? 0,
+                nstp_fees: row?.nstp_fees ?? 0,
+                registration_fees: row?.registration_fees ?? 0,
+                athletic_fees: row?.athletic_fees ?? 0,
+                computer_fees: row?.computer_fees ?? 0,
+                cultural_fees: row?.cultural_fees ?? 0,
+                development_fees: row?.development_fees ?? 0,
+                guidance_fees: row?.guidance_fees ?? 0,
+                laboratory_fees: row?.laboratory_fees ?? 0,
+                library_fees: row?.library_fees ?? 0,
+                medical_and_dental_fees: row?.medical_and_dental_fees ?? 0,
+                school_id_fees: row?.school_id_fees ?? 0,
+                payment_entered: paymentSummary.totalPayment,
+                payment_applied: paymentSummary.appliedPayment,
+                balance: paymentSummary.balance,
+                unpaid_total: paymentSummary.unpaidTotal,
+                payment_breakdown: paymentSummary.deductions,
+                employee_id: employeeId,
+                active_school_year_id: saveRes?.data?.active_school_year_id || row?.active_school_year_id || "",
+                remark: "Matriculation payment",
+                created_at: new Date().toLocaleString(),
+            });
+            receiptPrintedRef.current = false;
+            setViewReceiptPromptOpen(true);
+            showSnackbar("Matriculation payment saved successfully.", "success");
 
         } catch (error) {
             console.error(error);
@@ -558,11 +558,11 @@ const MatriculationPaymentModule = () => {
             if (n === 0) return "";
             if (n < 20) return belowTwenty[n] + " ";
             if (n < 100)
-            return tens[Math.floor(n / 10)] + " " + helper(n % 10);
+                return tens[Math.floor(n / 10)] + " " + helper(n % 10);
             return (
-            belowTwenty[Math.floor(n / 100)] +
-            " Hundred " +
-            helper(n % 100)
+                belowTwenty[Math.floor(n / 100)] +
+                " Hundred " +
+                helper(n % 100)
             );
         };
 
@@ -571,11 +571,11 @@ const MatriculationPaymentModule = () => {
 
         while (num > 0) {
             if (num % 1000 !== 0) {
-            word =
-                helper(num % 1000) +
-                thousands[i] +
-                " " +
-                word;
+                word =
+                    helper(num % 1000) +
+                    thousands[i] +
+                    " " +
+                    word;
             }
             num = Math.floor(num / 1000);
             i++;
@@ -647,11 +647,11 @@ const MatriculationPaymentModule = () => {
                     MATRICULATION PAYMENT MODULE
                 </Typography>
             </Box>
-        
+
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
 
-            <Box fullWidth sx={{p: '10px 0px', display: "flex", justifyContent: "flex-end"}}>
+            <Box fullWidth sx={{ p: '10px 0px', display: "flex", justifyContent: "flex-end" }}>
                 <Button
                     startIcon={<HistoryToggleOffIcon />}
                     sx={{
@@ -664,189 +664,189 @@ const MatriculationPaymentModule = () => {
                     Transaction History
                 </Button>
             </Box>
-            
+
             <TableContainer component={Paper} sx={{ maxHeight: 600 }}>
                 <Table stickyHeader size="small"
                     sx={{
-                    "& th, & td": {
-                        border: `1px solid ${borderColor}`,
-                        textAlign: "center",
-                        fontSize: "12px",   
-                    },
-                    borderCollapse: "collapse",
+                        "& th, & td": {
+                            border: `1px solid ${borderColor}`,
+                            textAlign: "center",
+                            fontSize: "12px",
+                        },
+                        borderCollapse: "collapse",
                     }}
                 >
                     <TableHead>
                         <TableRow>
                             <TableCell
-                            colSpan={19}
-                            sx={{
-                                py: 0.5,
-                                backgroundColor: settings?.header_color || "#6D2323",
-                                color: "white",
-                            }}
+                                colSpan={19}
+                                sx={{
+                                    py: 0.5,
+                                    backgroundColor: settings?.header_color || "#6D2323",
+                                    color: "white",
+                                }}
                             >
-                            <Box display="flex" justifyContent="space-between" alignItems="center">
-                                <Typography fontSize="14px" fontWeight="bold" color="white">
-                                Total Students: {visibleData.length}
-                                </Typography>
-                                <Box display="flex" alignItems="center" gap={1}>
-                                {/* First & Prev */}
-                                <Button
-                                    onClick={() => setCurrentPage(1)}
-                                    disabled={currentPage === 1}
-                                    variant="outlined"
-                                    size="small"
-                                    sx={{
-                                    minWidth: 80,
-                                    color: "white",
-                                    borderColor: "white",
-                                    backgroundColor: "transparent",
-                                    '&:hover': {
-                                        borderColor: 'white',
-                                        backgroundColor: 'rgba(255,255,255,0.1)',
-                                    },
-                                    '&.Mui-disabled': {
-                                        color: "white",
-                                        borderColor: "white",
-                                        backgroundColor: "transparent",
-                                        opacity: 1,
-                                    }
-                                    }}
-                                >
-                                    First
-                                </Button>
+                                <Box display="flex" justifyContent="space-between" alignItems="center">
+                                    <Typography fontSize="14px" fontWeight="bold" color="white">
+                                        Total Students: {visibleData.length}
+                                    </Typography>
+                                    <Box display="flex" alignItems="center" gap={1}>
+                                        {/* First & Prev */}
+                                        <Button
+                                            onClick={() => setCurrentPage(1)}
+                                            disabled={currentPage === 1}
+                                            variant="outlined"
+                                            size="small"
+                                            sx={{
+                                                minWidth: 80,
+                                                color: "white",
+                                                borderColor: "white",
+                                                backgroundColor: "transparent",
+                                                '&:hover': {
+                                                    borderColor: 'white',
+                                                    backgroundColor: 'rgba(255,255,255,0.1)',
+                                                },
+                                                '&.Mui-disabled': {
+                                                    color: "white",
+                                                    borderColor: "white",
+                                                    backgroundColor: "transparent",
+                                                    opacity: 1,
+                                                }
+                                            }}
+                                        >
+                                            First
+                                        </Button>
 
-                                <Button
-                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                    disabled={currentPage === 1}
-                                    variant="outlined"
-                                    size="small"
-                                    sx={{
-                                    minWidth: 80,
-                                    color: "white",
-                                    borderColor: "white",
-                                    backgroundColor: "transparent",
-                                    '&:hover': {
-                                        borderColor: 'white',
-                                        backgroundColor: 'rgba(255,255,255,0.1)',
-                                    },
-                                    '&.Mui-disabled': {
-                                        color: "white",
-                                        borderColor: "white",
-                                        backgroundColor: "transparent",
-                                        opacity: 1,
-                                    }
-                                    }}
-                                >
-                                    Prev
-                                </Button>
-
-
-                                {/* Page Dropdown */}
-                                <FormControl size="small" sx={{ minWidth: 80 }}>
-                                    <Select
-                                    value={currentPage}
-                                    onChange={(e) => setCurrentPage(Number(e.target.value))}
-                                    displayEmpty
-                                    sx={{
-                                        fontSize: '12px',
-                                        height: 36,
-                                        color: 'white',
-                                        border: '1px solid white',
-                                        backgroundColor: 'transparent',
-                                        '.MuiOutlinedInput-notchedOutline': {
-                                        borderColor: 'white',
-                                        },
-                                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: 'white',
-                                        },
-                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: 'white',
-                                        },
-                                        '& svg': {
-                                        color: 'white', // dropdown arrow icon color
-                                        }
-                                    }}
-                                    MenuProps={{
-                                        PaperProps: {
-                                        sx: {
-                                            maxHeight: 200,
-                                            backgroundColor: '#fff', // dropdown background
-                                        }
-                                        }
-                                    }}
-                                    >
-                                    {Array.from({ length: totalPages }, (_, i) => (
-                                        <MenuItem key={i + 1} value={i + 1}>
-                                        Page {i + 1}
-                                        </MenuItem>
-                                    ))}
-                                    </Select>
-                                </FormControl>
-
-                                <Typography fontSize="11px" color="white">
-                                    of {totalPages} page{totalPages > 1 ? 's' : ''}
-                                </Typography>
+                                        <Button
+                                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                            disabled={currentPage === 1}
+                                            variant="outlined"
+                                            size="small"
+                                            sx={{
+                                                minWidth: 80,
+                                                color: "white",
+                                                borderColor: "white",
+                                                backgroundColor: "transparent",
+                                                '&:hover': {
+                                                    borderColor: 'white',
+                                                    backgroundColor: 'rgba(255,255,255,0.1)',
+                                                },
+                                                '&.Mui-disabled': {
+                                                    color: "white",
+                                                    borderColor: "white",
+                                                    backgroundColor: "transparent",
+                                                    opacity: 1,
+                                                }
+                                            }}
+                                        >
+                                            Prev
+                                        </Button>
 
 
-                                {/* Next & Last */}
-                                <Button
-                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                    disabled={currentPage === totalPages}
-                                    variant="outlined"
-                                    size="small"
-                                    sx={{
-                                    minWidth: 80,
-                                    color: "white",
-                                    borderColor: "white",
-                                    backgroundColor: "transparent",
-                                    '&:hover': {
-                                        borderColor: 'white',
-                                        backgroundColor: 'rgba(255,255,255,0.1)',
-                                    },
-                                    '&.Mui-disabled': {
-                                        color: "white",
-                                        borderColor: "white",
-                                        backgroundColor: "transparent",
-                                        opacity: 1,
-                                    }
-                                    }}
-                                >
-                                    Next
-                                </Button>
+                                        {/* Page Dropdown */}
+                                        <FormControl size="small" sx={{ minWidth: 80 }}>
+                                            <Select
+                                                value={currentPage}
+                                                onChange={(e) => setCurrentPage(Number(e.target.value))}
+                                                displayEmpty
+                                                sx={{
+                                                    fontSize: '12px',
+                                                    height: 36,
+                                                    color: 'white',
+                                                    border: '1px solid white',
+                                                    backgroundColor: 'transparent',
+                                                    '.MuiOutlinedInput-notchedOutline': {
+                                                        borderColor: 'white',
+                                                    },
+                                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                        borderColor: 'white',
+                                                    },
+                                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                        borderColor: 'white',
+                                                    },
+                                                    '& svg': {
+                                                        color: 'white', // dropdown arrow icon color
+                                                    }
+                                                }}
+                                                MenuProps={{
+                                                    PaperProps: {
+                                                        sx: {
+                                                            maxHeight: 200,
+                                                            backgroundColor: '#fff', // dropdown background
+                                                        }
+                                                    }
+                                                }}
+                                            >
+                                                {Array.from({ length: totalPages }, (_, i) => (
+                                                    <MenuItem key={i + 1} value={i + 1}>
+                                                        Page {i + 1}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
 
-                                <Button
-                                    onClick={() => setCurrentPage(totalPages)}
-                                    disabled={currentPage === totalPages}
-                                    variant="outlined"
-                                    size="small"
-                                    sx={{
-                                    minWidth: 80,
-                                    color: "white",
-                                    borderColor: "white",
-                                    backgroundColor: "transparent",
-                                    '&:hover': {
-                                        borderColor: 'white',
-                                        backgroundColor: 'rgba(255,255,255,0.1)',
-                                    },
-                                    '&.Mui-disabled': {
-                                        color: "white",
-                                        borderColor: "white",
-                                        backgroundColor: "transparent",
-                                        opacity: 1,
-                                    }
-                                    }}
-                                >
-                                    Last
-                                </Button>
+                                        <Typography fontSize="11px" color="white">
+                                            of {totalPages} page{totalPages > 1 ? 's' : ''}
+                                        </Typography>
+
+
+                                        {/* Next & Last */}
+                                        <Button
+                                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                            disabled={currentPage === totalPages}
+                                            variant="outlined"
+                                            size="small"
+                                            sx={{
+                                                minWidth: 80,
+                                                color: "white",
+                                                borderColor: "white",
+                                                backgroundColor: "transparent",
+                                                '&:hover': {
+                                                    borderColor: 'white',
+                                                    backgroundColor: 'rgba(255,255,255,0.1)',
+                                                },
+                                                '&.Mui-disabled': {
+                                                    color: "white",
+                                                    borderColor: "white",
+                                                    backgroundColor: "transparent",
+                                                    opacity: 1,
+                                                }
+                                            }}
+                                        >
+                                            Next
+                                        </Button>
+
+                                        <Button
+                                            onClick={() => setCurrentPage(totalPages)}
+                                            disabled={currentPage === totalPages}
+                                            variant="outlined"
+                                            size="small"
+                                            sx={{
+                                                minWidth: 80,
+                                                color: "white",
+                                                borderColor: "white",
+                                                backgroundColor: "transparent",
+                                                '&:hover': {
+                                                    borderColor: 'white',
+                                                    backgroundColor: 'rgba(255,255,255,0.1)',
+                                                },
+                                                '&.Mui-disabled': {
+                                                    color: "white",
+                                                    borderColor: "white",
+                                                    backgroundColor: "transparent",
+                                                    opacity: 1,
+                                                }
+                                            }}
+                                        >
+                                            Last
+                                        </Button>
+                                    </Box>
+
                                 </Box>
-                            
-                            </Box>
-                        </TableCell>
+                            </TableCell>
                         </TableRow>
 
-                    {/* COLUMN HEADERS */}
+                        {/* COLUMN HEADERS */}
                         <TableRow>
                             <TableCell>No.</TableCell>
                             <TableCell>Campus</TableCell>
@@ -855,7 +855,7 @@ const MatriculationPaymentModule = () => {
                             <TableCell>Given Name</TableCell>
                             <TableCell>MI</TableCell>
                             <TableCell>Degree Program</TableCell>
-                            <TableCell>Year Level</TableCell>       
+                            <TableCell>Year Level</TableCell>
                             <TableCell>Sex</TableCell>
                             <TableCell>Email</TableCell>
                             <TableCell>Lab Units</TableCell>
@@ -873,7 +873,7 @@ const MatriculationPaymentModule = () => {
                     <TableBody>
                         {paginatedData.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={19} align="center" sx={{height: "4cm"}}>
+                                <TableCell colSpan={19} align="center" sx={{ height: "4cm" }}>
                                     No students to display.
                                 </TableCell>
                             </TableRow>
@@ -914,7 +914,7 @@ const MatriculationPaymentModule = () => {
                 </Table>
             </TableContainer >
 
-             {/* CONFIRM DIALOG */ }
+            {/* CONFIRM DIALOG */}
             <Dialog open={confirmOpen} onClose={closeConfirm} fullWidth maxWidth="lg">
                 <DialogTitle>Confirm Payment</DialogTitle>
                 <DialogContent>
@@ -922,33 +922,33 @@ const MatriculationPaymentModule = () => {
                         Are you sure you want to save the payment to Matriculation for student{" "}
                         {confirmRow?.student_number || ""}?
                     </DialogContentText>
-                    <DialogContentText sx={{mt: "20px", display: "flex", alignItems: "center", gap: "1rem"}}>
-                        <Box sx={{mt: 1}}>
+                    <DialogContentText sx={{ mt: "20px", display: "flex", alignItems: "center", gap: "1rem" }}>
+                        <Box sx={{ mt: 1 }}>
                             <Box>
-                                <Box sx={{mb: 1, display: "flex", gap: 1}}>
-                                    <Box sx={{width: "200px", height: "180px", background: "#6a0181", fontWeight: "700", padding: 2, color: "White", borderRadius: "10px"}}>
+                                <Box sx={{ mb: 1, display: "flex", gap: 1 }}>
+                                    <Box sx={{ width: "200px", height: "180px", background: "#6a0181", fontWeight: "700", padding: 2, color: "White", borderRadius: "10px" }}>
                                         <Typography>
                                             TOTAL:
                                         </Typography>
-                                        <Box sx={{width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "34px", marginTop: "-10px"}}>
+                                        <Box sx={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "34px", marginTop: "-10px" }}>
                                             ₱{" "}{toAmount(confirmPaymentSummary?.totalTosf).toLocaleString()}
                                         </Box>
                                     </Box>
-                                    <Box sx={{width: "200px", height: "180px", background: "#094e9e", fontWeight: "700", padding: 2, color: "White", borderRadius: "10px"}}>
+                                    <Box sx={{ width: "200px", height: "180px", background: "#094e9e", fontWeight: "700", padding: 2, color: "White", borderRadius: "10px" }}>
                                         <Typography>
                                             BALANCE:
                                         </Typography>
-                                        <Box sx={{width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "34px", marginTop: "-10px"}}>
+                                        <Box sx={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "34px", marginTop: "-10px" }}>
                                             ₱{" "}{toAmount(confirmPaymentSummary?.balance).toLocaleString()}
                                         </Box>
                                     </Box>
                                 </Box>
-                                <Box sx={{mb: 1, display: "flex", gap: 1}}>
-                                    <Box sx={{width: "410px", height: "180px", background: "#109917", fontWeight: "700", padding: 2, color: "White", borderRadius: "10px"}}>
+                                <Box sx={{ mb: 1, display: "flex", gap: 1 }}>
+                                    <Box sx={{ width: "410px", height: "180px", background: "#109917", fontWeight: "700", padding: 2, color: "White", borderRadius: "10px" }}>
                                         <Typography>
                                             STUDENT'S PAYMENT:
                                         </Typography>
-                                        <Box sx={{width: "100%", height: "100%", display: "flex", alignItems: "center", padding: "0px 20px", fontSize: "34px", marginTop: "-10px"}}>
+                                        <Box sx={{ width: "100%", height: "100%", display: "flex", alignItems: "center", padding: "0px 20px", fontSize: "34px", marginTop: "-10px" }}>
                                             ₱{" "}{toAmount(confirmPaymentSummary?.totalPayment).toLocaleString()}
                                         </Box>
                                     </Box>
@@ -961,8 +961,8 @@ const MatriculationPaymentModule = () => {
                                 readOnly
                                 disabled
                                 value={confirmPaymentSummary?.totalTosf || 0}
-                                sx={{ 
-                                    mt: 2, 
+                                sx={{
+                                    mt: 2,
                                     width: "406px",
                                     "& .MuiInputBase-input": { fontSize: "20px" },
                                 }}
@@ -973,8 +973,8 @@ const MatriculationPaymentModule = () => {
                                 label="Payment"
                                 value={paymentValue}
                                 onChange={(e) => setPaymentValue(e.target.value)}
-                                sx={{ 
-                                    mt: 2, 
+                                sx={{
+                                    mt: 2,
                                     width: "406px",
                                     "& .MuiInputBase-input": { fontSize: "20px" },
                                 }}
@@ -993,23 +993,26 @@ const MatriculationPaymentModule = () => {
                                 label="Balance after Payment"
                                 value={confirmPaymentSummary?.balance}
                                 readOnly
-                                sx={{ 
-                                    mt: 2, 
+                                sx={{
+                                    mt: 2,
                                     width: "406px",
                                     "& .MuiInputBase-input": { fontSize: "20px" },
                                 }}
                             />
-                            <Box sx={{ mt: 2, width: "406px", display: "flex", alignItems: "center", justifyContent: "end"}}>
-                                <Button onClick={closeConfirm} color="inherit">
+                            <Box sx={{ mt: 2, width: "406px", display: "flex", alignItems: "center", justifyContent: "end" }}>
+                                <Button onClick={closeConfirm}
+                                    color="error"
+                                    variant="outlined"
+                                >
                                     Cancel
                                 </Button>
-                                <Button onClick={handleConfirmTransfer} variant="contained" sx={{background: "maroon"}} disabled={isOverPayment}>
+                                <Button onClick={handleConfirmTransfer} variant="contained" sx={{ background: "maroon" }} disabled={isOverPayment}>
                                     Confirm
                                 </Button>
                             </Box>
                         </Box>
                         <Box>
-                            <Box sx={{ mt: 2, p: 1, border: "1px solid #d9d9d9", borderRadius: 1}}>
+                            <Box sx={{ mt: 2, p: 1, border: "1px solid #d9d9d9", borderRadius: 1 }}>
                                 <Typography variant="subtitle2" sx={{ fontWeight: "bold", mb: 1, width: "700px" }}>
                                     Payment Summary Graph
                                 </Typography>
@@ -1029,7 +1032,7 @@ const MatriculationPaymentModule = () => {
                                     </ResponsiveContainer>
                                 </Box>
                             </Box>
-                            <Box sx={{ mt: 2, p: 1, border: "1px solid #d9d9d9", borderRadius: 1}}>
+                            <Box sx={{ mt: 2, p: 1, border: "1px solid #d9d9d9", borderRadius: 1 }}>
                                 <Typography variant="subtitle2" sx={{ fontWeight: "bold", mb: 1 }}>
                                     Fee Breakdown in Privilege Order{" "}
                                 </Typography>
@@ -1110,7 +1113,7 @@ const MatriculationPaymentModule = () => {
                     <Button onClick={() => setHistoryOpen(false)}>Close</Button>
                 </DialogActions>
             </Dialog>
-                
+
             <Dialog open={viewReceiptPromptOpen} onClose={handleViewReceiptNo}>
                 <DialogTitle>View Receipt</DialogTitle>
                 <DialogContent>
@@ -1135,147 +1138,147 @@ const MatriculationPaymentModule = () => {
                 open={receiptOpen}
                 onClose={handleCloseReceipt}
                 PaperProps={{
-                sx: {
-                    width: "168mm",
-                    maxWidth: "168mm",
-                    height: "210mm",
-                    maxHeight: "210mm",
-                },
+                    sx: {
+                        width: "168mm",
+                        maxWidth: "168mm",
+                        height: "210mm",
+                        maxHeight: "210mm",
+                    },
                 }}
             >
                 <DialogTitle>RECEIPT</DialogTitle>
                 <DialogContent>
-                <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 1, gap: 1 }}>
-                    <Button variant="contained" onClick={handlePrintA5}>
-                    Print
-                    </Button>
-                    <Button
-                        variant="outlined"
-                        color="error"
-                        onClick={handleVoidReceipt}
-                        disabled={voidingReceipt}
+                    <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 1, gap: 1 }}>
+                        <Button variant="contained" onClick={handlePrintA5}>
+                            Print
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            color="error"
+                            onClick={handleVoidReceipt}
+                            disabled={voidingReceipt}
+                        >
+                            {voidingReceipt ? "Voiding..." : "Void"}
+                        </Button>
+                    </Box>
+
+                    <Box
+                        ref={a5PrintRef}
+                        id="student-receipt-a5-print"
+                        sx={{
+                            mt: 1,
+                            minWidth: "14.1cm",
+                            maxWidth: "14.1cm",
+                            minHeight: "21.7cm",
+                            maxHeight: "21.7cm",
+                            width: "14.1cm",
+                            height: "21.7cm",
+                            p: 2,
+                            border: "1px solid #d9d9d9",
+                            borderRadius: 1,
+                            overflow: "auto",
+                            boxSizing: "border-box",
+                        }}
                     >
-                        {voidingReceipt ? "Voiding..." : "Void"}
-                    </Button>
-                </Box>
-
-                <Box
-                    ref={a5PrintRef}
-                    id="student-receipt-a5-print"
-                    sx={{
-                    mt: 1,
-                    minWidth: "14.1cm",
-                    maxWidth: "14.1cm",
-                    minHeight: "21.7cm",
-                    maxHeight: "21.7cm",
-                    width: "14.1cm",
-                    height: "21.7cm",
-                    p: 2,
-                    border: "1px solid #d9d9d9",
-                    borderRadius: 1,
-                    overflow: "auto",
-                    boxSizing: "border-box",
-                    }}
-                >
-                    <Box>
-                        <Box sx={{display: "flex", alignItems: "center"}}>
-                            <Typography variant="body2" sx={{mt: '4cm', ml: '6.5cm'}}>
-                            </Typography>
-                            <Typography variant="body2" sx={{mt: '4cm', width: '3.1cm'}}>
-                                {receiptData?.transaction_id || "-"}
-                            </Typography>
-                            <Typography variant="body2" sx={{mt: '4cm', width: '2cm', ml: '2cm'}}>
-                                {new Date().toLocaleDateString()}
-                            </Typography>
-                            <Typography variant="body2" sx={{mt: '4cm', ml: '6.5cm'}}>
-                            </Typography>
-                        </Box>
-
-                        <>
-                            <Typography variant="body2" sx={{mt: '0.5cm', marginLeft: '2.8cm'}}>
-                            {`${receiptData?.student_name || ""}`} ({receiptData?.student_number || " "})
-                            </Typography>
-                        </>
-
-                        <Box sx={{display: "flex", alignItems: "center"}}>
-                            <Typography variant="body2" sx={{mt: '1.3cm', marginLeft: '1.7cm', width: '7cm'}}>
-                                TUITION FEE
-                            </Typography>
-                            <Typography variant="body2" sx={{mt: '1.3cm', ml: '1cm', textAlign: 'right'}}>
-                                {receiptData?.tuition_fees ?? 0}
-                            </Typography>
-                        </Box>
-
-                        <Box sx={{display: "flex", alignItems: "center"}}>
-                            <Typography variant="body2" sx={{mt: '0.1cm', marginLeft: '1.7cm', width: '7cm'}}>
-                                MISCELLANEOUS FEE
-                            </Typography>
-                            <Typography variant="body2" sx={{mt: '0.1cm', ml: '1cm', textAlign: 'right'}}>
-                                {receiptData?.total_misc ?? 0}
-                            </Typography>
-                        </Box>
-
-                        {receiptMiscBreakdownItems.map((item) => (
-                            <Box key={item.key} sx={{display: "flex", alignItems: "center"}}>
-                                <Typography variant="body2" sx={{mt: '0.1cm', marginLeft: '2.1cm', width: '6.6cm'}}>
-                                    {item.label}
+                        <Box>
+                            <Box sx={{ display: "flex", alignItems: "center" }}>
+                                <Typography variant="body2" sx={{ mt: '4cm', ml: '6.5cm' }}>
                                 </Typography>
-                                <Typography variant="body2" sx={{mt: '0.1cm', ml: '1cm', textAlign: 'right'}}>
-                                    {toAmount(receiptData?.[item.key]).toLocaleString()}
+                                <Typography variant="body2" sx={{ mt: '4cm', width: '3.1cm' }}>
+                                    {receiptData?.transaction_id || "-"}
+                                </Typography>
+                                <Typography variant="body2" sx={{ mt: '4cm', width: '2cm', ml: '2cm' }}>
+                                    {new Date().toLocaleDateString()}
+                                </Typography>
+                                <Typography variant="body2" sx={{ mt: '4cm', ml: '6.5cm' }}>
                                 </Typography>
                             </Box>
-                        ))}
 
-                        <Box sx={{display: "flex", alignItems: "center", mt: '0.1cm',}}>
-                            {Number(receiptData?.nstp_fees) > 0 ? (
-                                <>
-                                    <Typography variant="body2" sx={{ marginLeft: "1.7cm", width: "7cm" }}>
-                                    NSTP FEE
-                                    </Typography>
-                                    <Typography variant="body2" sx={{ ml: "1cm", textAlign: "right" }}>
-                                    {receiptData?.nstp_fees ?? 0}
-                                    </Typography>
-                                </>
-                            ) : (
-                                <>
-                                    <Typography variant="body2" sx={{ marginTop: "0.4cm",marginLeft: "1.7cm", width: "7cm" }}>
-                                    {" "}
-                                    </Typography>
-                                    <Typography variant="body2" sx={{ ml: "1cm", textAlign: "right" }}>
-                                    {" "}
-                                    </Typography>
-                                </>
-                            )}
-                        </Box>
+                            <>
+                                <Typography variant="body2" sx={{ mt: '0.5cm', marginLeft: '2.8cm' }}>
+                                    {`${receiptData?.student_name || ""}`} ({receiptData?.student_number || " "})
+                                </Typography>
+                            </>
 
-                        <Box sx={{display: "flex", alignItems: "center"}}>
-                            <Typography variant="body2" sx={{mt: '1.5cm', marginLeft: '1.7cm', width: '7cm'}}>
-                                
-                            </Typography>
-                            <Typography variant="body2" sx={{mt: '1.5cm', ml: '1cm'}}>
-                                {receiptData?.total_tosf || 0}
-                            </Typography>
-                        </Box>
+                            <Box sx={{ display: "flex", alignItems: "center" }}>
+                                <Typography variant="body2" sx={{ mt: '1.3cm', marginLeft: '1.7cm', width: '7cm' }}>
+                                    TUITION FEE
+                                </Typography>
+                                <Typography variant="body2" sx={{ mt: '1.3cm', ml: '1cm', textAlign: 'right' }}>
+                                    {receiptData?.tuition_fees ?? 0}
+                                </Typography>
+                            </Box>
 
-                        <Box sx={{display: "flex", alignItems: "center"}}>
-                            <Typography variant="body2" sx={{mt: '0.7cm', ml: '1.8cm'}}>
-                                {numberToWords(receiptData?.total_tosf || 0)}
-                            </Typography>
-                        </Box>
-                        <Box sx={{display: "flex", alignItems: "center"}}>
-                            <Typography variant="body2" sx={{mt: '2cm', ml: '3.75cm'}}>
-                            </Typography>
-                            <Typography variant="body2" sx={{mt: '2cm', width: '6cm', textAlign: 'center'}}>
-                                {personData
-                                ? `${personData.lname.toUpperCase()}, ${personData.fname.toUpperCase()}`
-                                : ""}
-                            </Typography>
+                            <Box sx={{ display: "flex", alignItems: "center" }}>
+                                <Typography variant="body2" sx={{ mt: '0.1cm', marginLeft: '1.7cm', width: '7cm' }}>
+                                    MISCELLANEOUS FEE
+                                </Typography>
+                                <Typography variant="body2" sx={{ mt: '0.1cm', ml: '1cm', textAlign: 'right' }}>
+                                    {receiptData?.total_misc ?? 0}
+                                </Typography>
+                            </Box>
+
+                            {receiptMiscBreakdownItems.map((item) => (
+                                <Box key={item.key} sx={{ display: "flex", alignItems: "center" }}>
+                                    <Typography variant="body2" sx={{ mt: '0.1cm', marginLeft: '2.1cm', width: '6.6cm' }}>
+                                        {item.label}
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ mt: '0.1cm', ml: '1cm', textAlign: 'right' }}>
+                                        {toAmount(receiptData?.[item.key]).toLocaleString()}
+                                    </Typography>
+                                </Box>
+                            ))}
+
+                            <Box sx={{ display: "flex", alignItems: "center", mt: '0.1cm', }}>
+                                {Number(receiptData?.nstp_fees) > 0 ? (
+                                    <>
+                                        <Typography variant="body2" sx={{ marginLeft: "1.7cm", width: "7cm" }}>
+                                            NSTP FEE
+                                        </Typography>
+                                        <Typography variant="body2" sx={{ ml: "1cm", textAlign: "right" }}>
+                                            {receiptData?.nstp_fees ?? 0}
+                                        </Typography>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Typography variant="body2" sx={{ marginTop: "0.4cm", marginLeft: "1.7cm", width: "7cm" }}>
+                                            {" "}
+                                        </Typography>
+                                        <Typography variant="body2" sx={{ ml: "1cm", textAlign: "right" }}>
+                                            {" "}
+                                        </Typography>
+                                    </>
+                                )}
+                            </Box>
+
+                            <Box sx={{ display: "flex", alignItems: "center" }}>
+                                <Typography variant="body2" sx={{ mt: '1.5cm', marginLeft: '1.7cm', width: '7cm' }}>
+
+                                </Typography>
+                                <Typography variant="body2" sx={{ mt: '1.5cm', ml: '1cm' }}>
+                                    {receiptData?.total_tosf || 0}
+                                </Typography>
+                            </Box>
+
+                            <Box sx={{ display: "flex", alignItems: "center" }}>
+                                <Typography variant="body2" sx={{ mt: '0.7cm', ml: '1.8cm' }}>
+                                    {numberToWords(receiptData?.total_tosf || 0)}
+                                </Typography>
+                            </Box>
+                            <Box sx={{ display: "flex", alignItems: "center" }}>
+                                <Typography variant="body2" sx={{ mt: '2cm', ml: '3.75cm' }}>
+                                </Typography>
+                                <Typography variant="body2" sx={{ mt: '2cm', width: '6cm', textAlign: 'center' }}>
+                                    {personData
+                                        ? `${personData.lname.toUpperCase()}, ${personData.fname.toUpperCase()}`
+                                        : ""}
+                                </Typography>
+                            </Box>
                         </Box>
                     </Box>
-                </Box>
                 </DialogContent>
                 <DialogActions>
-                <Button onClick={handleCloseReceipt} color="inherit">Close</Button>
+                    <Button onClick={handleCloseReceipt} color="inherit">Close</Button>
                 </DialogActions>
             </Dialog>
 
@@ -1289,7 +1292,9 @@ const MatriculationPaymentModule = () => {
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancelCloseWithoutPrint} color="inherit">
+                    <Button onClick={handleCancelCloseWithoutPrint}
+                        color="error"
+                        variant="outlined">
                         No
                     </Button>
                     <Button variant="contained" color="error" onClick={handleConfirmCloseWithoutPrint}>

@@ -439,15 +439,13 @@ const SuperAdminApplicantList = () => {
 
   const handleRegistrarStatusChange = async (person_id, status) => {
     try {
-      // Optimistic UI update para sabay silang magreflect
       setPersons((prev) =>
         prev.map((p) =>
           p.person_id === person_id
             ? {
               ...p,
               registrar_status: status,
-              submitted_documents: status, // sync with checkbox
-              remarks: status ? 1 : 0,
+              submitted_documents: status,
               missing_documents: status ? [] : null,
             }
             : p,
@@ -1864,7 +1862,9 @@ const SuperAdminApplicantList = () => {
                 "Are you sure you want to update this applicant’s status?"}
             </DialogContent>
             <DialogActions>
-              <Button onClick={() => setConfirmOpen(false)} color="error">
+              <Button onClick={() => setConfirmOpen(false)}
+                color="error"
+                variant="outlined">
                 Cancel
               </Button>
               <Button
@@ -2337,7 +2337,10 @@ const SuperAdminApplicantList = () => {
             </DialogContent>
 
             <DialogActions>
-              <Button onClick={handleCloseDialog}>Cancel</Button>
+              <Button
+                color="error"
+                variant="outlined"
+                onClick={handleCloseDialog}>Cancel</Button>
               {!(
                 Array.isArray(activePerson?.missing_documents) &&
                 activePerson.missing_documents.length === 0 &&

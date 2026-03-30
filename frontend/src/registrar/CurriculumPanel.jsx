@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext, useRef } from "react";
 import { SettingsContext } from "../App";
 import axios from "axios";
 import {
-  Box, Typography, Button, Snackbar, FormControl, Select, InputLabel, MenuItem,
+  Box, Typography, Button, Snackbar, FormControl, Select, InputLabel, MenuItem, Grid,
   Alert, Card, Paper, CardContent, TableContainer, Table, TableHead, TableCell, TableRow, TableBody, Switch
 } from "@mui/material";
 import Unauthorized from "../components/Unauthorized";
@@ -271,14 +271,16 @@ const CurriculumPanel = () => {
 
   const [editingId, setEditingId] = useState(null);
 
+  const [openCurriculumDialog, setOpenCurriculumDialog] = useState(false);
+
   const handleEdit = (item) => {
     setCurriculum({
       year_id: item.year_id,
       program_id: item.program_id,
     });
 
-    // Optional: store ID if updating instead of inserting
     setEditingId(item.curriculum_id);
+    setOpenCurriculumDialog(true); // ✅ ADD THIS
   };
 
   // ✅ Updated with instant UI response
@@ -655,6 +657,25 @@ const CurriculumPanel = () => {
                     >
                       Last
                     </Button>
+                    <Button
+                      variant="contained"
+                      sx={{
+                        backgroundColor: "#1976d2", // ✅ Blue
+                        color: "#fff",
+                        fontWeight: "bold",
+                        borderRadius: "8px",
+                        width: "250px",
+                        textTransform: "none",
+                        px: 2,
+                        mr: "15px",
+                        '&:hover': {
+                          backgroundColor: "#1565c0" // darker blue hover
+                        }
+                      }}
+                      onClick={() => setOpenCurriculumDialog(true)}
+                    >
+                      + Add Curriculum
+                    </Button>
                   </Box>
                 </Box>
               </TableCell>
@@ -872,142 +893,7 @@ const CurriculumPanel = () => {
           </TableHead>
         </Table>
       </TableContainer>
-      <br />
-      <br />
 
-
-      <TableContainer component={Paper} sx={{ width: '50%', border: `1px solid ${borderColor}`, }}>
-        <Table>
-          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
-            <TableRow>
-              <TableCell sx={{ color: 'white', textAlign: "Center" }}>Insert Curriculum</TableCell>
-            </TableRow>
-          </TableHead>
-        </Table>
-      </TableContainer>
-      <Box sx={{ maxHeight: 750, overflowY: "auto", width: "50%" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            gap: "20px",
-
-          }}
-        >
-          {/* LEFT SECTION */}
-          <div
-            style={{
-              flex: 1,
-              padding: "20px",
-              width: "600px",
-              backgroundColor: "#fff",
-              border: `1px solid ${borderColor}`,
-              boxShadow: "0 0 10px rgba(0,0,0,0.1)",
-            }}
-          >
-
-            <div style={{ marginBottom: "15px" }}>
-              <label style={{ fontWeight: "bold" }}>Curriculum Year:</label>
-              <select
-                name="year_id"
-                value={curriculum.year_id}
-                onChange={handleChange}
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  border: "1px solid #ccc",
-                  borderRadius: "4px",
-                }}
-              >
-                <option value="">Choose Year</option>
-
-                {[...yearList]
-                  .sort(
-                    (a, b) =>
-                      Number(a.year_description) - Number(b.year_description)
-                  )
-                  .map((year) => (
-                    <option key={year.year_id} value={year.year_id}>
-                      {formatAcademicYear(year.year_description)}
-                    </option>
-                  ))}
-              </select>
-            </div>
-
-            <div style={{ marginBottom: "15px" }}>
-              <label style={{ fontWeight: "bold" }}>Search Program:</label>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  border: "1px solid #ccc",
-                  borderRadius: "4px",
-                  padding: "5px 8px",
-                  backgroundColor: "#fff",
-                }}
-              >
-                <span style={{ marginRight: "6px", color: "gray" }}></span>
-                <input
-                  type="text"
-                  placeholder="Search Year / Code / Description / Major / Campus"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{
-                    border: "none",
-                    outline: "none",
-                    width: "100%",
-                    fontSize: "14px",
-                  }}
-                />
-              </div>
-            </div>
-
-            <div style={{ marginBottom: "15px" }}>
-              <label style={{ fontWeight: "bold" }}>Program:</label>
-              <select
-                name="program_id"
-                value={curriculum.program_id}
-                onChange={handleChange}
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  border: "1px solid #ccc",
-                  borderRadius: "4px",
-                }}
-              >
-
-                <option value="">Choose Program</option>
-                {filteredProgramList.map((program) => (
-                  <option key={program.program_id} value={program.program_id}>
-                    {formatSchoolYear(program.year_description)}:{" "}
-                    {`(${program.program_code}): ${program.program_description}${program.major ? ` (${program.major})` : ""
-                      } (${getBranchLabel(program.components)})`}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-
-
-            <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
-              <Button
-                onClick={handleAddCurriculum}
-                variant="contained"
-                sx={{
-                  width: "30%",
-
-                }}
-              >
-                Insert
-              </Button>
-            </Box>
-
-          </div>
-
-
-
-        </div>
-      </Box>
 
       <Dialog
         open={openDeleteDialog}
@@ -1031,6 +917,8 @@ const CurriculumPanel = () => {
 
         <DialogActions>
           <Button
+            color="error"
+            variant="outlined"
             onClick={() => {
               setOpenDeleteDialog(false);
               setCurriculumToDelete(null);
@@ -1064,6 +952,125 @@ const CurriculumPanel = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      <Dialog
+        open={openCurriculumDialog}
+        onClose={() => setOpenCurriculumDialog(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            overflow: "hidden",
+            boxShadow: 6
+          }
+        }}
+      >
+        {/* ===== HEADER ===== */}
+        <DialogTitle
+          sx={{
+            background: settings?.header_color || "#1976d2",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "1.2rem",
+            py: 2
+          }}
+        >
+          {editingId ? "Edit Curriculum" : "Add Curriculum"}
+        </DialogTitle>
+
+        {/* ===== CONTENT ===== */}
+        <DialogContent sx={{ p: 3 }}>
+          <Grid container spacing={2}>
+
+            {/* YEAR */}
+            <Grid item xs={12} sx={{ marginTop: "20px" }}>
+              <Typography fontWeight="bold">Curriculum Year</Typography>
+              <TextField
+                select
+                fullWidth
+                name="year_id"
+                value={curriculum.year_id}
+                onChange={handleChange}
+              >
+                <MenuItem value="">Select Year</MenuItem>
+                {[...yearList]
+                  .sort((a, b) => Number(a.year_description) - Number(b.year_description))
+                  .map((year) => (
+                    <MenuItem key={year.year_id} value={year.year_id}>
+                      {formatAcademicYear(year.year_description)}
+                    </MenuItem>
+                  ))}
+              </TextField>
+            </Grid>
+
+            {/* SEARCH PROGRAM */}
+            <Grid item xs={12}>
+              <Typography fontWeight="bold">Search Program</Typography>
+              <TextField
+                fullWidth
+                placeholder="Search Year / Code / Description / Major / Campus"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </Grid>
+
+            {/* PROGRAM */}
+            <Grid item xs={12}>
+              <Typography fontWeight="bold">Program</Typography>
+              <TextField
+                select
+                fullWidth
+                name="program_id"
+                value={curriculum.program_id}
+                onChange={handleChange}
+              >
+                <MenuItem value="">Select Program</MenuItem>
+                {filteredProgramList.map((program) => (
+                  <MenuItem key={program.program_id} value={program.program_id}>
+                    {formatSchoolYear(program.year_description)}:{" "}
+                    {`(${program.program_code}): ${program.program_description}${program.major ? ` (${program.major})` : ""
+                      } (${getBranchLabel(program.components)})`}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+          </Grid>
+        </DialogContent>
+
+        {/* ===== ACTIONS ===== */}
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2,
+            borderTop: "1px solid #e0e0e0"
+          }}
+        >
+          <Button
+            onClick={() => {
+              setOpenCurriculumDialog(false);
+              setEditingId(null);
+              setCurriculum({ year_id: "", program_id: "" });
+            }}
+            color="error"
+            variant="outlined"
+          >
+            Cancel
+          </Button>
+
+          <Button
+            variant="contained"
+            sx={{ px: 4, fontWeight: 600 }}
+            onClick={() => {
+              handleAddCurriculum();
+              setOpenCurriculumDialog(false);
+            }}
+          >
+            {editingId ? "Update" : "Insert"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

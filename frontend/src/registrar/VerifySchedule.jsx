@@ -117,40 +117,40 @@ const AssignScheduleToApplicants = () => {
             label: "Admission Process for Registrar",
             to: "/applicant_list_admin",
             icon: <SchoolIcon fontSize="large" />,
-          },
-          {
+        },
+        {
             label: "Applicant Form",
             to: "/admin_dashboard1",
             icon: <DashboardIcon fontSize="large" />,
-          },
-          {
+        },
+        {
             label: "Student Requirements",
             to: "/student_requirements",
             icon: <AssignmentIcon fontSize="large" />,
-          },
-          {
+        },
+        {
             label: "Verify Schedule Management",
             to: "/verify_schedule",
             icon: <ScheduleIcon fontSize="large" />,
-          },
-          {
+        },
+        {
             label: "Entrance Exam Schedule Management",
             to: "/assign_schedule_applicant",
             icon: <ScheduleIcon fontSize="large" />,
-          },
-      
-          {
+        },
+
+        {
             label: "Examination Permit",
             to: "/registrar_examination_profile",
             icon: <PersonSearchIcon fontSize="large" />,
-          },
-      
-      
-          {
+        },
+
+
+        {
             label: "Entrance Examination Score",
             to: "/applicant_scoring",
             icon: <ScoreIcon fontSize="large" />,
-          },
+        },
     ];
 
 
@@ -162,122 +162,122 @@ const AssignScheduleToApplicants = () => {
 
 
 
- const handleStepClick = (index, to) => {
-    setActiveStep(index);
-    const pid = sessionStorage.getItem("admin_edit_person_id");
+    const handleStepClick = (index, to) => {
+        setActiveStep(index);
+        const pid = sessionStorage.getItem("admin_edit_person_id");
 
-    if (pid && to !== "/applicant_list_admin") {
-      navigate(`${to}?person_id=${pid}`);
-    } else {
-      navigate(to);
-    }
-  };
-
-
-
-
-  useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    const personIdFromUrl = queryParams.get("person_id");
-
-    if (!personIdFromUrl) return;
-
-    // fetch info of that person
-    axios
-      .get(`${API_BASE_URL}/api/person_with_applicant/${personIdFromUrl}`)
-      .then((res) => {
-        if (res.data?.applicant_number) {
-
-          // AUTO-INSERT applicant_number into search bar
-          setSearchQuery(res.data.applicant_number);
-
-          // If you have a fetchUploads() or fetchExamScore() — call it
-          if (typeof fetchUploadsByApplicantNumber === "function") {
-            fetchUploadsByApplicantNumber(res.data.applicant_number);
-          }
-
-          if (typeof fetchApplicants === "function") {
-            fetchApplicants();
-          }
+        if (pid && to !== "/applicant_list_admin") {
+            navigate(`${to}?person_id=${pid}`);
+        } else {
+            navigate(to);
         }
-      })
-      .catch((err) => console.error("Auto search failed:", err));
-  }, [location.search]);
-
-
-  const queryParams = new URLSearchParams(location.search);
-  const queryPersonId = queryParams.get("person_id")?.trim() || "";
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("email");
-    const storedRole = localStorage.getItem("role");
-    const loggedInPersonId = localStorage.getItem("person_id");
-
-    if (!storedUser || !storedRole || !loggedInPersonId) {
-      window.location.href = "/login";
-      return;
-    }
-
-    setUser(storedUser);
-    setUserRole(storedRole);
-
-    const allowedRoles = ["registrar", "applicant", "superadmin"];
-    if (!allowedRoles.includes(storedRole)) {
-      window.location.href = "/login";
-      return;
-    }
-
-    const lastSelected = sessionStorage.getItem("admin_edit_person_id");
-
-    // ⭐ CASE 1: URL HAS ?person_id=
-    if (queryPersonId !== "") {
-      sessionStorage.setItem("admin_edit_person_id", queryPersonId);
-      setUserID(queryPersonId);
-      return;
-    }
-
-
-
-    // ⭐ CASE 3: No URL ID and no last selected → start blank
-    setUserID("");
-  }, [queryPersonId]);
-
-
-
-
-  useEffect(() => {
-    let consumedFlag = false;
-
-    const tryLoad = async () => {
-      if (queryPersonId) {
-        await fetchByPersonId(queryPersonId);
-        setExplicitSelection(true);
-        consumedFlag = true;
-        return;
-      }
-
-      // fallback only if it's a fresh selection from Applicant List
-      const source = sessionStorage.getItem("admin_edit_person_id_source");
-      const tsStr = sessionStorage.getItem("admin_edit_person_id_ts");
-      const id = sessionStorage.getItem("admin_edit_person_id");
-      const ts = tsStr ? parseInt(tsStr, 10) : 0;
-      const isFresh = source === "applicant_list" && Date.now() - ts < 5 * 60 * 1000;
-
-      if (id && isFresh) {
-        await fetchByPersonId(id);
-        setExplicitSelection(true);
-        consumedFlag = true;
-      }
     };
 
-    tryLoad().finally(() => {
-      // consume the freshness so it won't auto-load again later
-      if (consumedFlag) {
-        sessionStorage.removeItem("admin_edit_person_id_source");
-        sessionStorage.removeItem("admin_edit_person_id_ts");
-      }
-    });
-  }, [queryPersonId]);
+
+
+
+    useEffect(() => {
+        const queryParams = new URLSearchParams(location.search);
+        const personIdFromUrl = queryParams.get("person_id");
+
+        if (!personIdFromUrl) return;
+
+        // fetch info of that person
+        axios
+            .get(`${API_BASE_URL}/api/person_with_applicant/${personIdFromUrl}`)
+            .then((res) => {
+                if (res.data?.applicant_number) {
+
+                    // AUTO-INSERT applicant_number into search bar
+                    setSearchQuery(res.data.applicant_number);
+
+                    // If you have a fetchUploads() or fetchExamScore() — call it
+                    if (typeof fetchUploadsByApplicantNumber === "function") {
+                        fetchUploadsByApplicantNumber(res.data.applicant_number);
+                    }
+
+                    if (typeof fetchApplicants === "function") {
+                        fetchApplicants();
+                    }
+                }
+            })
+            .catch((err) => console.error("Auto search failed:", err));
+    }, [location.search]);
+
+
+    const queryParams = new URLSearchParams(location.search);
+    const queryPersonId = queryParams.get("person_id")?.trim() || "";
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem("email");
+        const storedRole = localStorage.getItem("role");
+        const loggedInPersonId = localStorage.getItem("person_id");
+
+        if (!storedUser || !storedRole || !loggedInPersonId) {
+            window.location.href = "/login";
+            return;
+        }
+
+        setUser(storedUser);
+        setUserRole(storedRole);
+
+        const allowedRoles = ["registrar", "applicant", "superadmin"];
+        if (!allowedRoles.includes(storedRole)) {
+            window.location.href = "/login";
+            return;
+        }
+
+        const lastSelected = sessionStorage.getItem("admin_edit_person_id");
+
+        // ⭐ CASE 1: URL HAS ?person_id=
+        if (queryPersonId !== "") {
+            sessionStorage.setItem("admin_edit_person_id", queryPersonId);
+            setUserID(queryPersonId);
+            return;
+        }
+
+
+
+        // ⭐ CASE 3: No URL ID and no last selected → start blank
+        setUserID("");
+    }, [queryPersonId]);
+
+
+
+
+    useEffect(() => {
+        let consumedFlag = false;
+
+        const tryLoad = async () => {
+            if (queryPersonId) {
+                await fetchByPersonId(queryPersonId);
+                setExplicitSelection(true);
+                consumedFlag = true;
+                return;
+            }
+
+            // fallback only if it's a fresh selection from Applicant List
+            const source = sessionStorage.getItem("admin_edit_person_id_source");
+            const tsStr = sessionStorage.getItem("admin_edit_person_id_ts");
+            const id = sessionStorage.getItem("admin_edit_person_id");
+            const ts = tsStr ? parseInt(tsStr, 10) : 0;
+            const isFresh = source === "applicant_list" && Date.now() - ts < 5 * 60 * 1000;
+
+            if (id && isFresh) {
+                await fetchByPersonId(id);
+                setExplicitSelection(true);
+                consumedFlag = true;
+            }
+        };
+
+        tryLoad().finally(() => {
+            // consume the freshness so it won't auto-load again later
+            if (consumedFlag) {
+                sessionStorage.removeItem("admin_edit_person_id_source");
+                sessionStorage.removeItem("admin_edit_person_id_ts");
+            }
+        });
+    }, [queryPersonId]);
 
 
     const [applicants, setApplicants] = useState([]);
@@ -815,8 +815,8 @@ const AssignScheduleToApplicants = () => {
 
 
 
-     setEmailMessage(
-`Hello, ${person.first_name} ${person.middle_name ? person.middle_name.charAt(0) + "." : ""} ${person.last_name},
+        setEmailMessage(
+            `Hello, ${person.first_name} ${person.middle_name ? person.middle_name.charAt(0) + "." : ""} ${person.last_name},
 
 You have been scheduled for document verification with the following details:
 
@@ -844,7 +844,7 @@ ${reqText}
 Thank you and good luck!
 
 ${officeName}`
-);
+        );
 
         setConfirmOpen(true);
     };
@@ -1812,13 +1812,13 @@ ${officeName}`
                 <Table size="small">
                     <TableHead sx={{ backgroundColor: "#F1F1F1", }}>
                         <TableRow>
-                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `1px solid ${borderColor}` }}>#</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `1px solid ${borderColor}` }}>Applicant ID</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `1px solid ${borderColor}` }}>Name</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `1px solid ${borderColor}` }}>Program</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `1px solid ${borderColor}` }}>Email Address</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `1px solid ${borderColor}` }}>Date Applied</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "maroon", border: `1px solid ${borderColor}` }}>Action</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "black", border: `1px solid ${borderColor}` }}>#</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "black", border: `1px solid ${borderColor}` }}>Applicant ID</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "black", border: `1px solid ${borderColor}` }}>Name</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "black", border: `1px solid ${borderColor}` }}>Program</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "black", border: `1px solid ${borderColor}` }}>Email Address</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "black", border: `1px solid ${borderColor}` }}>Date Applied</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", fontSize: "12px", color: "black", border: `1px solid ${borderColor}` }}>Action</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -1846,7 +1846,7 @@ ${officeName}`
                                                 cursor: "pointer",
                                                 textAlign: "center",
                                                 border: `1px solid ${borderColor}`,
-                                                
+
                                                 py: 0.5,
                                                 fontSize: "12px",
                                             }}
@@ -1862,7 +1862,7 @@ ${officeName}`
                                                 cursor: "pointer",
                                                 textAlign: "left",
                                                 border: `1px solid ${borderColor}`,
-                                                
+
                                                 py: 0.5,
                                                 fontSize: "12px",
                                             }}
@@ -1962,7 +1962,181 @@ ${officeName}`
                 </Table>
             </TableContainer>
 
-            <br />
+            <TableContainer component={Paper} sx={{ width: '100%', }}>
+                <Table size="small">
+                    <TableHead sx={{
+                        backgroundColor: settings?.header_color || "#1976d2",
+                        color: "white"
+                    }}>
+                        <TableRow>
+                            <TableCell colSpan={10} sx={{
+                                border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2",
+                                color: "white"
+                            }}>
+                                <Box display="flex" justifyContent="space-between" alignItems="center">
+                                    {/* Left: Total Count */}
+                                    <Typography fontSize="14px" fontWeight="bold" color="white">
+                                        Total Applicants: {filteredPersons.length}
+                                    </Typography>
+
+                                    {/* Right: Pagination Controls */}
+                                    <Box display="flex" alignItems="center" gap={1}>
+                                        {/* First & Prev */}
+                                        <Button
+                                            onClick={() => setCurrentPage(1)}
+                                            disabled={currentPage === 1}
+                                            variant="outlined"
+                                            size="small"
+                                            sx={{
+                                                minWidth: 80,
+                                                color: "white",
+                                                borderColor: "white",
+                                                backgroundColor: "transparent",
+                                                '&:hover': {
+                                                    borderColor: 'white',
+                                                    backgroundColor: 'rgba(255,255,255,0.1)',
+                                                },
+                                                '&.Mui-disabled': {
+                                                    color: "white",
+                                                    borderColor: "white",
+                                                    backgroundColor: "transparent",
+                                                    opacity: 1,
+                                                }
+                                            }}
+                                        >
+                                            First
+                                        </Button>
+
+                                        <Button
+                                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                            disabled={currentPage === 1}
+                                            variant="outlined"
+                                            size="small"
+                                            sx={{
+                                                minWidth: 80,
+                                                color: "white",
+                                                borderColor: "white",
+                                                backgroundColor: "transparent",
+                                                '&:hover': {
+                                                    borderColor: 'white',
+                                                    backgroundColor: 'rgba(255,255,255,0.1)',
+                                                },
+                                                '&.Mui-disabled': {
+                                                    color: "white",
+                                                    borderColor: "white",
+                                                    backgroundColor: "transparent",
+                                                    opacity: 1,
+                                                }
+                                            }}
+                                        >
+                                            Prev
+                                        </Button>
+
+
+                                        {/* Page Dropdown */}
+                                        <FormControl size="small" sx={{ minWidth: 80 }}>
+                                            <Select
+                                                value={currentPage}
+                                                onChange={(e) => setCurrentPage(Number(e.target.value))}
+                                                displayEmpty
+                                                sx={{
+                                                    fontSize: '12px',
+                                                    height: 36,
+                                                    color: 'white',
+                                                    border: '1px solid white',
+                                                    backgroundColor: 'transparent',
+                                                    '.MuiOutlinedInput-notchedOutline': {
+                                                        borderColor: 'white',
+                                                    },
+                                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                        borderColor: 'white',
+                                                    },
+                                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                        borderColor: 'white',
+                                                    },
+                                                    '& svg': {
+                                                        color: 'white', // dropdown arrow icon color
+                                                    }
+                                                }}
+                                                MenuProps={{
+                                                    PaperProps: {
+                                                        sx: {
+                                                            maxHeight: 200,
+                                                            backgroundColor: '#fff', // dropdown background
+                                                        }
+                                                    }
+                                                }}
+                                            >
+                                                {Array.from({ length: totalPages }, (_, i) => (
+                                                    <MenuItem key={i + 1} value={i + 1}>
+                                                        Page {i + 1}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+
+                                        <Typography fontSize="11px" color="white">
+                                            of {totalPages} page{totalPages > 1 ? 's' : ''}
+                                        </Typography>
+
+
+                                        {/* Next & Last */}
+                                        <Button
+                                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                            disabled={currentPage === totalPages}
+                                            variant="outlined"
+                                            size="small"
+                                            sx={{
+                                                minWidth: 80,
+                                                color: "white",
+                                                borderColor: "white",
+                                                backgroundColor: "transparent",
+                                                '&:hover': {
+                                                    borderColor: 'white',
+                                                    backgroundColor: 'rgba(255,255,255,0.1)',
+                                                },
+                                                '&.Mui-disabled': {
+                                                    color: "white",
+                                                    borderColor: "white",
+                                                    backgroundColor: "transparent",
+                                                    opacity: 1,
+                                                }
+                                            }}
+                                        >
+                                            Next
+                                        </Button>
+
+                                        <Button
+                                            onClick={() => setCurrentPage(totalPages)}
+                                            disabled={currentPage === totalPages}
+                                            variant="outlined"
+                                            size="small"
+                                            sx={{
+                                                minWidth: 80,
+                                                color: "white",
+                                                borderColor: "white",
+                                                backgroundColor: "transparent",
+                                                '&:hover': {
+                                                    borderColor: 'white',
+                                                    backgroundColor: 'rgba(255,255,255,0.1)',
+                                                },
+                                                '&.Mui-disabled': {
+                                                    color: "white",
+                                                    borderColor: "white",
+                                                    backgroundColor: "transparent",
+                                                    opacity: 1,
+                                                }
+                                            }}
+                                        >
+                                            Last
+                                        </Button>
+                                    </Box>
+                                </Box>
+                            </TableCell>
+                        </TableRow>
+                    </TableHead>
+                </Table>
+            </TableContainer>
 
 
 
@@ -1988,7 +2162,7 @@ ${officeName}`
                 maxWidth="md"
                 fullWidth
             >
-                <DialogTitle sx={{ bgcolor: "#800000", color: "white" }}>
+                <DialogTitle sx={{  backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                     ✉️ Edit & Send Email
                 </DialogTitle>
 

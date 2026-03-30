@@ -1999,7 +1999,10 @@ const AdminApplicantList = () => {
                 "Are you sure you want to update this applicant’s status?"}
             </DialogContent>
             <DialogActions>
-              <Button onClick={() => setConfirmOpen(false)} color="error">
+              <Button
+                color="error"
+                variant="outlined"
+                onClick={() => setConfirmOpen(false)}>
                 Cancel
               </Button>
               <Button

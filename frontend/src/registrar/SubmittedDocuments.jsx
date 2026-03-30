@@ -431,7 +431,7 @@ const MedicalRequirements = () => {
           height: "",
           applyingAs: "",
           program: "",
-    strand: "",
+          strand: "",
           document_status: "",
           last_name: "",
           first_name: "",
@@ -471,7 +471,7 @@ const MedicalRequirements = () => {
         height: "",
         applyingAs: "",
         program: "",
-    strand: "",
+        strand: "",
         document_status: "",
         last_name: "",
         first_name: "",
@@ -914,17 +914,17 @@ const MedicalRequirements = () => {
           size="small"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-        sx={{
-                    width: 450,
-                    backgroundColor: "#fff",
-                    borderRadius: 1,
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: "10px",
-                    },
-                  }}
-                  InputProps={{
-                    startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
-                  }}
+          sx={{
+            width: 450,
+            backgroundColor: "#fff",
+            borderRadius: 1,
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "10px",
+            },
+          }}
+          InputProps={{
+            startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
+          }}
         />
       </Box>
 
@@ -1075,7 +1075,7 @@ const MedicalRequirements = () => {
         sx={{ width: "100%", border: `1px solid ${borderColor}` }}
       >
         {/* SHS GWA and Height */}
-      <Box sx={{ px: 2, mb: 2, mt: 2 }}>
+        <Box sx={{ px: 2, mb: 2, mt: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center", mb: 1, }}>
             <Typography
               sx={{
@@ -1574,7 +1574,9 @@ const MedicalRequirements = () => {
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setConfirmOpen(false)} color="error">
+            <Button onClick={() => setConfirmOpen(false)}
+              color="error"
+              variant="outlined">
               Cancel
             </Button>
             <Button

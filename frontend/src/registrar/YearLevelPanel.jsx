@@ -9,6 +9,13 @@ import {
   TableCell,
   Paper
 } from "@mui/material";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
+} from "@mui/material";
+
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
@@ -93,6 +100,8 @@ const YearLevelPanel = () => {
     fetchYearLevelList();
   }, []);
 
+  const [openYearLevelDialog, setOpenYearLevelDialog] = useState(false);
+
   const handleAddYearLevel = async () => {
     if (!yearLevelDescription.trim()) {
       setSnackbar({ open: true, message: "Year level description is required", severity: "warning" });
@@ -116,28 +125,7 @@ const YearLevelPanel = () => {
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
-  // 🔒 Disable right-click & DevTools
-  useEffect(() => {
-    const handleContextMenu = (e) => e.preventDefault();
-    const handleKeyDown = (e) => {
-      const isBlockedKey =
-        e.key === "F12" ||
-        e.key === "F11" ||
-        (e.ctrlKey && e.shiftKey && ["i", "j"].includes(e.key.toLowerCase())) ||
-        (e.ctrlKey && ["u", "p"].includes(e.key.toLowerCase()));
-      if (isBlockedKey) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    };
 
-    document.addEventListener("contextmenu", handleContextMenu);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("contextmenu", handleContextMenu);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
 
   if (loading || hasAccess === null) return <LoadingOverlay open={loading} message="Loading..." />;
   if (!hasAccess) return <Unauthorized />;
@@ -157,7 +145,41 @@ const YearLevelPanel = () => {
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
-              <TableCell sx={{ color: 'white', textAlign: "Center" }}>Existing Year Level</TableCell>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  width: "100%"
+                }}
+              >
+                <TableCell sx={{ color: "white", textAlign: "center" }}>
+                  Existing Schedules
+                </TableCell>
+
+
+                <Button
+                  variant="contained"
+                  onClick={() => setOpenYearLevelDialog(true)}
+                  sx={{
+                    backgroundColor: "#1976d2", // ✅ Blue
+                    color: "#fff",
+                    fontWeight: "bold",
+                    borderRadius: "8px",
+                    width: "250px",
+                    textTransform: "none",
+                    px: 2,
+                    mr: "15px",
+                    '&:hover': {
+                      backgroundColor: "#1565c0" // darker blue hover
+                    }
+                  }}
+                >
+                  + Add Year Level
+                </Button>
+              </Box>
+
+
             </TableRow>
           </TableHead>
         </Table>
@@ -182,40 +204,82 @@ const YearLevelPanel = () => {
           </tbody>
         </table>
       </Box>
-      <br />
-      <br />
 
 
-      <TableContainer component={Paper} sx={{ width: '50%', border: `1px solid ${borderColor}`, }}>
-        <Table>
-          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
-            <TableRow>
-              <TableCell sx={{ color: 'white', textAlign: "Center" }}>Create Year Level</TableCell>
-            </TableRow>
-          </TableHead>
-        </Table>
-      </TableContainer>
-      <Box sx={{ flex: 1, p: 3, width: "50%", bgcolor: "#fff", border: `1px solid ${borderColor}`, boxShadow: 2, }}>
 
-        <Typography fontWeight={500}>Year Level Description:</Typography>
-        <TextField
-          fullWidth
-          label="Year Level Description"
-          value={yearLevelDescription}
-          onChange={(e) => setYearLevelDescription(e.target.value)}
-          margin="normal"
-        />
-        <Button
-          fullWidth
-          variant="contained"
-          sx={{ mt: 2, backgroundColor: "#1967d2", ":hover": { bgcolor: "#000000" } }}
-          onClick={handleAddYearLevel}
+      <Dialog
+        open={openYearLevelDialog}
+        onClose={() => setOpenYearLevelDialog(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            overflow: "hidden",
+            boxShadow: 6
+          }
+        }}
+      >
+        {/* ===== HEADER ===== */}
+        <DialogTitle
+          sx={{
+            background: settings?.header_color || "#1976d2",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "1.1rem",
+            py: 2
+          }}
         >
-          Save
-        </Button>
-      </Box>
+          Add Year Level
+        </DialogTitle>
 
+        {/* ===== CONTENT ===== */}
+        <DialogContent sx={{ p: 3 }}>
+          <Typography fontWeight="bold" mb={1} mt={2}>
+            Year Level Description
+          </Typography>
 
+          <TextField
+            fullWidth
+            placeholder="Enter year level (e.g., 1st Year)"
+            value={yearLevelDescription}
+            onChange={(e) => setYearLevelDescription(e.target.value)}
+          />
+        </DialogContent>
+
+        {/* ===== ACTIONS ===== */}
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2,
+            borderTop: "1px solid #e0e0e0"
+          }}
+        >
+          <Button
+            onClick={() => setOpenYearLevelDialog(false)}
+            color="error"
+            variant="outlined"
+            sx={{ textTransform: "none" }}
+          >
+            Cancel
+          </Button>
+
+          <Button
+            variant="contained"
+            sx={{
+              px: 4,
+              fontWeight: 600,
+              textTransform: "none"
+            }}
+            onClick={async () => {
+              await handleAddYearLevel();
+              setOpenYearLevelDialog(false);
+            }}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Snackbar */}
       <Snackbar

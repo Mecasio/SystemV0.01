@@ -308,6 +308,8 @@ const CoursePanel = () => {
     setCurrentPage(1);
   }, [searchQuery]);
 
+  const [openCourseDialog, setOpenCourseDialog] = useState(false);
+
   const handleEdit = (item) => {
     setCourse({
       course_code: item.course_code ?? "",
@@ -321,8 +323,8 @@ const CoursePanel = () => {
 
     setEditMode(true);
     setEditId(item.course_id);
+    setOpenCourseDialog(true); // ✅ OPEN DIALOG
   };
-
 
   const handleUpdateCourse = async () => {
     if (!editId) {
@@ -528,8 +530,10 @@ const CoursePanel = () => {
             onClick={() => {
               window.location.href = `${API_BASE_URL}/course_panel_template`;
             }}
-            sx={{ height: 40, mb: 2, color: "black", border: "2px solid black",
-              backgroundColor: "#f0f0f0", textTransform: "none", fontWeight: "bold", minWidth: 165 }}
+            sx={{
+              height: 40, mb: 2, color: "black", border: "2px solid black",
+              backgroundColor: "#f0f0f0", textTransform: "none", fontWeight: "bold", minWidth: 165
+            }}
           >
             📥 Download Template
           </Button>
@@ -538,151 +542,6 @@ const CoursePanel = () => {
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
-      <TableContainer component={Paper} sx={{ width: "100%", border: `1px solid ${borderColor}` }}>
-        <Table>
-          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
-            <TableRow>
-              <TableCell sx={{ color: "white", textAlign: "center", fontWeight: "bold" }}>
-                COURSE MANAGEMENT
-              </TableCell>
-            </TableRow>
-          </TableHead>
-        </Table>
-      </TableContainer>
-      {/* ===== ADD / EDIT COURSE (TOP) – MUI ===== */}
-      <Paper
-        elevation={2}
-        sx={{
-          border: `1px solid ${borderColor}`,
-          borderRadius: 2,
-          p: 3,
-          mb: 4,
-        }}
-      >
-        <Typography
-          variant="h6"
-          sx={{ color: "#800000", fontWeight: "bold", mb: 2 }}
-        >
-          {editMode ? "Edit Course" : "Add New Course"}
-        </Typography>
-
-        <Grid container spacing={2}>
-          
-          <Grid item xs={12} md={4}>
-             <label style={{ fontWeight: "bold" }}>Course Code:</label>
-            <TextField
-              fullWidth
-              label="Course Code"
-              name="course_code"
-              required
-              value={course.course_code}
-              onChange={handleChangesForEverything}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={8}>
-             <label style={{ fontWeight: "bold" }}>Course Description:</label>
-            <TextField
-              fullWidth
-              label="Course Description"
-              name="course_description"
-              required
-              value={course.course_description}
-              onChange={handleChangesForEverything}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={4}>
-             <label style={{ fontWeight: "bold" }}>Lecture Unit:</label>
-            <TextField
-              fullWidth
-              label="Lecture Unit"
-              name="lec_unit"
-              type="number"
-              value={course.lec_unit}
-              onChange={handleChangesForEverything}
-              inputProps={{
-                step: "0.01",   // ✅ allow decimals
-                min: "0"
-              }}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={4}>
-             <label style={{ fontWeight: "bold" }}>Laboratory Unit:</label>
-            <TextField
-              fullWidth
-              label="Laboratory Unit"
-              name="lab_unit"
-              type="number"
-              value={course.lab_unit}
-              onChange={handleChangesForEverything}
-              inputProps={{
-                step: "0.01",
-                min: "0"
-              }}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={4}>
-             <label style={{ fontWeight: "bold" }}>Course Unit:</label>
-            <TextField
-              fullWidth
-              label="Course Unit"
-              name="course_unit"
-              type="number"
-              value={course.course_unit}
-              InputProps={{ readOnly: true }}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-             <label style={{ fontWeight: "bold" }}>Prerequisite:</label>
-            <TextField
-              fullWidth
-              label="Prerequisite"
-              name="prereq"
-              value={course.prereq}
-              onChange={handleChangesForEverything}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-             <label style={{ fontWeight: "bold" }}>Corequisite:</label>
-            <TextField
-              fullWidth
-              label="Corequisite"
-              name="corequisite"
-              value={course.corequisite}
-              onChange={handleChangesForEverything}
-            />
-          </Grid>
-        </Grid>
-
-        {/*<Grid item xs={12} md={4}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={course.is_nstp === 1}
-                onChange={(e) => setCourse(prev => ({ ...prev, is_nstp: e.target.checked ? 1 : 0 }))}
-              />
-            }
-            label="NSTP Course P150"
-          />
-        </Grid> */}
-
-        {/* ===== ACTION BUTTON ===== */}
-        <Box sx={{ mt: 3, textAlign: "right" }}>
-          <Button
-            variant="contained"
-            color="primary"
-            size="large"
-            onClick={editMode ? handleUpdateCourse : handleAddingCourse}
-          >
-            {editMode ? "Update Course" : "Insert Course"}
-          </Button>
-        </Box>
-      </Paper>
 
 
 
@@ -829,8 +688,41 @@ const CoursePanel = () => {
                     >
                       Last
                     </Button>
+                    <Button
+                      variant="contained"
+                      onClick={() => {
+                        setEditMode(false);
+                        setCourse({
+                          course_code: "",
+                          course_description: "",
+                          course_unit: "",
+                          lec_unit: "",
+                          lab_unit: "",
+                          prereq: "",
+                          corequisite: "",
+                        });
+                        setOpenCourseDialog(true);
+                      }}
+                      sx={{
+                        backgroundColor: "#1976d2", // ✅ Blue
+                        color: "#fff",
+                        fontWeight: "bold",
+                        borderRadius: "8px",
+                        width: "250px",
+                        textTransform: "none",
+                        px: 2,
+                        mr: "15px",
+                        '&:hover': {
+                          backgroundColor: "#1565c0" // darker blue hover
+                        }
+                      }}
+                    >
+                      + Add Course
+                    </Button>
                   </Box>
+
                 </Box>
+
               </TableCell>
             </TableRow>
           </TableHead>
@@ -1132,7 +1024,10 @@ const CoursePanel = () => {
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={() => setOpenDeleteDialog(false)}>
+          <Button
+            color="error"
+            variant="outlined"
+            onClick={() => setOpenDeleteDialog(false)}>
             Cancel
           </Button>
 
@@ -1168,6 +1063,156 @@ const CoursePanel = () => {
         </Alert>
       </Snackbar>
 
+      <Dialog
+        open={openCourseDialog}
+        onClose={() => setOpenCourseDialog(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            overflow: "hidden",
+            boxShadow: 6
+          }
+        }}
+      >
+        {/* ===== HEADER ===== */}
+        <DialogTitle
+          sx={{
+            background: settings?.header_color || "#1976d2",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "1.2rem",
+            py: 2,
+            mb: 2
+          }}
+        >
+          {editMode ? "Edit Course" : "Add New Course"}
+        </DialogTitle>
+
+        {/* ===== CONTENT ===== */}
+        <DialogContent sx={{ p: 3 }}>
+          <Grid container spacing={2}>
+
+            <Grid item xs={12} md={4}>
+              <Typography fontWeight="bold">Course Code</Typography>
+              <TextField
+                fullWidth
+                label="Course Code"
+                name="course_code"
+                required
+                value={course.course_code}
+                onChange={handleChangesForEverything}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={8}>
+              <Typography fontWeight="bold">Course Description</Typography>
+              <TextField
+                fullWidth
+                label="Course Description"
+                name="course_description"
+                required
+                value={course.course_description}
+                onChange={handleChangesForEverything}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <Typography fontWeight="bold">Lecture Unit</Typography>
+              <TextField
+                fullWidth
+                label="Lecture Unit"
+                name="lec_unit"
+                type="number"
+                value={course.lec_unit}
+                onChange={handleChangesForEverything}
+                inputProps={{ step: "0.01", min: "0" }}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <Typography fontWeight="bold">Laboratory Unit</Typography>
+              <TextField
+                fullWidth
+                label="Laboratory Unit"
+                name="lab_unit"
+                type="number"
+                value={course.lab_unit}
+                onChange={handleChangesForEverything}
+                inputProps={{ step: "0.01", min: "0" }}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <Typography fontWeight="bold">Course Unit</Typography>
+              <TextField
+                fullWidth
+                label="Course Unit"
+                name="course_unit"
+                type="number"
+                value={course.course_unit}
+                InputProps={{ readOnly: true }}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <Typography fontWeight="bold">Prerequisite</Typography>
+              <TextField
+                fullWidth
+                label="Prerequisite"
+                name="prereq"
+                value={course.prereq}
+                onChange={handleChangesForEverything}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <Typography fontWeight="bold">Corequisite</Typography>
+              <TextField
+                fullWidth
+                label="Corequisite"
+                name="corequisite"
+                value={course.corequisite}
+                onChange={handleChangesForEverything}
+              />
+            </Grid>
+
+          </Grid>
+        </DialogContent>
+
+        {/* ===== ACTIONS ===== */}
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2,
+            borderTop: "1px solid #e0e0e0"
+          }}
+        >
+          <Button
+            onClick={() => setOpenCourseDialog(false)}
+            color="error"
+            variant="outlined"
+          >
+            Cancel
+          </Button>
+
+          <Button
+            variant="contained"
+            sx={{ px: 4, fontWeight: 600 }}
+            onClick={() => {
+              if (editMode) {
+                handleUpdateCourse();
+              } else {
+                handleAddingCourse();
+              }
+              setOpenCourseDialog(false);
+            }}
+          >
+            {editMode ? "Update Course" : "Insert Course"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
     </Box>
   );

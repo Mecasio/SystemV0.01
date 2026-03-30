@@ -269,91 +269,95 @@ const StudentTable = ({ data, paymentType, onRemove }) => {
                     Last
                   </Button>
                 </Box>
-              
-            </Box>
-          </TableCell>
-        </TableRow>
 
-        {/* COLUMN HEADERS */}
-        <TableRow>
-          <TableCell>No.</TableCell>
-          <TableCell>Campus</TableCell>
-          <TableCell>Student No.</TableCell>
-          <TableCell>LRN</TableCell>
-          <TableCell>Last Name</TableCell>
-          <TableCell>Given Name</TableCell>
-          <TableCell>MI</TableCell>
-          <TableCell>Degree Program</TableCell>
-          <TableCell>Year Level</TableCell>
-          <TableCell>Sex</TableCell>
-          <TableCell>Email</TableCell>
-          <TableCell>Phone</TableCell>
-          <TableCell>Lab Units</TableCell>
-          <TableCell>Comp Units</TableCell>
-          <TableCell>Acad Units</TableCell>
-          <TableCell>NSTP Units</TableCell>
-          <TableCell>Tuition</TableCell>
-          <TableCell>Total TOSF</TableCell>
-          <TableCell>Action</TableCell>
-        </TableRow>
-      </TableHead>
-
-      <TableBody>
-        {paginatedData.map((row, index) => (
-          <TableRow key={row.id || index}>
-            <TableCell>{(currentPage - 1) * pageSize + index + 1}</TableCell>
-            <TableCell>{row.campus_name}</TableCell>
-            <TableCell>{row.student_number}</TableCell>
-            <TableCell>{row.learner_reference_number}</TableCell>
-            <TableCell>{row.last_name}</TableCell>
-            <TableCell>{row.given_name}</TableCell>
-            <TableCell>{row.middle_initial}</TableCell>
-            <TableCell>{row.degree_program}</TableCell>
-            <TableCell>{row.year_level}</TableCell>
-            <TableCell>{row.sex}</TableCell>
-            <TableCell>{row.email_address}</TableCell>
-            <TableCell>{row.phone_number}</TableCell>
-            <TableCell align="right">{row.laboratory_units}</TableCell>
-            <TableCell align="right">{row.computer_units}</TableCell>
-            <TableCell align="right">{row.academic_units_enrolled}</TableCell>
-            <TableCell align="right">{row.academic_units_nstp_enrolled}</TableCell>
-            <TableCell align="right">{row.tuition_fees}</TableCell>
-            <TableCell align="right">{row.total_tosf}</TableCell>
-            <TableCell>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => openConfirm(row)}
-              >
-                {paymentType === 1
-                  ? "Transfer to UNIFAST"
-                  : "Transfer to Matriculation"}
-              </Button>
+              </Box>
             </TableCell>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
 
-      {/* CONFIRM DIALOG */ }
-  <Dialog open={confirmOpen} onClose={closeConfirm}>
-    <DialogTitle>Confirm Transfer</DialogTitle>
-    <DialogContent>
-      <DialogContentText>
-        Are you sure you want to transfer{" "}
-        {paymentType === 1 ? "to UNIFAST" : "to Matriculation"} for student{" "}
-        {confirmRow?.student_number || ""}?
-      </DialogContentText>
-    </DialogContent>
-    <DialogActions>
-      <Button onClick={closeConfirm} color="inherit">
-        Cancel
-      </Button>
-      <Button onClick={handleConfirmTransfer} variant="contained">
-        Confirm
-      </Button>
-    </DialogActions>
-  </Dialog>
+          {/* COLUMN HEADERS */}
+          <TableRow>
+            <TableCell>No.</TableCell>
+            <TableCell>Campus</TableCell>
+            <TableCell>Student No.</TableCell>
+            <TableCell>LRN</TableCell>
+            <TableCell>Last Name</TableCell>
+            <TableCell>Given Name</TableCell>
+            <TableCell>MI</TableCell>
+            <TableCell>Degree Program</TableCell>
+            <TableCell>Year Level</TableCell>
+            <TableCell>Sex</TableCell>
+            <TableCell>Email</TableCell>
+            <TableCell>Phone</TableCell>
+            <TableCell>Lab Units</TableCell>
+            <TableCell>Comp Units</TableCell>
+            <TableCell>Acad Units</TableCell>
+            <TableCell>NSTP Units</TableCell>
+            <TableCell>Tuition</TableCell>
+            <TableCell>Total TOSF</TableCell>
+            <TableCell>Action</TableCell>
+          </TableRow>
+        </TableHead>
+
+        <TableBody>
+          {paginatedData.map((row, index) => (
+            <TableRow key={row.id || index}>
+              <TableCell>{(currentPage - 1) * pageSize + index + 1}</TableCell>
+              <TableCell>{row.campus_name}</TableCell>
+              <TableCell>{row.student_number}</TableCell>
+              <TableCell>{row.learner_reference_number}</TableCell>
+              <TableCell>{row.last_name}</TableCell>
+              <TableCell>{row.given_name}</TableCell>
+              <TableCell>{row.middle_initial}</TableCell>
+              <TableCell>{row.degree_program}</TableCell>
+              <TableCell>{row.year_level}</TableCell>
+              <TableCell>{row.sex}</TableCell>
+              <TableCell>{row.email_address}</TableCell>
+              <TableCell>{row.phone_number}</TableCell>
+              <TableCell align="right">{row.laboratory_units}</TableCell>
+              <TableCell align="right">{row.computer_units}</TableCell>
+              <TableCell align="right">{row.academic_units_enrolled}</TableCell>
+              <TableCell align="right">{row.academic_units_nstp_enrolled}</TableCell>
+              <TableCell align="right">{row.tuition_fees}</TableCell>
+              <TableCell align="right">{row.total_tosf}</TableCell>
+              <TableCell>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => openConfirm(row)}
+                >
+                  {paymentType === 1
+                    ? "Transfer to UNIFAST"
+                    : "Transfer to Matriculation"}
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+      {/* CONFIRM DIALOG */}
+      <Dialog open={confirmOpen} onClose={closeConfirm}>
+        <DialogTitle>Confirm Transfer</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to transfer{" "}
+            {paymentType === 1 ? "to UNIFAST" : "to Matriculation"} for student{" "}
+            {confirmRow?.student_number || ""}?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            color="error"
+            variant="outlined"
+
+            onClick={closeConfirm} >
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmTransfer} variant="contained">
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
     </TableContainer >
   );
 };

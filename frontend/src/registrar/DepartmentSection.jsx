@@ -18,6 +18,7 @@ import {
   TableCell,
   Paper,
 } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
@@ -197,6 +198,9 @@ const DepartmentSection = () => {
       [name]: value,
     }));
   };
+
+  const [openFormDialog, setOpenFormDialog] = useState(false);
+  const [editId, setEditId] = useState(null);
 
   const handleAddDepartmentSection = async () => {
     const { curriculum_id, section_id } = dprtmntSection;
@@ -491,7 +495,32 @@ const DepartmentSection = () => {
                       Last
                     </Button>
 
-
+                    <Button
+                      variant="contained"
+                      onClick={() => {
+                        setEditId(null);
+                        setDprtmntSection({
+                          curriculum_id: '',
+                          section_id: '',
+                        });
+                        setOpenFormDialog(true);
+                      }}
+                      sx={{
+                        backgroundColor: "#1976d2", // ✅ Blue
+                        color: "#fff",
+                        fontWeight: "bold",
+                        borderRadius: "8px",
+                        width: "250px",
+                        textTransform: "none",
+                        px: 2,
+                        mr: "15px",
+                        '&:hover': {
+                          backgroundColor: "#1565c0" // darker blue hover
+                        }
+                      }}
+                    >
+                      + Add Department Section
+                    </Button>
                   </Box>
                 </Box>
               </TableCell>
@@ -500,7 +529,7 @@ const DepartmentSection = () => {
         </Table>
       </TableContainer>
 
-      <Box sx={{ overflowY: 'auto', maxHeight: 750 }}>
+      <Box sx={{ overflowY: 'auto', }}>
         <table
           style={{
             width: "100%",
@@ -781,111 +810,160 @@ const DepartmentSection = () => {
 
       </Box>
 
-      <br />
-      <br />
-
-
-      <TableContainer component={Paper} sx={{ width: '50%', border: `1px solid ${borderColor}`, }}>
-        <Table>
-          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
-            <TableRow>
-              <TableCell sx={{ color: 'white', textAlign: "Center" }}>Create Section Panel</TableCell>
-            </TableRow>
-          </TableHead>
-        </Table>
-      </TableContainer>
-
-      {/* Form Section */}
-      <Box
-        sx={{
-          flex: 1,        // <-- make it take more space
-          p: 3,
-          width: "50%",
-          boxShadow: 2,
-          border: `1px solid ${borderColor}`,
-          bgcolor: 'white',
-          minWidth: 300,  // ensures it doesn’t shrink too much
+      <Dialog
+        open={openFormDialog}
+        onClose={() => {
+          setOpenFormDialog(false);
+          setEditId(null);
+          setDprtmntSection({
+            curriculum_id: '',
+            section_id: '',
+          });
+        }}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            overflow: "hidden",
+            boxShadow: 6
+          }
         }}
       >
-
-        <label style={{ fontWeight: 'bold', marginBottom: 4 }} htmlFor="curriculum_id">
-          Curriculum:
-        </label>
-        <FormControl fullWidth sx={{ mb: 3 }} variant="outlined">
-          <InputLabel id="curriculum-label">Curriculum</InputLabel>
-          <Select
-            labelId="curriculum-label"
-            name="curriculum_id"
-            value={dprtmntSection.curriculum_id}
-            onChange={handleChange}
-            label="Curriculum"
-          >
-            <MenuItem value="">Select Curriculum</MenuItem>
-            {curriculumList.map((curr) => (
-              <MenuItem key={`curr-${curr.curriculum_id}`} value={curr.curriculum_id}>
-                {formatSchoolYear(curr.year_description)}:{" "}
-                {`(${curr.program_code}): ${curr.program_description}${curr.major ? ` (${curr.major})` : ""
-                  } (${Number(curr.components) === 1
-                    ? "Manila Campus"
-                    : Number(curr.components) === 2
-                      ? "Cavite Campus"
-                      : "—"
-                  })`}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <label style={{ fontWeight: 'bold', marginBottom: 4 }} htmlFor="section_id">
-          Search:
-        </label>
-
-        {/* Search input for dropdown */}
-        <input
-          type="text"
-          placeholder="Search section..."
-          value={sectionSearch}
-          onChange={(e) => setSectionSearch(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "8px",
-            marginBottom: "8px",
-            borderRadius: "4px",
-            border: "1px solid #ccc",
+        {/* HEADER */}
+        <DialogTitle
+          sx={{
+            background: settings?.header_color || "#1976d2",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "1.1rem",
+            py: 2
           }}
-        />
-        <label style={{ fontWeight: 'bold', marginBottom: 4 }} htmlFor="section_id">
-          Section:
-        </label>
-
-        <FormControl fullWidth sx={{ mb: 3 }} variant="outlined">
-          <InputLabel id="section-label">Section</InputLabel>
-          <Select
-            labelId="section-label"
-            name="section_id"
-            value={dprtmntSection.section_id}
-            onChange={handleChange}
-            label="Section"
-          >
-            <MenuItem value="">Select Section</MenuItem>
-            {filteredSectionsList.map((section) => (
-              <MenuItem key={section.id} value={section.id}>
-                {section.description}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-
-
-        <Button
-          variant="contained"
-          fullWidth
-          onClick={handleAddDepartmentSection}
-          sx={{ bgcolor: '#1967d2', ':hover': { bgcolor: '#000000' } }}
         >
-          Insert
-        </Button>
-      </Box>
+          {editId ? "Edit Department Section" : "Add Department Section"}
+        </DialogTitle>
+
+        {/* CONTENT */}
+        <DialogContent sx={{ p: 3 }}>
+
+          <Typography fontWeight="bold" mb={1} mt={2}>
+            Curriculum
+          </Typography>
+
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel>Curriculum</InputLabel>
+
+            <Select
+              name="curriculum_id"
+              value={dprtmntSection.curriculum_id}
+              onChange={handleChange}
+              label="Curriculum"
+            >
+              <MenuItem value="">
+                Select Curriculum
+              </MenuItem>
+
+              {curriculumList.map((curr) => (
+                <MenuItem
+                  key={curr.curriculum_id}
+                  value={curr.curriculum_id}
+                >
+                  {formatSchoolYear(curr.year_description)}:
+                  ({curr.program_code})
+                  {curr.program_description}
+                  {curr.major ? ` (${curr.major})` : ""}
+                </MenuItem>
+              ))}
+
+            </Select>
+
+          </FormControl>
+
+          <Typography fontWeight="bold" mb={1}>
+            Search Section
+          </Typography>
+
+          <TextField
+            fullWidth
+            placeholder="Search section..."
+            value={sectionSearch}
+            onChange={(e) => setSectionSearch(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+
+          <Typography fontWeight="bold" mb={1}>
+            Section
+          </Typography>
+
+          <FormControl fullWidth>
+            <InputLabel>Section</InputLabel>
+
+            <Select
+              name="section_id"
+              value={dprtmntSection.section_id}
+              onChange={handleChange}
+              label="Section"
+            >
+              <MenuItem value="">
+                Select Section
+              </MenuItem>
+
+              {filteredSectionsList.map((section) => (
+                <MenuItem
+                  key={section.id}
+                  value={section.id}
+                >
+                  {section.description}
+                </MenuItem>
+              ))}
+
+            </Select>
+
+          </FormControl>
+
+        </DialogContent>
+
+        {/* ACTIONS */}
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2,
+            borderTop: "1px solid #e0e0e0"
+          }}
+        >
+
+          <Button
+            variant="outlined"
+            color="error"
+            sx={{
+              textTransform: "none",
+              fontWeight: 600
+            }}
+            onClick={() => {
+              setOpenFormDialog(false);
+              setEditId(null);
+            }}
+          >
+            Cancel
+          </Button>
+
+          <Button
+            variant="contained"
+            sx={{
+              px: 4,
+              fontWeight: 600,
+              textTransform: "none"
+            }}
+            onClick={async () => {
+              await handleAddDepartmentSection();
+              setOpenFormDialog(false);
+            }}
+          >
+            {editId ? "Update" : "Save"}
+          </Button>
+
+        </DialogActions>
+      </Dialog>
 
 
       <Snackbar

@@ -110,8 +110,9 @@ const SchoolYearPanel = () => {
     return `${start}-${start + 1}`;
   };
 
+  const [openDialog, setOpenDialog] = useState(false);
   const handleSubmitOrUpdate = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!selectedYear || !selectedSemester) {
       setSnackbar({ open: true, message: "Please select both Year and Semester", severity: "warning" });
       return;
@@ -410,6 +411,31 @@ const SchoolYearPanel = () => {
                     >
                       Last
                     </Button>
+
+                    <Button
+                      variant="contained"
+                      onClick={() => {
+                        setEditID(null); // reset edit
+                        setSelectedYear("");
+                        setSelectedSemester("");
+                        setOpenDialog(true);
+                      }}
+                      sx={{
+                        backgroundColor: "#1976d2", // ✅ Blue
+                        color: "#fff",
+                        fontWeight: "bold",
+                        borderRadius: "8px",
+                        width: "250px",
+                        textTransform: "none",
+                        px: 2,
+                        mr: "15px",
+                        '&:hover': {
+                          backgroundColor: "#1565c0" // darker blue hover
+                        }
+                      }}
+                    >
+                      + Add School Year
+                    </Button>
                   </Box>
                 </Box>
               </TableCell>
@@ -438,7 +464,14 @@ const SchoolYearPanel = () => {
                 <td className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>{sy.semester_description}</td>
                 <td className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>{sy.astatus === 1 ? "Active" : "Inactive"}</td>
                 <td className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>
-                  <Button size="small" sx={{ backgroundColor: "green", color: "white", mr: 1, "&:hover": { backgroundColor: "#006400" } }} onClick={() => handleEdit(sy)}>Edit</Button>
+                  <Button size="small"
+                    sx={{ backgroundColor: "green", color: "white", mr: 1, }}
+                    onClick={() => {
+                      handleEdit(sy);
+                      setOpenDialog(true); // 👉 open dialog when editing
+                    }}
+
+                  >Edit</Button>
                   <Button size="small" sx={{ backgroundColor: "#B22222", color: "white", "&:hover": { backgroundColor: "#8B0000" } }} onClick={() => {
                     setSchoolYearToDelete(sy);
                     setOpenDeleteDialog(true);
@@ -626,55 +659,7 @@ const SchoolYearPanel = () => {
       <br />
       <br />
 
-      <TableContainer component={Paper} sx={{ width: '50%', border: `1px solid ${borderColor}`, }}>
-        <Table>
-          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
-            <TableRow>
-              <TableCell sx={{ color: 'white', textAlign: "Center" }}>School Year Panel</TableCell>
-            </TableRow>
-          </TableHead>
-        </Table>
-      </TableContainer>
 
-      <Box sx={{ flex: 1, p: 3, bgcolor: "#fff", width: "50%", border: `1px solid ${borderColor}`, boxShadow: 2 }}>
-
-        <form onSubmit={handleSubmitOrUpdate} className="grid gap-4">
-          <div>
-            <Typography fontWeight={500}>Year Level:</Typography>
-            <select
-              className="border p-2 w-full rounded"
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-            >
-              <option value="">-- Select Year Level --</option>
-              {years.map((year) => (
-                <option key={year.year_id} value={year.year_id}>{formatYearRange(year)}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <Typography fontWeight={500}>Semester:</Typography>
-            <select
-              className="border p-2 w-full rounded"
-              value={selectedSemester}
-              onChange={(e) => setSelectedSemester(e.target.value)}
-            >
-              <option value="">-- Select Semester --</option>
-              {semesters.map((semester) => (
-                <option key={semester.semester_id} value={semester.semester_id}>{semester.semester_description}</option>
-              ))}
-            </select>
-          </div>
-
-          <button type="submit" className="bg-red-800 hover:bg-red-900 text-white px-4 py-2 rounded" style={{ backgroundColor: "#1967d2" }}>
-            {editID ? "Update" : "Save"}
-          </button>
-        </form>
-      </Box>
-
-      <br />
-      <br />
 
       {/* Table */}
 
@@ -706,6 +691,8 @@ const SchoolYearPanel = () => {
 
         <DialogActions>
           <Button
+            color="error"
+            variant="outlined"
             onClick={() => {
               setOpenDeleteDialog(false);
               setSchoolYearToDelete(null);
@@ -735,6 +722,145 @@ const SchoolYearPanel = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      <Dialog
+        open={openDialog}
+        onClose={() => {
+          setOpenDialog(false);
+          setEditID(null);
+        }}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            overflow: "hidden",
+            boxShadow: 6
+          }
+        }}
+      >
+        {/* ===== HEADER ===== */}
+        <DialogTitle
+          sx={{
+            background: settings?.header_color || "#1976d2",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "1.1rem",
+            py: 2
+          }}
+        >
+          {editID ? "Edit School Year" : "Add School Year"}
+        </DialogTitle>
+
+        {/* ===== CONTENT ===== */}
+        <DialogContent sx={{ p: 3 }}>
+          <Box display="flex" flexDirection="column" gap={3}>
+
+            {/* YEAR */}
+            <Box>
+              <Typography fontWeight="bold" mb={1} mt={2}>
+                School Year
+              </Typography>
+
+              <FormControl fullWidth size="small">
+                <Select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                  displayEmpty
+                  sx={{
+                    borderRadius: "8px"
+                  }}
+                >
+                  <MenuItem value="">
+                    -- Select School Year --
+                  </MenuItem>
+
+                  {years.map((year) => (
+                    <MenuItem
+                      key={year.year_id}
+                      value={year.year_id}
+                    >
+                      {formatYearRange(year)}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            {/* SEMESTER */}
+            <Box>
+              <Typography fontWeight="bold" mb={1}>
+                Semester
+              </Typography>
+
+              <FormControl fullWidth size="small">
+                <Select
+                  value={selectedSemester}
+                  onChange={(e) => setSelectedSemester(e.target.value)}
+                  displayEmpty
+                  sx={{
+                    borderRadius: "8px"
+                  }}
+                >
+                  <MenuItem value="">
+                    -- Select Semester --
+                  </MenuItem>
+
+                  {semesters.map((semester) => (
+                    <MenuItem
+                      key={semester.semester_id}
+                      value={semester.semester_id}
+                    >
+                      {semester.semester_description}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+          </Box>
+        </DialogContent>
+
+        {/* ===== ACTIONS ===== */}
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2,
+            borderTop: "1px solid #e0e0e0"
+          }}
+        >
+          <Button
+            onClick={() => {
+              setOpenDialog(false);
+              setEditID(null);
+            }}
+            color="error"
+            variant="outlined"
+            sx={{
+              textTransform: "none",
+              fontWeight: 600
+            }}
+          >
+            Cancel
+          </Button>
+
+          <Button
+            variant="contained"
+            onClick={(e) => {
+              handleSubmitOrUpdate(e);
+              setOpenDialog(false);
+            }}
+            sx={{
+              px: 4,
+              fontWeight: 600,
+              textTransform: "none", 
+            }}
+          >
+            {editID ? "Update" : "Save"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
     </Box>
   );
 };

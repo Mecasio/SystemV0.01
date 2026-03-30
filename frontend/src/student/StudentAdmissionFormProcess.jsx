@@ -488,7 +488,7 @@ const StudentAdmissionFormProcess = () => {
                   {campusAddress && (
                     <div
                       style={{
-                        fontSize: "12px",
+                        fontSize: "13px",
                         fontFamily: "Arial",
                       }}
                     >
@@ -699,7 +699,7 @@ const StudentAdmissionFormProcess = () => {
               </tr>
 
               {/* Email & Applicant ID */}
-              <tr style={{ fontSize: "13px" }}>
+              <tr style={{ fontSize: "12px" }}>
                 <td colSpan={20}>
                   <div
                     style={{
@@ -765,7 +765,7 @@ const StudentAdmissionFormProcess = () => {
               </tr>
 
               {/* Permanent Address */}
-              <tr style={{ fontSize: "13px" }}>
+              <tr style={{ fontSize: "12px" }}>
                 <td colSpan={40}>
                   <div
                     style={{
@@ -803,7 +803,7 @@ const StudentAdmissionFormProcess = () => {
               </tr>
 
               {/* Cellphone No, Civil Status, Gender */}
-              <tr style={{ fontSize: "13px" }}>
+              <tr style={{ fontSize: "12px" }}>
                 <td colSpan={13}>
                   <div
                     style={{
@@ -905,7 +905,7 @@ const StudentAdmissionFormProcess = () => {
               </tr>
 
               {/* Date of Birth, Place of Birth, Age */}
-              <tr style={{ fontSize: "13px" }}>
+              <tr style={{ fontSize: "12px" }}>
                 <td colSpan={13}>
                   <div
                     style={{
@@ -1001,7 +1001,7 @@ const StudentAdmissionFormProcess = () => {
                 </td>
               </tr>
 
-              <tr style={{ fontSize: "13px" }}>
+              <tr style={{ fontSize: "12px" }}>
                 {/* Please Check */}
                 <td colSpan={10}>
                   <div
@@ -1149,7 +1149,7 @@ const StudentAdmissionFormProcess = () => {
               </tr>
 
               {/* Last School Attended */}
-              <tr style={{ fontSize: "13px" }}>
+              <tr style={{ fontSize: "12px" }}>
                 <td colSpan={40}>
                   <div
                     style={{
@@ -1184,7 +1184,7 @@ const StudentAdmissionFormProcess = () => {
               </tr>
 
               {/* Degree/Program & Major */}
-              <tr style={{ fontSize: "13px" }}>
+              <tr style={{ fontSize: "12px" }}>
                 <td colSpan={25} style={{ verticalAlign: "top" }}>
                   <div
                     style={{
@@ -1670,7 +1670,7 @@ const StudentAdmissionFormProcess = () => {
                   {campusAddress && (
                     <div
                       style={{
-                        fontSize: "12px",
+                        fontSize: "13px",
                         fontFamily: "Arial",
                       }}
                     >
@@ -1881,7 +1881,7 @@ const StudentAdmissionFormProcess = () => {
               </tr>
 
               {/* Email & Applicant ID */}
-              <tr style={{ fontSize: "13px" }}>
+              <tr style={{ fontSize: "12px" }}>
                 <td colSpan={20}>
                   <div
                     style={{
@@ -1947,7 +1947,7 @@ const StudentAdmissionFormProcess = () => {
               </tr>
 
               {/* Permanent Address */}
-              <tr style={{ fontSize: "13px" }}>
+              <tr style={{ fontSize: "12px" }}>
                 <td colSpan={40}>
                   <div
                     style={{
@@ -1984,7 +1984,7 @@ const StudentAdmissionFormProcess = () => {
               </tr>
 
               {/* Cellphone No, Civil Status, Gender */}
-              <tr style={{ fontSize: "13px" }}>
+              <tr style={{ fontSize: "12px" }}>
                 <td colSpan={13}>
                   <div
                     style={{
@@ -2086,7 +2086,7 @@ const StudentAdmissionFormProcess = () => {
               </tr>
 
               {/* Date of Birth, Place of Birth, Age */}
-              <tr style={{ fontSize: "13px" }}>
+              <tr style={{ fontSize: "12px" }}>
                 <td colSpan={13}>
                   <div
                     style={{
@@ -2182,7 +2182,7 @@ const StudentAdmissionFormProcess = () => {
                 </td>
               </tr>
 
-              <tr style={{ fontSize: "13px" }}>
+              <tr style={{ fontSize: "12px" }}>
                 {/* Please Check */}
                 <td colSpan={10}>
                   <div
@@ -2330,7 +2330,7 @@ const StudentAdmissionFormProcess = () => {
               </tr>
 
               {/* Last School Attended */}
-              <tr style={{ fontSize: "13px" }}>
+              <tr style={{ fontSize: "12px" }}>
                 <td colSpan={40}>
                   <div
                     style={{
@@ -2365,7 +2365,7 @@ const StudentAdmissionFormProcess = () => {
               </tr>
 
               {/* Degree/Program & Major */}
-              <tr style={{ fontSize: "13px" }}>
+              <tr style={{ fontSize: "12px" }}>
                 <td colSpan={25} style={{ verticalAlign: "top" }}>
                   <div
                     style={{

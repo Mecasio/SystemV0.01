@@ -3318,7 +3318,7 @@ const Dashboard1 = (props) => {
                       border: `1px solid ${borderColor}`,
 
                       "&:hover": {
-                        bgcolor: "#5a1f1f",
+                        bgcolor: "black",
                       },
                     }}
                   >

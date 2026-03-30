@@ -595,7 +595,10 @@ const StudentFacultyEvaluation = () => {
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setResetDialogOpen(false)}>Cancel</Button>
+          <Button
+            color="error"
+            variant="outlined"
+            onClick={() => setResetDialogOpen(false)}>Cancel</Button>
           <Button
             color="error"
             onClick={() => {

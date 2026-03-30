@@ -41,7 +41,7 @@ const applicantDocsDir = path.join(
 const allowedOrigins = [
   "http://localhost:5173",
   "http://192.168.50.77:5173",
-  "http://192.168.0.180:5173",
+  "http://192.168.50.49:5173",
   "http://192.168.50.211:5173",
   "http://136.239.248.62:5173",
   "http://192.168.50.44:5173",
@@ -1482,49 +1482,59 @@ app.put("/uploads/status/:upload_id", async (req, res) => {
   }
 });
 
-//  Update submitted_documents by upload_id (but apply to ALL docs of that applicant)
+// Update submitted_documents by upload_id (apply to ALL docs of that applicant)
 app.put("/api/submitted-documents/:upload_id", async (req, res) => {
   const { upload_id } = req.params;
   const { submitted_documents, user_person_id } = req.body;
 
   try {
-    // 1¸ Find person_id
+    // 1. Find person_id
     const [[row]] = await db.query(
       "SELECT person_id FROM admission.requirement_uploads WHERE upload_id = ?",
-      [upload_id],
+      [upload_id]
     );
-    if (!row) return res.status(404).json({ error: "Upload not found" });
+
+    if (!row) {
+      return res.status(404).json({ error: "Upload not found" });
+    }
 
     const person_id = row.person_id;
 
-    // 2¸ Applicant info
+    // 2. Applicant info
     const [[appInfo]] = await db.query(
       `
       SELECT ant.applicant_number, pt.last_name, pt.first_name, pt.middle_name
       FROM applicant_numbering_table ant
       JOIN person_table pt ON ant.person_id = pt.person_id
       WHERE ant.person_id = ?
-    `,
-      [person_id],
+      `,
+      [person_id]
     );
 
     const applicant_number = appInfo?.applicant_number || "Unknown";
-    const fullName = `${appInfo?.last_name || ""}, ${appInfo?.first_name || ""} ${appInfo?.middle_name?.charAt(0) || ""}.`;
 
-    // 3¸ Actor info (FULL FORMAT identical to exam/save)
+    const fullName = `${appInfo?.last_name || ""}, ${
+      appInfo?.first_name || ""
+    } ${appInfo?.middle_name?.charAt(0) || ""}.`;
+
+    // 3. Actor info
     let actorEmail = "earistmis@gmail.com";
     let actorName = "SYSTEM";
 
     if (user_person_id) {
       const [actorRows] = await db3.query(
-        `SELECT email, role, employee_id, last_name, first_name, middle_name
-         FROM user_accounts
-         WHERE person_id = ? LIMIT 1`,
-        [user_person_id],
+        `
+        SELECT email, role, employee_id, last_name, first_name, middle_name
+        FROM user_accounts
+        WHERE person_id = ?
+        LIMIT 1
+        `,
+        [user_person_id]
       );
 
       if (actorRows.length > 0) {
         const u = actorRows[0];
+
         const role = u.role?.toUpperCase() || "UNKNOWN";
         const empId = u.employee_id || "";
         const lname = u.last_name || "";
@@ -1537,7 +1547,7 @@ app.put("/api/submitted-documents/:upload_id", async (req, res) => {
       }
     }
 
-    // 4¸ Toggle + message
+    // 4. Toggle + message
     let type, message;
 
     if (submitted_documents === 1) {
@@ -1546,41 +1556,45 @@ app.put("/api/submitted-documents/:upload_id", async (req, res) => {
         UPDATE admission.requirement_uploads
         SET submitted_documents = 1,
             registrar_status = 1,
-            remarks = 1,
             missing_documents = '[]'
-        WHERE person_id = ?`,
-        [person_id],
+        WHERE person_id = ?
+        `,
+        [person_id]
       );
 
       type = "submit";
-      message = ` Requirements submitted by Applicant #${applicant_number} - ${fullName}`;
+      message = `Requirements submitted by Applicant #${applicant_number} - ${fullName}`;
     } else {
       await db.query(
         `
         UPDATE admission.requirement_uploads
         SET submitted_documents = 0,
             registrar_status = 0,
-            remarks = 0,
             missing_documents = NULL
-        WHERE person_id = ?`,
-        [person_id],
+        WHERE person_id = ?
+        `,
+        [person_id]
       );
 
       type = "unsubmit";
-      message = `†©¸ Requirements unsubmitted for Applicant #${applicant_number} - ${fullName}`;
+      message = `Requirements unsubmitted for Applicant #${applicant_number} - ${fullName}`;
     }
 
-    //  Prevent duplicate notifications per day (same as exam/save)
+    // 5. Prevent duplicate notifications per day
     await db.query(
-      `INSERT INTO notifications (type, message, applicant_number, actor_email, actor_name, timestamp)
-       SELECT ?, ?, ?, ?, ?, NOW()
-       FROM DUAL
-       WHERE NOT EXISTS (
-         SELECT 1 FROM notifications
-         WHERE applicant_number = ?
-           AND message = ?
-           AND DATE(timestamp) = CURDATE()
-       )`,
+      `
+      INSERT INTO notifications
+      (type, message, applicant_number, actor_email, actor_name, timestamp)
+      SELECT ?, ?, ?, ?, ?, NOW()
+      FROM DUAL
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM notifications
+        WHERE applicant_number = ?
+          AND message = ?
+          AND DATE(timestamp) = CURDATE()
+      )
+      `,
       [
         type,
         message,
@@ -1589,10 +1603,10 @@ app.put("/api/submitted-documents/:upload_id", async (req, res) => {
         actorName,
         applicant_number,
         message,
-      ],
+      ]
     );
 
-    //  Emit socket event
+    // 6. Emit socket event
     io.emit("notification", {
       type,
       message,
@@ -1602,13 +1616,18 @@ app.put("/api/submitted-documents/:upload_id", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
 
-    res.json({ success: true, message });
+    res.json({
+      success: true,
+      message,
+    });
   } catch (err) {
-    console.error(" Error toggling submitted documents:", err);
-    res.status(500).json({ error: "Failed to toggle submitted documents" });
+    console.error("Error toggling submitted documents:", err);
+
+    res.status(500).json({
+      error: "Failed to toggle submitted documents",
+    });
   }
 });
-
 
 
 
@@ -2014,8 +2033,7 @@ app.get("/api/medical-applicants", async (req, res) => {
         GROUP BY person_id
       ) AS vdocs ON vdocs.person_id = p.person_id
 
-      WHERE COALESCE(ua.is_archived, 0) = 0
-
+ 
       ORDER BY p.last_name ASC, p.first_name ASC
     `);
 

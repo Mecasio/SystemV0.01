@@ -27,6 +27,7 @@ import {
   TableRow,
   TableCell,
   Paper,
+  Grid,
   FormControl, Select, MenuItem
 } from "@mui/material";
 
@@ -220,6 +221,8 @@ const ProgramPanel = () => {
     }
   };
 
+  const [openProgramDialog, setOpenProgramDialog] = useState(false);
+
   const handleEdit = (prog) => {
     setProgram({
       name: prog.program_description,
@@ -231,6 +234,7 @@ const ProgramPanel = () => {
 
     setEditMode(true);
     setEditId(prog.program_id);
+    setOpenProgramDialog(true);
   };
 
 
@@ -671,6 +675,37 @@ const ProgramPanel = () => {
                         Last
                       </Button>
 
+                      <Button
+                        variant="contained"
+                        sx={{
+                          backgroundColor: "#1976d2", // ✅ Blue
+                          color: "#fff",
+                          fontWeight: "bold",
+                          borderRadius: "8px",
+                          width: "250px",
+                          textTransform: "none",
+                          px: 2,
+                          mr: "15px",
+                          '&:hover': {
+                            backgroundColor: "#1565c0" // darker blue hover
+                          }
+                        }}
+                        onClick={() => {
+                          setProgram({
+                            name: "",
+                            code: "",
+                            major: "",
+                            components: "",
+                            academic_program: "",
+                          });
+                          setEditMode(false);
+                          setOpenProgramDialog(true);
+                        }}
+                      >
+                        + Add Program
+                      </Button>
+
+
                     </Box>
                   </Box>
                 </TableCell>
@@ -681,14 +716,14 @@ const ProgramPanel = () => {
         <table style={styles.table}>
           <thead>
             <tr>
-              <th style={styles.th}>ID</th>
-              <th style={styles.th}>Description</th>
-              <th style={styles.th}>Code</th>
-              <th style={styles.th}>Major</th>
-              <th style={styles.th}>Campus</th>
-              <th style={styles.th}>Academic Program</th>
+              <th style={{ ...styles.th, backgroundColor: "#f5f5f5" }}>ID</th>
+              <th style={{ ...styles.th, backgroundColor: "#f5f5f5" }}>Description</th>
+              <th style={{ ...styles.th, backgroundColor: "#f5f5f5" }}>Code</th>
+              <th style={{ ...styles.th, backgroundColor: "#f5f5f5" }}>Major</th>
+              <th style={{ ...styles.th, backgroundColor: "#f5f5f5" }}>Campus</th>
+              <th style={{ ...styles.th, backgroundColor: "#f5f5f5" }}>Academic Program</th>
 
-              <th style={styles.th}>Actions</th>
+              <th style={{ ...styles.th, backgroundColor: "#f5f5f5" }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -912,6 +947,8 @@ const ProgramPanel = () => {
                         Last
                       </Button>
 
+
+
                     </Box>
                   </Box>
                 </TableCell>
@@ -921,133 +958,147 @@ const ProgramPanel = () => {
         </TableContainer>
 
 
-        <br />
-        <br />
-        <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
-          <Table>
-            <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
-              <TableRow>
-                <TableCell sx={{ color: 'white', textAlign: "Center" }}>Insert Program</TableCell>
-              </TableRow>
-            </TableHead>
-          </Table>
-        </TableContainer>
-        <TableContainer
-          component={Paper}
-          sx={{
-            width: "100%",
-            border: `1px solid ${borderColor}`,
-            mb: "20px",
-            p: 3
-          }}
-        >
-
-
-
-          <div style={styles.formGroup}>
-            <label htmlFor="program_name" style={styles.label}>
-              Program Description:
-            </label>
-            <input
-              type="text"
-              id="program_name"
-              name="name"
-              value={program.name}
-              onChange={handleChangesForEverything}
-              placeholder="Enter Program Description"
-              style={styles.input}
-            />
-          </div>
-
-          <div style={styles.formGroup}>
-            <label htmlFor="program_code" style={styles.label}>
-              Program Code:
-            </label>
-            <input
-              type="text"
-              id="program_code"
-              name="code"
-              value={program.code}
-              onChange={handleChangesForEverything}
-              placeholder="Enter Program Code"
-              style={styles.input}
-            />
-          </div>
-
-          <div style={styles.formGroup}>
-            <label htmlFor="program_major" style={styles.label}>
-              Major:
-            </label>
-            <input
-              type="text"
-              id="program_major"
-              name="major"
-              value={program.major}
-              onChange={handleChangesForEverything}
-              placeholder="Enter Major (e.g., Marketing Management)"
-              style={styles.input}
-            />
-          </div>
-
-          <div style={styles.formGroup}>
-            <label htmlFor="program_components" style={styles.label}>
-              Campus:
-            </label>
-
-            <select
-              id="program_components"
-              name="components"
-              value={program.components}
-              onChange={handleChangesForEverything}
-              style={styles.input}
-            >
-              <option value="">-- Select Campus --</option>
-              {branches.map((branch) => (
-                <option key={branch.id} value={String(branch.id)}>
-                  {branch.branch}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Academic Program:</label>
-
-            <select
-              name="academic_program"
-              value={program.academic_program}
-              onChange={handleChangesForEverything}
-              style={styles.input}
-            >
-              <option value="">-- Select Academic Program --</option>
-              <option value="0">Undergraduate</option>
-              <option value="1">Graduate</option>
-              <option value="2">Techvoc</option>
-            </select>
-          </div>
-
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
-            <Button
-              onClick={handleAddingProgram}
-              variant="contained"
-              sx={{
-                width: "30%",
-
-              }}
-            >
-              {editMode ? "Update Program" : "Insert Program"}
-            </Button>
-          </Box>
-
-        </TableContainer>
-
-
-        <br />
 
 
 
       </div>
+      <Dialog
+        open={openProgramDialog}
+        onClose={() => setOpenProgramDialog(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            overflow: "hidden",
+            boxShadow: 6
+          }
+        }}
+      >
+        {/* ===== HEADER ===== */}
+        <DialogTitle
+          sx={{
+            background: settings?.header_color || "#1976d2",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "1.2rem",
+            py: 2
+          }}
+        >
+          {editMode ? "Edit Program" : "Add Program"}
+        </DialogTitle>
 
+        {/* ===== CONTENT ===== */}
+        <DialogContent sx={{ p: 3 }}>
+          <Grid container spacing={2}>
+
+            {/* DESCRIPTION */}
+            <Grid item xs={12} sx={{ marginTop: "20px" }}>
+              <Typography fontWeight="bold">Program Description</Typography>
+              <TextField
+                fullWidth
+                name="name"
+                value={program.name}
+                onChange={handleChangesForEverything}
+                placeholder="Enter Program Description"
+              />
+            </Grid>
+
+            {/* CODE */}
+            <Grid item xs={12}>
+              <Typography fontWeight="bold">Program Code</Typography>
+              <TextField
+                fullWidth
+                name="code"
+                value={program.code}
+                onChange={handleChangesForEverything}
+                placeholder="Enter Program Code"
+              />
+            </Grid>
+
+            {/* MAJOR */}
+            <Grid item xs={12}>
+              <Typography fontWeight="bold">Major</Typography>
+              <TextField
+                fullWidth
+                name="major"
+                value={program.major}
+                onChange={handleChangesForEverything}
+                placeholder="Optional (e.g., Marketing Management)"
+              />
+            </Grid>
+
+            {/* CAMPUS */}
+            <Grid item xs={12}>
+              <Typography fontWeight="bold">Campus</Typography>
+              <TextField
+                select
+                fullWidth
+                name="components"
+                value={program.components}
+                onChange={handleChangesForEverything}
+              >
+                <MenuItem value="">Select Campus</MenuItem>
+                {branches.map((branch) => (
+                  <MenuItem key={branch.id} value={String(branch.id)}>
+                    {branch.branch}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            {/* ACADEMIC PROGRAM */}
+            <Grid item xs={12}>
+              <Typography fontWeight="bold">Academic Program</Typography>
+              <TextField
+                select
+                fullWidth
+                name="academic_program"
+                value={program.academic_program}
+                onChange={handleChangesForEverything}
+              >
+                <MenuItem value="">Select Type</MenuItem>
+                <MenuItem value="0">Undergraduate</MenuItem>
+                <MenuItem value="1">Graduate</MenuItem>
+                <MenuItem value="2">Techvoc</MenuItem>
+              </TextField>
+            </Grid>
+
+          </Grid>
+        </DialogContent>
+
+        {/* ===== ACTIONS ===== */}
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2,
+            borderTop: "1px solid #e0e0e0"
+          }}
+        >
+          <Button
+            onClick={() => {
+              setOpenProgramDialog(false);
+              setEditMode(false);
+              setEditId(null);
+            }}
+            color="error"
+            variant="outlined"
+          >
+            Cancel
+          </Button>
+
+          <Button
+            variant="contained"
+            sx={{ px: 4, fontWeight: 600 }}
+            onClick={() => {
+              handleAddingProgram();
+              setOpenProgramDialog(false);
+            }}
+          >
+            {editMode ? "Update Program" : "Insert Program"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog
         open={openDeleteDialog}
@@ -1064,7 +1115,10 @@ const ProgramPanel = () => {
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={() => setOpenDeleteDialog(false)}>
+          <Button
+            color="error"
+            variant="outlined"
+            onClick={() => setOpenDeleteDialog(false)}>
             Cancel
           </Button>
 

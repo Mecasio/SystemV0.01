@@ -135,32 +135,32 @@ const QualifyingExamScore = () => {
   };
 
   const tabs = [
-      {
-          label: "Admission Process For College",
-          to: "/applicant_list",
-          icon: <SchoolIcon fontSize="large" />,
-        },
-        {
-          label: "Applicant Form",
-          to: "/registrar_dashboard1",
-          icon: <AssignmentIcon fontSize="large" />,
-        },
-        {
-          label: "Student Requirements",
-          to: "/registrar_requirements",
-          icon: <AssignmentTurnedInIcon fontSize="large" />,
-        },
-        {
-          label: "Qualifying / Interview Exam Score",
-          to: "/qualifying_interview_exam_scores",
-          icon: <ScoreIcon fontSize="large" />,
-        },
-        {
-          label: "Student Numbering",
-          to: "/student_numbering_per_college",
-          icon: <DashboardIcon fontSize="large" />,
-        },
-      
+    {
+      label: "Admission Process For College",
+      to: "/applicant_list",
+      icon: <SchoolIcon fontSize="large" />,
+    },
+    {
+      label: "Applicant Form",
+      to: "/registrar_dashboard1",
+      icon: <AssignmentIcon fontSize="large" />,
+    },
+    {
+      label: "Student Requirements",
+      to: "/registrar_requirements",
+      icon: <AssignmentTurnedInIcon fontSize="large" />,
+    },
+    {
+      label: "Qualifying / Interview Exam Score",
+      to: "/qualifying_interview_exam_scores",
+      icon: <ScoreIcon fontSize="large" />,
+    },
+    {
+      label: "Student Numbering",
+      to: "/student_numbering_per_college",
+      icon: <DashboardIcon fontSize="large" />,
+    },
+
   ];
 
   const navigate = useNavigate();
@@ -422,9 +422,9 @@ const QualifyingExamScore = () => {
       const data = Array.isArray(res.data) ? res.data : [];
 
       const withAssignedFlag = data.map((p) => ({
-          ...p,
-          assigned: false,
-        }));
+        ...p,
+        assigned: false,
+      }));
 
       setPersons(withAssignedFlag);
     } catch (err) {
@@ -797,30 +797,30 @@ const QualifyingExamScore = () => {
 
   const divToPrintRef = useRef();
 
-const printDiv = () => {
-  const newWin = window.open("", "Print-Window");
-  newWin.document.open();
+  const printDiv = () => {
+    const newWin = window.open("", "Print-Window");
+    newWin.document.open();
 
-  const logoSrc = fetchedLogo || EaristLogo;
-  const name = companyName?.trim() || "";
+    const logoSrc = fetchedLogo || EaristLogo;
+    const name = companyName?.trim() || "";
 
-  // ✅ Balanced split
-  const words = name.split(" ");
-  const middleIndex = Math.ceil(words.length / 2);
-  const firstLine = words.slice(0, middleIndex).join(" ");
-  const secondLine = words.slice(middleIndex).join(" ");
+    // ✅ Balanced split
+    const words = name.split(" ");
+    const middleIndex = Math.ceil(words.length / 2);
+    const firstLine = words.slice(0, middleIndex).join(" ");
+    const secondLine = words.slice(middleIndex).join(" ");
 
-  // ✅ Address
-  let campusAddress = "";
-  if (settings?.campus_address && settings.campus_address.trim() !== "") {
-    campusAddress = settings.campus_address;
-  } else if (settings?.address && settings.address.trim() !== "") {
-    campusAddress = settings.address;
-  } else {
-    campusAddress = "No address set in Settings";
-  }
+    // ✅ Address
+    let campusAddress = "";
+    if (settings?.campus_address && settings.campus_address.trim() !== "") {
+      campusAddress = settings.campus_address;
+    } else if (settings?.address && settings.address.trim() !== "") {
+      campusAddress = settings.address;
+    } else {
+      campusAddress = "No address set in Settings";
+    }
 
-  const htmlContent = `
+    const htmlContent = `
   <html>
     <head>
       <title>Qualifying Examination Score</title>
@@ -955,18 +955,18 @@ const printDiv = () => {
 
           <tbody>
             ${filteredPersons.map((person) => {
-              const qualifyingExam =
-                editScores[person.person_id]?.qualifying_exam_score ??
-                person.qualifying_exam_score ?? 0;
+      const qualifyingExam =
+        editScores[person.person_id]?.qualifying_exam_score ??
+        person.qualifying_exam_score ?? 0;
 
-              const qualifyingInterview =
-                editScores[person.person_id]?.qualifying_interview_score ??
-                person.qualifying_interview_score ?? 0;
+      const qualifyingInterview =
+        editScores[person.person_id]?.qualifying_interview_score ??
+        person.qualifying_interview_score ?? 0;
 
-              const computedTotalAve =
-                (Number(qualifyingExam) + Number(qualifyingInterview)) / 2;
+      const computedTotalAve =
+        (Number(qualifyingExam) + Number(qualifyingInterview)) / 2;
 
-              return `
+      return `
                 <tr>
                   <td>${person.applicant_number ?? "N/A"}</td>
                   <td>${person.last_name}, ${person.first_name} ${person.middle_name ?? ""} ${person.extension ?? ""}</td>
@@ -977,7 +977,7 @@ const printDiv = () => {
                   <td>${person.college_approval_status ?? "N/A"}</td>
                 </tr>
               `;
-            }).join("")}
+    }).join("")}
           </tbody>
         </table>
 
@@ -986,9 +986,9 @@ const printDiv = () => {
   </html>
   `;
 
-  newWin.document.write(htmlContent);
-  newWin.document.close();
-};
+    newWin.document.write(htmlContent);
+    newWin.document.close();
+  };
 
   const [file, setFile] = useState(null);
 
@@ -1751,10 +1751,10 @@ Thank you, best regards
     const targets = selectedApplicant
       ? persons.filter((p) => p.applicant_number === selectedApplicant)
       : persons.filter(
-          (p) =>
-            p.college_approval_status === "Accepted" &&
-            Number(p.applicant_interview_status) !== 1,
-        );
+        (p) =>
+          p.college_approval_status === "Accepted" &&
+          Number(p.applicant_interview_status) !== 1,
+      );
 
     if (targets.length === 0) {
       setLoading2(false);
@@ -2132,7 +2132,7 @@ Thank you, best regards
                   onChange={(e) =>
                     setPerson((prev) => ({ ...prev, fromDate: e.target.value }))
                   }
-                 />
+                />
               </FormControl>
 
               <div style={{ position: "relative" }}>
@@ -2176,7 +2176,7 @@ Thank you, best regards
                   onChange={(e) =>
                     setPerson((prev) => ({ ...prev, toDate: e.target.value }))
                   }
-                 />
+                />
               </FormControl>
 
               {/* ✅ Import Excel beside To Date */}

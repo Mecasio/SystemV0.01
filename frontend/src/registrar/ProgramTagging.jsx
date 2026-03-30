@@ -8,6 +8,7 @@ import {
   TableRow,
   TableCell,
   Paper,
+  Grid
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -97,6 +98,8 @@ const ProgramTagging = () => {
   const pageId = 35;
 
   const [employeeID, setEmployeeID] = useState("");
+
+  const [openFormDialog, setOpenFormDialog] = useState(false);
 
   useEffect(() => {
 
@@ -490,8 +493,6 @@ const ProgramTagging = () => {
 
     });
 
-
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
@@ -622,9 +623,9 @@ const ProgramTagging = () => {
   const [selectedCampus, setSelectedCampus] = useState("");
   const [selectedAcademicProgram, setSelectedAcademicProgram] = useState("");
 
-    const getBranchLabel = (branchId) => {
-      const branch = branches.find((item) => Number(item.id) === Number(branchId));
-      return branch?.branch || "�";
+  const getBranchLabel = (branchId) => {
+    const branch = branches.find((item) => Number(item.id) === Number(branchId));
+    return branch?.branch || "�";
   };
 
   const filteredCurriculumList = Array.from(
@@ -757,306 +758,65 @@ const ProgramTagging = () => {
       <br />
 
       <div style={styles.container}>
-        <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, mb: "-30px" }}>
-          <Table>
-            <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
-              <TableRow>
-                <TableCell sx={{ color: 'white', textAlign: "Center" }}>Program Panel</TableCell>
-              </TableRow>
-            </TableHead>
-          </Table>
-        </TableContainer>
-        {/* Left: Form Section */}
-        <div style={{ ...styles.formSection, border: `1px solid ${borderColor}` }}>
-
-          {/* CAMPUS */}
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Campus:</label>
-            <select
-              value={selectedCampus}
-              onChange={(e) => {
-                setSelectedCampus(e.target.value);
-                setSelectedAcademicProgram("");
-                setProgTag(prev => ({ ...prev, curriculum_id: "" }));
-              }}
-              style={styles.select}
-            >
-              <option value="">Choose Campus</option>
-              {branches.map((branch) => (
-                <option key={branch.id} value={branch.id}>
-                  {branch.branch}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* ACADEMIC PROGRAM */}
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Academic Program:</label>
-            <select
-              value={selectedAcademicProgram}
-              onChange={(e) => {
-                setSelectedAcademicProgram(e.target.value);
-                setProgTag(prev => ({ ...prev, curriculum_id: "" }));
-              }}
-              disabled={!selectedCampus}
-              style={styles.select}
-            >
-              <option value="">Select Program</option>
-              <option value="0">Undergraduate</option>
-              <option value="1">Graduate</option>
-              <option value="2">Techvoc</option>
-            </select>
-          </div>
-
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Curriculum:</label>
-
-            {/* 🔍 Curriculum Search */}
-            <input
-              type="text"
-              placeholder="Search curriculum..."
-              value={curriculumSearch}
-              onChange={(e) => setCurriculumSearch(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "10px",
-                marginBottom: "10px",
-                borderRadius: "5px",
-                border: "1px solid #ccc",
-                fontSize: "16px"
-              }}
-            />
-
-            <select
-              name="curriculum_id"
-              value={progTag.curriculum_id}
-              onChange={handleChangesForEverything}
-              style={styles.select}
-            >
-              <option value="">Choose Curriculum</option>
-
-              {filteredCurriculumList
-                .sort((a, b) => Number(a.year_description) - Number(b.year_description))
-                .map((curriculum) => (
-                  <option key={curriculum.curriculum_id} value={curriculum.curriculum_id}>
-                    {formatSchoolYear(curriculum.year_description)}:
-                    {` (${curriculum.program_code}) ${curriculum.program_description}`}
-                    {curriculum.major ? ` (${curriculum.major})` : ""} {`${curriculum.components} (${getBranchLabel(curriculum.components)})`}
-                  </option>
-                ))}
-            </select>
-          </div>
-
-
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Course:</label>
-
-            {/* 🔍 Search Bar for Course */}
-            <input
-              type="text"
-              placeholder="Search course..."
-              value={courseSearch}
-              onChange={(e) => setCourseSearch(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "10px",
-                marginBottom: "10px",
-                borderRadius: "5px",
-                border: "1px solid #ccc",
-                fontSize: "16px"
-              }}
-            />
-
-            <select
-              name="course_id"
-              value={progTag.course_id}
-              onChange={handleChangesForEverything}
-              style={styles.select}
-            >
-              <option value="">Choose Course</option>
-
-              {filteredCourses.map((course) => (
-                <option key={course.course_id} value={course.course_id}>
-                  {course.course_code} - {course.course_description} - ({course.prereq})
-                </option>
-              ))}
-            </select>
-          </div>
-
-
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Year Level:</label>
-            <select
-              name="year_level_id"
-              value={progTag.year_level_id}
-              onChange={handleChangesForEverything}
-              style={styles.select}
-            >
-              <option value="">Choose Year Level</option>
-              {yearLevelList.map((year) => (
-                <option key={year.year_level_id} value={year.year_level_id}>
-                  {year.year_level_description}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Semester:</label>
-            <select
-              name="semester_id"
-              value={progTag.semester_id}
-              onChange={handleChangesForEverything}
-              style={styles.select}
-            >
-              <option value="">Choose Semester</option>
-              {semesterList.map((semester) => (
-                <option key={semester.semester_id} value={semester.semester_id}>
-                  {semester.semester_description}
-                </option>
-              ))}
-            </select>
-          </div>
-
-
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Lecture Fee:</label>
-            <input
-              type="number"
-              name="lec_fee"
-              value={progTag.lec_fee}
-              onChange={handleChangesForEverything}
-              style={styles.select}
-              placeholder="Enter lecture fee"
-            />
-          </div>
-
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Laboratory Fee:</label>
-            <input
-              type="number"
-              name="lab_fee"
-              value={progTag.lab_fee}
-              onChange={handleChangesForEverything}
-              style={styles.select}
-              placeholder="Enter laboratory fee"
-            />
-          </div>
-
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Fee Type:</label>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <label style={{ display: "flex", alignItems: "center", gap: "14px", cursor: "pointer" }}>
-                <input
-                  type="radio"
-                  name="fee_type"
-                  value="computer"
-                  checked={progTag.iscomputer_lab === 1}
-                  onChange={() =>
-                    setProgTag(prev => ({
-                      ...prev,
-                      iscomputer_lab: 1,
-                      islaboratory_fee: 0,
-                      is_nstp: 0,
-                    }))
-                  }
-                  style={{
-                    transform: "scale(1.5)",   // 👈 BIGGER BULLET
-                    cursor: "pointer",
-                  }}
-                />
-                <span style={{ fontSize: "16px" }}>Computer Lab</span>
-              </label>
-
-              <label style={{ display: "flex", alignItems: "center", gap: "14px", cursor: "pointer" }}>
-                <input
-                  type="radio"
-                  name="fee_type"
-                  value="laboratory"
-                  checked={progTag.islaboratory_fee === 1}
-                  onChange={() =>
-                    setProgTag(prev => ({
-                      ...prev,
-                      iscomputer_lab: 0,
-                      islaboratory_fee: 1,
-                      is_nstp: 0,
-                    }))
-                  }
-                  style={{
-                    transform: "scale(1.5)",
-                    cursor: "pointer",
-                  }}
-                />
-                <span style={{ fontSize: "16px" }}>Laboratory Fee</span>
-              </label>
-
-              <label style={{ display: "flex", alignItems: "center", gap: "14px", cursor: "pointer" }}>
-                <input
-                  type="radio"
-                  name="fee_type"
-                  value="nstp"
-                  checked={progTag.is_nstp === 1}
-                  onChange={() =>
-                    setProgTag(prev => ({
-                      ...prev,
-                      iscomputer_lab: 0,
-                      islaboratory_fee: 0,
-                      is_nstp: 1,
-                    }))
-                  }
-                  style={{
-                    transform: "scale(1.5)",
-                    cursor: "pointer",
-                  }}
-                />
-                <span style={{ fontSize: "16px" }}>NSTP Subject</span>
-              </label>
-            </div>
-
-            {/* 
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Computed Amount:</label>
-              <input
-                type="text"
-                value={`₱ ${Number(progTag.amount || 0).toLocaleString()}`}
-                disabled
-                style={{
-                  ...styles.select,
-                  backgroundColor: "#eee",
-                  fontWeight: "bold",
-                }}
-              />
-            </div> */}
-
-          </div>
 
 
 
-          <Button
-            onClick={handleInsertingProgTag}
-            variant="contained"
-            sx={{
-              backgroundColor: "primary",
-              color: "white",
-              mt: 3,
-              width: "100%",
-              "&:hover": { backgroundColor: "#000" },
-            }}
-          >
-            {editingId ? "Update Program Tag" : "Insert Program Tag"}
-          </Button>
-        </div>
-
-        <br />
 
 
         <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, mb: "-30px" }}>
           <Table>
             <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
               <TableRow>
-                <TableCell sx={{ color: 'white', textAlign: "Center" }}>Tagged Program</TableCell>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    width: "100%"
+                  }}
+                >
+                  <TableCell sx={{ color: "white", textAlign: "center" }}>
+                    Existing Schedules
+                  </TableCell>
+
+
+                  <Button
+                    variant="contained"
+                    onClick={() => {
+                      setEditingId(null);
+
+                      setProgTag({
+                        curriculum_id: "",
+                        year_level_id: "",
+                        semester_id: "",
+                        course_id: "",
+                        lec_fee: "",
+                        lab_fee: "",
+                        iscomputer_lab: 0,
+                        islaboratory_fee: 0,
+                        is_nstp: 0,
+                        amount: 0,
+                      });
+
+                      setOpenFormDialog(true);
+                    }}
+                    sx={{
+                      backgroundColor: "#1976d2", // ✅ Blue
+                      color: "#fff",
+                      fontWeight: "bold",
+                      borderRadius: "8px",
+                      width: "250px",
+                      textTransform: "none",
+                      px: 2,
+                      mr: "15px",
+                      '&:hover': {
+                        backgroundColor: "#1565c0" // darker blue hover
+                      }
+                    }}
+                  >
+                    + Insert Program Tag
+                  </Button>
+                </Box>
               </TableRow>
             </TableHead>
           </Table>
@@ -1233,7 +993,7 @@ const ProgramTagging = () => {
           <div style={styles.taggedProgramsContainer}>
             {taggedPrograms.length > 0 ? (
 
-              <table style={{ ...styles.table, mt: "-15px" }}>
+              <table style={{ ...styles.table, mt: "-15px", mb: 4 }}>
 
                 <thead>
 
@@ -1427,7 +1187,10 @@ const ProgramTagging = () => {
                         }}
                       >
                         <button
-                          onClick={() => handleEdit(program)}
+                          onClick={() => {
+                            handleEdit(program);
+                            setOpenFormDialog(true);
+                          }}
                           style={{
                             backgroundColor: "green",
                             color: "white",
@@ -1486,11 +1249,502 @@ const ProgramTagging = () => {
             ) : (
               <p>No tagged programs available.</p>
             )}
+
+            <TableContainer component={Paper} sx={{ width: '100%', mb: 4 }}>
+              <Table size="small">
+                <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
+                  <TableRow>
+                    <TableCell
+                      colSpan={10}
+                      sx={{
+                        border: `1px solid ${borderColor}`,
+                        py: 0.5,
+                        backgroundColor: settings?.header_color || "#1976d2",
+                        color: "white",
+                      }}
+                    >
+                      <Box
+                        display="flex"
+                        justifyContent="space-between" // Left & right sides
+                        alignItems="center"
+                        flexWrap="wrap"
+                        gap={1}
+                      >
+                        {/* Left side: Total Tagged Programs */}
+                        <Typography fontSize="14px" fontWeight="bold" color="white">
+                          Total Tagged Programs: {filteredPrograms.length}
+                        </Typography>
+
+                        {/* Right side: Pagination / Filtering Controls */}
+                        <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
+                          <Button
+                            onClick={() => setCurrentPage(1)}
+                            disabled={currentPage === 1}
+                            variant="outlined"
+                            size="small"
+                            sx={{
+                              minWidth: 80,
+                              color: "white",
+                              borderColor: "white",
+                              backgroundColor: "transparent",
+                              '&:hover': {
+                                borderColor: 'white',
+                                backgroundColor: 'rgba(255,255,255,0.1)',
+                              },
+                              '&.Mui-disabled': {
+                                color: "white",
+                                borderColor: "white",
+                                backgroundColor: "transparent",
+                                opacity: 1,
+                              }
+                            }}
+                          >
+                            First
+                          </Button>
+
+                          <Button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            variant="outlined"
+                            size="small"
+                            sx={{
+                              minWidth: 80,
+                              color: "white",
+                              borderColor: "white",
+                              backgroundColor: "transparent",
+                              '&:hover': {
+                                borderColor: 'white',
+                                backgroundColor: 'rgba(255,255,255,0.1)',
+                              },
+                              '&.Mui-disabled': {
+                                color: "white",
+                                borderColor: "white",
+                                backgroundColor: "transparent",
+                                opacity: 1,
+                              }
+                            }}
+                          >
+                            Prev
+                          </Button>
+
+                          {/* Page Dropdown */}
+                          <FormControl size="small" sx={{ minWidth: 80 }}>
+                            <Select
+                              value={currentPage}
+                              onChange={(e) => setCurrentPage(Number(e.target.value))}
+                              displayEmpty
+                              sx={{
+                                fontSize: '12px',
+                                height: 36,
+                                color: 'white',
+                                border: '1px solid white',
+                                backgroundColor: 'transparent',
+                                '.MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
+                                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
+                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
+                                '& svg': { color: 'white' }
+                              }}
+                              MenuProps={{
+                                PaperProps: { sx: { maxHeight: 200, backgroundColor: '#fff' } }
+                              }}
+                            >
+                              {Array.from({ length: totalPages }, (_, i) => (
+                                <MenuItem key={i + 1} value={i + 1}>
+                                  Page {i + 1}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+
+                          <Typography fontSize="11px" color="white">
+                            of {totalPages} page{totalPages > 1 ? 's' : ''}
+                          </Typography>
+
+                          <Button
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            variant="outlined"
+                            size="small"
+                            sx={{
+                              minWidth: 80,
+                              color: "white",
+                              borderColor: "white",
+                              backgroundColor: "transparent",
+                              '&:hover': { borderColor: 'white', backgroundColor: 'rgba(255,255,255,0.1)' },
+                              '&.Mui-disabled': { color: "white", borderColor: "white", backgroundColor: "transparent", opacity: 1 }
+                            }}
+                          >
+                            Next
+                          </Button>
+
+                          <Button
+                            onClick={() => setCurrentPage(totalPages)}
+                            disabled={currentPage === totalPages}
+                            variant="outlined"
+                            size="small"
+                            sx={{
+                              minWidth: 80,
+                              color: "white",
+                              borderColor: "white",
+                              backgroundColor: "transparent",
+                              '&:hover': { borderColor: 'white', backgroundColor: 'rgba(255,255,255,0.1)' },
+                              '&.Mui-disabled': { color: "white", borderColor: "white", backgroundColor: "transparent", opacity: 1 }
+                            }}
+                          >
+                            Last
+                          </Button>
+                        </Box>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+              </Table>
+            </TableContainer>
           </div>
 
         </div>
 
+
       </div>
+
+      <Dialog
+        open={openFormDialog}
+        onClose={() => setOpenFormDialog(false)}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            overflow: "hidden",
+            boxShadow: 6
+          }
+        }}
+      >
+        {/* HEADER */}
+        <DialogTitle
+          sx={{
+            background: settings?.header_color || "#1976d2",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "1.2rem",
+            py: 2
+          }}
+        >
+          {editingId ? "Edit Program Tag" : "Insert Program Tag"}
+        </DialogTitle>
+
+        {/* CONTENT */}
+        <DialogContent sx={{ p: 3 }}>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+
+            {/* CAMPUS */}
+            <Grid item xs={12} md={6}>
+              <Typography fontWeight={700} sx={{ mb: 1 }}>
+                Campus
+              </Typography>
+              <TextField
+                select
+                fullWidth
+                label="Campus"
+                value={selectedCampus}
+                onChange={(e) => {
+                  setSelectedCampus(e.target.value);
+                  setSelectedAcademicProgram("");
+                  setProgTag(prev => ({
+                    ...prev,
+                    curriculum_id: ""
+                  }));
+                }}
+              >
+                <MenuItem value="">Choose Campus</MenuItem>
+                {branches.map((branch) => (
+                  <MenuItem key={branch.id} value={branch.id}>
+                    {branch.branch}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            {/* PROGRAM */}
+            <Grid item xs={12} md={6}>
+              <Typography fontWeight={700} sx={{ mb: 1 }}>
+                Program
+              </Typography>
+              <TextField
+                select
+                fullWidth
+                label="Academic Program"
+                value={selectedAcademicProgram}
+                onChange={(e) => {
+                  setSelectedAcademicProgram(e.target.value);
+                  setProgTag(prev => ({
+                    ...prev,
+                    curriculum_id: ""
+                  }));
+                }}
+              >
+                <MenuItem value="">Select Program</MenuItem>
+                <MenuItem value="0">Undergraduate</MenuItem>
+                <MenuItem value="1">Graduate</MenuItem>
+                <MenuItem value="2">Techvoc</MenuItem>
+              </TextField>
+            </Grid>
+
+            {/* SEARCH CURRICULUM */}
+            <Grid item xs={12}>
+              <Typography fontWeight={700} sx={{ mb: 1 }}>
+                Search Curriculum
+              </Typography>
+              <TextField
+                fullWidth
+                placeholder="Search curriculum..."
+                value={curriculumSearch}
+                onChange={(e) => setCurriculumSearch(e.target.value)}
+              />
+            </Grid>
+
+            {/* CURRICULUM */}
+            <Grid item xs={12}>
+              <Typography fontWeight={700} sx={{ mb: 1 }}>
+                Curriculum
+              </Typography>
+
+              <TextField
+                select
+                fullWidth
+                label="Curriculum"
+                name="curriculum_id"
+                value={progTag.curriculum_id}
+                onChange={handleChangesForEverything}
+              >
+                <MenuItem value="">Choose Curriculum</MenuItem>
+
+                {filteredCurriculumList.map((curriculum) => (
+                  <MenuItem
+                    key={curriculum.curriculum_id}
+                    value={curriculum.curriculum_id}
+                  >
+                    {formatSchoolYear(curriculum.year_description)}:{" "}
+                    {`(${curriculum.program_code}): ${curriculum.program_description}${curriculum.major ? ` (${curriculum.major})` : ""
+                      } (${getBranchLabel(curriculum.components)})`}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            {/* SEARCH COURSE */}
+            <Grid item xs={12}>
+              <Typography fontWeight={700} sx={{ mb: 1 }}>
+                Search Course
+              </Typography>
+              <TextField
+                fullWidth
+                placeholder="Search course..."
+                value={courseSearch}
+                onChange={(e) => setCourseSearch(e.target.value)}
+              />
+            </Grid>
+
+            {/* COURSE */}
+            <Grid item xs={12}>
+              <Typography fontWeight={700} sx={{ mb: 1 }}>
+                Course
+              </Typography>
+              <TextField
+                select
+                fullWidth
+                label="Course"
+                name="course_id"
+                value={progTag.course_id}
+                onChange={handleChangesForEverything}
+              >
+                <MenuItem value="">Choose Course</MenuItem>
+                {filteredCourses.map((course) => (
+                  <MenuItem key={course.course_id} value={course.course_id}>
+                    {course.course_code} - {course.course_description} ({course.prereq})
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            {/* YEAR */}
+            <Grid item xs={6}>
+              <Typography fontWeight={700} sx={{ mb: 1 }}>
+                Year Level
+              </Typography>
+              <TextField
+                select
+                fullWidth
+                label="Year Level"
+                name="year_level_id"
+                value={progTag.year_level_id}
+                onChange={handleChangesForEverything}
+              >
+                {yearLevelList.map((year) => (
+                  <MenuItem
+                    key={year.year_level_id}
+                    value={year.year_level_id}
+                  >
+                    {year.year_level_description}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            {/* SEM */}
+            <Grid item xs={6}>
+              <Typography fontWeight={700} sx={{ mb: 1 }}>
+                Semester
+              </Typography>
+              <TextField
+                select
+                fullWidth
+                label="Semester"
+                name="semester_id"
+                value={progTag.semester_id}
+                onChange={handleChangesForEverything}
+              >
+                {semesterList.map((semester) => (
+                  <MenuItem
+                    key={semester.semester_id}
+                    value={semester.semester_id}
+                  >
+                    {semester.semester_description}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            {/* FEES */}
+            <Grid item xs={6}>
+              <Typography fontWeight={700} sx={{ mb: 1 }}>
+                Lecture Fee
+              </Typography>
+              <TextField
+                fullWidth
+                type="number"
+                label="Lecture Fee"
+                name="lec_fee"
+                value={progTag.lec_fee}
+                onChange={handleChangesForEverything}
+              />
+            </Grid>
+
+            <Grid item xs={6}>
+              <Typography fontWeight={700} sx={{ mb: 1 }}>
+                Laboratory Fee
+              </Typography>
+              <TextField
+                fullWidth
+                type="number"
+                label="Laboratory Fee"
+                name="lab_fee"
+                value={progTag.lab_fee}
+                onChange={handleChangesForEverything}
+              />
+            </Grid>
+
+            {/* BULLET */}
+            <Grid item xs={12}>
+              <Typography fontWeight={700} sx={{ mb: 1 }}>
+                Fee Type
+              </Typography>
+
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <input
+                    type="radio"
+                    style={{
+                      width: "25px",
+                      height: "25px",
+                      cursor: "pointer"
+                    }}
+                    checked={progTag.iscomputer_lab === 1}
+                    onChange={() =>
+                      setProgTag(prev => ({
+                        ...prev,
+                        iscomputer_lab: 1,
+                        islaboratory_fee: 0,
+                        is_nstp: 0
+                      }))
+                    }
+                  />
+                  Computer Lab
+                </label>
+
+                <label style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <input
+                    type="radio"
+                    style={{
+                      width: "25px",
+                      height: "25px",
+                      cursor: "pointer"
+                    }}
+                    checked={progTag.islaboratory_fee === 1}
+                    onChange={() =>
+                      setProgTag(prev => ({
+                        ...prev,
+                        iscomputer_lab: 0,
+                        islaboratory_fee: 1,
+                        is_nstp: 0
+                      }))
+                    }
+                  />
+                  Laboratory Fee
+                </label>
+
+                <label style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <input
+                    type="radio"
+                    style={{
+                      width: "25px",
+                      height: "25px",
+                      cursor: "pointer"
+                    }}
+                    checked={progTag.is_nstp === 1}
+                    onChange={() =>
+                      setProgTag(prev => ({
+                        ...prev,
+                        iscomputer_lab: 0,
+                        islaboratory_fee: 0,
+                        is_nstp: 1
+                      }))
+                    }
+                  />
+                  NSTP Subject
+                </label>
+              </Box>
+            </Grid>
+          </Grid>
+        </DialogContent>
+
+        {/* ACTIONS */}
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2,
+            borderTop: "1px solid #e0e0e0"
+          }}
+        >
+          <Button
+            color="error"
+            variant="outlined"
+            onClick={() => setOpenFormDialog(false)}
+          >
+            Cancel
+          </Button>
+
+          <Button
+            variant="contained"
+            onClick={() => {
+              handleInsertingProgTag();
+              setOpenFormDialog(false);
+            }}
+          >
+            {editingId ? "Update Program Tag" : "Insert Program Tag"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog
         open={openDeleteDialog}

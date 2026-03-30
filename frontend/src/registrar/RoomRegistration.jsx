@@ -41,8 +41,6 @@ import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-
-
 const RoomRegistration = () => {
   const settings = useContext(SettingsContext);
 
@@ -319,7 +317,7 @@ const RoomRegistration = () => {
     setBranch(room.branch || 1);
     setIsAircon(room.is_airconditioned || 0);
 
-    setOpenFormDialog(true); 
+    setOpenFormDialog(true);
   };
 
 
@@ -504,54 +502,54 @@ const RoomRegistration = () => {
 
 
 
-     <Grid item xs={12} md={7}>
-      <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}` }}>
-  <Table>
-    <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
-      <TableRow>
-        <TableCell sx={{ color: 'white', p: 1 }}>
+      <Grid item xs={12} md={7}>
+        <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}` }}>
+          <Table>
+            <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
+              <TableRow>
+                <TableCell sx={{ color: 'white', p: 1 }}>
 
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              width: "100%"
-            }}
-          >
-            {/* LEFT SIDE */}
-            <Typography sx={{ fontWeight: "bold", color: "white" }}>
-              Room Registered
-            </Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      width: "100%"
+                    }}
+                  >
+                    {/* LEFT SIDE */}
+                    <Typography sx={{ fontWeight: "bold", color: "white" }}>
+                      Room Registered
+                    </Typography>
 
-            {/* RIGHT SIDE BUTTON */}
-            <Button
-              variant="contained"
-              onClick={() => setOpenFormDialog(true)}
-              sx={{
-                backgroundColor: "#1976d2", // ✅ Blue
-                color: "#fff",
-                fontWeight: "bold",
-                borderRadius: "8px",
-                width: "250px",
-                textTransform: "none",
-                px: 2,
-                '&:hover': {
-                  backgroundColor: "#1565c0" // darker blue hover
-                }
-              }}
-            >
-              + Add Room
-            </Button>
-          </Box>
+                    {/* RIGHT SIDE BUTTON */}
+                    <Button
+                      variant="contained"
+                      onClick={() => setOpenFormDialog(true)}
+                      sx={{
+                        backgroundColor: "#1976d2", // ✅ Blue
+                        color: "#fff",
+                        fontWeight: "bold",
+                        borderRadius: "8px",
+                        width: "250px",
+                        textTransform: "none",
+                        px: 2,
+                        '&:hover': {
+                          backgroundColor: "#1565c0" // darker blue hover
+                        }
+                      }}
+                    >
+                      + Add Room
+                    </Button>
+                  </Box>
 
-        </TableCell>
-      </TableRow>
-    </TableHead>
-  </Table>
-</TableContainer>
+                </TableCell>
+              </TableRow>
+            </TableHead>
+          </Table>
+        </TableContainer>
 
-        
+
 
         <Paper
           elevation={3}
@@ -831,7 +829,7 @@ const RoomRegistration = () => {
                       sx={{
                         border: `1px solid ${borderColor}`,
                         textAlign: "center",
-                        width: "250px",
+                        
                         display: "flex",
                         justifyContent: "center",
                         alignItems: "center",
@@ -992,122 +990,164 @@ const RoomRegistration = () => {
       <Dialog
         open={openFormDialog}
         onClose={() => setOpenFormDialog(false)}
-        maxWidth="sm"
+        maxWidth="md"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            overflow: "hidden",
+            boxShadow: 6
+          }
+        }}
       >
         {/* HEADER */}
         <DialogTitle
           sx={{
-            backgroundColor: settings?.header_color || "#1976d2",
+            background: settings?.header_color || "#1976d2",
             color: "#fff",
-            textAlign: "center",
-            fontWeight: "bold"
+            fontWeight: 700,
+            fontSize: "1.2rem",
+            py: 2
           }}
         >
-          {editingRoom ? "Update Room" : "Room Registration"}
+          {editingRoom ? "Edit Room Information" : "New Room Registration"}
         </DialogTitle>
 
         {/* CONTENT */}
-        <DialogContent sx={{ mt: 2 }}>
+        <DialogContent sx={{ p: 3 }}>
 
-          <Typography fontWeight={500}>Branch:</Typography>
-          <TextField
-            select
-            fullWidth
-            value={branch}
-            onChange={(e) => setBranch(Number(e.target.value))}
-            sx={{ mb: 2 }}
+          {/* LOCATION SECTION */}
+          <Typography
+            variant="subtitle1"
+            fontWeight={700}
+            sx={{ mb: 2, mt: 1 }}
           >
-            {branches.map((b) => (
-              <MenuItem key={b.id} value={b.id}>
-                {b.branch}
-              </MenuItem>
-            ))}
-          </TextField>
+            Location Details
+          </Typography>
 
-          <Typography fontWeight={500}>Building Name:</Typography>
-          <TextField
-            fullWidth
-            label="Building Name"
-            value={buildingName}
-            onChange={(e) => setBuildingName(e.target.value)}
-            sx={{ mb: 2 }}
-          />
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                select
+                fullWidth
+                label="Branch"
+                value={branch}
+                onChange={(e) => setBranch(Number(e.target.value))}
+              >
+                {branches.map((b) => (
+                  <MenuItem key={b.id} value={b.id}>
+                    {b.branch}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
 
-          <Typography fontWeight={500}>Room Name:</Typography>
-          <TextField
-            fullWidth
-            label="Room Name"
-            value={roomName}
-            onChange={(e) => setRoomName(e.target.value)}
-            sx={{ mb: 2 }}
-          />
+            <Grid item xs={8}>
+              <TextField
+                fullWidth
+                label="Building Name"
+                value={buildingName}
+                onChange={(e) => setBuildingName(e.target.value)}
+              />
+            </Grid>
 
-          <Typography fontWeight={500}>Floor:</Typography>
-          <TextField
-            fullWidth
-            type="number"
-            label="Floor"
-            value={floor}
-            onChange={(e) => setFloor(e.target.value)}
-            sx={{ mb: 2 }}
-          />
+            <Grid item xs={4}>
+              <TextField
+                fullWidth
+                type="number"
+                label="Floor"
+                value={floor}
+                onChange={(e) => setFloor(e.target.value)}
+              />
+            </Grid>
+          </Grid>
 
-          <Typography fontWeight={500}>Room Type:</Typography>
-          <TextField
-            select
-            fullWidth
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-            sx={{ mb: 2 }}
+          {/* ROOM SECTION */}
+          <Typography
+            variant="subtitle1"
+            fontWeight={700}
+            sx={{ mt: 4, mb: 2 }}
           >
-            <MenuItem value="">
-              <em>Select Room Type</em>
-            </MenuItem>
-            <MenuItem value="Lecture">Lecture</MenuItem>
-            <MenuItem value="Laboratory">Laboratory</MenuItem>
-          </TextField>
+            Room Details
+          </Typography>
 
-          <Typography fontWeight={500}>Airconditioned:</Typography>
-          <TextField
-            select
-            fullWidth
-            value={isAircon}
-            onChange={(e) => setIsAircon(Number(e.target.value))}
-            sx={{ mb: 2 }}
-          >
-            {AIRCON_OPTIONS.map((item) => (
-              <MenuItem key={item.value} value={item.value}>
-                {item.label}
-              </MenuItem>
-            ))}
-          </TextField>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Room Name"
+                value={roomName}
+                onChange={(e) => setRoomName(e.target.value)}
+              />
+            </Grid>
 
+            <Grid item xs={6}>
+              <TextField
+                select
+                fullWidth
+                label="Room Type"
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+              >
+                <MenuItem value="Lecture">Lecture</MenuItem>
+                <MenuItem value="Laboratory">Laboratory</MenuItem>
+              </TextField>
+            </Grid>
+
+            <Grid item xs={6}>
+              <TextField
+                select
+                fullWidth
+                label="Airconditioned"
+                value={isAircon}
+                onChange={(e) => setIsAircon(Number(e.target.value))}
+              >
+                {AIRCON_OPTIONS.map((item) => (
+                  <MenuItem key={item.value} value={item.value}>
+                    {item.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+          </Grid>
         </DialogContent>
 
         {/* ACTIONS */}
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setOpenFormDialog(false)}>
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2,
+            borderTop: "1px solid #e0e0e0"
+          }}
+        >
+          <Button
+            onClick={() => setOpenFormDialog(false)}
+            color="error"
+            variant="outlined"
+          >
             Cancel
           </Button>
 
           <Button
             variant="contained"
-            sx={{ backgroundColor: settings?.header_color || "#1976d2" }}
+            sx={{
+            
+              px: 4,
+              fontWeight: 600
+            }}
             onClick={() => {
               if (editingRoom) {
                 setOpenUpdateDialog(true);
               } else {
                 handleAddRoom();
-                setOpenFormDialog(false); // close after save
+                setOpenFormDialog(false);
               }
             }}
           >
-            {editingRoom ? "Update" : "Save"}
+            {editingRoom ? "Update Room" : "Save Room"}
           </Button>
         </DialogActions>
       </Dialog>
-
 
       <Dialog open={openTypeDialog} onClose={() => setOpenTypeDialog(false)}>
         <DialogTitle>Add New Room Type</DialogTitle>
@@ -1123,7 +1163,10 @@ const RoomRegistration = () => {
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={() => setOpenTypeDialog(false)}>Cancel</Button>
+          <Button
+            color="error"
+            variant="outlined"
+            onClick={() => setOpenTypeDialog(false)}>Cancel</Button>
 
           <Button
             variant="contained"
@@ -1159,6 +1202,8 @@ const RoomRegistration = () => {
 
         <DialogActions>
           <Button
+            color="error"
+            variant="outlined"
             onClick={() => {
               setOpenDeleteDialog(false);
               setRoomToDelete(null);
@@ -1194,7 +1239,10 @@ const RoomRegistration = () => {
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenUpdateDialog(false)}>Cancel</Button>
+          <Button
+            color="error"
+            variant="outlined"
+            onClick={() => setOpenUpdateDialog(false)}>Cancel</Button>
           <Button
             variant="contained"
             onClick={async () => {

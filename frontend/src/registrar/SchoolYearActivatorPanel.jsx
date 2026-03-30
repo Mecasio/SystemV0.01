@@ -373,7 +373,7 @@ const SchoolYearActivatorPanel = () => {
                 </Table>
             </TableContainer>
 
-            <Box sx={{ maxHeight: 750, overflowY: "auto" }}>
+            <Box sx={{ overflowY: "auto" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse", border: `1px solid ${borderColor}`, textAlign: "center" }}>
                     <thead>
                         <tr style={{ backgroundColor: "#F5F5F5", color: "#000" }}>
@@ -600,7 +600,11 @@ const SchoolYearActivatorPanel = () => {
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={closeConfirm} color="inherit">Cancel</Button>
+                    <Button
+                        color="error"
+                        variant="outlined"
+                        onClick={closeConfirm}
+                        >Cancel</Button>
                     <Button onClick={handleConfirm} variant="contained">
                         Confirm
                     </Button>

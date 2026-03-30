@@ -802,24 +802,24 @@ const MedicalApplicantList = () => {
 
 
 
- const printDiv = () => {
-     const resolvedCampusAddress =
-       campusAddress || "No address set in Settings";
- 
-     // ✅ Dynamic logo and company name
-     const logoSrc = fetchedLogo || EaristLogo;
-     const name = companyName?.trim() || "";
- 
-     // ✅ Split company name into two balanced lines
-     const words = name.split(" ");
-     const middleIndex = Math.ceil(words.length / 2);
-     const firstLine = words.slice(0, middleIndex).join(" ");
-     const secondLine = words.slice(middleIndex).join(" ");
- 
-     // ✅ Generate printable HTML
-     const newWin = window.open("", "Print-Window");
-     newWin.document.open();
-     newWin.document.write(`
+    const printDiv = () => {
+        const resolvedCampusAddress =
+            campusAddress || "No address set in Settings";
+
+        // ✅ Dynamic logo and company name
+        const logoSrc = fetchedLogo || EaristLogo;
+        const name = companyName?.trim() || "";
+
+        // ✅ Split company name into two balanced lines
+        const words = name.split(" ");
+        const middleIndex = Math.ceil(words.length / 2);
+        const firstLine = words.slice(0, middleIndex).join(" ");
+        const secondLine = words.slice(middleIndex).join(" ");
+
+        // ✅ Generate printable HTML
+        const newWin = window.open("", "Print-Window");
+        newWin.document.open();
+        newWin.document.write(`
        <html>
          <head>
            <title>Applicant List</title>
@@ -919,19 +919,19 @@ const MedicalApplicantList = () => {
    
                  <!-- ✅ Dynamic company name -->
                  ${name
-         ? `
+                ? `
                        <b style="letter-spacing: 1px; font-size: 20px; font-family: Arial, sans-serif;">
                          ${firstLine}
                        </b>
                        ${secondLine
-           ? `<div style="letter-spacing: 1px; font-size: 20px; font-family: Arial, sans-serif;">
+                    ? `<div style="letter-spacing: 1px; font-size: 20px; font-family: Arial, sans-serif;">
                                <b>${secondLine}</b>
                              </div>`
-           : ""
-         }
+                    : ""
+                }
                      `
-         : ""
-       }
+                : ""
+            }
    
                  <!-- ✅ Dynamic campus address -->
                  <div style="font-size: 13px; font-family: Arial">${resolvedCampusAddress}</div>
@@ -958,20 +958,20 @@ const MedicalApplicantList = () => {
                </thead>
                <tbody>
                  ${filteredPersons
-         .map(
-           (person) => `
+                .map(
+                    (person) => `
                        <tr>
                          <td style="width:10%">${person.student_number ?? "N/A"}</td>
                          <td style="width:30%">${person.last_name}, ${person.first_name} ${person.middle_name || ""} ${person.extension || ""}</td>
                          <td style="width:15%">${person.program_code || ""}</td>
                          <td style="width:10%">${person.generalAverage1 || ""}</td>
                          <td style="width:20%">${new Date(
-             person.created_at.split("T")[0],
-           ).toLocaleDateString("en-PH", {
-             year: "numeric",
-             month: "short",
-             day: "2-digit",
-           })}</td>
+                        person.created_at.split("T")[0],
+                    ).toLocaleDateString("en-PH", {
+                        year: "numeric",
+                        month: "short",
+                        day: "2-digit",
+                    })}</td>
                          <td style="width:15%">${person.submitted_medical === 1
                             ? "On Process"
                             : person.submitted_medical === 0
@@ -981,17 +981,17 @@ const MedicalApplicantList = () => {
 
                        </tr>
                      `,
-         )
-         .join("")}
+                )
+                .join("")}
                </tbody>
              </table>
            </div>
          </body>
        </html>
      `);
-     newWin.document.close();
-   };
- 
+        newWin.document.close();
+    };
+
 
 
 
@@ -1188,7 +1188,7 @@ const MedicalApplicantList = () => {
                                 name="toDate"
                                 value={person.toDate || ""}
                                 onChange={(e) => setPerson(prev => ({ ...prev, toDate: e.target.value }))}
-                             />
+                            />
                         </FormControl>
 
                         {/* From Date */}
@@ -1200,7 +1200,7 @@ const MedicalApplicantList = () => {
                                 name="fromDate"
                                 value={person.fromDate || ""}
                                 onChange={(e) => setPerson(prev => ({ ...prev, fromDate: e.target.value }))}
-                             />
+                            />
                         </FormControl>
                     </Box>
 
@@ -1563,7 +1563,10 @@ const MedicalApplicantList = () => {
                             {confirmMessage || "Are you sure you want to update this applicant’s status?"}
                         </DialogContent>
                         <DialogActions>
-                            <Button onClick={() => setConfirmOpen(false)} color="error">
+                            <Button
+                                color="error"
+                                variant="outlined"
+                                onClick={() => setConfirmOpen(false)}>
                                 Cancel
                             </Button>
                             <Button
@@ -1643,7 +1646,7 @@ const MedicalApplicantList = () => {
                                         color: "blue",
                                         cursor: "pointer",
                                     }}
-                                 onClick={() => handleRowClick(person)}
+                                    onClick={() => handleRowClick(person)}
                                 >
                                     {`${person.last_name}, ${person.first_name} ${person.middle_name ?? ""} ${person.extension ?? ""}`}
                                 </TableCell>

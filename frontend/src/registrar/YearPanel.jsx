@@ -17,6 +17,12 @@ import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
 import SearchIcon from "@mui/icons-material/Search";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material";
 const YearPanel = () => {
   const settings = useContext(SettingsContext);
 
@@ -87,22 +93,34 @@ const YearPanel = () => {
     fetchYears();
   }, []);
 
-  // 💾 Save Year
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const [openYearDialog, setOpenYearDialog] = useState(false);
+
+  const handleSubmit = async () => {
     if (!yearDescription.trim()) return;
 
     try {
       await axios.post(`${API_BASE_URL}/years`, {
         year_description: yearDescription,
       });
+
       setYearDescription("");
       fetchYears();
-      setSnackbar({ open: true, message: "Year saved successfully!", severity: "success" });
+
+      setSnackbar({
+        open: true,
+        message: "Year saved successfully!",
+        severity: "success",
+      });
     } catch {
-      setSnackbar({ open: true, message: "Failed to save year", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "Failed to save year",
+        severity: "error",
+      });
     }
   };
+
+
 
   const [yearSearchQuery, setYearSearchQuery] = useState("");
 
@@ -325,6 +343,29 @@ const YearPanel = () => {
                       }}
                     >
                       Last
+                    </Button>
+
+                    <Button
+                      variant="contained"
+                      sx={{
+                        backgroundColor: "#1976d2", // ✅ Blue
+                        color: "#fff",
+                        fontWeight: "bold",
+                        borderRadius: "8px",
+                        width: "250px",
+                        textTransform: "none",
+                        px: 2,
+                        mr: "15px",
+                        '&:hover': {
+                          backgroundColor: "#1565c0" // darker blue hover
+                        }
+                      }}
+                      onClick={() => {
+                        setYearDescription("");
+                        setOpenYearDialog(true);
+                      }}
+                    >
+                      + Add Year
                     </Button>
                   </Box>
                 </Box>
@@ -549,65 +590,7 @@ const YearPanel = () => {
           </TableHead>
         </Table>
       </TableContainer>
-      <br />
-      <br />
 
-
-      <TableContainer component={Paper} sx={{ width: '50%', border: `1px solid ${borderColor}`, }}>
-        <Table>
-          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
-            <TableRow>
-              <TableCell sx={{ color: 'white', textAlign: "Center" }}>Create Year Panel</TableCell>
-            </TableRow>
-          </TableHead>
-        </Table>
-      </TableContainer>
-      {/* Panel Layout */}
-
-      <Box
-        sx={{
-          flex: 1,
-          border: `1px solid ${borderColor}`,
-          backgroundColor: "#fff",
-          width: "50%",
-          boxShadow: "0 3px 10px rgba(0,0,0,0.1)",
-          p: 3,
-        }}
-      >
-        <Typography fontWeight={500}>Year Panel:</Typography>
-        <input
-          type="text"
-          placeholder="Enter year (e.g., 2026)"
-          value={yearDescription}
-          onChange={(e) => setYearDescription(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "12px",
-            borderRadius: "6px",
-            border: "1px solid #ccc",
-            marginBottom: "15px",
-            fontSize: "16px",
-          }}
-        />
-        <button
-          onClick={handleSubmit}
-          style={{
-            width: "100%",
-            padding: "12px",
-            backgroundColor: "#1976d2",
-            color: "white",
-            fontSize: "16px",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-            fontWeight: "bold",
-            transition: "0.3s",
-          }}
-
-        >
-          Save Year
-        </button>
-      </Box>
 
 
       {/* Snackbar */}
@@ -621,6 +604,76 @@ const YearPanel = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      <Dialog
+        open={openYearDialog}
+        onClose={() => setOpenYearDialog(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            overflow: "hidden",
+            boxShadow: 6
+          }
+        }}
+      >
+        {/* ===== HEADER ===== */}
+        <DialogTitle
+          sx={{
+            background: settings?.header_color || "#1976d2",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "1.1rem",
+            py: 2
+          }}
+        >
+          Add Academic Year
+        </DialogTitle>
+
+        {/* ===== CONTENT ===== */}
+        <DialogContent sx={{ p: 3 }}>
+          <Typography fontWeight="bold" mb={1} mt={2}>
+            Year
+          </Typography>
+
+          <TextField
+            fullWidth
+            placeholder="Enter year (e.g., 2026)"
+            value={yearDescription}
+            onChange={(e) => setYearDescription(e.target.value)}
+          />
+        </DialogContent>
+
+        {/* ===== ACTIONS ===== */}
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2,
+            borderTop: "1px solid #e0e0e0"
+          }}
+        >
+          <Button
+            onClick={() => setOpenYearDialog(false)}
+            color="error"
+            variant="outlined"
+          >
+            Cancel
+          </Button>
+
+          <Button
+            variant="contained"
+            sx={{ px: 4, fontWeight: 600 }}
+            onClick={(e) => {
+              handleSubmit(e);
+              setOpenYearDialog(false);
+            }}
+          >
+            Save Year
+          </Button>
+        </DialogActions>
+      </Dialog>
+
     </Box>
   );
 };

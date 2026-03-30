@@ -338,7 +338,7 @@ const DepartmentRegistration = () => {
           </TableHead>
         </Table>
       </TableContainer>
-     
+
       <Paper
         elevation={3}
         sx={{
@@ -466,8 +466,8 @@ const DepartmentRegistration = () => {
             Save
           </Button>
           <Button
-            variant="contained"
-            sx={{ backgroundColor: "#B22222", color: "white", }}
+            color="error"
+            variant="outlined"
             onClick={() => setOpenModal(false)}
           >
             Cancel

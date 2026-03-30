@@ -578,9 +578,47 @@ const StudentNumbering = () => {
 
     if (!authPassed) {
         return (
-            <Dialog open={authOpen}>
-                <DialogTitle sx={{ color: "maroon", fontWeight: "bold" }}>
+            <Dialog
+                open={authOpen}
+                onClose={() => {
+                    setAuthOpen(false);
+                    navigate("/registrar_dashboard"); // or wherever you want to go
+                }}
+            >
+                <DialogTitle
+                    sx={{
+                        color: "maroon",
+                        fontWeight: "bold",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                    }}
+                >
                     Enter Password to Continue
+
+                    <IconButton
+                        aria-label="close"
+                        onClick={() => {
+                            setAuthOpen(false);
+                            navigate("/registrar_dashboard"); // optional redirect
+                        }}
+                        sx={{
+                            position: "absolute",
+                            top: 8,
+                            right: 8,
+                            color: "#fff",
+                            backgroundColor: settings?.header_color || "#1976d2",
+
+                            border: `1px solid ${borderColor}`,
+
+                            "&:hover": {
+                                bgcolor: "black",
+                            },
+                        }}
+                    >
+                        <CloseIcon />
+                    </IconButton>
+
                 </DialogTitle>
                 <DialogContent>
                     <Typography mb={2}>
@@ -727,7 +765,7 @@ const StudentNumbering = () => {
                         <Box display="flex" alignItems="center" gap={1}>
                             <Typography fontSize={13}>Campus:</Typography>
                             <FormControl size="small" sx={{ width: "200px" }}>
-                              
+
                                 <Select
                                     labelId="campus-label"
                                     id="campus-select"
@@ -1326,14 +1364,49 @@ const StudentNumbering = () => {
                 </Alert>
             </Snackbar>
 
-            <Dialog open={openModal} onClose={() => setOpenModal(false)} maxWidth="md" fullWidth>
-                <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    Acceptance Email Preview
+            <Dialog
+                open={authOpen}
+                onClose={() => {
+                    setAuthOpen(false);
+                    navigate("/registrar_dashboard"); // or wherever you want to go
+                }}
+            >
+                <DialogTitle
+                    sx={{
+                        color: "maroon",
+                        fontWeight: "bold",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                    }}
+                >
+                    Enter Password to Continue
 
-                    <IconButton onClick={() => setOpenModal(false)}>
+                    <IconButton
+                        aria-label="close"
+                        onClick={() => {
+                            setAuthOpen(false);
+                            navigate("/registrar_dashboard"); // optional redirect
+                        }}
+                        sx={{
+                            position: "absolute",
+                            top: 8,
+                            right: 8,
+                            color: "#fff",
+                            backgroundColor: settings?.header_color || "#1976d2",
+
+                            border: `1px solid ${borderColor}`,
+
+                            "&:hover": {
+                                bgcolor: "black",
+                            },
+                        }}
+                    >
                         <CloseIcon />
                     </IconButton>
+
                 </DialogTitle>
+
                 <DialogContent>
                     <Typography sx={{ mb: 1.5, fontSize: 13, color: "#555" }}>
                         Review the email content before assigning the student number.
@@ -1347,7 +1420,9 @@ const StudentNumbering = () => {
                     />
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setOpenModal(false)} color="inherit">
+                    <Button onClick={() => setOpenModal(false)}
+                        color="error"
+                        variant="outlined">
                         Cancel
                     </Button>
                     <Button

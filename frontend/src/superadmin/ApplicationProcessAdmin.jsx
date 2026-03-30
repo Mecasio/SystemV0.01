@@ -2015,7 +2015,9 @@ const ApplicationProcessAdmin = () => {
                                 "Are you sure you want to update this applicant’s status?"}
                         </DialogContent>
                         <DialogActions>
-                            <Button onClick={() => setConfirmOpen(false)} color="error">
+                            <Button onClick={() => setConfirmOpen(false)}
+                                color="error"
+                                variant="outlined">
                                 Cancel
                             </Button>
                             <Button
@@ -2522,7 +2524,10 @@ const ApplicationProcessAdmin = () => {
                         </DialogContent>
 
                         <DialogActions>
-                            <Button onClick={handleCloseDialog}>Cancel</Button>
+                            <Button
+                                color="error"
+                                variant="outlined"
+                                onClick={handleCloseDialog}>Cancel</Button>
                             {!(
                                 Array.isArray(activePerson?.missing_documents) &&
                                 activePerson.missing_documents.length === 0 &&
@@ -2782,6 +2787,8 @@ const ApplicationProcessAdmin = () => {
 
                 <DialogActions>
                     <Button
+                        color="error"
+                        variant="outlined"
                         onClick={() => {
                             setOpenDeleteDialog(false);
                             setAccountToDelete(null);

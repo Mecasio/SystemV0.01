@@ -845,7 +845,10 @@ export default function EmailTemplateManager() {
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={() => setOpenDeleteDialog(false)}>
+          <Button
+            color="error"
+            variant="outlined"
+            onClick={() => setOpenDeleteDialog(false)}>
             Cancel
           </Button>
 

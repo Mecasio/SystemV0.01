@@ -1508,8 +1508,8 @@ const UserPageAccess = () => {
 
         <DialogActions>
           <Button
-            variant="contained"
             color="error"
+            variant="outlined"
             onClick={() => setOpenCreateModal(false)}
           >
             Cancel
@@ -1648,8 +1648,8 @@ const UserPageAccess = () => {
 
         <DialogActions>
           <Button
-            variant="contained"
             color="error"
+            variant="outlined"
             onClick={() => setOpenEditAccessModal(false)}
           >
             Cancel

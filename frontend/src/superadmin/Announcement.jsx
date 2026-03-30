@@ -36,6 +36,9 @@ import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import Cropper from "react-easy-crop";
+
+
 const AnnouncementPanel = () => {
     const settings = useContext(SettingsContext);
 
@@ -112,7 +115,7 @@ const AnnouncementPanel = () => {
             setAnnouncements([]);
         }
     };
-
+    const [openFormDialog, setOpenFormDialog] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -175,6 +178,8 @@ const AnnouncementPanel = () => {
     const [announcementPage, setAnnouncementPage] = useState(1);
     const announcementsPerPage = 20; // change if you want
 
+
+
     const totalAnnouncementPages = Math.ceil(
         announcements.length / announcementsPerPage
     );
@@ -214,6 +219,72 @@ const AnnouncementPanel = () => {
     };
 
 
+    const createImage = (url) =>
+        new Promise((resolve, reject) => {
+            const image = new Image();
+            image.addEventListener("load", () => resolve(image));
+            image.addEventListener("error", (error) => reject(error));
+            image.setAttribute("crossOrigin", "anonymous");
+            image.src = url;
+        });
+
+    const [crop, setCrop] = useState({ x: 0, y: 0 });
+    const [zoom, setZoom] = useState(1);
+    const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+    const [openCrop, setOpenCrop] = useState(false);
+    const [imageSrc, setImageSrc] = useState(null);
+
+
+    const getCroppedImg = async (imageSrc, crop) => {
+        const image = await createImage(imageSrc);
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        canvas.width = 900;  // ✅ force exact size
+        canvas.height = 700;
+
+        ctx.drawImage(
+            image,
+            crop.x,
+            crop.y,
+            crop.width,
+            crop.height,
+            0,
+            0,
+            900,
+            700
+        );
+
+        return new Promise((resolve) => {
+            canvas.toBlob((blob) => {
+                const file = new File([blob], "cropped.jpg", {
+                    type: "image/jpeg",
+                });
+                resolve(file);
+            }, "image/jpeg");
+        });
+    };
+
+    const handleCropSave = async () => {
+        try {
+            const croppedFile = await getCroppedImg(imageSrc, croppedAreaPixels);
+
+            setImage(croppedFile); // ✅ THIS replaces original image
+            setOpenCrop(false);
+
+            setSnackbar({
+                open: true,
+                message: "Image cropped successfully!",
+                severity: "success",
+            });
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+
+
+
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [announcementToDelete, setAnnouncementToDelete] = useState(null);
 
@@ -250,11 +321,12 @@ const AnnouncementPanel = () => {
         setImage(null);
     };
 
+
     if (loading || hasAccess === null) return <LoadingOverlay open={loading} message="Loading..." />;
     if (!hasAccess) return <Unauthorized />;
 
     return (
-        <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
+        <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>  {/* Header */}
             <Typography
                 variant="h4"
                 sx={{
@@ -271,9 +343,9 @@ const AnnouncementPanel = () => {
             </Typography>
 
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
-            <br />
-            <br />
 
+            <br />
+            <br />
             <TableContainer
                 component={Paper}
                 sx={{ width: "100%", border: `1px solid ${borderColor}` }}
@@ -383,6 +455,35 @@ const AnnouncementPanel = () => {
                                             Last
                                         </Button>
 
+                                        <Button
+                                            variant="contained"
+                                            sx={{
+                                                backgroundColor: "#1976d2", // ✅ Blue
+                                                color: "#fff",
+                                                fontWeight: "bold",
+                                                borderRadius: "8px",
+                                                width: "250px",
+                                                textTransform: "none",
+                                                px: 2,
+                                                mr: "15px",
+                                                '&:hover': {
+                                                    backgroundColor: "#1565c0" // darker blue hover
+                                                }
+                                            }}
+                                            onClick={() => {
+                                                setEditingId(null);
+                                                setForm({
+                                                    title: "",
+                                                    content: "",
+                                                    valid_days: "permanent",
+                                                    target_role: "applicant"
+                                                });
+                                                setImage(null);
+                                                setOpenFormDialog(true);
+                                            }}
+                                        >
+                                            Create Announcement
+                                        </Button>
                                     </Box>
                                 </Box>
                             </TableCell>
@@ -507,7 +608,8 @@ const AnnouncementPanel = () => {
                                                 style={{
                                                     width: "200px",
                                                     height: "150px",
-                                                    objectFit: "cover",
+                                                    objectFit: "contain",
+                                                    background: "#000",
                                                     borderRadius: "4px",
                                                 }}
                                             />
@@ -551,7 +653,10 @@ const AnnouncementPanel = () => {
                                                     gap: "5px",
                                                 }}
 
-                                                onClick={() => handleEdit(a)}
+                                                onClick={() => {
+                                                    handleEdit(a);
+                                                    setOpenFormDialog(true);
+                                                }}
                                             >
 
                                                 <EditIcon fontSize="small" /> Edit
@@ -706,147 +811,6 @@ const AnnouncementPanel = () => {
                 </Table>
             </TableContainer>
 
-            <br />
-            <br />
-
-            <TableContainer component={Paper} sx={{ width: '50%', border: `1px solid ${borderColor}`, }}>
-                <Table>
-                    <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
-                        <TableRow>
-                            <TableCell sx={{ color: 'white', textAlign: "Center" }}>Create Announcement</TableCell>
-                        </TableRow>
-                    </TableHead>
-                </Table>
-            </TableContainer>
-            <Grid item xs={12} md={4}>
-                <form onSubmit={handleSubmit}>
-                    <Paper
-                        ref={formRef}
-                        sx={{
-                            p: 3,
-                            border: `1px solid ${borderColor}`,
-                            width: "50%",
-                            boxShadow: 2,
-                        }}
-                    >
-                        <Typography
-                            variant="h6"
-                            mb={2}
-                            color={editingId ? "primary" : subtitleColor}
-                        >
-                            {editingId ? "✏️ Editing Announcement" : "Create Announcement"}
-                        </Typography>
-
-                        <Typography fontWeight={500}>Title:</Typography>
-                        <TextField
-                            label="Title"
-                            fullWidth
-                            margin="normal"
-                            value={form.title}
-                            onChange={(e) => setForm({ ...form, title: e.target.value })}
-                            required
-                        />
-                        <Typography fontWeight={500}>Content:</Typography>
-                        <TextField
-                            label="Content"
-                            fullWidth
-                            multiline
-                            rows={3}
-                            margin="normal"
-                            value={form.content}
-                            onChange={(e) => setForm({ ...form, content: e.target.value })}
-                            required
-                        />
-                        <Typography fontWeight={500}>Valid For:</Typography>
-                        <FormControl fullWidth margin="normal">
-
-                            <InputLabel>Valid For</InputLabel>
-                            <Select
-                                value={form.valid_days}
-                                label="Valid For"
-                                onChange={(e) => setForm({ ...form, valid_days: e.target.value })}
-                            >
-                                <MenuItem value="permanent">Permanent</MenuItem>
-
-                                {["1", "3", "7", "14", "30", "60", "90", "120", "180"].map((d) => (
-                                    <MenuItem key={d} value={d}>{d} Day(s)</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        <Typography fontWeight={500}>Target Role:</Typography>
-                        <FormControl fullWidth margin="normal">
-                            <InputLabel>Target Role</InputLabel>
-                            <Select
-                                value={form.target_role}
-                                label="Target Role"
-                                onChange={(e) => setForm({ ...form, target_role: e.target.value })}
-                                required
-                            >
-                                <MenuItem value="student">Student</MenuItem>
-                                <MenuItem value="faculty">Faculty</MenuItem>
-                                <MenuItem value="applicant">Applicant</MenuItem>
-                            </Select>
-                        </FormControl>
-
-                        <Button
-                            variant="contained"
-                            component="label"
-                            startIcon={<CloudUploadIcon />}
-                            fullWidth
-                            sx={{ mt: 2, bgcolor: mainButtonColor }}
-                        >
-                            {image ? "Change Image" : "Upload Image"}
-                            <input type="file" hidden accept="image/*" onChange={(e) => setImage(e.target.files[0])} />
-                        </Button>
-
-                        {image && (
-                            <Box
-                                sx={{
-                                    mt: 2,
-                                    p: 1,
-                                    border: `1px solid ${borderColor}`,
-                                    borderRadius: 2,
-                                    bgcolor: "#f5f5f5",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 2,
-                                }}
-                            >
-                                {/* Thumbnail Preview */}
-                                <Box
-                                    component="img"
-                                    src={URL.createObjectURL(image)}
-                                    alt="Uploaded Preview"
-                                    sx={{ width: 50, height: 50, objectFit: "cover", borderRadius: 1 }}
-                                />
-
-                                {/* File Name */}
-                                <Typography noWrap sx={{ flexGrow: 1 }}>
-                                    {image.name}
-                                </Typography>
-
-                                {/* Remove Button */}
-                                <IconButton
-                                    onClick={handleRemoveImage}
-                                    sx={{
-                                        width: "24px",
-                                        height: "24px",
-                                        backgroundColor: "rgba(255,255,255,0.8)",
-                                        "&:hover": { backgroundColor: "rgba(255,255,255,1)" },
-                                    }}
-                                >
-                                    ✕
-                                </IconButton>
-                            </Box>
-                        )}
-
-
-                        <Button type="submit" variant="contained" fullWidth sx={{ mt: 3 }} onClick={handleSubmit}>
-                            {editingId ? "Update Announcement" : "Create Announcement"}
-                        </Button>
-                    </Paper>
-                </form>
-            </Grid>
 
 
 
@@ -864,7 +828,10 @@ const AnnouncementPanel = () => {
                 </DialogContent>
 
                 <DialogActions>
-                    <Button onClick={() => setOpenDeleteDialog(false)}>
+                    <Button
+                        color="error"
+                        variant="outlined"
+                        onClick={() => setOpenDeleteDialog(false)}>
                         Cancel
                     </Button>
 
@@ -882,6 +849,35 @@ const AnnouncementPanel = () => {
                 </DialogActions>
             </Dialog>
 
+            <Dialog open={openCrop} onClose={() => setOpenCrop(false)} maxWidth="md">
+                <DialogTitle>Crop Image (900 x 700)</DialogTitle>
+
+                <DialogContent>
+                    <Box sx={{ position: "relative", width: "500px", height: "375px" }}>
+                        <Cropper
+                            image={imageSrc}
+                            crop={crop}
+                            zoom={zoom}
+                            aspect={1000 / 750} // ✅ IMPORTANT (4:3 ratio)
+                            onCropChange={setCrop}
+                            onZoomChange={setZoom}
+                            onCropComplete={(croppedArea, croppedPixels) => {
+                                setCroppedAreaPixels(croppedPixels);
+                            }}
+                        />
+                    </Box>
+                </DialogContent>
+
+                <DialogActions>
+                    <Button
+                        color="error"
+                        variant="outlined"
+                        onClick={() => setOpenCrop(false)}>Cancel</Button>
+                    <Button variant="contained" onClick={handleCropSave}>
+                        Crop & Use Image
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
             <Snackbar
                 open={snackbar.open}
@@ -893,6 +889,199 @@ const AnnouncementPanel = () => {
                     {snackbar.message}
                 </Alert>
             </Snackbar>
+
+            <Dialog
+                open={openFormDialog}
+                onClose={() => setOpenFormDialog(false)}
+                maxWidth="md"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: 3,
+                        overflow: "hidden",
+                        boxShadow: 6
+                    }
+                }}
+            >
+                {/* HEADER */}
+                <DialogTitle
+                    sx={{
+                        background: settings?.header_color || "#1976d2",
+                        color: "#fff",
+                        fontWeight: 700,
+                        fontSize: "1.2rem",
+                        py: 2
+                    }}
+                >
+                    {editingId ? "Edit Announcement" : "Create Announcement"}
+                </DialogTitle>
+
+                {/* CONTENT */}
+                <DialogContent sx={{ p: 3 }}>
+                    <Grid container spacing={2} mt={2}>
+                        <Grid item xs={12} >
+                            <Typography fontWeight={600}>Title</Typography>
+                            <TextField
+                                fullWidth
+                                label="Title"
+                                value={form.title}
+                                onChange={(e) =>
+                                    setForm({ ...form, title: e.target.value })
+                                }
+                            />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                            <Typography fontWeight={600}>Content</Typography>
+                            <TextField
+                                fullWidth
+                                multiline
+                                rows={4}
+                                label="Content"
+                                value={form.content}
+                                onChange={(e) =>
+                                    setForm({ ...form, content: e.target.value })
+                                }
+                            />
+                        </Grid>
+
+                        <Grid item xs={6}>
+                            <Typography fontWeight={600}>Valid For</Typography>
+                            <FormControl fullWidth>
+                                <InputLabel>Valid For</InputLabel>
+                                <Select
+                                    value={form.valid_days}
+                                    label="Valid For"
+                                    onChange={(e) =>
+                                        setForm({
+                                            ...form,
+                                            valid_days: e.target.value
+                                        })
+                                    }
+                                >
+                                    <MenuItem value="permanent">Permanent</MenuItem>
+                                    {["1", "3", "7", "14", "30", "60", "90"].map((d) => (
+                                        <MenuItem key={d} value={d}>
+                                            {d} Day(s)
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+
+                        <Grid item xs={6}>
+                            <Typography fontWeight={600}>Target Role</Typography>
+                            <FormControl fullWidth>
+                                <InputLabel>Target Role</InputLabel>
+                                <Select
+                                    value={form.target_role}
+                                    label="Target Role"
+                                    onChange={(e) =>
+                                        setForm({
+                                            ...form,
+                                            target_role: e.target.value
+                                        })
+                                    }
+                                >
+                                    <MenuItem value="student">Student</MenuItem>
+                                    <MenuItem value="faculty">Faculty</MenuItem>
+                                    <MenuItem value="applicant">Applicant</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid>
+
+                        <Grid item xs={12}>
+                            <Button
+                                variant="contained"
+                                component="label"
+                                startIcon={<CloudUploadIcon />}
+                                fullWidth
+                                sx={{ mt: 1 }}
+                            >
+                                {image ? "Change Image" : "Upload Image"}
+                                <input
+                                    type="file"
+                                    hidden
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        const file = e.target.files[0];
+                                        if (!file) return;
+
+                                        const reader = new FileReader();
+                                        reader.onload = () => {
+                                            setImageSrc(reader.result);
+                                            setOpenCrop(true);
+                                        };
+                                        reader.readAsDataURL(file);
+                                    }}
+                                />
+                            </Button>
+                        </Grid>
+
+                        {image && (
+                            <Grid item xs={12}>
+                                <Box
+                                    sx={{
+                                        mt: 1,
+                                        p: 1,
+                                        border: "1px solid #ddd",
+                                        borderRadius: 2,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 2
+                                    }}
+                                >
+                                    <Box
+                                        component="img"
+                                        src={URL.createObjectURL(image)}
+                                        alt="preview"
+                                        sx={{
+                                            width: 50,
+                                            height: 50,
+                                            objectFit: "cover"
+                                        }}
+                                    />
+
+                                    <Typography sx={{ flexGrow: 1 }}>
+                                        {image.name}
+                                    </Typography>
+
+                                    <IconButton onClick={handleRemoveImage}>
+                                        ✕
+                                    </IconButton>
+                                </Box>
+                            </Grid>
+                        )}
+                    </Grid>
+                </DialogContent>
+
+                {/* ACTIONS */}
+                <DialogActions
+                    sx={{
+                        px: 3,
+                        py: 2,
+                        borderTop: "1px solid #e0e0e0"
+                    }}
+                >
+                    <Button
+                        color="error"
+                        variant="outlined"
+                        onClick={() => setOpenFormDialog(false)}
+                    >
+                        Cancel
+                    </Button>
+
+                    <Button
+                        variant="contained"
+                        onClick={(e) => {
+                            handleSubmit(e);
+                            setOpenFormDialog(false);
+                        }}
+                    >
+                        {editingId ? "Update Announcement" : "Create Announcement"}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 };

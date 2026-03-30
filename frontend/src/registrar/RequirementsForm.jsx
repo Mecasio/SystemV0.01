@@ -180,6 +180,40 @@ const RequirementsForm = () => {
     fetchRequirements();
   }, []);
 
+  const [openDialog, setOpenDialog] = useState(false);
+
+  const handleOpenAddDialog = () => {
+    setDescription("");
+    setShortLabel("");
+    setCategory("Main");
+    setRequiresOriginal(false);
+    setXeroxCopies(0);
+    setIsOptional(false);
+    setApplicantType("0");
+
+    setIsEditing(false);
+    setEditId(null);
+
+    setOpenDialog(true);
+  };
+
+  const handleOpenEditDialog = (req) => {
+    setDescription(req.description);
+    setShortLabel(req.short_label || "");
+    setCategory(req.category || "Main");
+    setRequiresOriginal(req.requires_original);
+    setXeroxCopies(req.xerox_copies || 0);
+    setIsOptional(req.is_optional);
+    setApplicantType(req.applicant_type || "0");
+
+    setIsEditing(true);
+    setEditId(req.id);
+
+    setOpenDialog(true);
+  };
+
+
+
   // ✅ Handle submission of a new requirement
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -277,6 +311,25 @@ const RequirementsForm = () => {
     }
   };
 
+  // ✅ Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 20;
+
+  // total pages
+  const totalPages = Math.ceil(requirements.length / rowsPerPage);
+
+  // slice data
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+
+  const paginatedRequirements = requirements.slice(
+    startIndex,
+    endIndex
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [requirements]);
 
   // ✅ Group requirements by category
   const groupedRequirements = requirements.reduce((acc, req) => {
@@ -327,8 +380,208 @@ const RequirementsForm = () => {
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
-              <TableCell sx={{ color: 'white', textAlign: "Center" }}>Existing Requirements</TableCell>
+              <TableCell
+                colSpan={10}
+                sx={{
+                  border: `1px solid ${borderColor}`,
+                  py: 0.5,
+                  backgroundColor: settings?.header_color || "#1976d2",
+                  color: "white",
+                }}
+              >
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
+                  {/* Left: Total Count */}
+                  <Typography fontSize="14px" fontWeight="bold" color="white">
+                    Existing Schedules
+                  </Typography>
+
+                  {/* Right: Pagination Controls */}
+                  <Box display="flex" alignItems="center" gap={1}>
+                    {/* First & Prev */}
+                    <Button
+                      onClick={() => setCurrentPage(1)}
+                      disabled={currentPage === 1}
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        minWidth: 80,
+                        color: "white",
+                        borderColor: "white",
+                        backgroundColor: "transparent",
+                        "&:hover": {
+                          borderColor: "white",
+                          backgroundColor: "rgba(255,255,255,0.1)",
+                        },
+                        "&.Mui-disabled": {
+                          color: "white",
+                          borderColor: "white",
+                          backgroundColor: "transparent",
+                          opacity: 1,
+                        },
+                      }}
+                    >
+                      First
+                    </Button>
+
+                    <Button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
+                      disabled={currentPage === 1}
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        minWidth: 80,
+                        color: "white",
+                        borderColor: "white",
+                        backgroundColor: "transparent",
+                        "&:hover": {
+                          borderColor: "white",
+                          backgroundColor: "rgba(255,255,255,0.1)",
+                        },
+                        "&.Mui-disabled": {
+                          color: "white",
+                          borderColor: "white",
+                          backgroundColor: "transparent",
+                          opacity: 1,
+                        },
+                      }}
+                    >
+                      Prev
+                    </Button>
+
+                    {/* Page Dropdown */}
+                    <FormControl size="small" sx={{ minWidth: 80 }}>
+                      <Select
+                        value={currentPage}
+                        onChange={(e) => setCurrentPage(Number(e.target.value))}
+                        displayEmpty
+                        sx={{
+                          fontSize: "12px",
+                          height: 36,
+                          color: "white",
+                          border: "1px solid white",
+                          backgroundColor: "transparent",
+                          ".MuiOutlinedInput-notchedOutline": {
+                            borderColor: "white",
+                          },
+                          "&:hover .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "white",
+                          },
+                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "white",
+                          },
+                          "& svg": {
+                            color: "white", // dropdown arrow icon color
+                          },
+                        }}
+                        MenuProps={{
+                          PaperProps: {
+                            sx: {
+                              maxHeight: 200,
+                              backgroundColor: "#fff", // dropdown background
+                            },
+                          },
+                        }}
+                      >
+                        {Array.from({ length: totalPages }, (_, i) => (
+                          <MenuItem key={i + 1} value={i + 1}>
+                            Page {i + 1}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+
+                    <Typography fontSize="11px" color="white">
+                      of {totalPages} page{totalPages > 1 ? "s" : ""}
+                    </Typography>
+
+                    {/* Next & Last */}
+                    <Button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages}
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        minWidth: 80,
+                        color: "white",
+                        borderColor: "white",
+                        backgroundColor: "transparent",
+                        "&:hover": {
+                          borderColor: "white",
+                          backgroundColor: "rgba(255,255,255,0.1)",
+                        },
+                        "&.Mui-disabled": {
+                          color: "white",
+                          borderColor: "white",
+                          backgroundColor: "transparent",
+                          opacity: 1,
+                        },
+                      }}
+                    >
+                      Next
+                    </Button>
+
+                    <Button
+                      onClick={() => setCurrentPage(totalPages)}
+                      disabled={currentPage === totalPages}
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        minWidth: 80,
+                        color: "white",
+                        borderColor: "white",
+                        backgroundColor: "transparent",
+                        "&:hover": {
+                          borderColor: "white",
+                          backgroundColor: "rgba(255,255,255,0.1)",
+                        },
+                        "&.Mui-disabled": {
+                          color: "white",
+                          borderColor: "white",
+                          backgroundColor: "transparent",
+                          opacity: 1,
+                        },
+                      }}
+                    >
+                      Last
+                    </Button>
+
+                    <Button
+                      variant="contained"
+                      onClick={handleOpenAddDialog}
+                      sx={{
+                        backgroundColor: "#1976d2", // ✅ Blue
+                        color: "#fff",
+                        fontWeight: "bold",
+                        borderRadius: "8px",
+                        width: "250px",
+                        textTransform: "none",
+                        px: 2,
+                        mr: "15px",
+                        '&:hover': {
+                          backgroundColor: "#1565c0" // darker blue hover
+                        }
+                      }}
+                    >
+                      + Add Schedule
+                    </Button>
+
+                  </Box>
+                </Box>
+              </TableCell>
             </TableRow>
+
+
+
+
+
           </TableHead>
         </Table>
       </TableContainer>
@@ -357,11 +610,13 @@ const RequirementsForm = () => {
 
           {/* BODY */}
           <TableBody>
-            {requirements.map((req, index) => (
+            {paginatedRequirements.map((req, index) => (
+
               <TableRow key={req.id}>
 
                 <TableCell sx={{ border: `1px solid ${borderColor}` }}>
-                  {index + 1}
+                  {startIndex + index + 1}
+
                 </TableCell>
 
                 {/* DESCRIPTION */}
@@ -411,25 +666,7 @@ const RequirementsForm = () => {
                     variant="contained"
                     size="small"
                     sx={{ backgroundColor: "green" }}
-                    onClick={() => {
-                      // ✅ Populate FORM
-                      setDescription(req.description);
-                      setShortLabel(req.short_label || "");
-                      setCategory(req.category || "Main");
-                      setRequiresOriginal(req.requires_original);
-                      setXeroxCopies(req.xerox_copies || 0);
-
-                      // ✅ Enable edit mode
-                      setIsEditing(true);
-                      setEditId(req.id);
-                      setIsOptional(req.is_optional);
-
-                      // ✅ Scroll to form
-                      window.scrollTo({
-                        top: document.body.scrollHeight,
-                        behavior: "smooth"
-                      });
-                    }}
+                    onClick={() => handleOpenEditDialog(req)}
                   >
                     Edit
                   </Button>
@@ -453,139 +690,475 @@ const RequirementsForm = () => {
         </Table>
       </TableContainer>
 
-      <br />
-      <br />
-
-      <TableContainer component={Paper} sx={{ width: '50%', border: `1px solid ${borderColor}`, }}>
+      <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
-              <TableCell sx={{ color: 'white', textAlign: "Center" }}>Create Requirements</TableCell>
+              <TableCell
+                colSpan={10}
+                sx={{
+                  border: `1px solid ${borderColor}`,
+                  py: 0.5,
+                  backgroundColor: settings?.header_color || "#1976d2",
+                  color: "white",
+                }}
+              >
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
+                  {/* Left: Total Count */}
+                  <Typography fontSize="14px" fontWeight="bold" color="white">
+                    Existing Schedules
+                  </Typography>
+
+                  {/* Right: Pagination Controls */}
+                  <Box display="flex" alignItems="center" gap={1}>
+                    {/* First & Prev */}
+                    <Button
+                      onClick={() => setCurrentPage(1)}
+                      disabled={currentPage === 1}
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        minWidth: 80,
+                        color: "white",
+                        borderColor: "white",
+                        backgroundColor: "transparent",
+                        "&:hover": {
+                          borderColor: "white",
+                          backgroundColor: "rgba(255,255,255,0.1)",
+                        },
+                        "&.Mui-disabled": {
+                          color: "white",
+                          borderColor: "white",
+                          backgroundColor: "transparent",
+                          opacity: 1,
+                        },
+                      }}
+                    >
+                      First
+                    </Button>
+
+                    <Button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
+                      disabled={currentPage === 1}
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        minWidth: 80,
+                        color: "white",
+                        borderColor: "white",
+                        backgroundColor: "transparent",
+                        "&:hover": {
+                          borderColor: "white",
+                          backgroundColor: "rgba(255,255,255,0.1)",
+                        },
+                        "&.Mui-disabled": {
+                          color: "white",
+                          borderColor: "white",
+                          backgroundColor: "transparent",
+                          opacity: 1,
+                        },
+                      }}
+                    >
+                      Prev
+                    </Button>
+
+                    {/* Page Dropdown */}
+                    <FormControl size="small" sx={{ minWidth: 80 }}>
+                      <Select
+                        value={currentPage}
+                        onChange={(e) => setCurrentPage(Number(e.target.value))}
+                        displayEmpty
+                        sx={{
+                          fontSize: "12px",
+                          height: 36,
+                          color: "white",
+                          border: "1px solid white",
+                          backgroundColor: "transparent",
+                          ".MuiOutlinedInput-notchedOutline": {
+                            borderColor: "white",
+                          },
+                          "&:hover .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "white",
+                          },
+                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "white",
+                          },
+                          "& svg": {
+                            color: "white", // dropdown arrow icon color
+                          },
+                        }}
+                        MenuProps={{
+                          PaperProps: {
+                            sx: {
+                              maxHeight: 200,
+                              backgroundColor: "#fff", // dropdown background
+                            },
+                          },
+                        }}
+                      >
+                        {Array.from({ length: totalPages }, (_, i) => (
+                          <MenuItem key={i + 1} value={i + 1}>
+                            Page {i + 1}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+
+                    <Typography fontSize="11px" color="white">
+                      of {totalPages} page{totalPages > 1 ? "s" : ""}
+                    </Typography>
+
+                    {/* Next & Last */}
+                    <Button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages}
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        minWidth: 80,
+                        color: "white",
+                        borderColor: "white",
+                        backgroundColor: "transparent",
+                        "&:hover": {
+                          borderColor: "white",
+                          backgroundColor: "rgba(255,255,255,0.1)",
+                        },
+                        "&.Mui-disabled": {
+                          color: "white",
+                          borderColor: "white",
+                          backgroundColor: "transparent",
+                          opacity: 1,
+                        },
+                      }}
+                    >
+                      Next
+                    </Button>
+
+                    <Button
+                      onClick={() => setCurrentPage(totalPages)}
+                      disabled={currentPage === totalPages}
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        minWidth: 80,
+                        color: "white",
+                        borderColor: "white",
+                        backgroundColor: "transparent",
+                        "&:hover": {
+                          borderColor: "white",
+                          backgroundColor: "rgba(255,255,255,0.1)",
+                        },
+                        "&.Mui-disabled": {
+                          color: "white",
+                          borderColor: "white",
+                          backgroundColor: "transparent",
+                          opacity: 1,
+                        },
+                      }}
+                    >
+                      Last
+                    </Button>
+                  </Box>
+                </Box>
+              </TableCell>
             </TableRow>
+
+
+
+
+
           </TableHead>
         </Table>
       </TableContainer>
 
-      <div
-        style={{ border: `1px solid ${borderColor}`, width: "50%" }}
-        className=" bg-gray-50 p-6 shadow-sm"
+      {/* Right Side - Display Saved Requirements */}
+      <Dialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        maxWidth="sm"
+        fullWidth
       >
+        <DialogTitle
+          sx={{
+            backgroundColor: settings?.header_color || "#1976d2",
+            color: "white",
+            fontWeight: "bold"
+          }}
+        >
+          {isEditing
+            ? "Edit Requirement"
+            : "Add Requirement"}
+        </DialogTitle>
 
+        <DialogContent dividers>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Typography fontWeight={500}>Requirements Description:</Typography>
+          <Typography
+            variant="subtitle1"
+            fontWeight={700}
+            sx={{ mb: 1, mt: 1 }}
+          >
+            Requirements Description
+          </Typography>
           <input
             type="text"
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e) =>
+              setDescription(e.target.value)
+            }
             placeholder="Enter requirement description"
-            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full p-3 border rounded"
           />
-          <Typography fontWeight={500}>Short Label:</Typography>
+
+          <br />
+
+
+          <Typography
+            variant="subtitle1"
+            fontWeight={700}
+            sx={{ mb: 1, mt: 1 }}
+          >
+            Short Label
+          </Typography>
+
           <input
             type="text"
             value={shortLabel}
-            onChange={(e) => setShortLabel(e.target.value)}
-            placeholder="Enter short label (e.g., F138)"
-            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(e) =>
+              setShortLabel(e.target.value)
+            }
+            placeholder="Enter short label"
+            className="w-full p-3 border rounded"
           />
-          <Typography fontWeight={500}>Category:</Typography>
-          {/* ✅ Category Selector */}
+
+          <br />
+
+
+          <Typography
+            variant="subtitle1"
+            fontWeight={700}
+            sx={{ mb: 1, mt: 1 }}
+          >
+            Category
+          </Typography>
+
+
           <FormControl fullWidth>
             <InputLabel>Category</InputLabel>
             <Select
               value={category}
               label="Category"
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(e) =>
+                setCategory(e.target.value)
+              }
             >
-              <MenuItem value="Main">Main Requirements</MenuItem>
-              <MenuItem value="Medical">Medical Requirements</MenuItem>
-              <MenuItem value="Others">Other Requirements</MenuItem>
+              <MenuItem value="Main">
+                Main Requirements
+              </MenuItem>
+
+              <MenuItem value="Medical">
+                Medical Requirements
+              </MenuItem>
+
+              <MenuItem value="Others">
+                Other Requirements
+              </MenuItem>
             </Select>
           </FormControl>
 
-          <Typography fontWeight={500}>Requires Original:</Typography>
+          <br />
+
+
+          <Typography
+            variant="subtitle1"
+            fontWeight={700}
+            sx={{ mb: 1, mt: 1 }}
+          >
+            Requires Original
+          </Typography>
+
           <FormControl fullWidth>
-            <InputLabel>Requires Original</InputLabel>
+            <InputLabel>
+              Requires Original
+            </InputLabel>
+
             <Select
-              value={requiresOriginal ? "Yes" : "No"}
+              value={
+                requiresOriginal ? "Yes" : "No"
+              }
               label="Requires Original"
-              onChange={(e) => setRequiresOriginal(e.target.value === "Yes")}
+              onChange={(e) =>
+                setRequiresOriginal(
+                  e.target.value === "Yes"
+                )
+              }
             >
-              <MenuItem value="Yes">Yes</MenuItem>
-              <MenuItem value="No">No</MenuItem>
+              <MenuItem value="Yes">
+                Yes
+              </MenuItem>
+
+              <MenuItem value="No">
+                No
+              </MenuItem>
             </Select>
           </FormControl>
 
-          <Typography fontWeight={500}>Xerox Copies:</Typography>
+          <br />
+
+          <Typography
+            variant="subtitle1"
+            fontWeight={700}
+            sx={{ mb: 1, mt: 1 }}
+          >
+            Xerox Copies
+          </Typography>
+
           <input
             type="number"
             value={xeroxCopies}
-            onChange={(e) => setXeroxCopies(Number(e.target.value))}
-            className="p-2 border rounded"
+            onChange={(e) =>
+              setXeroxCopies(
+                Number(e.target.value)
+              )
+            }
+            className="p-2 border rounded w-full"
           />
 
-          <Typography fontWeight={500}>Optional Requirement:</Typography>
+          <br />
+
+          <Typography
+            variant="subtitle1"
+            fontWeight={700}
+            sx={{ mb: 1, mt: 1 }}
+          >
+            Is Optional Requirements?
+          </Typography>
+
           <FormControl fullWidth>
             <InputLabel>Optional</InputLabel>
+
             <Select
-              value={isOptional ? "Yes" : "No"}
+              value={
+                isOptional ? "Yes" : "No"
+              }
               label="Optional"
-              onChange={(e) => setIsOptional(e.target.value === "Yes")}
+              onChange={(e) =>
+                setIsOptional(
+                  e.target.value === "Yes"
+                )
+              }
             >
-              <MenuItem value="Yes">Yes</MenuItem>
-              <MenuItem value="No">No</MenuItem>
+              <MenuItem value="Yes">
+                Yes
+              </MenuItem>
+
+              <MenuItem value="No">
+                No
+              </MenuItem>
             </Select>
           </FormControl>
 
-          <Typography fontWeight={500}>Applicant Type:</Typography>
+          <br />
+
+          <Typography
+            variant="subtitle1"
+            fontWeight={700}
+            sx={{ mb: 1, mt: 1 }}
+          >
+            Applicant Type
+          </Typography>
+
           <FormControl fullWidth>
-            <InputLabel>Applicant Type</InputLabel>
+            <InputLabel>
+              Applicant Type
+            </InputLabel>
+
             <Select
               value={applicantType}
               label="Applicant Type"
-              onChange={(e) => setApplicantType(e.target.value)}
+              onChange={(e) =>
+                setApplicantType(
+                  e.target.value
+                )
+              }
             >
-              <MenuItem value="0">All Applicants</MenuItem>
+              <MenuItem value="0">
+                All Applicants
+              </MenuItem>
+
               <MenuItem value="1">
                 Senior High School Graduate
               </MenuItem>
+
               <MenuItem value="2">
-                Senior High School Graduating Student
+                Graduating Student
               </MenuItem>
+
               <MenuItem value="3">
-                ALS (Alternative Learning System) Passer
+                ALS Passer
               </MenuItem>
+
               <MenuItem value="4">
-                Transferee from other University/College
+                Transferee
               </MenuItem>
+
               <MenuItem value="5">
-                Cross Enrolee Student
+                Cross Enrollee
               </MenuItem>
+
               <MenuItem value="6">
-                Foreign Applicant/Student
+                Foreign Applicant
               </MenuItem>
+
               <MenuItem value="7">
                 Baccalaureate Graduate
               </MenuItem>
+
               <MenuItem value="8">
                 Master Degree Graduate
               </MenuItem>
             </Select>
           </FormControl>
 
-          <button
-            type="submit"
-            className="w-full py-3 text-white rounded-lg shadow-md transition duration-300"
-            style={{ backgroundColor: isEditing ? "#2e7d32" : "#1976d2" }}
+        </DialogContent>
+
+        <DialogActions>
+
+          <Button
+            color="error"
+            variant="outlined"
+            onClick={() =>
+              setOpenDialog(false)
+            }
           >
-            {isEditing ? "Update Requirement" : "Save Requirement"}
-          </button>
-        </form>
-      </div>
+            Cancel
+          </Button>
 
-      {/* Right Side - Display Saved Requirements */}
+          <Button
+            variant="contained"
+            onClick={handleSubmit}
+            sx={{
+              backgroundColor:
+                isEditing
+                  ? "#2e7d32"
+                  : "#1976d2",
+              fontWeight: "bold"
+            }}
+          >
+            {isEditing
+              ? "Update"
+              : "Save"}
+          </Button>
 
+        </DialogActions>
+      </Dialog>
 
 
       <Dialog
@@ -602,7 +1175,10 @@ const RequirementsForm = () => {
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={() => setOpenDeleteDialog(false)}>
+          <Button
+            color="error"
+            variant="outlined"
+            onClick={() => setOpenDeleteDialog(false)}>
             Cancel
           </Button>
 

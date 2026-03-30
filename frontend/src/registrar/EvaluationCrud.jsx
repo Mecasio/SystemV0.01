@@ -289,11 +289,11 @@ const EvaluationCRUD = () => {
     const handleSaveCategory = async () => {
         try {
             if (categoryEditMode) {
-            await axios.put(`${API_BASE_URL}/update_category/${selectedCategoryId}`, categoryFormData);
-            setSnackbarMessage("Category updated successfully");
+                await axios.put(`${API_BASE_URL}/update_category/${selectedCategoryId}`, categoryFormData);
+                setSnackbarMessage("Category updated successfully");
             } else {
-            await axios.post(`${API_BASE_URL}/insert_category`, categoryFormData);
-            setSnackbarMessage("Category created successfully");
+                await axios.post(`${API_BASE_URL}/insert_category`, categoryFormData);
+                setSnackbarMessage("Category created successfully");
             }
             setOpenSnackbar(true);
             handleCategoryDialogClose();
@@ -320,10 +320,10 @@ const EvaluationCRUD = () => {
     };
 
     const handleEditCategory = (cat) => {
-      setCategoryFormData({ title: cat.title, description: cat.description });
-      setSelectedCategoryId(cat.id);
-      setCategoryEditMode(true);
-      setCategoryDialogOpen(true);
+        setCategoryFormData({ title: cat.title, description: cat.description });
+        setSelectedCategoryId(cat.id);
+        setCategoryEditMode(true);
+        setCategoryDialogOpen(true);
     };
 
     // 🔒 Disable right-click
@@ -348,7 +348,7 @@ const EvaluationCRUD = () => {
 
     // Put this at the very bottom before the return 
     if (loading || hasAccess === null) {
-       return <LoadingOverlay open={loading} message="Loading..." />;
+        return <LoadingOverlay open={loading} message="Loading..." />;
     }
 
     if (!hasAccess) {
@@ -397,7 +397,7 @@ const EvaluationCRUD = () => {
                                                 backgroundColor: "transparent",
                                                 '&:hover': {
                                                     borderColor: 'white',
-                                                      backgroundColor: 'rgba(255,255,255,0.1)',
+                                                    backgroundColor: 'rgba(255,255,255,0.1)',
                                                 },
                                                 '&.Mui-disabled': {
                                                     color: "white",
@@ -536,7 +536,7 @@ const EvaluationCRUD = () => {
                         </TableRow>
                     </TableHead>
                 </Table>
-            </TableContainer>     
+            </TableContainer>
             <TableContainer
                 component={Paper}
                 sx={{
@@ -584,7 +584,7 @@ const EvaluationCRUD = () => {
                                     >
                                         Add Category
                                     </Button>
-                                
+
 
                                     <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
                                         <FormControl sx={{ width: "350px" }} size="small">
@@ -637,45 +637,45 @@ const EvaluationCRUD = () => {
                 </Table>
             </TableContainer>
             <TableContainer
-            component={Paper}
-            sx={{ border: `1px solid ${borderColor}`, marginTop: "2rem" }}
+                component={Paper}
+                sx={{ border: `1px solid ${borderColor}`, marginTop: "2rem" }}
             >
-            <Table>
-                <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
-                <TableRow>
-                    <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "center",  border: `1px solid ${borderColor}`, }}>#</TableCell>
-                    <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "center",  border: `1px solid ${borderColor}`, }}>Title</TableCell>
-                    <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "center",  border: `1px solid ${borderColor}`, }}>Description</TableCell>
-                    <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "center",  border: `1px solid ${borderColor}`, }}>Action</TableCell>
-                </TableRow>
-                </TableHead>
-                <TableBody>
-                {categories.length > 0 ? (
-                    categories.map((cat, index) => (
-                    <TableRow key={cat.id}>
-                        <TableCell sx={{ textAlign: "center",  border: `1px solid ${borderColor}`, }}>{index + 1}</TableCell>
-                        <TableCell sx={{ textAlign: "center",  border: `1px solid ${borderColor}`, }}>{cat.title}</TableCell>
-                        <TableCell sx={{ textAlign: "center",  border: `1px solid ${borderColor}`, }}>{cat.description}</TableCell>
-                        <TableCell sx={{ textAlign: "center",  border: `1px solid ${borderColor}`, }}>
-                        <Button
-                            variant="contained"
-                            sx={{ backgroundColor: "#4CAF50", color: "white" }}
-                            onClick={() => handleEditCategory(cat)}
-                        >
-                            Edit
-                        </Button>
-                        </TableCell>
-                    </TableRow>
-                    ))
-                ) : (
-                    <TableRow>
-                    <TableCell colSpan={4} align="center">
-                        No categories found
-                    </TableCell>
-                    </TableRow>
-                )}
-                </TableBody>
-            </Table>
+                <Table>
+                    <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
+                        <TableRow>
+                            <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "center", border: `1px solid ${borderColor}`, }}>#</TableCell>
+                            <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "center", border: `1px solid ${borderColor}`, }}>Title</TableCell>
+                            <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "center", border: `1px solid ${borderColor}`, }}>Description</TableCell>
+                            <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "center", border: `1px solid ${borderColor}`, }}>Action</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {categories.length > 0 ? (
+                            categories.map((cat, index) => (
+                                <TableRow key={cat.id}>
+                                    <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}`, }}>{index + 1}</TableCell>
+                                    <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}`, }}>{cat.title}</TableCell>
+                                    <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}`, }}>{cat.description}</TableCell>
+                                    <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}`, }}>
+                                        <Button
+                                            variant="contained"
+                                            sx={{ backgroundColor: "#4CAF50", color: "white" }}
+                                            onClick={() => handleEditCategory(cat)}
+                                        >
+                                            Edit
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={4} align="center">
+                                    No categories found
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
             </TableContainer>
             <TableContainer component={Paper} sx={{ border: `1px solid ${borderColor}`, marginTop: "2rem" }}>
                 <Table>
@@ -759,7 +759,10 @@ const EvaluationCRUD = () => {
                 </DialogContent>
 
                 <DialogActions>
-                    <Button onClick={handleCloseDialog}>Cancel</Button>
+                    <Button
+                        color="error"
+                        variant="outlined"
+                        onClick={handleCloseDialog}>Cancel</Button>
                     <Button
                         variant="contained"
                         onClick={handleSaveQuestion}
@@ -780,30 +783,33 @@ const EvaluationCRUD = () => {
                 <hr style={{ border: "1px solid #ccc", width: "100%" }} />
                 <DialogContent sx={{ mt: 2 }}>
                     <Stack spacing={2}>
-                    <TextField
-                        label="Title"
-                        name="title"
-                        value={categoryFormData.title}
-                        onChange={handleCategoryChange}
-                        fullWidth
-                    />
-                    <TextField
-                        label="Description"
-                        name="description"
-                        value={categoryFormData.description}
-                        onChange={handleCategoryChange}
-                        fullWidth
-                    />
+                        <TextField
+                            label="Title"
+                            name="title"
+                            value={categoryFormData.title}
+                            onChange={handleCategoryChange}
+                            fullWidth
+                        />
+                        <TextField
+                            label="Description"
+                            name="description"
+                            value={categoryFormData.description}
+                            onChange={handleCategoryChange}
+                            fullWidth
+                        />
                     </Stack>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCategoryDialogClose}>Cancel</Button>
                     <Button
-                    variant="contained"
-                    onClick={handleSaveCategory}
-                    sx={{ backgroundColor: "#800000", "&:hover": { backgroundColor: "#6D2323" }, fontWeight: "bold" }}
+                        color="error"
+                        variant="outlined"
+                        onClick={handleCategoryDialogClose}>Cancel</Button>
+                    <Button
+                        variant="contained"
+                        onClick={handleSaveCategory}
+                        sx={{ backgroundColor: "#800000", "&:hover": { backgroundColor: "#6D2323" }, fontWeight: "bold" }}
                     >
-                    {categoryEditMode ? "Save Changes" : "Insert Category"}
+                        {categoryEditMode ? "Save Changes" : "Insert Category"}
                     </Button>
                 </DialogActions>
             </Dialog>

@@ -867,12 +867,12 @@ const SectionSlotMonitoring = () => {
                 <Table>
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
                         <TableRow>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "70px" }}>#</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center" }}>Section</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center" }}>Course</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center" }}>Schedule</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "120px" }}>Slots</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "120px" }}>Enrolled</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", border: `1px solid ${borderColor}`, width: "70px" }}>#</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", border: `1px solid ${borderColor}` }}>Section</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", border: `1px solid ${borderColor}` }}>Course</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", border: `1px solid ${borderColor}` }}>Schedule</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "120px", border: `1px solid ${borderColor}` }}>Slots</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", width: "120px", border: `1px solid ${borderColor}` }}>Enrolled</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>

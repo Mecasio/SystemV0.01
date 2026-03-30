@@ -762,7 +762,10 @@ const EvaluatorApplicantList = () => {
                   onClick={() => {
                     setOpenDeleteDialog(false);
                     setApplicantToDelete(null);
+                    color = "error"
+                    variant = "outlined"
                   }}
+
                 >
                   Cancel
                 </Button>

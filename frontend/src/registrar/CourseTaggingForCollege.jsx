@@ -1447,9 +1447,9 @@ const CourseTaggingForCollege = () => {
                     >
                       {c.prereq
                         ? c.prereq
-                            .split(",")
-                            .map((p) => p.trim())
-                            .join(", ")
+                          .split(",")
+                          .map((p) => p.trim())
+                          .join(", ")
                         : "None"}
                     </TableCell>
 
@@ -1914,7 +1914,10 @@ const CourseTaggingForCollege = () => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleConfirmDialogClose}>Cancel</Button>
+          <Button 
+          color="error"
+            variant="outlined"
+            onClick={handleConfirmDialogClose}>Cancel</Button>
           <Button
             onClick={handleConfirmDialogProceed}
             variant="contained"

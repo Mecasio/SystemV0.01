@@ -643,7 +643,10 @@ const CourseTagging = () => {
           <DialogContentText style={{ whiteSpace: "pre-line" }}>{confirmDialogMessage}</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleConfirmDialogClose}>Cancel</Button>
+          <Button
+            color="error"
+            variant="outlined"
+            onClick={handleConfirmDialogClose}>Cancel</Button>
           <Button onClick={handleConfirmDialogProceed} variant="contained" color="primary">Continue</Button>
         </DialogActions>
       </Dialog>

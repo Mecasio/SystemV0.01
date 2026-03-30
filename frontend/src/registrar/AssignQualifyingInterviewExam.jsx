@@ -223,77 +223,19 @@ const AssignQualifyingInterviewExam = () => {
     };
 
 
-    const handleSaveSchedule = async (e) => {
-        e.preventDefault();
-
-        const selectedRoom = rooms.find(r => r.room_id === roomId);
-
-        const payload = {
-            day_description: day,
-            building_description: buildingName,
-            room_id: roomId,
-            branch: selectedBranch, // ✅ ADD THIS
-            room_description: selectedRoom?.room_description || "",
-            start_time: startTime,
-            end_time: endTime,
-            interviewer,
-            room_quota: roomQuota || 40,
-        };
-
-
-        try {
-            if (editingSchedule) {
-                await axios.put(
-                    `${API_BASE_URL}/update_interview_schedule/${editingSchedule.schedule_id}`,
-                    payload
-                );
-
-                setSnackbarMessage("Schedule updated successfully ✅");
-                setSnackbarSeverity("success");
-            } else {
-                await axios.post(
-                    `${API_BASE_URL}/insert_interview_schedule`,
-                    payload
-                );
-
-                setSnackbarMessage("Schedule saved successfully ✅");
-                setSnackbarSeverity("success");
-            }
-
-            setOpenSnackbar(true);
-            setEditingSchedule(null);
-
-            // reset form
-            setDay("");
-            setBuildingName("");
-            setRoomId("");
-            setStartTime("");
-            setEndTime("");
-            setInterviewer("");
-            setRoomQuota("");
-
-            const res = await axios.get(`${API_BASE_URL}/interview_schedules_with_count`);
-            setSchedules(res.data);
-
-        } catch (err) {
-            console.error(err);
-            setSnackbarMessage(err.response?.data?.error || "Operation failed ❌");
-            setSnackbarSeverity("error");
-            setOpenSnackbar(true);
-        }
-    };
-
 
     const [editingSchedule, setEditingSchedule] = useState(null);
+
+    const [openFormDialog, setOpenFormDialog] = useState(false);
 
 
     const handleEdit = (row) => {
         setEditingSchedule(row);
 
+        setSelectedBranch(row.branch);
         setDay(row.day_description);
         setBuildingName(row.building_description);
 
-        // find the room by description so roomId is correct
         const selectedRoom = rooms.find(r => r.room_description === row.room_description);
         setRoomId(selectedRoom?.room_id || "");
 
@@ -301,9 +243,9 @@ const AssignQualifyingInterviewExam = () => {
         setEndTime(row.end_time);
         setInterviewer(row.interviewer);
         setRoomQuota(row.room_quota);
+
+        setOpenFormDialog(true); // ✅ ADD THIS
     };
-
-
 
     const handleDelete = (row) => {
         setScheduleToDelete(row);
@@ -586,9 +528,42 @@ const AssignQualifyingInterviewExam = () => {
                 <Table>
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
                         <TableRow>
-                            <TableCell sx={{ color: "white", textAlign: "center" }}>
-                                Existing Schedules
-                            </TableCell>
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    width: "100%"
+                                }}
+                            >
+                                <TableCell sx={{ color: "white", textAlign: "center" }}>
+                                    Existing Schedules
+                                </TableCell>
+
+
+                                <Button
+                                    variant="contained"
+                                    onClick={() => {
+                                        setEditingSchedule(null);
+                                        setOpenFormDialog(true);
+                                    }}
+                                    sx={{
+                                        backgroundColor: "#1976d2", // ✅ Blue
+                                        color: "#fff",
+                                        fontWeight: "bold",
+                                        borderRadius: "8px",
+                                        width: "250px",
+                                        textTransform: "none",
+                                        px: 2,
+                                        mr: "15px",
+                                        '&:hover': {
+                                            backgroundColor: "#1565c0" // darker blue hover
+                                        }
+                                    }}
+                                >
+                                    + Add Schedule
+                                </Button>
+                            </Box>
                         </TableRow>
                     </TableHead>
                 </Table>
@@ -1066,178 +1041,7 @@ const AssignQualifyingInterviewExam = () => {
             </Paper>
 
 
-            <br />
-            <br />
-            <TableContainer
-                component={Paper}
-                sx={{
-                    width: "50%",
-                    border: `1px solid ${borderColor}`,
 
-                }}
-            >
-                <Table size="small">
-                    <TableHead
-                        sx={{
-                            backgroundColor: settings?.header_color || "#1976d2",
-                        }}
-                    >
-                        <TableRow>
-                            <TableCell
-                                sx={{
-                                    color: "white",
-                                    textAlign: "center",
-
-                                    padding: "12px",
-                                    border: `1px solid ${borderColor}`,
-                                }}
-                            >
-                                Qualifying / Interview Exam Schedule Management
-                            </TableCell>
-                        </TableRow>
-                    </TableHead>
-
-                    <TableBody>
-                        <TableRow>
-                            <TableCell sx={{ p: 3 }}>
-                                <form onSubmit={handleSaveSchedule}>
-                                    <Grid container spacing={2}>
-
-                                        <Grid item xs={12}>
-                                            <Typography fontWeight="600" mb={0.5}>Branch</Typography>
-                                            <TextField
-                                                select
-                                                fullWidth
-                                                size="small"
-                                                value={selectedBranch}
-                                                onChange={(e) => setSelectedBranch(e.target.value)}
-                                                required
-                                            >
-                                                {branches.map((b) => (
-                                                    <MenuItem key={b.id} value={b.branch}>
-                                                        {b.branch}
-                                                    </MenuItem>
-                                                ))}
-                                            </TextField>
-                                        </Grid>
-
-                                        <Grid item xs={12}>
-                                            <Typography fontWeight="600" mb={0.5}>Exam Date</Typography>
-                                            <DateField
-                                                fullWidth
-                                                size="small"
-                                                value={day}
-                                                inputProps={{ min: minDate, max: maxDate }}
-                                                onChange={(e) => setDay(e.target.value)}
-                                                required
-                                            />
-                                        </Grid>
-
-                                        <Grid item xs={12}>
-                                            <Typography fontWeight="600" mb={0.5}>Building</Typography>
-                                            <TextField
-                                                select
-                                                fullWidth
-                                                size="small"
-                                                value={buildingName}
-                                                onChange={(e) => {
-                                                    setBuildingName(e.target.value);
-                                                    setRoomId("");
-                                                }}
-                                                required
-                                            >
-                                                {[...new Set(
-                                                    rooms.map(r => r.building_description).filter(Boolean)
-                                                )].map(b => (
-                                                    <MenuItem key={b} value={b}>{b}</MenuItem>
-                                                ))}
-                                            </TextField>
-                                        </Grid>
-
-                                        <Grid item xs={12}>
-                                            <Typography fontWeight="600" mb={0.5}>Room</Typography>
-                                            <TextField
-                                                select
-                                                fullWidth
-                                                size="small"
-                                                value={roomId}
-                                                onChange={(e) => setRoomId(e.target.value)}
-                                                required
-                                                disabled={!buildingName}
-                                            >
-                                                {rooms
-                                                    .filter(r => r.building_description === buildingName)
-                                                    .map(r => (
-                                                        <MenuItem key={r.room_id} value={r.room_id}>
-                                                            {r.room_description}
-                                                        </MenuItem>
-                                                    ))}
-                                            </TextField>
-                                        </Grid>
-
-                                        <Grid item xs={6}>
-                                            <Typography fontWeight="600" mb={0.5}>Start Time</Typography>
-                                            <TextField
-                                                fullWidth
-                                                size="small"
-                                                type="time"
-                                                value={startTime}
-                                                onChange={(e) => setStartTime(e.target.value)}
-                                            />
-                                        </Grid>
-
-                                        <Grid item xs={6}>
-                                            <Typography fontWeight="600" mb={0.5}>End Time</Typography>
-                                            <TextField
-                                                fullWidth
-                                                size="small"
-                                                type="time"
-                                                value={endTime}
-                                                onChange={(e) => setEndTime(e.target.value)}
-                                            />
-                                        </Grid>
-
-                                        <Grid item xs={12}>
-                                            <Typography fontWeight="600" mb={0.5}>Interviewer</Typography>
-                                            <TextField
-                                                fullWidth
-                                                size="small"
-                                                value={interviewer}
-                                                onChange={(e) => setInterviewer(e.target.value)}
-                                            />
-                                        </Grid>
-
-                                        <Grid item xs={12}>
-                                            <Typography fontWeight="600" mb={0.5}>Room Slot</Typography>
-                                            <TextField
-                                                fullWidth
-                                                size="small"
-                                                type="number"
-                                                value={roomQuota}
-                                                onChange={(e) => setRoomQuota(e.target.value)}
-                                            />
-                                        </Grid>
-
-                                        <Grid item xs={12} textAlign="center" mt={2}>
-                                            <Button
-                                                type="submit"
-                                                variant="contained"
-                                                sx={{
-                                                    px: 6,
-                                                    fontWeight: "bold",
-                                                }}
-                                            >
-                                                {editingSchedule ? "Update Schedule" : "Save Schedule"}
-                                            </Button>
-                                        </Grid>
-
-                                    </Grid>
-                                </form>
-                            </TableCell>
-                        </TableRow>
-                    </TableBody>
-                </Table>
-            </TableContainer>
 
 
 
@@ -1300,6 +1104,230 @@ const AssignQualifyingInterviewExam = () => {
                         onClick={executeDeleteSchedule}
                     >
                         Yes, Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog
+                open={openFormDialog}
+                onClose={() => setOpenFormDialog(false)}
+                maxWidth="md"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: 3,
+                        overflow: "hidden",
+                        boxShadow: 6
+                    }
+                }}
+            >
+                {/* HEADER */}
+                <DialogTitle
+                    sx={{
+                        background: settings?.header_color || "#1976d2",
+                        color: "#fff",
+                        fontWeight: 700,
+                        fontSize: "1.2rem",
+                        py: 2,
+                        marginBottom: "20px"
+                    }}
+                >
+                    {editingSchedule ? "Edit Interview / Qualifying Exam Schedule" : "New Interview / Qualifying Exam Schedule"}
+                </DialogTitle>
+
+                {/* CONTENT */}
+                <DialogContent sx={{ p: 3 }}>
+                    <Grid container spacing={2}>
+
+                        {/* ===== LOCATION ===== */}
+                        <Grid item xs={12}>
+                            <Typography fontWeight={700} sx={{ mb: 2 }}>
+                                Location Details
+                            </Typography>
+
+                            <TextField
+                                select
+                                fullWidth
+                                label="Branch"
+                                value={selectedBranch}
+                                onChange={(e) => setSelectedBranch(e.target.value)}
+                            >
+                                {branches.map((b) => (
+                                    <MenuItem key={b.id} value={b.branch}>
+                                        {b.branch}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+                        </Grid>
+
+                        {/* Date */}
+                        <Grid item xs={6}>
+                            <Typography
+                                variant="subtitle1"
+                                fontWeight={700}
+                                sx={{ mb: 1, }}
+                            >
+                               Qualifying 
+                            </Typography>
+                            <DateField
+                                fullWidth
+                                label="Interview Date"
+                                value={day}
+                                inputProps={{ min: minDate, max: maxDate }}
+                                onChange={(e) => setDay(e.target.value)}
+                            />
+                        </Grid>
+
+                        {/* Building */}
+                        <Grid item xs={6}>
+                            <Typography
+                                variant="subtitle1"
+                                fontWeight={700}
+                                sx={{ mb: 1, }}
+                            >
+                                Building
+                            </Typography>
+                            <TextField
+                                select
+                                fullWidth
+                                label="Building"
+                                value={buildingName}
+                                onChange={(e) => {
+                                    setBuildingName(e.target.value);
+                                    setRoomId("");
+                                }}
+                            >
+                                {[...new Set(
+                                    rooms.map((r) => r.building_description).filter(Boolean)
+                                )].map((b, i) => (
+                                    <MenuItem key={i} value={b}>
+                                        {b}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+                        </Grid>
+
+                        {/* Room */}
+                        <Grid item xs={6}>
+                            <Typography
+                                variant="subtitle1"
+                                fontWeight={700}
+                                sx={{ mb: 1, }}
+                            >
+                                Room
+                            </Typography>
+                            <TextField
+
+                                select
+                                fullWidth
+                                label="Room"
+                                value={roomId}
+                                onChange={(e) => setRoomId(e.target.value)}
+                                disabled={!buildingName}
+                            >
+                                {rooms
+                                    .filter((r) => r.building_description === buildingName)
+                                    .map((r) => (
+                                        <MenuItem key={r.room_id} value={r.room_id}>
+                                            {r.room_description}
+                                        </MenuItem>
+                                    ))}
+                            </TextField>
+                        </Grid>
+
+                        {/* Start */}
+                        <Grid item xs={3}>
+                            <Typography
+                                variant="subtitle1"
+                                fontWeight={700}
+                                sx={{ mb: 1, }}
+                            >
+                                Start Time
+                            </Typography>
+                            <TextField
+                                fullWidth
+                                type="time"
+                                label="Start Time"
+                                value={startTime}
+                                onChange={(e) => setStartTime(e.target.value)}
+                            />
+                        </Grid>
+
+                        {/* End */}
+                        <Grid item xs={3}>
+                            <Typography
+                                variant="subtitle1"
+                                fontWeight={700}
+                                sx={{ mb: 1, }}
+                            >
+                                End Time
+                            </Typography>
+                            <TextField
+                                fullWidth
+                                type="time"
+                                label="End Time"
+                                value={endTime}
+                                onChange={(e) => setEndTime(e.target.value)}
+                            />
+                        </Grid>
+
+                        {/* ===== INTERVIEWER ===== */}
+                        <Grid item xs={12}>
+                            <Typography fontWeight={700} sx={{ mb: 1 }}>
+                                Interviewer Full Name
+                            </Typography>
+
+                            <TextField
+                                fullWidth
+                                label="Interviewer"
+                                value={interviewer}
+                                onChange={(e) => setInterviewer(e.target.value)}
+                            />
+                        </Grid>
+
+                        {/* ===== ROOM SLOT ===== */}
+                        <Grid item xs={12}>
+                            <Typography fontWeight={700} sx={{ mb: 1 }}>
+                                Room Capacity
+                            </Typography>
+
+                            <TextField
+                                fullWidth
+                                type="number"
+                                label="Room Slot"
+                                value={roomQuota}
+                                onChange={(e) => setRoomQuota(e.target.value)}
+                            />
+                        </Grid>
+
+                    </Grid>
+                </DialogContent>
+
+                {/* ACTIONS */}
+                <DialogActions
+                    sx={{
+                        px: 3,
+                        py: 2,
+                        borderTop: "1px solid #e0e0e0"
+                    }}
+                >
+                    <Button
+                        onClick={() => setOpenFormDialog(false)}
+                        color="error"
+                        variant="outlined"
+                    >
+                        Cancel
+                    </Button>
+
+                    <Button
+                        variant="contained"
+                        sx={{ px: 4, fontWeight: 600 }}
+                        onClick={(e) => {
+                            handleSaveSchedule(e);
+                            setOpenFormDialog(false);
+                        }}
+                    >
+                        {editingSchedule ? "Update Schedule" : "Save Schedule"}
                     </Button>
                 </DialogActions>
             </Dialog>

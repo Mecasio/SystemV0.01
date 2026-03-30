@@ -3106,7 +3106,7 @@ const StudentDashboard1 = () => {
                       color: "#fff",
                       bgcolor: mainButtonColor,
                       "&:hover": {
-                        bgcolor: "#5a1f1f",
+                        bgcolor: "black",
                       },
                     }}
                   >
@@ -3267,7 +3267,7 @@ const StudentDashboard1 = () => {
                       color: "white",
                       fontWeight: "bold",
                       "&:hover": {
-                        backgroundColor: "#5a1f1f",
+                        backgroundColor: "black",
                       },
                     }}
                   >

@@ -554,7 +554,10 @@ export default function DepartmentCurriculumPanel() {
           Are you sure you want to remove this department ↔ curriculum mapping?
         </DialogContent>
         <DialogActions>
-          <Button onClick={closeDeleteDialog}>Cancel</Button>
+          <Button 
+          color="error"
+            variant="outlined" 
+            onClick={closeDeleteDialog}>Cancel</Button>
           <Button color="error" onClick={handleDelete}>Delete</Button>
         </DialogActions>
       </Dialog>

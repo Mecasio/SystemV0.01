@@ -1984,6 +1984,7 @@ const ApplicantList = () => {
                 disabled
                 onClick={() => setConfirmOpen(false)}
                 color="error"
+                variant="outlined"
               >
                 Cancel
               </Button>
@@ -2477,7 +2478,10 @@ const ApplicantList = () => {
             </DialogContent>
 
             <DialogActions>
-              <Button onClick={handleCloseDialog}>Cancel</Button>
+              <Button
+                color="error"
+                variant="outlined"
+                onClick={handleCloseDialog}>Cancel</Button>
               {!(
                 Array.isArray(activePerson?.missing_documents) &&
                 activePerson.missing_documents.length === 0 &&

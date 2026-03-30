@@ -292,7 +292,7 @@ const AdmissionServices = () => {
                     borderRadius: "5px",
                     marginTop: "20px",
                     cursor: "pointer",
-                    fontSize: "13px",
+                    fontSize: "16px",
                     fontWeight: "bold",
                     transition: "background-color 0.3s, transform 0.2s",
                 }}

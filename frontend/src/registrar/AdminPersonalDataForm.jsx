@@ -1529,7 +1529,7 @@ const PersonalDataForm = () => {
                                            textAlign: "left",
    
                                            fontFamily: "Arial",
-                                           fontSize: "13px"
+                                           fontSize: "12px"
                                        }}>
                                            <div style={{ fontWeight: "bold" }}>SURNAME / FAMILY NAME</div>
    
@@ -1554,7 +1554,7 @@ const PersonalDataForm = () => {
                                            textAlign: "left",
    
                                            fontFamily: "Arial",
-                                           fontSize: "13px"
+                                           fontSize: "12px"
                                        }}>
                                            <div style={{ fontWeight: "bold" }}>GIVEN NAME</div>
                                            <input
@@ -1578,7 +1578,7 @@ const PersonalDataForm = () => {
                                            textAlign: "left",
    
                                            fontFamily: "Arial",
-                                           fontSize: "13px"
+                                           fontSize: "12px"
                                        }}>
                                            <div style={{ fontWeight: "bold" }}>MIDDLE NAME</div>
                                            <input
@@ -1627,7 +1627,7 @@ const PersonalDataForm = () => {
                                            textAlign: "left",
    
                                            fontFamily: "Arial",
-                                           fontSize: "13px"
+                                           fontSize: "12px"
                                        }}>
                                            <div style={{ fontWeight: "bold", fontFamily: "Arial", }}>SURNAME (Not Yet Married)</div>
    
@@ -1653,7 +1653,7 @@ const PersonalDataForm = () => {
    
                                            fontFamily: "Arial",
    
-                                           fontSize: "13px"
+                                           fontSize: "12px"
                                        }}>
                                            <div style={{ fontWeight: "bold" }}>GIVEN NAME</div>
                                            <input
@@ -1676,7 +1676,7 @@ const PersonalDataForm = () => {
                                            textAlign: "left",
    
                                            fontFamily: "Arial",
-                                           fontSize: "13px"
+                                           fontSize: "12px"
                                        }}>
                                            <div style={{ fontWeight: "bold", fontFamily: "Arial", }}>   MIDDLE NAME (Not yet married)</div>
    

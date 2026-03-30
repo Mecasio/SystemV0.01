@@ -442,6 +442,8 @@ const ReportOfGrade = () => {
                             width: 450,
                             backgroundColor: "#fff",
                             borderRadius: 1,
+                            mb: 2,
+                            mt: 1,
                             "& .MuiOutlinedInput-root": {
                                 borderRadius: "10px",
                             },
