@@ -466,9 +466,7 @@ const RoomRegistration = () => {
                         width: "250px",
                         textTransform: "none",
                         px: 2,
-                        '&:hover': {
-                          backgroundColor: "#1565c0" // darker blue hover
-                        }
+                        
                       }}
                     >
                       + Add Room

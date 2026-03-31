@@ -41,7 +41,7 @@ const applicantDocsDir = path.join(
 const allowedOrigins = [
   "http://localhost:5173",
   "http://192.168.50.77:5173",
-  "http://192.168.50.49:5173",
+  "http://192.168.50.55:5173",
   "http://192.168.50.211:5173",
   "http://136.239.248.62:5173",
   "http://192.168.50.44:5173",
@@ -92,7 +92,6 @@ const coursePanel = require("./routes/system_routes/coursePanelRoute");
 const tosfPanel = require("./routes/system_routes/tosfRoute");
 const paymentExporting = require("./routes/system_routes/paymentExportingRoute");
 const corExporting = require("./routes/system_routes/corExportingRoute");
-
 const entranceExamSchedule = require("./routes/admission_routes/entranceExamSchedule");
 const verifyDocumentSchedule = require("./routes/admission_routes/verifyDocumentSchedule");
 const QualifyingInterviewExam = require("./routes/admission_routes/QualifyingInterviewExam");
@@ -8434,7 +8433,7 @@ app.get("/api/student_number", async (req, res) => {
         pst.middle_name,
         pgt.program_description,
         smt.semester_description,
-        smt.semester_code,
+        smt.semester_id,
         pgt.program_code,
         pgt.program_id,
         dpt.dprtmnt_id,

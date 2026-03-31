@@ -314,14 +314,14 @@ const Dashboard2 = (props) => {
     // If father is NOT deceased, require father fields:
     if (person.father_deceased !== 1) {
       requiredFields.push(
-        "father_family_name", "father_given_name", "mother_email",
+        "father_family_name", "father_given_name",
         "father_contact", "father_occupation", "father_employer", "father_income",
       );
 
       // but only require education details if father_education !== 1
       if (person.father_education !== 1) {
         requiredFields.push(
-          "father_education_level", "father_last_school", "father_email", "father_course", "father_year_graduated", "father_school_address"
+          "father_education_level", "father_last_school", "father_course", "father_year_graduated", "father_school_address"
         );
       }
     }
@@ -329,7 +329,7 @@ const Dashboard2 = (props) => {
     // If mother is NOT deceased, require mother fields:
     if (person.mother_deceased !== 1) {
       requiredFields.push(
-        "mother_family_name", "mother_given_name",
+        "mother_family_name", "mother_given_name", 
         "mother_contact", "mother_occupation", "mother_employer", "mother_income",
       );
 
@@ -1177,7 +1177,7 @@ const Dashboard2 = (props) => {
                   </Box>
 
                   <Box flex={1}>
-                    <Typography variant="subtitle2" mb={0.5}>Father Email Address<span style={{color: "red"}}> *</span></Typography>
+                    <Typography variant="subtitle2" mb={0.5}>Father Email Address</Typography>
                     <TextField
                       fullWidth
                       size="small"

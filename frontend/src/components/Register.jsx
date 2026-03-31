@@ -114,7 +114,7 @@ const Register = () => {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!lastName || !firstName || !middleName || !birthday || !academicProgram || !applyingAs) {
+    if (!lastName || !firstName || !birthday || !academicProgram || !applyingAs) {
 
       setSnack({
         open: true,
@@ -318,52 +318,80 @@ const Register = () => {
     if (!branch) return false;
 
     const now = new Date(
-      new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" })
+      new Date().toLocaleString("en-US", {
+        timeZone: "Asia/Manila"
+      })
     );
 
-    const parseDate = (dateStr, isEnd = false) => {
-      if (!dateStr) return null;
+    const startDate = branch.start_date
+      ? new Date(branch.start_date)
+      : null;
 
-      const d = new Date(
-        new Date(dateStr).toLocaleString("en-US", { timeZone: "Asia/Manila" })
-      );
-
-      if (isEnd) {
-        d.setHours(23, 59, 59, 999);
-      }
-
-      return d;
-    };
-
-    const start = parseDate(branch.start_date);
-    const end = parseDate(branch.end_date, true);
+    const endDate = branch.end_date
+      ? new Date(branch.end_date)
+      : null;
 
     let isOpen = true;
 
-    // ❌ NOT YET STARTED
-    if (start && now < start) {
+    // DATE CHECK
+    if (startDate && now < startDate) {
       isOpen = false;
     }
 
-    // ❌ ENDED
-    if (end && now > end) {
+    if (endDate && now > endDate) {
       isOpen = false;
     }
 
-    // ❌ ADMIN CLOSED
+    // TIME CHECK
+    if (branch.start_time && branch.end_time) {
+
+      const nowMinutes =
+        now.getHours() * 60 + now.getMinutes();
+
+      const [sh, sm] = branch.start_time.split(":");
+      const [eh, em] = branch.end_time.split(":");
+
+      const startMinutes =
+        parseInt(sh) * 60 + parseInt(sm);
+
+      const endMinutes =
+        parseInt(eh) * 60 + parseInt(em);
+
+      if (startMinutes < endMinutes) {
+        // Normal schedule
+        if (
+          nowMinutes < startMinutes ||
+          nowMinutes > endMinutes
+        ) {
+          isOpen = false;
+        }
+      } else {
+        // Overnight schedule (6PM → 6AM)
+        if (
+          nowMinutes < startMinutes &&
+          nowMinutes > endMinutes
+        ) {
+          isOpen = false;
+        }
+      }
+
+    }
+
+    // ADMIN TOGGLE
     if (branch.registration_open !== 1) {
       isOpen = false;
     }
 
     setRegistrationOpen(isOpen);
 
-    // 🔥 THIS IS THE KEY FIX
     if (!isOpen) {
       setOpenBranchDialog(true);
     }
 
     return isOpen;
   };
+
+
 
   const selectedBranch = branches.find(
     (b) => b.id.toString() === branchId
@@ -535,7 +563,7 @@ const Register = () => {
                     }
 
                     return (
-                      <option key={b.id} value={b.id} d             >
+                      <option key={b.id} value={b.id} d>
                         {b.branch} {isClosed ? " (Closed)" : ""}
                       </option>
                     );
@@ -607,7 +635,7 @@ const Register = () => {
               </div>
 
               <div className="TextField" style={{ position: "relative" }}>
-                <label>Middle Name (Full – e.g., De la Cruz)</label>
+                <label>Middle Name (Full – e.g., De la Cruz) (Optional)</label>
                 <input
                   type="text"
                   placeholder="Enter your middle name"
@@ -1142,21 +1170,44 @@ const Register = () => {
 
           <DialogContent>
             <Typography sx={dialogStyles.contentText}>
-              This campus is currently not accepting applications. The admissions period has either not yet begun or has already concluded for the current intake.
+              We sincerely apologize that during this time, this campus is not currently accepting applications.
+              Registration is only available during the officially designated hours, and any submissions outside this period cannot be processed.
             </Typography>
 
             <Typography sx={{ ...dialogStyles.contentText, mt: 2 }}>
-              Please check for updates and official announcements regarding the reopening of admissions. Important information, including schedules and requirements, will be posted through official channels.
+              Kindly return during the authorized registration hours to complete your application.
+              We highly encourage reviewing the official schedule to ensure timely submission.
             </Typography>
 
-            <Typography sx={{ ...dialogStyles.contentText, mt: 2 }}>
-              For the latest updates, please visit and follow our <strong>Facebook Admissions Page</strong>.
-            </Typography>
+            {selectedBranch?.start_date && selectedBranch?.end_date && (
+              <Typography sx={dialogStyles.contentTextCenter}>
+                Registration Hours:
+                <br />
+                <strong>
+                  {new Date(selectedBranch.start_date)
+                    .toLocaleTimeString("en-US", {
+                      hour: "numeric",
+                      minute: "2-digit",
+                      hour12: true,
+                      timeZone: "Asia/Manila"
+                    })}
+                  {" to "}
+                  {new Date(selectedBranch.end_date)
+                    .toLocaleTimeString("en-US", {
+                      hour: "numeric",
+                      minute: "2-digit",
+                      hour12: true,
+                      timeZone: "Asia/Manila"
+                    })}
+                </strong>
+              </Typography>
+            )}
 
             <Typography sx={dialogStyles.contentTextCenter}>
-              Thank you for your interest and patience.
+              We sincerely appreciate your patience and understanding.
             </Typography>
           </DialogContent>
+
 
           <DialogActions sx={dialogStyles.actions}>
             <Button

@@ -22,7 +22,12 @@ import {
   TableHead,
   TableRow,
   TableCell,
-  Paper
+  Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  MenuItem
 } from "@mui/material";
 
 import BusinessIcon from "@mui/icons-material/Business";
@@ -143,7 +148,11 @@ const AdminBranches = () => {
     }
   };
 
+  const [openBranchDialog, setOpenBranchDialog] = useState(false);
+  const [editingBranch, setEditingBranch] = useState(null);
 
+  const [branchName, setBranchName] = useState("");
+  const [branchAddress, setBranchAddress] = useState("");
 
   const [newBranch, setNewBranch] = useState("");
   const [newAddress, setNewAddress] = useState("");
@@ -253,90 +262,87 @@ const AdminBranches = () => {
           mb: 2,
         }}
       >
-        BRANCH MANAGEMENT
+        BRANCH MANAGEMENT / REGISTRATION FOR APPLICANTS
       </Typography>
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
       <br />
 
-      <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
-        <Table>
-          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
-            <TableRow>
-              <TableCell sx={{ color: 'white', textAlign: "Center" }}>Existing Branch</TableCell>
-            </TableRow>
-          </TableHead>
-        </Table>
-      </TableContainer>
+
 
 
       {/* ADD FORM */}
-      <Card sx={{ mb: 4, border: `1px solid ${borderColor}` }}>
-        <CardContent>
-          <Typography fontWeight={600} mb={2}>
-            Add New Branch
-          </Typography>
 
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                label="Branch Name"
-                value={newBranch}
-                onChange={(e) => setNewBranch(e.target.value)}
-              />
-            </Grid>
+      <Button
+        variant="contained"
+        startIcon={<AddIcon />}
+        sx={{
+          mb: 3,
+          borderRadius: 2,
+          fontWeight: 600
+        }}
+        onClick={() => {
+          setEditingBranch(null);
+          setBranchName("");
+          setBranchAddress("");
+          setOpenBranchDialog(true);
+        }}
+      >
+        Add New Branch
+      </Button>
 
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Address"
-                value={newAddress}
-                onChange={(e) => setNewAddress(e.target.value)}
-              />
-            </Grid>
 
-            <Grid item xs={12} md={2}>
-              <Button
-                fullWidth
-                variant="contained"
-                startIcon={<AddIcon />}
-                sx={{ height: "100%", borderRadius: 2 }}
-                onClick={handleAddBranch}
-              >
-                Add
-              </Button>
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
 
       {/* LIST */}
       <Grid container spacing={3}>
         {branches.map((b, index) => (
           <Grid item xs={12} md={6} key={b.id}>
-            <Card sx={{ border: `1px solid ${borderColor}`, boxShadow: 4 }}>
+            <Card
+              sx={{
+                border: `1px solid ${borderColor}`,
+                boxShadow: 4,
+                borderRadius: 3,
+                overflow: "hidden"
+              }}
+            >
+              {/* HEADER */}
+              <Box
+                sx={{
+                  background: settings?.header_color || "#1976d2",
+                  color: "#fff",
+                  px: 2,
+                  py: 2
+                }}
+              >
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
+                  <Typography
+                    fontWeight={700}
+                    variant="subtitle1"
+                    sx={{ color: "#fff" }}
+                  >
+                    {b.branch} Branch #{b.id}
+                  </Typography>
+
+                  <Chip
+                    label={b.registration_open ? "Open" : "Closed"}
+                    size="small"
+                    sx={{
+                      backgroundColor: b.registration_open ? "green" : "red",
+                      color: "white",
+                      fontWeight: "bold",
+                      border: "1px solid rgba(255,255,255,0.2)"
+                    }}
+                  />
+                </Stack>
+              </Box>
+
               <CardContent>
                 <Stack spacing={2}>
-                  {/* HEADER */}
-                  <Stack direction="row" justifyContent="space-between" alignItems="center">
-                    <Typography fontWeight={600} variant="subtitle1">
-                      {b.branch}  Branch #{b.id}
-                    </Typography>
-                    <Chip
-                      label={b.registration_open ? "Open" : "Closed"}
-                      size="small"
-                      sx={{
-                        backgroundColor: b.registration_open ? "green" : "red",
-                        color: "white",
-                        fontWeight: "bold",
-                      }}
-                    />
-                  </Stack>
-
-                  <Divider />
-
                   <Typography fontWeight={600}>
                     Branch Name / Branch Address
                   </Typography>
@@ -345,18 +351,22 @@ const AdminBranches = () => {
                   <TextField
                     label="Branch Name"
                     value={b.branch}
-                    onChange={(e) => handleChange(index, "branch", e.target.value)}
+                    onChange={(e) =>
+                      handleChange(index, "branch", e.target.value)
+                    }
                     fullWidth
                   />
 
                   <TextField
                     label="Address"
                     value={b.address}
-                    onChange={(e) => handleChange(index, "address", e.target.value)}
+                    onChange={(e) =>
+                      handleChange(index, "address", e.target.value)
+                    }
                     fullWidth
                   />
 
-                  {/* ✅ ACADEMIC PROGRAMS (OPEN/CLOSE ONLY) */}
+                  {/* ACADEMIC PROGRAMS */}
                   <Divider />
 
                   <Typography fontWeight={600}>
@@ -392,26 +402,34 @@ const AdminBranches = () => {
                     Open and Closing Registration
                   </Typography>
 
-
                   {/* TOGGLE */}
                   <Stack direction="row" alignItems="center" spacing={2}>
                     <Typography>Registration</Typography>
                     <Switch
                       checked={b.registration_open === 1}
                       onChange={(e) =>
-                        handleChange(index, "registration_open", e.target.checked ? 1 : 0)
+                        handleChange(
+                          index,
+                          "registration_open",
+                          e.target.checked ? 1 : 0
+                        )
                       }
                     />
                   </Stack>
 
                   {/* DATES */}
-                  <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
+                  <Stack
+                    direction={{ xs: "column", md: "row" }}
+                    spacing={2}
+                  >
                     <TextField
                       type="datetime-local"
                       label="Start Date"
                       InputLabelProps={{ shrink: true }}
                       value={formatLocal(b.start_date)}
-                      onChange={(e) => handleChange(index, "start_date", e.target.value)}
+                      onChange={(e) =>
+                        handleChange(index, "start_date", e.target.value)
+                      }
                       fullWidth
                     />
 
@@ -420,7 +438,9 @@ const AdminBranches = () => {
                       label="End Date"
                       InputLabelProps={{ shrink: true }}
                       value={formatLocal(b.end_date)}
-                      onChange={(e) => handleChange(index, "end_date", e.target.value)}
+                      onChange={(e) =>
+                        handleChange(index, "end_date", e.target.value)
+                      }
                       fullWidth
                     />
                   </Stack>
@@ -443,8 +463,9 @@ const AdminBranches = () => {
                       color="error"
                       startIcon={<DeleteIcon />}
                       sx={{
-                        borderRadius: 2, backgroundColor: "#9E0000",
-                        color: "white",
+                        borderRadius: 2,
+                        backgroundColor: "#9E0000",
+                        color: "white"
                       }}
                       onClick={() => handleDelete(b.id)}
                     >
@@ -469,6 +490,142 @@ const AdminBranches = () => {
           {snack.message}
         </Alert>
       </Snackbar>
+
+      <Dialog
+        open={openBranchDialog}
+        onClose={() => setOpenBranchDialog(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            overflow: "hidden",
+            boxShadow: 6
+          }
+        }}
+      >
+        {/* HEADER */}
+        <DialogTitle
+          sx={{
+            background: settings?.header_color || "#1976d2",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "1.2rem",
+            py: 2
+          }}
+        >
+          {editingBranch ? "Edit Branch Information" : "New Branch Registration"}
+        </DialogTitle>
+
+        {/* CONTENT */}
+        <DialogContent sx={{ p: 3 }}>
+          <Typography
+            variant="subtitle1"
+            fontWeight={700}
+            sx={{ mb: 1, mt: 1 }}
+          >
+            Branch Details
+          </Typography>
+
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Branch Name"
+                value={branchName}
+                onChange={(e) => setBranchName(e.target.value)}
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+
+
+              <Typography
+                variant="subtitle1"
+                fontWeight={700}
+                sx={{ mb: 1, mt: 1 }}
+              >
+                Branch Address
+              </Typography>
+
+              <TextField
+                fullWidth
+                label="Address"
+                value={branchAddress}
+                onChange={(e) => setBranchAddress(e.target.value)}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+
+        {/* ACTIONS */}
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2,
+            borderTop: "1px solid #e0e0e0"
+          }}
+        >
+          <Button
+            onClick={() => setOpenBranchDialog(false)}
+            color="error"
+            variant="outlined"
+          >
+            Cancel
+          </Button>
+
+          <Button
+            variant="contained"
+            sx={{
+              px: 4,
+              fontWeight: 600
+            }}
+            onClick={async () => {
+              if (!branchName || !branchAddress) return;
+
+              try {
+                if (editingBranch) {
+                  await axios.put(
+                    `${API_BASE_URL}/api/branches/${editingBranch.id}`,
+                    {
+                      branch: branchName,
+                      address: branchAddress
+                    }
+                  );
+
+                  setSnack({
+                    open: true,
+                    message: "Branch updated successfully",
+                    severity: "success"
+                  });
+                } else {
+                  await axios.post(`${API_BASE_URL}/api/branches`, {
+                    branch: branchName,
+                    address: branchAddress
+                  });
+
+                  setSnack({
+                    open: true,
+                    message: "Branch added successfully",
+                    severity: "success"
+                  });
+                }
+
+                fetchBranches();
+                setOpenBranchDialog(false);
+              } catch {
+                setSnack({
+                  open: true,
+                  message: "Operation failed",
+                  severity: "error"
+                });
+              }
+            }}
+          >
+            {editingBranch ? "Update Branch" : "Save Branch"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

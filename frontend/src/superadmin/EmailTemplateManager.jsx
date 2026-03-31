@@ -181,6 +181,7 @@ export default function EmailTemplateManager() {
     }
   };
 
+  const [openFormDialog, setOpenFormDialog] = useState(false);
   // ✅ Edit template
   const handleEdit = (row) => {
     setEditing(row.template_id);
@@ -453,6 +454,32 @@ export default function EmailTemplateManager() {
                     >
                       Last
                     </Button>
+
+                    <Button
+                      variant="contained"
+                      sx={{
+                        backgroundColor: "#1976d2", // ✅ Blue
+                        color: "#fff",
+                        fontWeight: "bold",
+                        borderRadius: "8px",
+                        width: "250px",
+                        textTransform: "none",
+                        px: 2,
+
+                      }}
+                      onClick={() => {``
+                        setEditing(null);
+                        setForm({
+                          sender_name: "",
+                          department_id: "",
+                          employee_id: "",
+                          is_active: true
+                        });
+                        setOpenFormDialog(true);
+                      }}
+                    >
+                      + Add Email Account
+                    </Button>
                   </Box>
                 </Box>
               </TableCell>
@@ -525,7 +552,10 @@ export default function EmailTemplateManager() {
                             gap: "5px",
 
                           }}
-                          onClick={() => handleEdit(r)}
+                          onClick={() => {
+                            handleEdit(r);
+                            setOpenFormDialog(true);
+                          }}
                         >
                           <EditIcon fontSize="small" /> Edit
                         </Button>
@@ -735,100 +765,6 @@ export default function EmailTemplateManager() {
         </Table>
       </TableContainer>
 
-      <br />
-      <br />
-      <TableContainer component={Paper} sx={{ width: '50%', border: `1px solid ${borderColor}`, }}>
-        <Table>
-          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
-            <TableRow>
-              <TableCell sx={{ color: 'white', textAlign: "Center" }}>EMAIL ACCOUNTS</TableCell>
-            </TableRow>
-          </TableHead>
-        </Table>
-      </TableContainer>
-
-
-
-      <Grid item xs={12} md={7}>
-        {/* ✅ Form Section */}
-
-        <Paper
-          elevation={3}
-          sx={{ p: 3, border: `1px solid ${borderColor}`, width: "50%" }}
-        >
-
-
-          <Typography fontWeight={500}>Sender Name:</Typography>
-          <TextField
-            fullWidth
-            label="Sender Name"
-            variant="outlined"
-            value={form.sender_name}
-            onChange={(e) =>
-              setForm({ ...form, sender_name: e.target.value })
-            }
-            sx={{ mb: 2 }}
-          />
-          <Typography fontWeight={500}>Department:</Typography>
-          <TextField
-            select
-            fullWidth
-
-            value={form.department_id || ""}
-            onChange={(e) => setForm({ ...form, department_id: e.target.value })}
-            sx={{ mb: 2 }}
-            SelectProps={{ native: true }}
-          >
-            <option value="">Select Department</option>
-            {departments.map((d) => (
-              <option key={d.dprtmnt_id} value={d.dprtmnt_id}>
-                {d.dprtmnt_name}
-              </option>
-            ))}
-          </TextField>
-
-          <Typography fontWeight={500}>Employee ID:</Typography>
-          <TextField
-            fullWidth
-            label="Employee ID"
-            variant="outlined"
-            value={form.employee_id || ""}
-            onChange={(e) =>
-              setForm({ ...form, employee_id: e.target.value })
-            }
-            sx={{ mb: 2 }}
-          />
-
-
-          <FormControlLabel
-            control={
-              <Switch
-                checked={form.is_active}
-                onChange={(e) =>
-                  setForm({ ...form, is_active: e.target.checked })
-                }
-              />
-            }
-            label="Active"
-            sx={{ mb: 2 }}
-          />
-
-          <Button
-            variant="contained"
-            fullWidth
-            onClick={editing ? handleUpdate : handleAdd}
-            sx={{
-              backgroundColor: "#1967d2",
-
-              "&:hover": { backgroundColor: "#000000" },
-            }}
-          >
-            {editing ? "Update Template" : "Save"}
-          </Button>
-        </Paper>
-      </Grid>
-      <br />
-      <br />
 
 
       <Dialog
@@ -862,6 +798,143 @@ export default function EmailTemplateManager() {
             }}
           >
             Yes, Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openFormDialog}
+        onClose={() => setOpenFormDialog(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            overflow: "hidden",
+            boxShadow: 6
+          }
+        }}
+      >
+        {/* HEADER */}
+        <DialogTitle
+          sx={{
+            background: settings?.header_color || "#1976d2",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "1.2rem",
+            py: 2
+          }}
+        >
+          {editing ? "Edit Email Template" : "New Email Registration"}
+        </DialogTitle>
+
+        {/* CONTENT */}
+        <DialogContent sx={{ p: 3 }}>
+          <Typography
+            variant="subtitle1"
+            fontWeight={700}
+            sx={{ mb: 2, mt: 1 }}
+          >
+            Email Account Details
+          </Typography>
+
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Sender Name"
+                value={form.sender_name}
+                onChange={(e) =>
+                  setForm({ ...form, sender_name: e.target.value })
+                }
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <TextField
+                select
+                fullWidth
+                label="Department"
+                value={form.department_id || ""}
+                onChange={(e) =>
+                  setForm({ ...form, department_id: e.target.value })
+                }
+              >
+                <MenuItem value="">Select Department</MenuItem>
+                {departments.map((d) => (
+                  <MenuItem
+                    key={d.dprtmnt_id}
+                    value={d.dprtmnt_id}
+                  >
+                    {d.dprtmnt_name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Employee ID"
+                value={form.employee_id || ""}
+                onChange={(e) =>
+                  setForm({ ...form, employee_id: e.target.value })
+                }
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={form.is_active}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        is_active: e.target.checked
+                      })
+                    }
+                  />
+                }
+                label="Active"
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+
+        {/* ACTIONS */}
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2,
+            borderTop: "1px solid #e0e0e0"
+          }}
+        >
+          <Button
+            onClick={() => setOpenFormDialog(false)}
+            color="error"
+            variant="outlined"
+          >
+            Cancel
+          </Button>
+
+          <Button
+            variant="contained"
+            sx={{
+              px: 4,
+              fontWeight: 600
+            }}
+            onClick={async () => {
+              if (editing) {
+                await handleUpdate();
+              } else {
+                await handleAdd();
+              }
+
+              setOpenFormDialog(false);
+            }}
+          >
+            {editing ? "Update Template" : "Save Template"}
           </Button>
         </DialogActions>
       </Dialog>

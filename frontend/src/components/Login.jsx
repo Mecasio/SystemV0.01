@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
-import { Container, Box, Snackbar, Alert } from "@mui/material";
+import { Container, Box, Snackbar, Alert, Typography, Button } from "@mui/material";
 import {
   Email as EmailIcon,
   Lock as LockIcon,
@@ -15,6 +15,8 @@ import Logo from "../assets/Logo.png";
 import { SettingsContext } from "../App";
 import API_BASE_URL from "../apiConfig";
 import AnnouncementSlider from "../components/AnnouncementSlider";
+import { Link as RouterLink } from "react-router-dom";
+
 const Login = ({ setIsAuthenticated }) => {
   const settings = useContext(SettingsContext);
 
@@ -288,7 +290,7 @@ const Login = ({ setIsAuthenticated }) => {
                   paddingLeft: "2.5rem",
                   height: "55px",
                   border: "2px solid black",
-                   borderRadius: "10px",
+                  borderRadius: "10px",
                 }}
               />
               <EmailIcon
@@ -317,7 +319,7 @@ const Login = ({ setIsAuthenticated }) => {
                   paddingLeft: "2.5rem",
                   height: "55px",
                   border: "2px solid black",
-                   borderRadius: "10px",
+                  borderRadius: "10px",
                 }}
               />
               <LockIcon
@@ -374,16 +376,38 @@ const Login = ({ setIsAuthenticated }) => {
               </span>
             </div>
 
-            {/* Register Link */}
-            <div
-              className="LinkContainer RegistrationLink"
-              style={{ margin: "0.1rem 0rem" }}
+            <Box
+              sx={{
+                mt: 2,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 1,
+              }}
             >
-              <p>Doesn't Have an Account?</p>
-              <span>
-                <Link to={"/register"}>Register Here</Link>
-              </span>
-            </div>
+              <Typography variant="body1" color="textSecondary" align="center">
+                Welcome! If you are a new applicant or have not yet finalized your registration, you may create an account now.
+                Registering an account enables you to submit your application and access all required information.
+              </Typography>
+
+
+              <Button
+                component={RouterLink}
+                to="/register"
+                variant="outlined"
+
+                sx={{
+                  textTransform: "none",
+                  fontWeight: "bold",
+                  px: 3,
+                  py: 1,
+                  borderRadius: 2,
+
+                }}
+              >
+               Register Now
+              </Button>
+            </Box>
           </div>
 
           {/* ✅ Footer (aligned properly) */}

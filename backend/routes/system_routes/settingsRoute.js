@@ -317,8 +317,12 @@ router.post("/branches", async (req, res) => {
       start_date: null,
       end_date: null,
 
+      start_time: null,
+      end_time: null,
+
+
       // ✅ INCLUDED
-      cademicPrograms: [
+      academicPrograms: [
         { id: 0, name: "Undergraduate", open: 1 },
         { id: 1, name: "Graduate", open: 0 },
         { id: 2, name: "Techvoc", open: 0 },
@@ -353,7 +357,9 @@ router.put("/branches/:id", async (req, res) => {
     registration_open,
     start_date,
     end_date,
-    academicPrograms, // ✅ added
+    start_time,
+    end_time,
+    academicPrograms
   } = req.body;
 
   try {
@@ -386,8 +392,17 @@ router.put("/branches/:id", async (req, res) => {
 
         return {
           ...b,
-          branch: branch ?? b.branch,
-          address: address ?? b.address,
+
+          branch:
+            typeof branch !== "undefined"
+              ? branch
+              : b.branch,
+
+          address:
+            typeof address !== "undefined"
+              ? address
+              : b.address,
+
           registration_open:
             typeof registration_open !== "undefined"
               ? registration_open
@@ -403,12 +418,24 @@ router.put("/branches/:id", async (req, res) => {
               ? end_date || null
               : b.end_date,
 
-          // ✅ THIS WAS MISSING
-          academicPrograms: academicPrograms ?? b.academicPrograms,
+          start_time:
+            typeof start_time !== "undefined"
+              ? start_time || null
+              : b.start_time,
+
+          end_time:
+            typeof end_time !== "undefined"
+              ? end_time || null
+              : b.end_time,
+
+          academicPrograms:
+            academicPrograms ?? b.academicPrograms
         };
       }
+
       return b;
     });
+
 
     if (!found) {
       return res.status(404).json({ message: "Branch not found" });
@@ -457,74 +484,101 @@ router.get("/registration-status/:branch_id", async (req, res) => {
 
   try {
     const [rows] = await db.query(
-      "SELECT branches FROM company_settings WHERE id = 1",
+      "SELECT branches FROM company_settings WHERE id = 1"
     );
 
     if (rows.length === 0) {
-      return res.status(404).json({ message: "No settings found" });
+      return res.status(404).json({
+        message: "No settings found"
+      });
     }
 
     let branches = JSON.parse(rows[0].branches || "[]");
 
     const now = new Date(
-      new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" })
+      new Date().toLocaleString("en-US", {
+        timeZone: "Asia/Manila"
+      })
     );
 
     let updated = false;
 
+    const combineDateTime = (dateStr, timeStr) => {
+      if (!dateStr || !timeStr) return null;
+
+      return new Date(
+        `${dateStr}T${timeStr}:00`
+      );
+    };
+
     const updatedBranches = branches.map((b) => {
+
       if (b.id == branch_id) {
-        const parseDate = (dateStr, isEnd = false) => {
-          if (!dateStr) return null;
 
-          const d = new Date(dateStr);
+        const start = combineDateTime(
+          b.start_date,
+          b.start_time
+        );
 
-          if (isEnd) {
-            d.setHours(23, 59, 59, 999); // ✅ make end of day
+        const end = combineDateTime(
+          b.end_date,
+          b.end_time
+        );
+
+        let isOpen = false;
+
+        if (start && end) {
+
+          if (now >= start && now <= end) {
+            isOpen = true;
           }
 
-          return d;
+          if (now > end) {
+            updated = true;
+            isOpen = false;
+          }
+
+        }
+
+        return {
+          ...b,
+          registration_open: isOpen ? 1 : 0
         };
 
-        const start = parseDate(b.start_date);
-        const end = parseDate(b.end_date, true);
-
-        if (end && now > end) {
-          updated = true;
-          return {
-            ...b,
-            registration_open: 0, // ✅ just close
-            // ❌ DO NOT DELETE DATES
-          };
-        }
-
-        // WITHIN RANGE
-        if (start && end) {
-          return {
-            ...b,
-            registration_open: now >= start && now <= end ? 1 : 0,
-          };
-        }
       }
 
       return b;
+
     });
 
     if (updated) {
-      await db.query("UPDATE company_settings SET branches = ? WHERE id = 1", [
-        JSON.stringify(updatedBranches),
-      ]);
+
+      await db.query(
+        "UPDATE company_settings SET branches = ? WHERE id = 1",
+        [JSON.stringify(updatedBranches)]
+      );
+
     }
 
-    const branch = updatedBranches.find((b) => b.id == branch_id);
+    const branch = updatedBranches.find(
+      (b) => b.id == branch_id
+    );
 
     res.json({
-      registration_open: branch?.registration_open || 0,
+      registration_open:
+        branch?.registration_open || 0
     });
+
   } catch (err) {
+
     console.error("STATUS ERROR:", err);
-    res.status(500).json({ message: err.message });
+
+    res.status(500).json({
+      message: err.message
+    });
+
   }
 });
+
 
 module.exports = router;

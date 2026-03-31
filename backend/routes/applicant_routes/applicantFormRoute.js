@@ -247,7 +247,7 @@ router.post("/add-applicant", async (req, res) => {
     // ------------------
 
     const [activeYearResult] = await db3.query(`
-      SELECT yt.year_description, st.semester_code
+      SELECT yt.year_description, st.semester_id
       FROM active_school_year_table sy
       JOIN year_table yt ON yt.year_id = sy.year_id
       JOIN semester_table st ON st.semester_id = sy.semester_id
@@ -256,7 +256,7 @@ router.post("/add-applicant", async (req, res) => {
     `);
 
     const year = String(activeYearResult[0].year_description).split("-")[0];
-    const semCode = activeYearResult[0].semester_code;
+    const semCode = activeYearResult[0].semester_id;
 
     const [countRes] = await db.query(
       "SELECT COUNT(*) AS count FROM applicant_numbering_table"
