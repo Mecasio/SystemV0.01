@@ -573,7 +573,8 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
 
         { title: "Add Faculty Accounts", link: "/register_prof", icon: PersonAdd, page_id: 70 },
         { title: "Add Registrar Account", link: "/register_registrar", icon: PersonAdd, page_id: 71 },
-        { title: "Add Student Account", link: "/register_student", icon: PersonAdd, page_id: 72 },
+        // { title: "Add Student Account", link: "/register_student", icon: PersonAdd, page_id: 72 },
+        { title: "Create Student Account", link: "/student_accounts", icon: Info, page_id: 143 },
         { title: "Professor Education", link: "/superadmin_professor_education", icon: PersonAdd, page_id: 109 },
       ]
     },

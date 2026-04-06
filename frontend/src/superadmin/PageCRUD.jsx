@@ -515,7 +515,7 @@ const PageCRUD = () => {
                     <Button
                         onClick={handleSubmit}
                         variant="contained"
-                        sx={{ bgcolor: mainColor, "&:hover": { bgcolor: `${mainColor}CC` } }}
+                    
                     >
                         {currentPageId ? "Update Page" : "Add Page"}
                     </Button>

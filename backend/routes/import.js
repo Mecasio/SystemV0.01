@@ -489,7 +489,7 @@ router.post("/import-xlsx-into-enrolled-subject", upload.single("file"), async (
           `SELECT year_id FROM year_table WHERE TRIM(year_description) = TRIM(?) LIMIT 1`,
           [curriculumYearDescription],
         );
-        
+
         if (!currYearRows.length) {
           console.log("[IMPORT][GROUP] Curriculum year not found", {
             studentNumber,
@@ -1294,7 +1294,7 @@ router.post("/import-program-tagging-xlsx", upload.single("file"), async (req, r
             }
           }
         }
-        
+
         if (!programId) {
           skippedItems.push({
             row: index + 2,
@@ -1579,7 +1579,7 @@ router.post("/api/exam/import", upload.single("file"), async (req, res) => {
       ],
     );
 
-    (req.app.get("io") || { emit: () => {} }).emit("notification", {
+    (req.app.get("io") || { emit: () => { } }).emit("notification", {
       type: "upload",
       message: "📊 Bulk Entrance Exam Scores uploaded",
       applicant_number: null,
@@ -1705,12 +1705,12 @@ router.post("/import_xslx_student", upload.single("file"), async (req, res) => {
   }
 });
 
+
 router.post("/api/person/import", upload.single("file"), async (req, res) => {
   try {
-    const fileValidation = validateSpreadsheetUpload(req.file);
-    if (!fileValidation.valid) {
-      return res.status(fileValidation.status).json({ error: fileValidation.error });
-    }
+    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+
+    const XLSX = require("xlsx");
 
     // ---------------------------------------
     // HELPERS
@@ -1743,21 +1743,10 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
     // ---------------------------------------
     // READ EXCEL
     // ---------------------------------------
-    const workbook = readWorkbookSafely(req.file);
+    const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    if (!sheet) {
-      return res.status(400).json({ error: "Spreadsheet has no worksheet" });
-    }
-    if (hasFormulaCell(sheet)) {
-      return res.status(400).json({ error: "Formulas are not allowed in uploads" });
-    }
-
-    const { rows: rawRows, truncatedByMaxRows } = getSheetRowsWithLimits(sheet, {
-      sheetToJsonOptions: { header: 1, defval: "" },
-    });
-    const rows = rawRows.slice(1);
-    const { cleanRows, flaggedRows } = removeFormulaLikeRows(rows);
-    const { rowsToInsert } = prepareRowsForInsert(cleanRows, req.file.size);
+    const raw = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    const rows = raw.slice(1);
 
     // ---------------------------------------
     // COUNTS (OLD STYLE)
@@ -1770,167 +1759,51 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
     // ---------------------------------------
     // OLD IMPORTER STUDENT NUMBER RULE
     // ---------------------------------------
-    const STUD_NUM_REGEX = /^\d{9,10}$|^\d{3}-\d{3,5}[A-Z]?$/;
+    const STUD_NUM_REGEX =
+      /^\d{9,10}$|^\d{3}-\d{3,5}[A-Z]?$/;
 
     // ---------------------------------------
     // BASE COLUMNS
     // ---------------------------------------
     const columns = [
-      "student_number",
-      "profile_img",
-      "campus",
-      "academicProgram",
-      "classifiedAs",
-      "applyingAs",
-      "program",
-      "program2",
-      "program3",
-      "yearLevel",
-      "last_name",
-      "first_name",
-      "middle_name",
-      "extension",
-      "nickname",
-      "height",
-      "weight",
-      "lrnNumber",
-      "nolrnNumber",
-      "gender",
-      "pwdMember",
-      "pwdType",
-      "pwdId",
-      "birthOfDate",
-      "age",
-      "birthPlace",
-      "languageDialectSpoken",
-      "citizenship",
-      "religion",
-      "civilStatus",
-      "tribeEthnicGroup",
-      "cellphoneNumber",
-      "emailAddress",
-      "presentStreet",
-      "presentBarangay",
-      "presentZipCode",
-      "presentRegion",
-      "presentProvince",
-      "presentMunicipality",
-      "presentDswdHouseholdNumber",
-      "sameAsPresentAddress",
-      "permanentStreet",
-      "permanentBarangay",
-      "permanentZipCode",
-      "permanentRegion",
-      "permanentProvince",
-      "permanentMunicipality",
-      "permanentDswdHouseholdNumber",
-      "solo_parent",
-      "father_deceased",
-      "father_family_name",
-      "father_given_name",
-      "father_middle_name",
-      "father_ext",
-      "father_nickname",
-      "father_education",
-      "father_education_level",
-      "father_last_school",
-      "father_course",
-      "father_year_graduated",
-      "father_school_address",
-      "father_contact",
-      "father_occupation",
-      "father_employer",
-      "father_income",
-      "father_email",
-      "mother_deceased",
-      "mother_family_name",
-      "mother_given_name",
-      "mother_middle_name",
-      "mother_ext",
-      "mother_nickname",
-      "mother_education",
-      "mother_education_level",
-      "mother_last_school",
-      "mother_course",
-      "mother_year_graduated",
-      "mother_school_address",
-      "mother_contact",
-      "mother_occupation",
-      "mother_employer",
-      "mother_income",
-      "mother_email",
-      "guardian",
-      "guardian_family_name",
-      "guardian_given_name",
-      "guardian_middle_name",
-      "guardian_ext",
-      "guardian_nickname",
-      "guardian_address",
-      "guardian_contact",
-      "guardian_email",
-      "annual_income",
-      "schoolLevel",
-      "schoolLastAttended",
-      "schoolAddress",
-      "courseProgram",
-      "honor",
-      "generalAverage",
-      "yearGraduated",
-      "schoolLevel1",
-      "schoolLastAttended1",
-      "schoolAddress1",
-      "courseProgram1",
-      "honor1",
-      "generalAverage1",
-      "yearGraduated1",
-      "strand",
-      "cough",
-      "colds",
-      "fever",
-      "asthma",
-      "faintingSpells",
-      "heartDisease",
-      "tuberculosis",
-      "frequentHeadaches",
-      "hernia",
-      "chronicCough",
-      "headNeckInjury",
-      "hiv",
-      "highBloodPressure",
-      "diabetesMellitus",
-      "allergies",
-      "cancer",
-      "smokingCigarette",
-      "alcoholDrinking",
-      "hospitalized",
-      "hospitalizationDetails",
-      "medications",
-      "hadCovid",
-      "covidDate",
-      "vaccine1Brand",
-      "vaccine1Date",
-      "vaccine2Brand",
-      "vaccine2Date",
-      "booster1Brand",
-      "booster1Date",
-      "booster2Brand",
-      "booster2Date",
-      "chestXray",
-      "cbc",
-      "urinalysis",
-      "otherworkups",
-      "symptomsToday",
-      "remarks",
-      "termsOfAgreement",
-      "created_at",
+      "student_number", "profile_img", "campus", "academicProgram", "classifiedAs", "applyingAs",
+      "program", "program2", "program3", "yearLevel", "last_name", "first_name", "middle_name",
+      "extension", "nickname", "height", "weight", "lrnNumber", "nolrnNumber", "gender", "pwdMember",
+      "pwdType", "pwdId", "birthOfDate", "age", "birthPlace", "languageDialectSpoken", "citizenship",
+      "religion", "civilStatus", "tribeEthnicGroup", "cellphoneNumber", "emailAddress",
+      "presentStreet", "presentBarangay", "presentZipCode", "presentRegion", "presentProvince",
+      "presentMunicipality", "presentDswdHouseholdNumber", "sameAsPresentAddress",
+      "permanentStreet", "permanentBarangay", "permanentZipCode", "permanentRegion",
+      "permanentProvince", "permanentMunicipality", "permanentDswdHouseholdNumber", "solo_parent",
+      "father_deceased", "father_family_name", "father_given_name", "father_middle_name",
+      "father_ext", "father_nickname", "father_education", "father_education_level",
+      "father_last_school", "father_course", "father_year_graduated", "father_school_address",
+      "father_contact", "father_occupation", "father_employer", "father_income", "father_email",
+      "mother_deceased", "mother_family_name", "mother_given_name", "mother_middle_name",
+      "mother_ext", "mother_nickname", "mother_education", "mother_education_level",
+      "mother_last_school", "mother_course", "mother_year_graduated", "mother_school_address",
+      "mother_contact", "mother_occupation", "mother_employer", "mother_income", "mother_email",
+      "guardian", "guardian_family_name", "guardian_given_name", "guardian_middle_name",
+      "guardian_ext", "guardian_nickname", "guardian_address", "guardian_contact",
+      "guardian_email", "annual_income", "schoolLevel", "schoolLastAttended",
+      "schoolAddress", "courseProgram", "honor", "generalAverage", "yearGraduated",
+      "schoolLevel1", "schoolLastAttended1", "schoolAddress1", "courseProgram1",
+      "honor1", "generalAverage1", "yearGraduated1", "strand", "cough", "colds", "fever", "asthma",
+      "faintingSpells", "heartDisease", "tuberculosis", "frequentHeadaches", "hernia",
+      "chronicCough", "headNeckInjury", "hiv", "highBloodPressure", "diabetesMellitus",
+      "allergies", "cancer", "smokingCigarette", "alcoholDrinking", "hospitalized",
+      "hospitalizationDetails", "medications", "hadCovid", "covidDate", "vaccine1Brand",
+      "vaccine1Date", "vaccine2Brand", "vaccine2Date", "booster1Brand", "booster1Date",
+      "booster2Brand", "booster2Date", "chestXray", "cbc", "urinalysis", "otherworkups",
+      "symptomsToday", "remarks", "termsOfAgreement", "created_at",
     ];
 
     // ---------------------------------------
     // PROCESS ROWS
     // ---------------------------------------
-    for (let i = 0; i < rowsToInsert.length; i++) {
-      const row = rowsToInsert[i];
-      if (!row.some((v) => v)) continue;
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      if (!row.some(v => v)) continue;
 
       totalRows++;
 
@@ -1949,21 +1822,11 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
         "father_education",
         "mother_education",
         "pwdMember",
-        "pwdType",
+        "pwdType"
       ];
 
       // values that count as empty
-      const EMPTY_VALUES = [
-        "",
-        "-",
-        "—",
-        "None",
-        "none",
-        "N/A",
-        "n/a",
-        "No",
-        "no",
-      ];
+      const EMPTY_VALUES = ["", "-", "—", "None", "none", "N/A", "n/a", "No", "no"];
 
       const personValues = columns.map((col, idx) => {
         let v = row[idx] ?? null;
@@ -2037,11 +1900,11 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
 
         // Find program_id using program_code
         const [progResult] = await db3.query(
-          `SELECT program_id
-         FROM program_table
-         WHERE program_code = ?
+          `SELECT program_id 
+         FROM program_table 
+         WHERE program_code = ? 
          LIMIT 1`,
-          [programCode],
+          [programCode]
         );
 
         if (!progResult || progResult.length === 0) {
@@ -2056,28 +1919,29 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
         // Save ONLY program_id in person table
         personValues[colIdx] = program_id;
 
-        console.log(
-          `Saved program_id ${program_id} into personValues for ${columnName}`,
-        );
+        console.log(`Saved program_id ${program_id} into personValues for ${columnName}`);
       }
+
 
       // ---------------------------------------
       // INSERT PERSON
       // ---------------------------------------
+      const updateClause = columns
+        .filter(col => col !== "created_at")
+        .map(col => `${col} = VALUES(${col})`)
+        .join(", ");
+
       const [result] = await db3.query(
-        `INSERT INTO person_table (${columns.join(",")}) VALUES (?)`,
-        [personValues],
+        `INSERT INTO person_table (${columns.join(",")})
+   VALUES (?)
+   ON DUPLICATE KEY UPDATE ${updateClause}`,
+        [personValues]
       );
 
+      
       totalInserted++;
 
-      // ---------------------------------------
-      // INSERT STUDENT NUMBERING TABLE
-      // ---------------------------------------
-      await db3.query(
-        `INSERT INTO student_numbering_table (student_number, person_id) VALUES (?, ?)`,
-        [studentNumber, result.insertId],
-      );
+
     }
 
     // ---------------------------------------
@@ -2089,17 +1953,15 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
       totalValid,
       totalInvalid,
       totalRows,
-      message: `Imported ${totalInserted} of ${totalRows} rows (Invalid: ${totalInvalid})`,
-      warnings: {
-        truncatedByMaxRows,
-        formulaRowsRemoved: flaggedRows,
-      },
+      message: `Imported ${totalInserted} of ${totalRows} rows (Invalid: ${totalInvalid})`
     });
+
   } catch (err) {
     console.error("IMPORT ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 });
+
 
 router.post("/api/grades/import", upload.single("file"), async (req, res) => {
   try {
@@ -2879,7 +2741,7 @@ router.post("/api/qualifying_exam/import", async (req, res) => {
       ["upload", message, null, registrarEmail, registrarFullName],
     );
 
-    (req.app.get("io") || { emit: () => {} }).emit("notification", {
+    (req.app.get("io") || { emit: () => { } }).emit("notification", {
       type: "upload",
       message,
       applicant_number: null,

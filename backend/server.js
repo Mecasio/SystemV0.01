@@ -44,7 +44,7 @@ const allowedOrigins = [
   "http://192.168.50.55:5173",
   "http://192.168.50.211:5173",
   "http://136.239.248.62:5173",
-  "http://192.168.50.44:5173",
+  "http://192.168.50.54:5173",
   "http://192.168.1.9:5173",
 ];
 
@@ -124,6 +124,7 @@ const changePassword = require("./routes/auth_routes/changePassword");
 const facultyDegree = require("./routes/faculty_routes/facultyDegree");
 const feeRules = require("./routes/payment/feeRules");
 const registerStudent = require("./routes/student_routes/registerStudent");
+const studentAccountRoute = require("./routes/student_routes/studentAccounts");
 const curriculum = require("./routes/system_routes/curriculumRoute");
 const schoolYear = require("./routes/system_routes/schoolYear");
 const statistics = require("./routes/system_routes/statistics");
@@ -177,6 +178,7 @@ app.use("/", departmentSectionRoute);
 app.use("/", courseTaggingRoute);
 app.use("/api", settingsRoute);
 app.use("/", section);
+app.use("/api", studentAccountRoute);
 
 const uploadPath = path.join(__dirname, "uploads");
 

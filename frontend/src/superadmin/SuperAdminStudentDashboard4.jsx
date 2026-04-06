@@ -108,7 +108,7 @@ const SuperAdminStudentDashboard4 = () => {
 
     const checkAccess = async (employeeID) => {
         try {
-            const response = await axios.get(`http://localhost:5000/api/page_access/${employeeID}/${pageId}`);
+            const response = await axios.get(`${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`);
             if (response.data && response.data.page_privilege === 1) {
                 setHasAccess(true);
             } else {
@@ -169,7 +169,7 @@ const SuperAdminStudentDashboard4 = () => {
 
     const fetchByPersonId = async (personID) => {
         try {
-            const res = await axios.get(`http://localhost:5000/api/person/${personID}`);
+            const res = await axios.get(`${API_BASE_URL}/api/person/${personID}`);
             setPerson(res.data);
             setSelectedPerson(res.data);
             if (res.data?.applicant_number) {
@@ -224,7 +224,7 @@ const SuperAdminStudentDashboard4 = () => {
     const handleUpdate = async (updatedPerson) => {
         try {
             // ✅ force the request to the enrollment route
-            await axios.put(`http://localhost:5000/api/enrollment/person/${userID}`, updatedPerson);
+            await axios.put(`${API_BASE_URL}/api/enrollment/person/${userID}`, updatedPerson);
             console.log("✅ Auto-saved to ENROLLMENT DB3");
         } catch (error) {
             console.error("❌ Auto-save failed:", error);
@@ -247,7 +247,7 @@ const SuperAdminStudentDashboard4 = () => {
     // 🖱️ Triggered when input loses focus (safety net)
     const handleBlur = async () => {
         try {
-            await axios.put(`http://localhost:5000/api/enrollment/person/${userID}`, person);
+            await axios.put(`${API_BASE_URL}/api/enrollment/person/${userID}`, person);
             console.log("✅ Auto-saved (on blur) to ENROLLMENT DB3");
         } catch (err) {
             console.error("❌ Auto-save failed (on blur):", err);
@@ -333,7 +333,7 @@ const SuperAdminStudentDashboard4 = () => {
 
     const handleExamPermitClick = async () => {
         try {
-            const res = await axios.get(`http://localhost:5000/api/verified-exam-applicants`);
+            const res = await axios.get(`${API_BASE_URL}/api/verified-exam-applicants`);
             const verified = res.data.some(a => a.person_id === parseInt(userID));
 
             if (!verified) {
@@ -386,7 +386,7 @@ const SuperAdminStudentDashboard4 = () => {
 
     useEffect(() => {
         if (!userID) return;
-        axios.get(`http://localhost:5000/api/verified-exam-applicants`)
+        axios.get(`${API_BASE_URL}/api/verified-exam-applicants`)
             .then(res => {
                 const verified = res.data.some(a => a.person_id === parseInt(userID));
                 setCanPrintPermit(verified);

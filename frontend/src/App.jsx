@@ -32,6 +32,7 @@ import API_BASE_URL from "./apiConfig";
 import StudentListForEnrollment from "./registrar/StudentListForEnrollment";
 import ApplicationProcessAdmin from "./superadmin/ApplicationProcessAdmin";
 import CourseTaggingForSummerCollege from "./registrar/CourseTaggingForSummerCollege";
+import StudentAccounts from "./superadmin/StudentAccounts";
 
 // ✅ Create a Context so all components can access settings
 export const SettingsContext = createContext(null);
@@ -1817,6 +1818,14 @@ function App() {
                         element={
                           <ProtectedRoute>
                             <SuperAdminStudentDashboard5 />
+                          </ProtectedRoute>
+                        }
+                      />
+                       <Route
+                        path="/student_accounts"
+                        element={
+                          <ProtectedRoute>
+                            <StudentAccounts />
                           </ProtectedRoute>
                         }
                       />
