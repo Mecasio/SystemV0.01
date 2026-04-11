@@ -254,9 +254,16 @@ const PageCRUD = () => {
     //     }
     // };
 
-
     const handleOpen = () => {
         resetForm();
+
+        if (pages.length > 0) {
+            const lastId = Math.max(...pages.map(p => Number(p.id)));
+            setPageIdInput(lastId + 1);
+        } else {
+            setPageIdInput(1); // if no records yet
+        }
+
         setOpen(true);
     };
 
@@ -469,6 +476,7 @@ const PageCRUD = () => {
                                 value={pageIdInput}
                                 onChange={(e) => setPageIdInput(e.target.value)}
                                 required
+                                InputProps={{ readOnly: true }}
                             />
                         )}
 
@@ -515,7 +523,7 @@ const PageCRUD = () => {
                     <Button
                         onClick={handleSubmit}
                         variant="contained"
-                    
+
                     >
                         {currentPageId ? "Update Page" : "Add Page"}
                     </Button>

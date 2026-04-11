@@ -957,16 +957,25 @@ const SuperAdminStudentDashboard1 = () => {
 
       if (res.data.success) {
         showSnack(
-          `✅ Imported: ${res.data.totalRows} | Updated: ${res.data.updated} | Skipped: ${res.data.skipped} | Invalid: ${res.data.totalInvalid}`,
+          `✅ Imported: ${res.data.totalRows} | Updated: ${res.data.updated} | Skipped: ${res.data.skipped}`,
           "success",
         );
-        setSkippedNotFoundCount(res.data.skippedNotFoundCount || 0);
-        setSkippedNotFoundStudents(res.data.skippedNotFoundStudents || []);
-        if (res.data.skippedNotFoundStudents?.length) {
-          console.group("[IMPORT] Students not found in records");
-          console.table(res.data.skippedNotFoundStudents);
+
+        // ✅ NEW: use missingStudents directly
+        setSkippedNotFoundCount(res.data.missingStudents?.length || 0);
+        setSkippedNotFoundStudents(
+          (res.data.missingStudents || []).map((sn) => ({
+            studentNumber: sn,
+          })),
+        );
+
+        // ✅ CLEAN TERMINAL OUTPUT (FINAL ONLY)
+        if (res.data.missingStudents?.length) {
+          console.group("❌ Missing Students (FINAL LIST)");
+          console.table(res.data.missingStudents.map((sn) => ({ studentNumber: sn })));
           console.groupEnd();
         }
+
         setExcelFile(null);
         if (excelInputRef.current) {
           excelInputRef.current.value = "";
@@ -1291,20 +1300,51 @@ const SuperAdminStudentDashboard1 = () => {
           </Button>
         </Box>
       </Box>
-      {skippedNotFoundCount > 0 && (
-        <Box
-          display="flex"
-          alignItems="center"
-          gap={1}
-          mb={2}
-          sx={{ color: "#8B0000", fontWeight: "bold" }}
-        >
-          <Typography sx={{ fontWeight: "bold", color: "#8B0000" }}>
-            {skippedNotFoundCount} students was not found in records. Check
-            browser console for details.
+      {skippedNotFoundStudents.length > 0 && (
+        <Box mt={2}>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: "bold",
+              color: "#8B0000",
+              mb: 1,
+            }}
+          >
+            Missing Students List
           </Typography>
+
+          <TableContainer component={Paper}>
+            <Table size="small">
+              <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
+                <TableRow>
+                  <TableCell sx={{ color: "white", fontWeight: "bold", border: `1px solid ${borderColor}`  }}>
+                    #
+                  </TableCell>
+
+                  <TableCell sx={{ color: "white", fontWeight: "bold", border: `1px solid ${borderColor}`  }}>
+                    Student Number
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+
+              <TableBody>
+                {skippedNotFoundStudents.map((student, index) => (
+                  <TableRow key={index}>
+                    <TableCell sx={{ color: "black", fontWeight: "bold", border: `1px solid ${borderColor}`  }}>
+                      {index + 1}
+                    </TableCell>
+
+                    <TableCell  sx={{ color: "black", fontWeight: "bold", border: `1px solid ${borderColor}`  }}>
+                      {student.studentNumber}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </Box>
       )}
+
       <br />
 
       <TableContainer component={Paper} sx={{ width: "100%", mb: 1 }}>

@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { Typography, Box } from "@mui/material";
 
+// ✅ MUI Icons
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+
 const Clock = () => {
   const [dateTime, setDateTime] = useState(new Date());
 
   useEffect(() => {
     const timer = setInterval(() => {
       setDateTime(new Date());
-    }, 1000); // smooth
+    }, 1000);
 
     return () => clearInterval(timer);
   }, []);
@@ -30,12 +34,22 @@ const Clock = () => {
 
   return (
     <Box sx={{ textAlign: "right" }}>
-      <Typography sx={{  fontSize: "16px" }}>
-        <b>Date:</b> {formattedDate}
-      </Typography>
-      <Typography sx={{  fontSize: "16px"  }}>
-        <b>Time:</b> {formattedTime}
-      </Typography>
+      
+      {/* DATE */}
+      <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 1 }}>
+        <CalendarTodayIcon sx={{ fontSize: 18 }} />
+        <Typography sx={{ fontSize: "16px" }}>
+          <b>Date:</b> {formattedDate}
+        </Typography>
+      </Box>
+
+      {/* TIME */}
+      <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 1 }}>
+        <AccessTimeIcon sx={{ fontSize: 18 }} />
+        <Typography sx={{ fontSize: "16px" }}>
+          <b>Time:</b> {formattedTime}
+        </Typography>
+      </Box>
 
     </Box>
   );

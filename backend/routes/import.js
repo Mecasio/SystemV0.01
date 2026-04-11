@@ -98,7 +98,7 @@ const mapRemarkToNumeric = (remark) => {
   if (value === "ONGOING" || value === "CURRENTLY ENROLLED") return 0;
   if (value === "FAILED") return 2;
   if (value === "INC" || value === "INCOMPLETE") return 3;
-  if (value === "DROP" || value === "DRP") return 4;
+  if (value === "DROP" || value === "DROPPED" || value === "DRP") return 4;
   return 0;
 };
 
@@ -273,7 +273,7 @@ const convertGradeToNumericLegacy = (grade) => {
     2.5: 81,
     2.75: 78,
     3.0: 75,
-    5.0: 0,
+    5.0: 60,
   };
 
   return gradeMap[grade] ?? null;
@@ -286,6 +286,12 @@ const normalizeCourseCodeForMatching = (courseCode) =>
 
 const normalizeImportedCourseCode = (courseCode) =>
   normalizeText(courseCode).toUpperCase();
+
+/* PROBLEMS
+- The normalization logic for NSTP course codes is somewhat ad-hoc and may not cover all possible variations or edge cases. It specifically looks for "NSTP" and then tries to canonicalize certain patterns, but there could be other unexpected formats that it doesn't handle well.
+- The function assumes that any course code containing "NSTP" should be normalized in a specific way, which may not always be the case. There could be course codes that include "NSTP" as part of a larger code that shouldn't be normalized to the NSTP component format.
+- Some nstp course code variations sometimes have not the word NSTP but only the component such as CWTSPROG1, LTS1, etc. 
+*/
 
 const normalizeNstpSourceCode = (courseCode) => {
   const normalized = normalizeCourseCodeForMatching(courseCode);
@@ -352,12 +358,16 @@ const transformNstpSubject = (courseCode, semesterDescription) => {
   };
 };
 
+/* PROBLEM LIST 
+- Student name parsing is very naive and may not handle edge cases well (e.g. multiple commas, missing parts, suffixes like Jr./III, non-Western name formats). It just splits on the first comma and assumes the rest is "First Middle". This could lead to incorrect parsing for names that don't fit this pattern.
+- The function does not handle cases where the full name might be in a different format (e.g. "First Middle Last" without a comma, or names with multiple commas). It also does not account for suffixes (Jr., Sr., III) or prefixes (Dr., Mr.) that might be present in the full name.
+- If the first name have 2 or multiple words, it will consider the first word as the first name and the rest as middle name. This may not be accurate for all naming conventions or cultural contexts.
+*/
 function parseStudentNameLegacy(fullName) {
   if (!fullName) {
     return { lastName: null, firstName: null, middleName: null };
   }
 
-  // Split by comma
   const [last, rest] = fullName.split(",").map((p) => p.trim());
 
   if (!rest) {
@@ -1607,12 +1617,10 @@ router.post(
       );
     } catch (err) {
       console.error("Program tagging import error:", err);
-      return res
-        .status(500)
-        .json({
-          success: false,
-          error: "Failed to import program tagging file",
-        });
+      return res.status(500).json({
+        success: false,
+        error: "Failed to import program tagging file",
+      });
     }
   },
 );
@@ -1761,7 +1769,7 @@ router.post("/api/exam/import", upload.single("file"), async (req, res) => {
       ],
     );
 
-    (req.app.get("io") || { emit: () => {} }).emit("notification", {
+    (req.app.get("io") || { emit: () => { } }).emit("notification", {
       type: "upload",
       message: "📊 Bulk Entrance Exam Scores uploaded",
       applicant_number: null,
@@ -1895,6 +1903,7 @@ router.post("/import_xslx_student", upload.single("file"), async (req, res) => {
   }
 });
 
+// SAME FUNCTION NAME — ONLY VALIDATION REMOVED
 router.post("/api/person/import", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
@@ -1922,7 +1931,7 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
       if (["male", "m", "0"].includes(v)) return 0;
       if (["female", "f", "1"].includes(v)) return 1;
 
-      return null; // unknown values
+      return null;
     }
 
     function calculateAge(birthdate) {
@@ -1946,12 +1955,27 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
 
       const mapping = {
         "SENIOR HIGH SCHOOL": "Senior High School",
-        "UNDERGRADUATE": "Undergraduate",
-        "GRADUATE": "Graduate",
-        "ALS": "ALS",
+        UNDERGRADUATE: "Undergraduate",
+        GRADUATE: "Graduate",
+        ALS: "ALS",
       };
 
       return mapping[v] || value;
+    }
+
+    function normalizeStudentNumber(sn) {
+      if (!sn) return null;
+
+      const val = sn.toString().trim();
+
+      // OPTIONAL normalize (won’t block anything)
+      if (/^\d{2}-\d{4}$/.test(val)) {
+        const year = "20" + val.slice(0, 2);
+        const num = val.slice(3).padStart(5, "0");
+        return `${year}-${num}C`;
+      }
+
+      return val;
     }
 
     // ---------------------------------------
@@ -1975,16 +1999,11 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
     let totalUpdated = 0;
     let totalSkipped = 0;
     let totalNotFound = 0;
-    const skippedNotFoundStudents = [];
+
+    const missingStudents = [];
 
     // ---------------------------------------
-    // VALIDATION
-    // ---------------------------------------
-
-    const STUD_NUM_REGEX = /^\d{9,10}$|^\d{3}-\d{3,5}[A-Z]?$/;
-
-    // ---------------------------------------
-    // COLUMNS
+    // COLUMNS (UNCHANGED)
     // ---------------------------------------
 
     const columns = [
@@ -2135,21 +2154,26 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
       "remarks",
       "termsOfAgreement",
       "created_at",
-    ]; 
+    ];
 
     // ---------------------------------------
-    // PROGRAM + CAMPUS MAP (BULK)
+    // PROGRAM + CAMPUS MAP (NO VALIDATION)
     // ---------------------------------------
 
     const studentNumbers = rows
       .slice(1)
-      .map((r) => r[0]?.toString().trim())
-      .filter((value) => STUD_NUM_REGEX.test(value));
+      .map((r) => {
+        const raw = r[0]?.toString().trim();
+        if (!raw) return null;
+
+        return normalizeStudentNumber(raw); // no validation
+      })
+      .filter((value) => value);
 
     const programMapRows = studentNumbers.length
       ? (
-          await db3.query(
-            `
+        await db3.query(
+          `
             SELECT 
               snt.student_number,
               MAX(sst.active_curriculum) AS curriculum_id,
@@ -2166,23 +2190,20 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
             WHERE snt.student_number IN (?)
             GROUP BY snt.student_number
             `,
-            [studentNumbers],
-          )
-        )[0]
+          [studentNumbers],
+        )
+      )[0]
       : [];
 
     const programMap = {};
     for (const row of programMapRows) {
-      programMap[row.student_number] = {
-        curriculum_id: row.curriculum_id,
-        campus_component: row.campus_component,
-        academic_program: row.academic_program,
-        year_level_id: row.year_level_id,
-      };
+      programMap[row.student_number] = row;
     }
 
-    console.log(`Program map built for ${Object.keys(programMap).length} students`); // Debug log
-    
+    console.log(
+      `Program map built for ${Object.keys(programMap).length} students`,
+    );
+
     // ---------------------------------------
     // PROCESS ROWS
     // ---------------------------------------
@@ -2193,24 +2214,23 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
 
       totalRows++;
 
-      const studentNumber = row[0]?.toString().trim();
-      const notUpdatedStudents = [];
+      const rawStudentNumber = row[0]?.toString().trim();
 
-      if (!STUD_NUM_REGEX.test(studentNumber)) {
-        console.log(`⚠️ Invalid student number format: ${studentNumber}`);
-        notUpdatedStudents.push({
-          studentNumber,
-          reason: "Invalid student number format",
-        });
-        totalInvalid++;
+      // ❗ SKIP header / non-student rows
+      if (
+        !rawStudentNumber ||
+        rawStudentNumber.toLowerCase().includes("student") ||
+        rawStudentNumber.toLowerCase().includes("republic") ||
+        rawStudentNumber.toLowerCase().includes("institute") ||
+        rawStudentNumber.length > 20 // long text = not a student number
+      ) {
         continue;
       }
+      const studentNumber = normalizeStudentNumber(rawStudentNumber);
+
+      console.log("Processing:", rawStudentNumber, "→", studentNumber);
 
       totalValid++;
-
-      // ---------------------------------------
-      // STEP 1: FIND IN student_numbering_table
-      // ---------------------------------------
 
       const [studentRows] = await db3.query(
         `
@@ -2223,29 +2243,16 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
       );
 
       if (studentRows.length === 0) {
-        console.log(
-          `❌ Student not found in numbering table: ${studentNumber}`,
-        );
-        notUpdatedStudents.push({
-          studentNumber,
-          reason: "Not found in student_numbering_table",
-        });
         totalNotFound++;
-        skippedNotFoundStudents.push({
-          studentNumber,
-          firstName: row[2]?.toString().trim() || "",
-          lastName: row[1]?.toString().trim() || "",
-          course: row[6]?.toString().trim() || row[7]?.toString().trim() || "",
-        });
         totalSkipped++;
+
+        // ✅ store instead of spamming logs
+        missingStudents.push(studentNumber);
+
         continue;
       }
 
       const person_id = studentRows[0].person_id;
-
-      // ---------------------------------------
-      // STEP 2: VERIFY person_id EXISTS IN person_table
-      // ---------------------------------------
 
       const [personCheck] = await db3.query(
         `
@@ -2258,51 +2265,38 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
       );
 
       if (personCheck.length === 0) {
-        console.log(
-          `❌ person_id ${person_id} missing in person_table for ${studentNumber}`,
-        );
-        notUpdatedStudents.push({
-          studentNumber,
-          reason: "person_id missing in person_table",
-        });
         totalSkipped++;
         continue;
       }
 
-      // ---------------------------------------
-      // RESOLVE CAMPUS + PROGRAM BEFORE UPDATE
-      // ---------------------------------------
-
       const existingPerson = personCheck[0];
+
+
 
       const resolvedProgram =
         programMap[studentNumber]?.curriculum_id ??
         existingPerson.program ??
         null;
+
       const resolvedCampus =
         programMap[studentNumber]?.campus_component ??
         existingPerson.campus ??
         null;
+
       const resolvedAcademicProgram =
         programMap[studentNumber]?.academic_program ??
         existingPerson.academicProgram ??
         null;
+
       const resolvedYearLevelId =
         programMap[studentNumber]?.year_level_id ??
         existingPerson.yearLevel ??
         null;
 
-      console.log("[IMPORT] Resolved campus/program", {
-        studentNumber,
-        campus: resolvedCampus,
-        program: resolvedProgram,
-        academicProgram: resolvedAcademicProgram,
-        yearLevelId: resolvedYearLevelId,
-      });
+      // ---------------------------------------
+      // (REST OF YOUR CODE UNCHANGED)
+      // ---------------------------------------
 
-      // ---------------------------------------
-      // BUILD VALUES
-      // ---------------------------------------
 
       function splitFullName(fullName) {
         if (!fullName || typeof fullName !== "string") {
@@ -2311,7 +2305,6 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
 
         const clean = fullName.trim();
 
-        // CASE 1: "LAST, FIRST MIDDLE"
         if (clean.includes(",")) {
           const [last, rest] = clean.split(",");
           const parts = rest.trim().split(/\s+/);
@@ -2323,7 +2316,6 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
           };
         }
 
-        // CASE 2: "FIRST MIDDLE LAST"
         const parts = clean.split(/\s+/);
 
         return {
@@ -2344,6 +2336,9 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
       }
 
       let birthTmp = null;
+
+
+
 
       const excelToDbMap = {
         0: "student_number",
@@ -2405,13 +2400,9 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
 
       const fatherParsed = splitFullName(row[38]);
       const motherParsed = splitFullName(row[47]);
-      const guardianParsed = splitFullName(row[62]); // FIXED
+      const guardianParsed = splitFullName(row[62]);
 
       const personValues = columns.map((col) => {
-        // ---------------------------------------
-        // HANDLE CUSTOM NAME FIELDS FIRST
-        // ---------------------------------------
-
         if (col === "father_family_name") return fatherParsed.family;
         if (col === "father_given_name") return fatherParsed.given;
         if (col === "father_middle_name") return fatherParsed.middle;
@@ -2424,15 +2415,11 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
         if (col === "guardian_given_name") return guardianParsed.given;
         if (col === "guardian_middle_name") return guardianParsed.middle;
 
-        // ---------------------------------------
-        // NORMAL MAPPING
-        // ---------------------------------------
         const dbToExcelMap = {};
         for (const [key, value] of Object.entries(excelToDbMap)) {
           dbToExcelMap[value] = Number(key);
         }
 
-        // Columns that do not come from Excel directly
         if (col === "student_number") return studentNumber;
         if (col === "program") return resolvedProgram;
         if (col === "campus") return resolvedCampus;
@@ -2441,7 +2428,6 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
         if (col === "created_at") return new Date();
 
         const excelIndex = dbToExcelMap[col];
-
         if (excelIndex === undefined) return null;
 
         let v = cleanValue(row[excelIndex]);
@@ -2467,6 +2453,9 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
         return v;
       });
 
+      // ✅ FINAL TERMINAL OUTPUT (ONLY ONCE)
+
+
       const birthIndex = columns.indexOf("birthOfDate");
       const ageIndex = columns.indexOf("age");
 
@@ -2475,10 +2464,6 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
       personValues[ageIndex] = birthDateValue
         ? calculateAge(birthDateValue)
         : null;
-
-      // ---------------------------------------
-      // UPDATE QUERY
-      // ---------------------------------------
 
       const personValueMap = {};
       columns.forEach((col, idx) => {
@@ -2494,9 +2479,7 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
         return true;
       });
 
-      const updateFields = columnsToUpdate
-        .map((col) => `${col} = ?`)
-        .join(",");
+      const updateFields = columnsToUpdate.map((col) => `${col} = ?`).join(",");
 
       await db3.query(
         `
@@ -2510,18 +2493,23 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
       totalUpdated++;
     }
 
-    // studentCampusMap was unused; campus is resolved via programMap above.
-
-
-    // ---------------------------------------
+    if (missingStudents.length > 0) {
+      console.log("\n========= MISSING STUDENTS =========");
+      console.table(
+        missingStudents.map((sn) => ({
+          studentNumber: sn,
+        }))
+      );
+      console.log("====================================\n");
+    }
 
     return res.json({
       success: true,
-      message: `Imported: ${totalRows}, Updated: ${totalUpdated}, Skipped: ${totalSkipped}, Invalid: ${totalInvalid}`,
+      message: `Imported: ${totalRows}, Updated: ${totalUpdated}, Skipped: ${totalSkipped}`,
       updated: totalUpdated,
       skipped: totalSkipped,
       skippedNotFoundCount: totalNotFound,
-      skippedNotFoundStudents,
+      missingStudents, // ✅ SEND TO FRONTEND
       totalValid,
       totalInvalid,
       totalRows,
@@ -2709,23 +2697,48 @@ router.post("/api/grades/import", upload.single("file"), async (req, res) => {
   }
 });
 
+/* CURRENT API ISSUES 
+- Duplicate insert in student status table even though its supposed to be an update. This is because the code does not check if a student status record already exists for the given student number before attempting to insert a new one. If the student number exists but there is no corresponding record in the student status table, it will try to insert a new record, which can lead to duplicates if the same student number is processed multiple times.
+- The code does not handle the case where a student number exists in the student numbering table but does not have a corresponding record in the student status table. In such cases, it should ideally create a new student status record instead of trying to update a non-existent one.
+- The transaction management is not properly implemented. If an error occurs after some database operations have been performed, the code does not roll back the transaction, which can lead to partial updates and data inconsistency.
+- The year level is calculated wrong, Currently, it return +1 if there are two semester (e.g., First Semester and Second Semester) in same year but what if the user have the summer in same year?
+  for example:
+  - First Semester 2023-2024
+  - Summer 2023-2024
+  - Second Semester 2023-2024
+  It only insert First Semester and Second Semester but what if the user have the summer in same year? It should be like this:
+  - First Semester 2023-2024 (Year Level 1)
+  - Summer 2023-2024 (Year Level 1) (Need Confirmation to Project Advisor for the calculation of year level)
+  - Second Semester 2023-2024 (Year Level 1) 
+- Another problem, is it insert dupplicate student data into person_status_table
+  for example there are already a person id 1 in peson_status_table but it still insert it same person id and data.
+*/
 router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
   const { campus } = req.body;
+  const connection = await db3.getConnection();
+
   try {
+    await connection.beginTransaction();
+
     const fileValidation = validateSpreadsheetUpload(req.file);
     if (!fileValidation.valid) {
+      await connection.rollback();
+      connection.release();
       return res
         .status(fileValidation.status)
         .json({ error: fileValidation.error });
     }
 
-    // Parse Excel
     const workbook = readWorkbookSafely(req.file);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     if (!sheet) {
+      await connection.rollback();
+      connection.release();
       return res.status(400).json({ error: "Spreadsheet has no worksheet" });
     }
     if (hasFormulaCell(sheet)) {
+      await connection.rollback();
+      connection.release();
       return res
         .status(400)
         .json({ error: "Formulas are not allowed in uploads" });
@@ -2737,14 +2750,14 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
         sheetToJsonOptions: {
           header: "A",
           defval: "",
-          raw: true,
+          raw: false,
+          blankrows: false,
         },
       },
     );
     const { cleanRows, flaggedRows } = removeFormulaLikeRows(parsedRows);
     const { rowsToInsert } = prepareRowsForInsert(cleanRows, req.file.size);
 
-    // --- Step 1: Extract metadata (before subjects) ---
     const metadata = {};
     for (const row of rowsToInsert) {
       if (
@@ -2761,8 +2774,6 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
       }
     }
 
-    console.log("📌 Extracted metadata:", metadata);
-
     const studentNumber = metadata["Student No."] || metadata["Student No"];
     const studentName = metadata["Name"];
     const program_code = metadata["Program"];
@@ -2772,6 +2783,8 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
       : null;
 
     if (!studentNumber || !program_code || !year_description) {
+      await connection.rollback();
+      connection.release();
       return res
         .status(400)
         .json({ error: "Missing required metadata from Excel" });
@@ -2796,7 +2809,6 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
 
       const importedCourseCode = normalizeImportedCourseCode(row.A);
       const nstp = transformNstpSubject(importedCourseCode, detectedSemester);
-      console.log("Checking NSTP subject:", importedCourseCode, "→", nstp);
       if (
         nstp.isNstp &&
         (nstp.hasUnknownComponentKeyword ||
@@ -2810,6 +2822,8 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
     }
 
     if (invalidNstpComponents.length > 0) {
+      await connection.rollback();
+      connection.release();
       const uniqueInvalid = [
         ...new Map(
           invalidNstpComponents.map((item) => [
@@ -2828,85 +2842,151 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
       });
     }
 
+    // Resolve person_id and ensure person record exists
     const { lastName, firstName, middleName } =
       parseStudentNameLegacy(studentName);
+    let person_id = null;
+    let isNewStudent = false;
 
-    // --- Step 2: Insert New student data in person table ---
-    await db3.query(
-      `
-      INSERT INTO person_table (campus, last_name, first_name, middle_name)
-      VALUES (?, ?, ?, ?)
-      ON DUPLICATE KEY UPDATE
-        last_name = VALUES(last_name),
-        first_name = VALUES(first_name),
-        middle_name = VALUES(middle_name)
-      `,
-      [campus, lastName, firstName, middleName],
+    // Check if student number already exists
+    const [existingStudentRows] = await connection.query(
+      `SELECT person_id FROM student_numbering_table WHERE student_number = ? LIMIT 1`,
+      [studentNumber],
     );
 
-    const [[person]] = await db3.query(
-      `
-      SELECT person_id
-      FROM person_table
-      WHERE campus = ?
-        AND last_name = ?
-        AND first_name = ?
-        AND (middle_name = ? OR (? IS NULL AND middle_name IS NULL))
-      ORDER BY person_id DESC
-      LIMIT 1
-      `,
-      [campus, lastName, firstName, middleName, middleName],
-    );
+    // Existing student number - update person details
+    if (existingStudentRows.length > 0) {
+      person_id = existingStudentRows[0].person_id;
+      await connection.query(
+        `UPDATE person_table
+         SET campus = ?, last_name = ?, first_name = ?, middle_name = ?
+         WHERE person_id = ?`,
+        [campus, lastName, firstName, middleName, person_id],
+      );
+    } else {
+      isNewStudent = true;
 
-    if (!person) {
+      const [[existingPerson]] = await connection.query(
+        `SELECT person_id
+         FROM person_table
+         WHERE campus = ?
+           AND UPPER(TRIM(last_name)) = UPPER(TRIM(?))
+           AND UPPER(TRIM(first_name)) = UPPER(TRIM(?))
+           AND (
+             UPPER(TRIM(middle_name)) = UPPER(TRIM(?)) 
+             OR (? IS NULL AND middle_name IS NULL)
+             OR (? = '' AND (middle_name IS NULL OR middle_name = ''))
+           )
+         LIMIT 1`,
+        [campus, lastName, firstName, middleName, middleName, middleName],
+      );
+
+      // If a person record matches the name + campus, link student number to that person_id
+      // Else, create a new person record and link student number to the new person_id
+      if (existingPerson) {
+        person_id = existingPerson.person_id;
+      } else {
+        const [personInsert] = await connection.query(
+          `INSERT INTO person_table (campus, last_name, first_name, middle_name)
+           VALUES (?, ?, ?, ?)`,
+          [campus, lastName, firstName, middleName],
+        );
+        person_id = personInsert.insertId;
+        console.log(`✓ Created new person: person_id: ${person_id}`);
+      }
+
+      // Link student number to person_id
+      // Using INSERT IGNORE to handle race conditions gracefully
+      const [insertResult] = await connection.query(
+        `INSERT INTO student_numbering_table (student_number, person_id)
+         VALUES (?, ?)
+         ON DUPLICATE KEY UPDATE person_id = person_id`,
+        [studentNumber, person_id],
+      );
+
+      // If no rows were inserted (duplicate detected), fetch the existing person_id
+      if (insertResult.affectedRows === 0) {
+        const [[recheckStudent]] = await connection.query(
+          `SELECT person_id FROM student_numbering_table WHERE student_number = ? LIMIT 1`,
+          [studentNumber],
+        );
+        if (recheckStudent) {
+          person_id = recheckStudent.person_id;
+          console.log(
+            `⚠️ Race condition detected - using existing person_id: ${person_id}`,
+          );
+        }
+      } else {
+        console.log(
+          `✓ Linked student number ${studentNumber} to person_id: ${person_id}`,
+        );
+      }
+    }
+
+    if (!person_id) {
+      await connection.rollback();
+      connection.release();
       return res.status(400).json({ error: "Failed to resolve person_id" });
     }
 
-    const person_id = person.person_id;
-
-    await db3.query(
-      `
-      INSERT INTO person_status_table (person_id, student_registration_status)
-      VALUES (?, ?);
-    `,
-      [person_id, 1],
+    const [checkPersonStatus] = await connection.query(
+      `SELECT person_id FROM person_status_table WHERE person_id = ? LIMIT 1`,
+      [person_id],
     );
 
-    await db3.query(
-      `
-      INSERT INTO student_numbering_table (student_number, person_id)
-      VALUES (?, ?)
-      ON DUPLICATE KEY UPDATE
-        person_id = VALUES(person_id)
-      `,
-      [studentNumber, person_id],
+    console.log(
+      `[DEBUG] person_id ${person_id} status record exists: ${checkPersonStatus.length > 0}`,
     );
+
+    // Problem 1 Solved
+    if (checkPersonStatus.length > 0) {
+      await connection.query(
+        `UPDATE person_status_table SET student_registration_status = 1 WHERE person_id = ?`,
+        [person_id],
+      );
+    } else {
+      await connection.query(
+        `INSERT INTO person_status_table (person_id, student_registration_status)
+        VALUES (?, ?)`,
+        [person_id, 1],
+      );
+    }
 
     // --- Step 3: DB lookups for program/year/curriculum ---
-    const [[yearRow]] = await db3.query(
+    const [[yearRow]] = await connection.query(
       "SELECT year_id FROM year_table WHERE year_description = ?",
       [year_description],
     );
-    if (!yearRow)
+
+    if (!yearRow) {
+      await connection.rollback();
+      connection.release();
       return res
         .status(400)
         .json({ error: `Year ${year_description} not found` });
+    }
 
-    const [[program]] = await db3.query(
+    const [[program]] = await connection.query(
       "SELECT program_id FROM program_table WHERE program_code = ?",
       [program_code],
     );
-    if (!program)
+    if (!program) {
+      await connection.rollback();
+      connection.release();
       return res
         .status(400)
         .json({ error: `Program code ${program_code} not found` });
+    }
 
-    const [[curriculum]] = await db3.query(
+    const [[curriculum]] = await connection.query(
       "SELECT curriculum_id FROM curriculum_table WHERE year_id = ? AND program_id = ?",
       [yearRow.year_id, program.program_id],
     );
-    if (!curriculum)
+    if (!curriculum) {
+      await connection.rollback();
+      connection.release();
       return res.status(400).json({ error: "No matching curriculum found" });
+    }
 
     // --- Step 4: Process each School Year + Semester block ---
     const results = [];
@@ -2942,10 +3022,18 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
         let finalGrade = 0.0;
         let enRemark = 0;
         let status = 0;
+        let gradeStatus = null;
 
         if (finalGradeRaw) {
           if (["INC", "INCOMPLETE"].includes(finalGradeRaw.toUpperCase())) {
             enRemark = 3; // Incomplete
+          }
+          if (
+            ["DRP", "DROP", "DROPPED"].includes(finalGradeRaw.toUpperCase())
+          ) {
+            enRemark = 4; // Dropped
+            finalGrade = "DRP";
+            gradeStatus = "DRP";
           } else {
             const gradeNum = parseFloat(finalGradeRaw);
             if (!isNaN(gradeNum)) {
@@ -2971,6 +3059,7 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
           final_grade: finalGrade,
           en_remark: enRemark,
           status,
+          grade_status: gradeStatus,
           component: nstp.component,
           nstp_normalized_source: nstp.normalizedSource,
         });
@@ -2982,8 +3071,7 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
       results.push({ ...currentSY, subjects });
     }
 
-    console.log("📘 Parsed results:", results);
-
+    // Validate all course codes exist
     const allCourseCodes = [];
 
     for (const block of results) {
@@ -3001,24 +3089,30 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
       ...new Set(allCourseCodes.filter((c) => c !== "(blank course code)")),
     ];
 
-    const [existingCourses] = await db3.query(
-      `SELECT course_code FROM course_table WHERE course_code IN (?)`,
-      [uniqueCodes],
-    );
+    if (uniqueCodes.length > 0) {
+      const [existingCourses] = await connection.query(
+        `SELECT course_code FROM course_table WHERE course_code IN (?)`,
+        [uniqueCodes],
+      );
 
-    const existingCodesSet = new Set(existingCourses.map((c) => c.course_code));
+      const existingCodesSet = new Set(
+        existingCourses.map((c) => c.course_code),
+      );
 
-    const missingCourseCodes = allCourseCodes.filter(
-      (code) => code === "(blank course code)" || !existingCodesSet.has(code),
-    );
+      const missingCourseCodes = allCourseCodes.filter(
+        (code) => code === "(blank course code)" || !existingCodesSet.has(code),
+      );
 
-    console.log("missing course codes", missingCourseCodes);
+      console.log("missing course codes", missingCourseCodes);
 
-    if (missingCourseCodes.length > 0) {
-      return res.status(400).json({
-        error: "Upload failed. Some course codes do not exist.",
-        missing_course_codes: [...new Set(missingCourseCodes)],
-      });
+      if (missingCourseCodes.length > 0) {
+        await connection.rollback();
+        connection.release();
+        return res.status(400).json({
+          error: "Upload failed. Some course codes do not exist.",
+          missing_course_codes: [...new Set(missingCourseCodes)],
+        });
+      }
     }
 
     // --- Step 5: Count completed semesters ---
@@ -3079,37 +3173,37 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
 
       if (!normalizedSchoolYear || !normalizedSemester) continue;
 
-      const [[schoolYearRow]] = await db3.query(
+      const [[schoolYearRow]] = await connection.query(
         "SELECT year_id FROM year_table WHERE year_description = ?",
         [normalizedSchoolYear],
       );
       if (!schoolYearRow) continue;
 
-      const [[semesterRow]] = await db3.query(
+      const [[semesterRow]] = await connection.query(
         "SELECT semester_id FROM semester_table WHERE semester_description = ?",
         [normalizedSemester],
       );
       if (!semesterRow) continue;
 
-      const [[activeYear]] = await db3.query(
+      const [[activeYear]] = await connection.query(
         "SELECT id FROM active_school_year_table WHERE year_id = ? AND semester_id = ?",
         [schoolYearRow.year_id, semesterRow.semester_id],
       );
       if (!activeYear) continue;
 
       const active_school_year_id = activeYear.id;
-      console.log("Active Schhol Year : ", active_school_year_id);
+      console.log("Active School Year:", active_school_year_id);
 
       for (const subj of subjects) {
         if (!subj.course_code) continue;
 
-        const [[course]] = await db3.query(
+        const [[course]] = await connection.query(
           "SELECT course_id FROM course_table WHERE UPPER(TRIM(course_code)) = UPPER(TRIM(?))",
           [subj.course_code],
         );
         if (!course) continue;
 
-        const [result] = await db3.query(
+        const [result] = await connection.query(
           `UPDATE enrolled_subject
            SET final_grade = ?, en_remarks = ?, status = ?, component = ?
            WHERE student_number = ?
@@ -3131,7 +3225,7 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
         if (result.affectedRows > 0) {
           totalUpdated += result.affectedRows;
         } else {
-          await db3.query(
+          await connection.query(
             `INSERT INTO enrolled_subject
               (student_number, curriculum_id, course_id, component, active_school_year_id,
                midterm, finals, final_grade, en_remarks, department_section_id, status, fe_status, remarks)
@@ -3158,80 +3252,125 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
     }
 
     // --- Step 7: Update student year level per semester ---
+    // issue need to be resoved: duplicate insert in student status table even though its supposed to be an update if the data exists.
     for (const entry of yearLevelPerSY) {
       const { schoolYear, yearLevel } = entry;
 
       // Loop through both semesters
       for (const sem of ["First Semester", "Second Semester"]) {
-        const [[schoolYearRow]] = await db3.query(
+        const [[schoolYearRow]] = await connection.query(
           "SELECT year_id FROM year_table WHERE year_description = ?",
           [schoolYear],
         );
         if (!schoolYearRow) continue;
 
-        const [[semesterRow]] = await db3.query(
+        const [[semesterRow]] = await connection.query(
           "SELECT semester_id FROM semester_table WHERE semester_description = ?",
           [sem],
         );
         if (!semesterRow) continue;
 
-        const [[activeSY]] = await db3.query(
+        const [[activeSY]] = await connection.query(
           `SELECT id FROM active_school_year_table WHERE year_id = ? AND semester_id = ?`,
           [schoolYearRow.year_id, semesterRow.semester_id],
         );
         if (!activeSY) continue;
-
-        await db3.query(
-          `
-          INSERT INTO student_status_table
-            (student_number, active_curriculum, enrolled_status, year_level_id, active_school_year_id)
-          VALUES (?, ?, ?, ?, ?)
-          ON DUPLICATE KEY UPDATE
-            year_level_id = VALUES(year_level_id)
-          `,
-          [studentNumber, curriculum.curriculum_id, 1, yearLevel, activeSY.id],
+        // CREATE or UPDATE student status record
+        // IF student_number, active_curriculum, enrolled_status, year_level_id, and active_school_year_id is the same, then UPDATE the record
+        // ELSE, INSERT a new record
+        // MAP IT and check it one by one if the record exist or not, if exist then update else insert
+        const [existingStatus] = await connection.query(
+          `SELECT id FROM student_status_table
+           WHERE student_number = ? AND active_curriculum = ? AND year_level_id = ? AND active_school_year_id = ?`,
+          [studentNumber, curriculum.curriculum_id, yearLevel, activeSY.id],
         );
+        if (existingStatus.length > 0) {
+          await connection.query(
+            `UPDATE student_status_table
+             SET enrolled_status = 1
+              WHERE id = ?`,
+            [existingStatus[0].id],
+          );
+          console.log(
+            `✓ Updated student_status_table for student_number ${studentNumber}, year level ${yearLevel}, school year ${schoolYear} (${sem})`,
+          );
+        } else {
+          await connection.query(
+            `INSERT INTO student_status_table
+            (student_number, active_curriculum, enrolled_status, year_level_id, active_school_year_id)
+           VALUES (?, ?, ?, ?, ?)`,
+            [
+              studentNumber,
+              curriculum.curriculum_id,
+              1,
+              yearLevel,
+              activeSY.id,
+            ],
+          );
+        }
       }
     }
 
+    // Handle ongoing semester
     if (latestOngoing) {
-      const [[schoolYearRow]] = await db3.query(
+      const [[schoolYearRow]] = await connection.query(
         "SELECT year_id FROM year_table WHERE year_description = ?",
         [latestOngoing.schoolYear],
       );
 
-      const [[semesterRow]] = await db3.query(
+      const [[semesterRow]] = await connection.query(
         "SELECT semester_id FROM semester_table WHERE semester_description = ?",
         [latestOngoing.semester],
       );
 
-      const [[activeSY]] = await db3.query(
-        "SELECT id FROM active_school_year_table WHERE year_id = ? AND semester_id = ?",
-        [schoolYearRow.year_id, semesterRow.semester_id],
-      );
+      if (schoolYearRow && semesterRow) {
+        const [[activeSY]] = await connection.query(
+          "SELECT id FROM active_school_year_table WHERE year_id = ? AND semester_id = ?",
+          [schoolYearRow.year_id, semesterRow.semester_id],
+        );
 
-      await db3.query(
-        `
-        INSERT INTO student_status_table
-          (student_number, active_curriculum, enrolled_status, year_level_id, active_school_year_id)
-        VALUES (?, ?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE enrolled_status = VALUES(enrolled_status)
-        `,
-        [
-          studentNumber,
-          curriculum.curriculum_id,
-          1, // ongoing
-          runningYearLevel + 1, // current year level
-          activeSY.id,
-        ],
-      );
+        if (activeSY) {
+          const [existingStatus] = await connection.query(
+            `SELECT id FROM student_status_table
+            WHERE student_number = ? AND active_curriculum = ? AND year_level_id = ? AND active_school_year_id = ?`,
+            [studentNumber, curriculum.curriculum_id, runningYearLevel + 1, activeSY.id],
+          );
+          if (existingStatus.length > 0) {
+            await connection.query(
+              `UPDATE student_status_table
+              SET enrolled_status = 1
+              WHERE id = ?`,
+              [existingStatus[0].id],
+            );
+          } else {
+            await connection.query(
+              `INSERT INTO student_status_table
+                (student_number, active_curriculum, enrolled_status, year_level_id, active_school_year_id)
+              VALUES (?, ?, ?, ?, ?)`,
+              [
+                studentNumber,
+                curriculum.curriculum_id,
+                1,
+                runningYearLevel + 1,
+                activeSY.id,
+              ],
+            );
+          }
+        }
+      }
     }
+
+    // Commit transaction
+    await connection.commit();
+    connection.release();
 
     res.json({
       success: true,
       updated: totalUpdated,
       inserted: totalInserted,
       studentNumber,
+      person_id,
+      isNewStudent,
       program_code,
       year_description,
       highestYearLevel: runningYearLevel,
@@ -3242,7 +3381,18 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
     });
   } catch (err) {
     console.error("❌ Excel import error:", err);
-    res.status(500).json({ error: "Failed to import Excel" });
+
+    try {
+      await connection.rollback();
+      connection.release();
+    } catch (rollbackErr) {
+      console.error("❌ Rollback error:", rollbackErr);
+    }
+
+    res.status(500).json({
+      error: "Failed to import Excel",
+      details: process.env.NODE_ENV === "development" ? err.message : undefined,
+    });
   }
 });
 
@@ -3333,7 +3483,7 @@ router.post("/api/qualifying_exam/import", async (req, res) => {
       ["upload", message, null, registrarEmail, registrarFullName],
     );
 
-    (req.app.get("io") || { emit: () => {} }).emit("notification", {
+    (req.app.get("io") || { emit: () => { } }).emit("notification", {
       type: "upload",
       message,
       applicant_number: null,

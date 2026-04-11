@@ -203,14 +203,21 @@ export default function StudentAccounts() {
                 `${API_BASE_URL}/api/applicant_list/${person.student_number}`
             );
 
+            let selectedData;
+
             if (res.data.length > 0) {
-                setSelectedPerson(res.data[0]);
+                selectedData = res.data[0];
             } else {
-                setSelectedPerson(person);
+                selectedData = person;
             }
 
-            setEmail("");
-            setGeneratedPassword(""); // important
+            setSelectedPerson(selectedData);
+
+            // ✅ AUTO-FILL EXISTING EMAIL
+            setEmail(selectedData.emailAddress || "");
+
+            setGeneratedPassword("");
+
             setOpen(true);
 
         } catch (error) {
@@ -219,6 +226,7 @@ export default function StudentAccounts() {
             setLoading(false);
         }
     };
+
 
     const printAccountSlip = (student, password, email) => {
         const resolvedCampusAddress =
@@ -842,6 +850,14 @@ export default function StudentAccounts() {
                             >
                                 Program
                             </TableCell>
+                            <TableCell
+                                sx={{
+                                    border: `1px solid ${borderColor}`,
+                                    backgroundColor: "#f5f5f5"
+                                }}
+                            >
+                                Email Address
+                            </TableCell>
 
 
                         </TableRow>
@@ -926,6 +942,20 @@ export default function StudentAccounts() {
                                         {row.program_code} - {row.program_description} ({row.major})
                                     </TableCell>
 
+                                    <TableCell
+                                        sx={{
+                                            border: `1px solid ${borderColor}`
+                                        }}>
+                                        {row.emailAddress ? (
+                                            <Typography color="green" fontWeight="bold">
+                                                {row.emailAddress}
+                                            </Typography>
+                                        ) : (
+                                            <Typography color="red">
+                                                No Email
+                                            </Typography>
+                                        )}
+                                    </TableCell>
 
 
                                 </TableRow>
@@ -1271,7 +1301,7 @@ export default function StudentAccounts() {
                             onClick={handleNotify}
                             sx={{ px: 4, fontWeight: 600 }}
                         >
-                           Send Email
+                            Send Email
                         </Button>
                     </Box>
                 </DialogActions>

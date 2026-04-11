@@ -2031,7 +2031,7 @@ const TOR = () => {
                                       }}
                                     >
                                       {p.en_remarks === 0
-                                        ? "Incomplete"
+                                        ? "Ongoing"
                                         : p.en_remarks === 1
                                           ? "Passed"
                                           : p.en_remarks === 2

@@ -36,7 +36,7 @@ function generateRandomPassword(length = 10) {
 router.get("/applicant_list", async (req, res) => {
   try {
     const sql = `
-SELECT snt.student_number, pt.campus, pt.last_name, pt.person_id, pt.first_name, pt.middle_name, 
+SELECT snt.student_number, pt.campus, pt.last_name, pt.person_id, pt.first_name, pt.middle_name, pt.emailAddress, 
        pgt.program_code, pgt.program_id, pgt.program_description, pgt.major, 
        dt.dprtmnt_name, dt.dprtmnt_id, dt.dprtmnt_code, 
        sts.year_level_id, ylt.year_level_description 
@@ -90,6 +90,7 @@ SELECT
     pt.last_name,
     pt.first_name,
     pt.middle_name,
+    pt.emailAddress,
     pgt.program_code,
     pgt.program_description,
     dt.dprtmnt_name,
