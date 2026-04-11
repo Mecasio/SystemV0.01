@@ -7866,24 +7866,7 @@ app.get("/api/student_details/:id", async (req, res) => {
 //GET Student Current Assigned Schedule
 
 
-//GET Grading Status Period
-app.get("/api/grading_status", async (req, res) => {
-  try {
-    const [rows] = await db3.execute(
-      "SELECT status FROM period_status WHERE description = 'Final Grading Period'",
-    );
 
-    if (!rows.length) {
-      return res.status(404).json({ message: "Grading period not found" });
-    }
-
-    res.json({ status: rows[0].status });
-    console.log({ status: rows[0].status });
-  } catch (err) {
-    console.error("Error checking grading status:", err);
-    res.status(500).json({ message: "Database error" });
-  }
-});
 
 app.get("/api/get/all_schedule/:roomID", async (req, res) => {
   const { roomID } = req.params;

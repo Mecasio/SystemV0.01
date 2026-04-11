@@ -6,10 +6,10 @@ const router = express.Router();
 router.get("/api/year-levels", async (req, res) => {
   try {
     const [rows] = await db3.query(
-      `SELECT year_level_id, year_level_description 
-       FROM year_level_table 
-       WHERE level_type = 'year'
-       ORDER BY year_level_id`
+      `SELECT year_level_id, year_level_description, level_type
+   FROM year_level_table 
+   WHERE level_type IN ('year', 'graduate')
+   ORDER BY year_level_id`
     );
 
     res.json(rows);

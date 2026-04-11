@@ -181,6 +181,16 @@ const Dashboard1 = (props) => {
   };
 
 
+  const filteredYearLevels = yearLevelOptions.filter((yl) => {
+    // If Graduate program → show only Master & Doctor
+    if (Number(person.academicProgram) === 1) {
+      return yl.level_type === "graduate";
+    }
+
+    // If College/Bachelor → show only year levels
+    return yl.level_type === "year";
+  });
+
 
 
 
@@ -445,6 +455,16 @@ const Dashboard1 = (props) => {
       ...person,
       [name]: updatedValue,
     };
+
+    if (name === "academicProgram") {
+      if (Number(value) === 1) {
+        // Graduate → default to Master
+        updatedPerson.yearLevel = "Master";
+      } else {
+        // Reset for college
+        updatedPerson.yearLevel = "";
+      }
+    }
 
     // ✅ Auto-calculate age
     if (name === "birthOfDate") {
@@ -1762,7 +1782,7 @@ const Dashboard1 = (props) => {
                           <em>Select Year Level</em>
                         </MenuItem>
 
-                        {yearLevelOptions.map((yl) => (
+                        {filteredYearLevels.map((yl) => (
                           <MenuItem
                             key={yl.year_level_id}
                             value={String(yl.year_level_id)}

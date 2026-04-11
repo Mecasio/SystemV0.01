@@ -4,6 +4,7 @@ import axios from "axios";
 import API_BASE_URL from "../apiConfig";
 import { Box, Typography, Button, Snackbar, Alert, FormControl, InputLabel, Select, MenuItem, TextField } from "@mui/material";
 import LoadingOverlay from "../components/LoadingOverlay";
+import { Autocomplete } from "@mui/material";
 
 const CurriculumCourseMap = () => {
   const settings = useContext(SettingsContext);
@@ -246,7 +247,7 @@ const CurriculumCourseMap = () => {
   const [selectedCampus, setSelectedCampus] = useState("");
   const [selectedAcademicProgram, setSelectedAcademicProgram] = useState("");
 
-  const [searchCurriculum, setSearchCurriculum] = useState("");
+
 
   const getBranchLabel = (branchId) => {
     const branch = branches.find((item) => Number(item.id) === Number(branchId));
@@ -270,19 +271,8 @@ const CurriculumCourseMap = () => {
       }
 
       return true;
-    })
-    .filter((item) => {
-      if (!searchCurriculum) return true;
-
-      const search = searchCurriculum.toLowerCase();
-
-      return (
-        item.program_code?.toLowerCase().includes(search) ||
-        item.program_description?.toLowerCase().includes(search) ||
-        item.major?.toLowerCase().includes(search) ||
-        item.year_description?.toString().includes(search)
-      );
     });
+
 
   const yearLevelIdMap = {
     "First Year": 1,
@@ -678,38 +668,40 @@ const CurriculumCourseMap = () => {
       </FormControl>
 
       <Typography fontWeight={500}>Search Curriculum:</Typography>
-      <TextField
-        fullWidth
-        placeholder="Search Program Code, Program Description"
-        value={searchCurriculum}
-        onChange={(e) => setSearchCurriculum(e.target.value)}
-        sx={{ maxWidth: 400, mb: 3 }}
+
+      <Autocomplete
+        options={filteredCurriculumList}
+        getOptionLabel={(option) =>
+          `${formatSchoolYear(option.year_description)} - (${option.program_code}) ${option.program_description}${option.major ? ` (${option.major})` : ""
+          }`
+        }
+        value={
+          filteredCurriculumList.find(
+            (item) => item.curriculum_id === selectedCurriculum
+          ) || null
+        }
+        onChange={(event, newValue) => {
+          setSelectedCurriculum(newValue?.curriculum_id || "");
+        }}
+        filterOptions={(options, { inputValue }) => {
+          const search = inputValue.toLowerCase();
+
+          return options.filter((option) =>
+            option.program_code?.toLowerCase().includes(search) ||
+            option.program_description?.toLowerCase().includes(search) ||
+            option.major?.toLowerCase().includes(search) ||
+            option.year_description?.toString().includes(search)
+          );
+        }}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label="Search Curriculum"
+            placeholder="Search program, major, year..."
+          />
+        )}
+        sx={{ maxWidth: 400, mb: 4 }}
       />
-
-      <Typography fontWeight={500}>Select Curriculum:</Typography>
-      <FormControl sx={{ minWidth: 400, mb: 4 }}>
-        <InputLabel>Choose Curriculum</InputLabel>
-        <Select
-          value={selectedCurriculum}
-          label="Choose Curriculum"
-          onChange={(e) => setSelectedCurriculum(e.target.value)}
-        >
-          <MenuItem value="">
-            <em>None</em>
-          </MenuItem>
-          {filteredCurriculumList
-            .sort((a, b) => Number(a.year_description) - Number(b.year_description))
-            .map((c) => (
-              <MenuItem key={c.curriculum_id} value={c.curriculum_id}>
-                {formatSchoolYear(c.year_description)}:{" "}
-                {`(${c.program_code}): ${c.program_description}${c.major ? ` (${c.major})` : ""
-                  } (${getBranchLabel(c.components)})`}
-              </MenuItem>
-            ))}
-
-
-        </Select>
-      </FormControl>
 
       {/* YEARS */}
       {selectedCurriculum &&
@@ -826,7 +818,9 @@ const CurriculumCourseMap = () => {
                                   colSpan={6}
                                   style={{
                                     backgroundColor: "#f5f5f5",
-                                  border: `1px solid ${borderColor}`,
+                                    borderLeft: `1px solid ${borderColor}`,
+                                    borderTop: `1px solid ${borderColor}`,
+                                    borderBottom: `1px solid ${borderColor}`,
                                     padding: "10px",
                                     fontWeight: "bold",
                                     textAlign: "left",
@@ -841,7 +835,9 @@ const CurriculumCourseMap = () => {
                                   colSpan={4}
                                   style={{
                                     backgroundColor: "#f5f5f5",
-                                  border: `1px solid ${borderColor}`,
+                                    borderRight: `1px solid ${borderColor}`,
+                                    borderTop: `1px solid ${borderColor}`,
+                                    borderBottom: `1px solid ${borderColor}`,
                                     padding: "10px",
                                     fontWeight: "bold",
                                     textAlign: "right",

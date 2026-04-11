@@ -18,6 +18,7 @@ import {
   TableCell,
   Paper,
 } from '@mui/material';
+import Autocomplete from "@mui/material/Autocomplete";
 import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
@@ -81,7 +82,6 @@ const DepartmentSection = () => {
   const [userRole, setUserRole] = useState("");
   const [hasAccess, setHasAccess] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [sectionSearch, setSectionSearch] = useState("");
 
   const [deptSearchQuery, setDeptSearchQuery] = useState("");
 
@@ -99,9 +99,7 @@ const DepartmentSection = () => {
       .includes(deptSearchQuery.toLowerCase())
   );
 
-  const filteredSectionsList = sectionsList.filter((section) =>
-    section.description.toLowerCase().includes(sectionSearch.toLowerCase())
-  );
+
 
 
   // ✅ Snackbar state
@@ -602,11 +600,9 @@ const DepartmentSection = () => {
                   style={{
                     border: `1px solid ${borderColor}`,
                     padding: "8px",
-
                   }}
                 >
-                  {section.year_description} - ({section.program_code}) {section.program_description} {section.major}
-
+                  {`${formatSchoolYear(section.year_description)}: (${section.program_code}) ${section.program_description} ${section.major || ""}`}
                 </td>
                 <td
                   style={{
@@ -843,83 +839,70 @@ const DepartmentSection = () => {
           {editId ? "Edit Department Section" : "Add Department Section"}
         </DialogTitle>
 
-        {/* CONTENT */}
         <DialogContent sx={{ p: 3 }}>
 
           <Typography fontWeight="bold" mb={1} mt={2}>
             Curriculum
           </Typography>
 
-          <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel>Curriculum</InputLabel>
-
-            <Select
-              name="curriculum_id"
-              value={dprtmntSection.curriculum_id}
-              onChange={handleChange}
-              label="Curriculum"
-            >
-              <MenuItem value="">
-                Select Curriculum
-              </MenuItem>
-
-              {curriculumList.map((curr) => (
-                <MenuItem
-                  key={curr.curriculum_id}
-                  value={curr.curriculum_id}
-                >
-                  {formatSchoolYear(curr.year_description)}:
-                  ({curr.program_code})
-                  {curr.program_description}
-                  {curr.major ? ` (${curr.major})` : ""}
-                </MenuItem>
-              ))}
-
-            </Select>
-
-          </FormControl>
-
-          <Typography fontWeight="bold" mb={1}>
-            Search Section
-          </Typography>
-
-          <TextField
+          <Autocomplete
+            options={curriculumList}
             fullWidth
-            placeholder="Search section..."
-            value={sectionSearch}
-            onChange={(e) => setSectionSearch(e.target.value)}
-            sx={{ mb: 2 }}
+            getOptionLabel={(option) =>
+              `${formatSchoolYear(option.year_description)}: (${option.program_code}) ${option.program_description} ${option.major || ""}`
+            }
+            value={
+              curriculumList.find(
+                (c) => c.curriculum_id === dprtmntSection.curriculum_id
+              ) || null
+            }
+            onChange={(e, newValue) => {
+              setDprtmntSection((prev) => ({
+                ...prev,
+                curriculum_id: newValue ? newValue.curriculum_id : "",
+              }));
+            }}
+            isOptionEqualToValue={(option, value) =>
+              option.curriculum_id === value.curriculum_id
+            }
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Curriculum"
+                sx={{ mb: 2 }}
+              />
+            )}
           />
 
           <Typography fontWeight="bold" mb={1}>
             Section
           </Typography>
 
-          <FormControl fullWidth>
-            <InputLabel>Section</InputLabel>
-
-            <Select
-              name="section_id"
-              value={dprtmntSection.section_id}
-              onChange={handleChange}
-              label="Section"
-            >
-              <MenuItem value="">
-                Select Section
-              </MenuItem>
-
-              {filteredSectionsList.map((section) => (
-                <MenuItem
-                  key={section.id}
-                  value={section.id}
-                >
-                  {section.description}
-                </MenuItem>
-              ))}
-
-            </Select>
-
-          </FormControl>
+          <Autocomplete
+            options={sectionsList}
+            fullWidth
+            getOptionLabel={(option) => option.description || ""}
+            value={
+              sectionsList.find(
+                (s) => s.id === dprtmntSection.section_id
+              ) || null
+            }
+            onChange={(e, newValue) => {
+              setDprtmntSection((prev) => ({
+                ...prev,
+                section_id: newValue ? newValue.id : "",
+              }));
+            }}
+            isOptionEqualToValue={(option, value) =>
+              option.id === value.id
+            }
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Section"
+              />
+            )}
+          />
 
         </DialogContent>
 

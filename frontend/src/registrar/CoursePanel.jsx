@@ -440,7 +440,7 @@ const CoursePanel = () => {
       backgroundColor: "#fff",
     },
     tableContainer: {
-      maxHeight: "700px",
+
       overflowY: "auto",
       border: "1px solid #ccc",
       borderRadius: "4px",
@@ -542,6 +542,8 @@ const CoursePanel = () => {
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
+      <br />
+
 
 
 

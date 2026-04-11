@@ -1271,7 +1271,7 @@ export default function StudentAccounts() {
                             onClick={handleNotify}
                             sx={{ px: 4, fontWeight: 600 }}
                         >
-                            Send Email
+                           Send Email
                         </Button>
                     </Box>
                 </DialogActions>

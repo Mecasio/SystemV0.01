@@ -196,6 +196,20 @@ const SuperAdminStudentDashboard1 = () => {
     return currentText;
   };
 
+
+  const filteredYearLevels = yearLevelOptions.filter((yl) => {
+    // If Graduate program → show only Master & Doctor
+    if (Number(person.academicProgram) === 1) {
+      return yl.level_type === "graduate";
+    }
+
+    // If College/Bachelor → show only year levels
+    return yl.level_type === "year";
+  });
+
+
+
+
   const [hasAccess, setHasAccess] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -438,6 +452,16 @@ const SuperAdminStudentDashboard1 = () => {
       ...person,
       [name]: updatedValue,
     };
+
+    if (name === "academicProgram") {
+      if (Number(value) === 1) {
+        // Graduate → default to Master
+        updatedPerson.yearLevel = "Master";
+      } else {
+        // Reset for college
+        updatedPerson.yearLevel = "";
+      }
+    }
 
     // ✅ Auto-calculate age
     if (name === "birthOfDate") {
@@ -1869,15 +1893,13 @@ const SuperAdminStudentDashboard1 = () => {
                         </MenuItem>
                         {filteredCurriculum.map((item, index) => (
                           <MenuItem key={index} value={item.curriculum_id}>
-                            {`(${item.program_code}): ${item.program_description}${
-                              item.major ? ` (${item.major})` : ""
-                            } (${
-                              Number(item.components) === 1
+                            {`(${item.program_code}): ${item.program_description}${item.major ? ` (${item.major})` : ""
+                              } (${Number(item.components) === 1
                                 ? "Manila Campus"
                                 : Number(item.components) === 2
                                   ? "Cavite Campus"
                                   : "—"
-                            })`}
+                              })`}
                           </MenuItem>
                         ))}
                       </Select>
@@ -1978,7 +2000,7 @@ const SuperAdminStudentDashboard1 = () => {
                           <em>Select Year Level</em>
                         </MenuItem>
 
-                        {yearLevelOptions.map((yl) => (
+                        {filteredYearLevels.map((yl) => (
                           <MenuItem
                             key={yl.year_level_id}
                             value={String(yl.year_level_id)}

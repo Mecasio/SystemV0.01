@@ -272,7 +272,7 @@ router.post("/notify_applicant", async (req, res) => {
     const frontendUrl = process.env.FRONTEND_URL;
 
     // Get company settings
-    const [companyRows] = await conn.query(`
+    const [companyRows] = await db.query(`
   SELECT company_name, short_term
   FROM company_settings
   LIMIT 1
@@ -289,16 +289,16 @@ router.post("/notify_applicant", async (req, res) => {
         : "System";
 
     const emailSubject =
-      `${short_term} - Account Creation`;
+      `${short_term} - Student Account Creation`;
 
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+      from: `"${short_term} - Student Account Creation" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: emailSubject,
       html: `
     <h3>${company_name} Student Portal Account</h3>
 
-    <p>Hello <b>${student[0].first_name} ${student[0].last_name}</b>,</p>
+    <p>Hello <b>${student[0].last_name}, ${student[0].first_name} ${student[0].middle_name}</b>,</p>
 
     <p>
       Your account has been successfully created.

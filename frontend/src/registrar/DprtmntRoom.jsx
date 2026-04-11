@@ -266,6 +266,28 @@ const DepartmentRoom = () => {
         }}
       >
         <Box display="flex" gap={2} alignItems="flex-start" mb={4}>
+
+
+          <Box width="50%">
+            <Typography variant="body1" fontWeight="bold">
+              Select Department:
+            </Typography>
+            <Select
+              name="dprtmnt_id"
+              value={room.dprtmnt_id}
+              onChange={handleChange}
+              displayEmpty
+              fullWidth
+            >
+              <MenuItem value="">Select Department</MenuItem>
+              {departmentList.map((dept) => (
+                <MenuItem key={dept.dprtmnt_id} value={dept.dprtmnt_id}>
+                  {dept.dprtmnt_name}
+                </MenuItem>
+              ))}
+            </Select>
+          </Box>
+
           <Box width="50%">
             <Typography variant="body1" fontWeight="bold">
               Select Room:
@@ -285,26 +307,6 @@ const DepartmentRoom = () => {
                     {room.room_description}
                   </MenuItem>
                 ))}
-            </Select>
-          </Box>
-
-          <Box width="50%">
-            <Typography variant="body1" fontWeight="bold">
-              Select Department:
-            </Typography>
-            <Select
-              name="dprtmnt_id"
-              value={room.dprtmnt_id}
-              onChange={handleChange}
-              displayEmpty
-              fullWidth
-            >
-              <MenuItem value="">Select Department</MenuItem>
-              {departmentList.map((dept) => (
-                <MenuItem key={dept.dprtmnt_id} value={dept.dprtmnt_id}>
-                  {dept.dprtmnt_name}
-                </MenuItem>
-              ))}
             </Select>
           </Box>
 
@@ -405,7 +407,7 @@ const DepartmentRoom = () => {
         <DialogActions>
           <Button
             color="error"
-            variant="outlined" 
+            variant="outlined"
             onClick={() => setOpenUnassignDialog(false)}>
             Cancel
           </Button>

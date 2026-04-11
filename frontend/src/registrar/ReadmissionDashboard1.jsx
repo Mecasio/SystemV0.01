@@ -197,6 +197,19 @@ const ReadmissionDashboard1 = () => {
   };
 
 
+  const filteredYearLevels = yearLevelOptions.filter((yl) => {
+    // If Graduate program → show only Master & Doctor
+    if (Number(person.academicProgram) === 1) {
+      return yl.level_type === "graduate";
+    }
+
+    // If College/Bachelor → show only year levels
+    return yl.level_type === "year";
+  });
+
+
+
+
 
 
 
@@ -459,6 +472,16 @@ const ReadmissionDashboard1 = () => {
       ...person,
       [name]: updatedValue,
     };
+
+    if (name === "academicProgram") {
+      if (Number(value) === 1) {
+        // Graduate → default to Master
+        updatedPerson.yearLevel = "Master";
+      } else {
+        // Reset for college
+        updatedPerson.yearLevel = "";
+      }
+    }
 
     // ✅ Auto-calculate age
     if (name === "birthOfDate") {
@@ -1965,8 +1988,6 @@ const ReadmissionDashboard1 = () => {
                     <label className="w-40 mt:[2] font-medium ">Year Level:</label>
                     <FormControl fullWidth size="small" required error={!!errors.yearLevel}>
                       <InputLabel id="year-level-label">Year Level</InputLabel>
-
-
                       <Select
                         labelId="year-level-label"
                         id="year-level-select"
@@ -1980,7 +2001,7 @@ const ReadmissionDashboard1 = () => {
                           <em>Select Year Level</em>
                         </MenuItem>
 
-                        {yearLevelOptions.map((yl) => (
+                        {filteredYearLevels.map((yl) => (
                           <MenuItem
                             key={yl.year_level_id}
                             value={String(yl.year_level_id)}

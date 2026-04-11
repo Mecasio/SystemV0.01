@@ -175,19 +175,23 @@ const StudentGradingPage = () => {
 
   const convertNumericToGrade = (numeric) => {
     const grade = parseFloat(numeric);
+    let result;
 
-    if (grade >= 97) return 1.0;
-    if (grade >= 94) return 1.25;
-    if (grade >= 91) return 1.5;
-    if (grade >= 88) return 1.75;
-    if (grade >= 85) return 2.0;
-    if (grade >= 82) return 2.25;
-    if (grade >= 79) return 2.5;
-    if (grade >= 76) return 2.75;
-    if (grade >= 75) return 3.0;
-    return 5.0;
+    if (grade >= 97) result = 1.0;
+    else if (grade >= 94) result = 1.25;
+    else if (grade >= 91) result = 1.5;
+    else if (grade >= 88) result = 1.75;
+    else if (grade >= 85) result = 2.0;
+    else if (grade >= 82) result = 2.25;
+    else if (grade >= 79) result = 2.5;
+    else if (grade >= 76) result = 2.75;
+    else if (grade >= 75) result = 3.0;
+    else result = 5.0;
+
+    return result.toFixed(2);
   };
 
+  
   const viewGrade = async () => {
     try {
       const res = await axios.get(

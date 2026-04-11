@@ -63,8 +63,8 @@ const StudentDashboard1 = () => {
   const [subtitleColor, setSubtitleColor] = useState("#555555");
   const [borderColor, setBorderColor] = useState("#000000");
   const [mainButtonColor, setMainButtonColor] = useState("#1976d2");
-  const [subButtonColor, setSubButtonColor] = useState("#ffffff"); // ✅ NEW
-  const [stepperColor, setStepperColor] = useState("#000000"); // ✅ NEW
+  const [subButtonColor, setSubButtonColor] = useState("#ffffff");   // ✅ NEW
+  const [stepperColor, setStepperColor] = useState("#000000");       // ✅ NEW
 
   const [fetchedLogo, setFetchedLogo] = useState(null);
   const [companyName, setCompanyName] = useState("");
@@ -79,8 +79,7 @@ const StudentDashboard1 = () => {
     if (settings.title_color) setTitleColor(settings.title_color);
     if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
     if (settings.border_color) setBorderColor(settings.border_color);
-    if (settings.main_button_color)
-      setMainButtonColor(settings.main_button_color);
+    if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
     if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);
     if (settings.stepper_color) setStepperColor(settings.stepper_color);
 
@@ -101,10 +100,12 @@ const StudentDashboard1 = () => {
       setBranches(
         typeof settings.branches === "string"
           ? JSON.parse(settings.branches)
-          : settings.branches,
+          : settings.branches
       );
     }
+
   }, [settings]);
+
 
   const navigate = useNavigate();
 
@@ -214,8 +215,64 @@ const StudentDashboard1 = () => {
   };
 
 
+  const filteredYearLevels = yearLevelOptions.filter((yl) => {
+    // If Graduate program → show only Master & Doctor
+    if (Number(person.academicProgram) === 1) {
+      return yl.level_type === "graduate";
+    }
 
-  
+    // If College/Bachelor → show only year levels
+    return yl.level_type === "year";
+  });
+
+
+
+
+
+  const [programAvailability, setProgramAvailability] = useState([]);
+  const [activeYearId, setActiveYearId] = useState(null);
+  const [activeSemesterId, setActiveSemesterId] = useState(null);
+
+  useEffect(() => {
+    const fetchActiveYearAndAvailability = async () => {
+      const yearRes = await axios.get(`${API_BASE_URL}/active_school_year`);
+      const activeYear = yearRes.data[0];
+      console.log(activeYear);
+
+      if (activeYear) {
+        setActiveYearId(activeYear.year_id);
+        setActiveSemesterId(activeYear.semester_id);
+
+        const availRes = await axios.get(
+          `${API_BASE_URL}/api/programs/availability`,
+          {
+            params: {
+              year_id: activeYear.year_id,
+              semester_id: activeYear.semester_id,
+            },
+          }
+        );
+
+        setProgramAvailability(availRes.data);
+        console.log("Program Availability:", availRes.data);
+      }
+    };
+
+    fetchActiveYearAndAvailability();
+  }, []);
+
+  const availabilityMap = React.useMemo(() => {
+    const map = {};
+    programAvailability.forEach((p) => {
+      map[p.curriculum_id] = {
+        remaining: Number(p.remaining),
+        isFull: Number(p.remaining) <= 0,
+      };
+    });
+    return map;
+  }, [programAvailability]);
+
+
   const [studentNumber, setStudentNumber] = useState("");
 
   const queryParams = new URLSearchParams(location.search);
@@ -451,6 +508,16 @@ const StudentDashboard1 = () => {
       [name]: updatedValue,
     };
 
+    if (name === "academicProgram") {
+      if (Number(value) === 1) {
+        // Graduate → default to Master
+        updatedPerson.yearLevel = "Master";
+      } else {
+        // Reset for college
+        updatedPerson.yearLevel = "";
+      }
+    }
+
     // ✅ Auto-calculate age
     if (name === "birthOfDate") {
       updatedPerson.age = calculateAge(value);
@@ -530,10 +597,7 @@ const StudentDashboard1 = () => {
   const [selectedFile, setSelectedFile] = useState(null);
 
   const [open, setOpen] = useState(false);
-  const handleOpen = () => {
-    if (isReadOnly) return;
-    setOpen(true);
-  };
+  const handleOpen = () => setOpen(true);
   const handleClose = () => {
     setOpen(false);
     setSelectedFile(null);
@@ -1282,7 +1346,6 @@ const StudentDashboard1 = () => {
               <label className="w-40 font-medium">Campus:</label>
 
               <FormControl
-                readOnly
                 fullWidth
                 size="small"
                 required
@@ -1290,6 +1353,7 @@ const StudentDashboard1 = () => {
                 className="mb-4"
               >
                 <Select
+                  readOnly
                   id="campus-select"
                   name="campus"
                   value={person.campus || ""}
@@ -1302,12 +1366,8 @@ const StudentDashboard1 = () => {
                   renderValue={(selected) => {
                     if (!selected) return <em>Select Campus</em>;
 
-                    const branch = branches.find(
-                      (b) => String(b.id) === String(selected),
-                    );
-                    return branch
-                      ? branch.branch.toUpperCase()
-                      : "Select Campus";
+                    const branch = branches.find(b => String(b.id) === String(selected));
+                    return branch ? branch.branch.toUpperCase() : "Select Campus";
                   }}
                 >
                   <MenuItem value="">
@@ -1320,6 +1380,7 @@ const StudentDashboard1 = () => {
                     </MenuItem>
                   ))}
                 </Select>
+
 
                 {errors.campus && (
                   <FormHelperText>This field is required.</FormHelperText>
@@ -1340,13 +1401,14 @@ const StudentDashboard1 = () => {
                   Academic Program
                 </InputLabel>
                 <Select
+                  readOnly
                   labelId="academic-program-label"
                   id="academic-program-select"
                   name="academicProgram"
                   value={person.academicProgram || ""}
                   label="Academic Program"
                   onChange={handleChange}
-                  onBlur={handleBlur}
+                  onBlur={() => handleUpdate(person)}
                 >
                   <MenuItem value="">
                     <em>Select Program</em>
@@ -1354,6 +1416,8 @@ const StudentDashboard1 = () => {
                   <MenuItem value="0">Undergraduate</MenuItem>
                   <MenuItem value="1">Graduate</MenuItem>
                   <MenuItem value="2">Techvoc</MenuItem>
+
+
                 </Select>
                 {errors.academicProgram && (
                   <FormHelperText>This field is required.</FormHelperText>
@@ -1378,7 +1442,7 @@ const StudentDashboard1 = () => {
                   value={person.classifiedAs || ""}
                   label="Classified As"
                   onChange={handleChange}
-                  onBlur={handleBlur}
+                  onBlur={() => handleUpdate(person)}
                 >
                   <MenuItem value="">
                     <em>Select Classification</em>
@@ -1408,39 +1472,40 @@ const StudentDashboard1 = () => {
               >
                 <InputLabel id="applying-as-label">Applying As</InputLabel>
                 <Select
+                  readOnly
                   labelId="applying-as-label"
                   id="applying-as-select"
                   name="applyingAs"
                   value={person.applyingAs || ""}
                   label="Applying As"
                   onChange={handleChange}
-                  onBlur={handleBlur}
+                  onBlur={() => handleUpdate(person)}
                 >
                   <MenuItem value="">
                     <em>Select Applying</em>
                   </MenuItem>
-                  <MenuItem value="0">
+                  <MenuItem value="1">
                     Senior High School Graduate
                   </MenuItem>
-                  <MenuItem value="1">
+                  <MenuItem value="2">
                     Senior High School Graduating Student
                   </MenuItem>
-                  <MenuItem value="2">
+                  <MenuItem value="3">
                     ALS (Alternative Learning System) Passer
                   </MenuItem>
-                  <MenuItem value="3">
+                  <MenuItem value="4">
                     Transferee from other University/College
                   </MenuItem>
-                  <MenuItem value="4">
+                  <MenuItem value="5">
                     Cross Enrolee Student
                   </MenuItem>
-                  <MenuItem value="5">
+                  <MenuItem value="6">
                     Foreign Applicant/Student
                   </MenuItem>
-                  <MenuItem value="6">
+                  <MenuItem value="7">
                     Baccalaureate Graduate
                   </MenuItem>
-                  <MenuItem value="7">
+                  <MenuItem value="8">
                     Master Degree Graduate
                   </MenuItem>
                 </Select>
@@ -1475,7 +1540,7 @@ const StudentDashboard1 = () => {
                 >
                   {/* Program 1 */}
                   <Box display="flex" alignItems="center" gap={2} mb={3}>
-                    <label className="w-40 font-medium">Course Applied:</label>
+                    <label className="w-40 font-medium">Course Applied:<span style={{ color: "red" }}> *</span></label>
                     <FormControl
                       fullWidth
                       size="small"
@@ -1484,7 +1549,6 @@ const StudentDashboard1 = () => {
                     >
                       <InputLabel>Course Applied</InputLabel>
                       <Select
-                        readOnly
                         name="program"
                         value={person.program || ""}
                         onBlur={() => handleUpdate(person)}
@@ -1494,18 +1558,49 @@ const StudentDashboard1 = () => {
                         <MenuItem value="">
                           <em>Select Program</em>
                         </MenuItem>
-                        {filteredCurriculum.map((item, index) => (
-                          <MenuItem key={index} value={item.curriculum_id}>
-                            {`(${item.program_code}): ${item.program_description}${item.major ? ` (${item.major})` : ""
-                              } (${Number(item.components) === 1
-                                ? "Manila Campus"
-                                : Number(item.components) === 2
-                                  ? "Cavite Campus"
-                                  : "—"
-                              })`}
-                          </MenuItem>
-                        ))}
+
+                        {filteredCurriculum.map((item, index) => {
+
+                          const availability =
+                            availabilityMap[item.curriculum_id];
+                          const remaining = availability?.remaining ?? 0;
+                          const isFull = availability?.isFull;
+
+                          return (
+                            <MenuItem
+                              key={index}
+                              value={item.curriculum_id}
+                              disabled={isFull}
+                              sx={{
+                                color: isFull ? "red" : "inherit",
+                                fontWeight: isFull ? "bold" : "normal",
+                              }}
+                            >
+                              {`(${item.program_code}): ${item.program_description}${item.major ? ` (${item.major})` : ""
+                                } (${Number(item.components) === 1
+                                  ? "Manila Campus"
+                                  : Number(item.components) === 2
+                                    ? "Cavite Campus"
+                                    : "—"
+                                })`}
+
+                              {/* Slot info */}
+                              {isFull ? (
+                                <span style={{ marginLeft: 8 }}>
+                                  — FULL (0 slots left)
+                                </span>
+                              ) : (
+                                <span
+                                  style={{ marginLeft: 8, color: "#2e7d32" }}
+                                >
+                                  ({remaining} slots left)
+                                </span>
+                              )}
+                            </MenuItem>
+                          );
+                        })}
                       </Select>
+
                       {errors.program && (
                         <FormHelperText>This field is required.</FormHelperText>
                       )}
@@ -1513,76 +1608,136 @@ const StudentDashboard1 = () => {
                   </Box>
 
                   {/* <Box display="flex" alignItems="center" gap={2} mb={1}>
-                           <label className="w-40 font-medium">Course Applied:</label>
-                           <FormControl fullWidth size="small" required error={!!errors.program2}>
-                             <InputLabel>Course Applied</InputLabel>
-                             <Select
-                               name="program2"
-                               value={person.program2 || ""}
-                               onBlur={() => handleUpdate(person)} onChange={handleChange}
-                               label="Program 2"
-                             >
-                               <MenuItem value=""><em>Select Program</em></MenuItem>
-                                 {filteredCurriculum.map((item, index) => (
-  <MenuItem key={index} value={item.curriculum_id}>
-    {`(${item.program_code}): ${item.program_description}${
-      item.major ? ` (${item.major})` : ""
-    } (${
-      Number(item.components) === 1
-        ? "Manila Campus"
-        : Number(item.components) === 2
-        ? "Cavite Campus"
-        : "—"
-    })`}
-  </MenuItem>
-))}
+                      <label className="w-40 font-medium">Course Applied:</label>
+                      <FormControl fullWidth size="small" required error={!!errors.program2}>
+                        <InputLabel>Course Applied:</InputLabel>
+                         <Select
+                          name="program2"
+                          value={person.program2 || ""}
+                          onBlur={() => handleUpdate(person)}
+                          onChange={handleChange}
+                          label="Program"
+                        >
+                          <MenuItem value="">
+                            <em>Select Program</em>
+                          </MenuItem>
+  
+                          {filteredCurriculum.map((item, index) => {
+  
+                            const availability =
+                              availabilityMap[item.curriculum_id];
+                            const remaining = availability?.remaining ?? 0;
+                            const isFull = availability?.isFull;
+  
+                            return (
+                              <MenuItem
+                                key={index}
+                                value={item.curriculum_id}
+                                disabled={isFull}
+                                sx={{
+                                  color: isFull ? "red" : "inherit",
+                                  fontWeight: isFull ? "bold" : "normal",
+                                }}
+                              >
+                                {`(${item.program_code}): ${item.program_description}${item.major ? ` (${item.major})` : ""
+                                  } (${Number(item.components) === 1
+                                    ? "Manila Campus"
+                                    : Number(item.components) === 2
+                                      ? "Cavite Campus"
+                                      : "—"
+                                  })`}
+  
+                                {/* Slot info */}
+                  {/* {isFull ? (
+                                  <span style={{ marginLeft: 8 }}>
+                                    — FULL (0 slots left)
+                                  </span>
+                                ) : (
+                                  <span
+                                    style={{ marginLeft: 8, color: "#2e7d32" }}
+                                  >
+                                    ({remaining} slots left)
+                                  </span>
+                                )}
+                              </MenuItem>
+                            );
+                          })}
+                        </Select>
+                        {errors.program2 && (
+                          <FormHelperText>This field is required.</FormHelperText>
+                        )}
+                      </FormControl> */}
+                  {/* </Box> */}
 
-                             </Select>
-                             {errors.program2 && (
-                               <FormHelperText>This field is required.</FormHelperText>
-                             )}
-                           </FormControl>
-                         </Box> */}
+                  {/* <Box display="flex" alignItems="center" gap={2} mb={1}>
+                      <label className="w-40 font-medium">Course Applied</label>
+                      <FormControl fullWidth size="small" required error={!!errors.program3}>
+                        <InputLabel>Course Applied</InputLabel>
+                         <Select
+                          name="program3"
+                          value={person.program3 || ""}
+                          onBlur={() => handleUpdate(person)}
+                          onChange={handleChange}
+                          label="Program"
+                        >
+                          <MenuItem value="">
+                            <em>Select Program</em>
+                          </MenuItem>
+  
+                          {filteredCurriculum.map((item, index) => {
+  
+                            const availability =
+                              availabilityMap[item.curriculum_id];
+                            const remaining = availability?.remaining ?? 0;
+                            const isFull = availability?.isFull;
+  
+                            return (
+                              <MenuItem
+                                key={index}
+                                value={item.curriculum_id}
+                                disabled={isFull}
+                                sx={{
+                                  color: isFull ? "red" : "inherit",
+                                  fontWeight: isFull ? "bold" : "normal",
+                                }}
+                              >
+                                {`(${item.program_code}): ${item.program_description}${item.major ? ` (${item.major})` : ""
+                                  } (${Number(item.components) === 1
+                                    ? "Manila Campus"
+                                    : Number(item.components) === 2
+                                      ? "Cavite Campus"
+                                      : "—"
+                                  })`}
+  
+                                {/* Slot info */}
+                  {/* {isFull ? (
+                                  <span style={{ marginLeft: 8 }}>
+                                    — FULL (0 slots left)
+                                  </span>
+                                ) : (
+                                  <span
+                                    style={{ marginLeft: 8, color: "#2e7d32" }}
+                                  >
+                                    ({remaining} slots left)
+                                  </span>
+                                )}
+                              </MenuItem>
+                            );
+                          })}
+                        </Select>
+                        {errors.program3 && (
+                          <FormHelperText>This field is required.</FormHelperText>
+                        )}
+                      </FormControl> */}
+                  {/* </Box> */}
 
-                  {/* Program 3 */}
-                  {/* <Box display="flex" alignItems="center" gap={2}>
-                           <label className="w-40 font-medium">Course Applied:</label>
-                           <FormControl fullWidth size="small" required error={!!errors.program3}>
-                             <InputLabel>Course Applied</InputLabel>
-                             <Select
-                               name="program3"
-                               value={person.program3 || ""}
-                               onBlur={() => handleUpdate(person)} onChange={handleChange}
-                               label="Program 3"
-                             >
-                               <MenuItem value=""><em>Select Program</em></MenuItem>
-                                  {filteredCurriculum.map((item, index) => (
-  <MenuItem key={index} value={item.curriculum_id}>
-    {`(${item.program_code}): ${item.program_description}${
-      item.major ? ` (${item.major})` : ""
-    } (${
-      Number(item.components) === 1
-        ? "Manila Campus"
-        : Number(item.components) === 2
-        ? "Cavite Campus"
-        : "—"
-    })`}
-  </MenuItem>
-))}
 
-                             </Select>
-                             {errors.program3 && (
-                               <FormHelperText>This field is required.</FormHelperText>
-                             )}
-                           </FormControl>
-                         </Box> */}
 
                   {/* Year Level */}
                   <div className="flex items-center mb-4 gap-2">
                     <label className="w-40 mt:[2] font-medium ">
-                      Year Level:
+                      Year Level:<span style={{ color: "red" }}> *</span>
                     </label>
-
                     <FormControl
                       fullWidth
                       size="small"
@@ -1590,8 +1745,6 @@ const StudentDashboard1 = () => {
                       error={!!errors.yearLevel}
                     >
                       <InputLabel id="year-level-label">Year Level</InputLabel>
-
-
                       <Select
                         labelId="year-level-label"
                         id="year-level-select"
@@ -1605,7 +1758,7 @@ const StudentDashboard1 = () => {
                           <em>Select Year Level</em>
                         </MenuItem>
 
-                        {yearLevelOptions.map((yl) => (
+                        {filteredYearLevels.map((yl) => (
                           <MenuItem
                             key={yl.year_level_id}
                             value={String(yl.year_level_id)}
@@ -1614,6 +1767,7 @@ const StudentDashboard1 = () => {
                           </MenuItem>
                         ))}
                       </Select>
+
                       {errors.yearLevel && (
                         <FormHelperText>This field is required.</FormHelperText>
                       )}
@@ -1642,7 +1796,7 @@ const StudentDashboard1 = () => {
               >
                 {person.profile_img && person.profile_img !== "" ? (
                   <img
-                    src={`${API_BASE_URL}/uploads/Student1by1/${person.profile_img}?t=${Date.now()}`}
+                    src={`${API_BASE_URL}/uploads/Applicant1by1/${person.profile_img}?t=${Date.now()}`}
                     alt="Profile"
                     style={{
                       width: "100%",
@@ -2844,6 +2998,47 @@ const StudentDashboard1 = () => {
               label="Same as Present Address"
             />
 
+            <Box display="flex" gap={2} mb={2}>
+              <Box flex={1}>
+                <Typography mb={1} fontWeight="medium">
+                  Permanent Street
+                </Typography>
+                <TextField
+                  fullWidth
+                  size="small"
+                  name="permanentStreet"
+                  placeholder="Enter your Permanent Street"
+                  value={person.permanentStreet || ""}
+                  onBlur={() => handleUpdate(person)}
+                  onChange={handleChange}
+                  error={!!errors.permanentStreet}
+                  helperText={
+                    errors.permanentStreet && "This field is required."
+                  }
+                />
+              </Box>
+
+              <Box flex={1}>
+                <Typography mb={1} fontWeight="medium">
+                  Permanent Zip Code
+                </Typography>
+                <TextField
+                  fullWidth
+                  size="small"
+                  type="number"
+                  name="permanentZipCode"
+                  placeholder="Enter your Permanent Zip Code"
+                  value={person.permanentZipCode || ""}
+                  onBlur={() => handleUpdate(person)}
+                  onChange={handleChange}
+                  error={!!errors.permanentZipCode}
+                  helperText={
+                    errors.permanentZipCode && "This field is required."
+                  }
+                />
+              </Box>
+            </Box>
+
             {/* Permanent Region & Province */}
             <Box display="flex" gap={2} mb={2}>
               {/* Permanent Region */}
@@ -3035,46 +3230,7 @@ const StudentDashboard1 = () => {
               </Box>
             </Box>
 
-            <Box display="flex" gap={2} mb={2}>
-              <Box flex={1}>
-                <Typography mb={1} fontWeight="medium">
-                  Permanent Street
-                </Typography>
-                <TextField
-                  fullWidth
-                  size="small"
-                  name="permanentStreet"
-                  placeholder="Enter your Permanent Street"
-                  value={person.permanentStreet || ""}
-                  onBlur={() => handleUpdate(person)}
-                  onChange={handleChange}
-                  error={!!errors.permanentStreet}
-                  helperText={
-                    errors.permanentStreet && "This field is required."
-                  }
-                />
-              </Box>
 
-              <Box flex={1}>
-                <Typography mb={1} fontWeight="medium">
-                  Permanent Zip Code
-                </Typography>
-                <TextField
-                  fullWidth
-                  size="small"
-                  type="number"
-                  name="permanentZipCode"
-                  placeholder="Enter your Permanent Zip Code"
-                  value={person.permanentZipCode || ""}
-                  onBlur={() => handleUpdate(person)}
-                  onChange={handleChange}
-                  error={!!errors.permanentZipCode}
-                  helperText={
-                    errors.permanentZipCode && "This field is required."
-                  }
-                />
-              </Box>
-            </Box>
 
             {/* DSWD Household Number */}
             <Box mb={2}>
@@ -3129,7 +3285,10 @@ const StudentDashboard1 = () => {
                       top: 8,
                       right: 8,
                       color: "#fff",
-                      bgcolor: mainButtonColor,
+                      backgroundColor: settings?.header_color || "#1976d2",
+
+                      border: `1px solid ${borderColor}`,
+
                       "&:hover": {
                         bgcolor: "black",
                       },
@@ -3141,7 +3300,10 @@ const StudentDashboard1 = () => {
                   {/* Header */}
                   <Box
                     sx={{
-                      bgcolor: mainButtonColor,
+                      backgroundColor: settings?.header_color || "#1976d2",
+
+                      border: `1px solid ${borderColor}`,
+
                       color: "white",
                       py: 2,
                       px: 3,
@@ -3170,14 +3332,14 @@ const StudentDashboard1 = () => {
                         src={
                           preview
                             ? preview
-                            : `${API_BASE_URL}/uploads/Applicant1by1/${person.profile_img}`
+                            : `${API_BASE_URL}/uploads/Student1by1/${person.profile_img}`
                         }
                         alt="Preview"
                         sx={{
                           width: "192px",
                           height: "192px",
                           objectFit: "cover",
-                          border: "2px solid #6D2323",
+                          border: `1px solid ${borderColor}`,
                           borderRadius: 2,
                         }}
                       />
@@ -3185,16 +3347,26 @@ const StudentDashboard1 = () => {
                       {/* ❌ REMOVE BUTTON */}
                       <Button
                         size="small"
-                        onClick={() => {
+                        onClick={async () => {
                           setSelectedFile(null);
                           setPreview(null);
 
-                          // ✅ IMPORTANT: remove existing image
-                          setPerson((prev) => ({
-                            ...prev,
+                          const updatedPerson = {
+                            ...person,
                             profile_img: "",
-                          }));
+                          };
+
+                          setPerson(updatedPerson);
+
+                          await handleUpdate(updatedPerson); // saves to DB
+
+                          setSnackbar({
+                            open: true,
+                            message: "Image removed successfully.",
+                            severity: "info",
+                          });
                         }}
+
                         sx={{
                           position: "absolute",
                           top: -8,
@@ -3287,12 +3459,14 @@ const StudentDashboard1 = () => {
                     fullWidth
                     onClick={handleUpload}
                     sx={{
-                      backgroundcolor: mainButtonColor,
+                      backgroundColor: settings?.header_color || "#1976d2",
+
                       border: `1px solid ${borderColor}`,
+
                       color: "white",
                       fontWeight: "bold",
                       "&:hover": {
-                        backgroundColor: "black",
+                        backgroundColor: "#0000000",
                       },
                     }}
                   >
@@ -3304,11 +3478,9 @@ const StudentDashboard1 = () => {
 
             <Box display="flex" justifyContent="right" mt={4}>
               {/* Previous Page Button */}
-
               <Button
                 variant="contained"
                 onClick={handleOpen}
-                disabled={isReadOnly}
                 sx={{
                   backgroundColor: mainButtonColor,
                   border: `1px solid ${borderColor}`,
@@ -3331,9 +3503,9 @@ const StudentDashboard1 = () => {
                   handleUpdate();
 
                   if (isFormValid()) {
-                    navigate("/student_dashboard2");
+                    navigate(`/dashboard/${keys.step2}`);
                   } else {
-                    alert(
+                    showSnackbar(
                       "Please complete all required fields before proceeding.",
                     );
                   }

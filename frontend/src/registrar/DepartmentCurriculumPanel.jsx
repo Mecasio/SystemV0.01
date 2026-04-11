@@ -404,7 +404,7 @@ export default function DepartmentCurriculumPanel() {
               sx={{ minWidth: 500 }}
               options={curriculums}
               getOptionLabel={(c) =>
-                `${formatSchoolYear(c.year_description)} - (${c.program_code}) ${c.program_description}${c.major ? ` (${c.major})` : ""
+                `${formatSchoolYear(c.year_description)}: (${c.program_code}) ${c.program_description}${c.major ? ` (${c.major})` : ""
                 } (${getBranchLabel(c.components)})`
               }
               value={

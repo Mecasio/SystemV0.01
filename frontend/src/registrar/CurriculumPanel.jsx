@@ -3,12 +3,12 @@ import { SettingsContext } from "../App";
 import axios from "axios";
 import {
   Box, Typography, Button, Snackbar, FormControl, Select, InputLabel, MenuItem, Grid,
-  Alert, Card, Paper, CardContent, TableContainer, Table, TableHead, TableCell, TableRow, TableBody, Switch
+  Alert, Card, Paper, CardContent, TableContainer, Table, TableHead, TableCell, TableRow, TableBody, Switch,
+  Autocomplete, TextField
 } from "@mui/material";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
-import { TextField } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import {
   Dialog,
@@ -389,39 +389,25 @@ const CurriculumPanel = () => {
   const formatAcademicYear = (year) => {
     if (!year) return "";
 
-    const startYear = parseInt(year, 10);
-    if (isNaN(startYear)) return year;
+    // If already formatted like "2024-2025"
+    if (typeof year === "string" && year.includes("-")) {
+      return year;
+    }
+
+    const startYear = Number(year);
+
+    if (isNaN(startYear)) return "";
 
     return `${startYear}-${startYear + 1}`;
   };
 
-  const formatSchoolYear = (yearDesc) => {
-    if (!yearDesc) return "";
-    const startYear = Number(yearDesc);
-    if (isNaN(startYear)) return yearDesc; // safe fallback
-    return `${startYear} - ${startYear + 1}`;
+  const getYearLabel = (yearId) => {
+    const year = yearList.find((y) => Number(y.year_id) === Number(yearId));
+
+    if (!year) return "";
+
+    return formatAcademicYear(year.year_description);
   };
-
-
-  const filteredProgramList = programList.filter((program) => {
-    if (!searchQuery.trim()) return true;
-
-    const search = searchQuery.toLowerCase();
-
-    const schoolYear = formatSchoolYear(program.year_description).toLowerCase();
-    const code = (program.program_code || "").toLowerCase();
-    const description = (program.program_description || "").toLowerCase();
-    const major = (program.major || "").toLowerCase();
-    const campus = getBranchLabel(program.components).toLowerCase();
-
-    return (
-      schoolYear.includes(search) ||
-      code.includes(search) ||
-      description.includes(search) ||
-      major.includes(search) ||
-      campus.includes(search)
-    );
-  });
 
   const filteredCurriculumList = curriculumList.filter((item) => {
     const words = searchQuery.trim().toLowerCase().split(" ").filter(Boolean);
@@ -1004,37 +990,68 @@ const CurriculumPanel = () => {
               </TextField>
             </Grid>
 
-            {/* SEARCH PROGRAM */}
-            <Grid item xs={12}>
-              <Typography fontWeight="bold">Search Program</Typography>
-              <TextField
-                fullWidth
-                placeholder="Search Year / Code / Description / Major / Campus"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </Grid>
-
             {/* PROGRAM */}
             <Grid item xs={12}>
               <Typography fontWeight="bold">Program</Typography>
-              <TextField
-                select
+
+              <Autocomplete
                 fullWidth
-                name="program_id"
-                value={curriculum.program_id}
-                onChange={handleChange}
-              >
-                <MenuItem value="">Select Program</MenuItem>
-                {filteredProgramList.map((program) => (
-                  <MenuItem key={program.program_id} value={program.program_id}>
-                    {formatSchoolYear(program.year_description)}:{" "}
-                    {`(${program.program_code}): ${program.program_description}${program.major ? ` (${program.major})` : ""
-                      } (${getBranchLabel(program.components)})`}
-                  </MenuItem>
-                ))}
-              </TextField>
+                options={programList}
+                value={
+                  programList.find(
+                    (program) => program.program_id === curriculum.program_id
+                  ) || null
+                }
+                onChange={(event, newValue) => {
+                  setCurriculum((prev) => ({
+                    ...prev,
+                    program_id: newValue?.program_id || "",
+                  }));
+                }}
+                filterOptions={(options, { inputValue }) => {
+                  const words = inputValue
+                    .trim()
+                    .toLowerCase()
+                    .split(" ")
+                    .filter(Boolean);
+
+                  return options.filter((program) =>
+                    words.every((word) =>
+                      getYearLabel(program.year_id)
+                        .toLowerCase()
+                        .includes(word) ||
+                      (program.program_code || "")
+                        .toLowerCase()
+                        .includes(word) ||
+                      (program.program_description || "")
+                        .toLowerCase()
+                        .includes(word) ||
+                      (program.major || "")
+                        .toLowerCase()
+                        .includes(word) ||
+                      getBranchLabel(program.components)
+                        .toLowerCase()
+                        .includes(word)
+                    )
+                  );
+                }}
+                getOptionLabel={(program) =>
+                  `${getYearLabel(program.year_id)} ` +
+                  `(${program.program_code}): ${program.program_description}` +
+                  `${program.major ? ` (${program.major})` : ""} ` +
+                  `(${getBranchLabel(program.components)})`
+                }
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Select Program"
+                    fullWidth
+                  />
+                )}
+              />
             </Grid>
+
+
 
           </Grid>
         </DialogContent>

@@ -173,6 +173,18 @@ const SuperAdminApplicantDashboard1 = () => {
     };
 
 
+    const filteredYearLevels = yearLevelOptions.filter((yl) => {
+        // If Graduate program → show only Master & Doctor
+        if (Number(person.academicProgram) === 1) {
+            return yl.level_type === "graduate";
+        }
+
+        // If College/Bachelor → show only year levels
+        return yl.level_type === "year";
+    });
+
+
+
 
 
     const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
@@ -446,6 +458,16 @@ const SuperAdminApplicantDashboard1 = () => {
             ...person,
             [name]: updatedValue,
         };
+
+        if (name === "academicProgram") {
+            if (Number(value) === 1) {
+                // Graduate → default to Master
+                updatedPerson.yearLevel = "Master";
+            } else {
+                // Reset for college
+                updatedPerson.yearLevel = "";
+            }
+        }
 
         // ✅ Auto-calculate age
         if (name === "birthOfDate") {
@@ -1768,8 +1790,6 @@ const SuperAdminApplicantDashboard1 = () => {
 
                                         <FormControl fullWidth size="small" required error={!!errors.yearLevel}>
                                             <InputLabel id="year-level-label">Year Level</InputLabel>
-
-
                                             <Select
                                                 labelId="year-level-label"
                                                 id="year-level-select"
@@ -1783,7 +1803,7 @@ const SuperAdminApplicantDashboard1 = () => {
                                                     <em>Select Year Level</em>
                                                 </MenuItem>
 
-                                                {yearLevelOptions.map((yl) => (
+                                                {filteredYearLevels.map((yl) => (
                                                     <MenuItem
                                                         key={yl.year_level_id}
                                                         value={String(yl.year_level_id)}

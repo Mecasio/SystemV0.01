@@ -15,7 +15,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
-import { TextField, InputAdornment } from "@mui/material";
+import { Autocomplete, TextField } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ProgramTaggingFilter from "../registrar/ProgramTaggingFilter";
 import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
@@ -632,34 +632,17 @@ const ProgramTagging = () => {
     new Map(
       curriculumList
         .filter(item => {
-
-          // ✅ Campus filter
           if (selectedCampus !== "") {
-            if (Number(item.components) !== Number(selectedCampus)) return false;
-          }
-
-          // ✅ Academic program filter
-          if (selectedAcademicProgram !== "") {
-            if (Number(item.academic_program) !== Number(selectedAcademicProgram)) return false;
-          }
-
-          // ✅ Curriculum search filter
-          if (curriculumSearch.trim() !== "") {
-            const q = curriculumSearch.toLowerCase();
-
-            const yearDesc = String(item.year_description || "").toLowerCase();
-            const programCode = String(item.program_code || "").toLowerCase();
-            const programDesc = String(item.program_description || "").toLowerCase();
-            const major = String(item.major || "").toLowerCase();
-
-            if (
-              !yearDesc.includes(q) &&
-              !programCode.includes(q) &&
-              !programDesc.includes(q) &&
-              !major.includes(q) && !getBranchLabel(item.components).toLowerCase().includes(q)
-            ) {
+            if (Number(item.components) !== Number(selectedCampus))
               return false;
-            }
+          }
+
+          if (selectedAcademicProgram !== "") {
+            if (
+              Number(item.academic_program) !==
+              Number(selectedAcademicProgram)
+            )
+              return false;
           }
 
           return true;
@@ -1490,18 +1473,7 @@ const ProgramTagging = () => {
               </TextField>
             </Grid>
 
-            {/* SEARCH CURRICULUM */}
-            <Grid item xs={12}>
-              <Typography fontWeight={700} sx={{ mb: 1 }}>
-                Search Curriculum
-              </Typography>
-              <TextField
-                fullWidth
-                placeholder="Search curriculum..."
-                value={curriculumSearch}
-                onChange={(e) => setCurriculumSearch(e.target.value)}
-              />
-            </Grid>
+
 
             {/* CURRICULUM */}
             <Grid item xs={12}>
@@ -1509,62 +1481,75 @@ const ProgramTagging = () => {
                 Curriculum
               </Typography>
 
-              <TextField
-                select
+              <Autocomplete
                 fullWidth
-                label="Curriculum"
-                name="curriculum_id"
-                value={progTag.curriculum_id}
-                onChange={handleChangesForEverything}
-              >
-                <MenuItem value="">Choose Curriculum</MenuItem>
-
-                {filteredCurriculumList.map((curriculum) => (
-                  <MenuItem
-                    key={curriculum.curriculum_id}
-                    value={curriculum.curriculum_id}
-                  >
-                    {formatSchoolYear(curriculum.year_description)}:{" "}
-                    {`(${curriculum.program_code}): ${curriculum.program_description}${curriculum.major ? ` (${curriculum.major})` : ""
-                      } (${getBranchLabel(curriculum.components)})`}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-
-            {/* SEARCH COURSE */}
-            <Grid item xs={12}>
-              <Typography fontWeight={700} sx={{ mb: 1 }}>
-                Search Course
-              </Typography>
-              <TextField
-                fullWidth
-                placeholder="Search course..."
-                value={courseSearch}
-                onChange={(e) => setCourseSearch(e.target.value)}
+                options={filteredCurriculumList}
+                value={
+                  filteredCurriculumList.find(
+                    item => item.curriculum_id === progTag.curriculum_id
+                  ) || null
+                }
+                onChange={(event, newValue) => {
+                  setProgTag(prev => ({
+                    ...prev,
+                    curriculum_id: newValue?.curriculum_id || ""
+                  }));
+                }}
+                getOptionLabel={(option) =>
+                  `${formatSchoolYear(option.year_description)}: (${option.program_code}) ${option.program_description
+                  }${option.major ? ` (${option.major})` : ""} (${getBranchLabel(
+                    option.components
+                  )})`
+                }
+                renderInput={(params) => (
+                  <TextField {...params} label="Choose Curriculum" />
+                )}
               />
             </Grid>
 
-            {/* COURSE */}
+
             <Grid item xs={12}>
               <Typography fontWeight={700} sx={{ mb: 1 }}>
                 Course
               </Typography>
-              <TextField
-                select
+
+              <Autocomplete
                 fullWidth
-                label="Course"
-                name="course_id"
-                value={progTag.course_id}
-                onChange={handleChangesForEverything}
-              >
-                <MenuItem value="">Choose Course</MenuItem>
-                {filteredCourses.map((course) => (
-                  <MenuItem key={course.course_id} value={course.course_id}>
-                    {course.course_code} - {course.course_description} ({course.prereq})
-                  </MenuItem>
-                ))}
-              </TextField>
+                options={courseList}
+                value={
+                  courseList.find(
+                    (course) => course.course_id === progTag.course_id
+                  ) || null
+                }
+                onChange={(event, newValue) => {
+                  setProgTag((prev) => ({
+                    ...prev,
+                    course_id: newValue?.course_id || "",
+                  }));
+                }}
+                getOptionLabel={(option) =>
+                  `${option.course_code} - ${option.course_description} (${option.prereq || "No prereq"})`
+                }
+                filterOptions={(options, { inputValue }) => {
+                  const words = inputValue.toLowerCase().split(" ");
+
+                  return options.filter((course) => {
+                    const courseCode = (course.course_code || "").toLowerCase();
+                    const courseDesc = (course.course_description || "").toLowerCase();
+                    const coursePreq = (course.prereq || "").toLowerCase();
+
+                    return words.every(
+                      (word) =>
+                        courseCode.includes(word) ||
+                        courseDesc.includes(word) ||
+                        coursePreq.includes(word)
+                    );
+                  });
+                }}
+                renderInput={(params) => (
+                  <TextField {...params} label="Choose Course" />
+                )}
+              />
             </Grid>
 
             {/* YEAR */}
