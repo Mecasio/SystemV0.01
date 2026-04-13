@@ -399,7 +399,7 @@ const StudentFacultyEvaluation = () => {
 
                 <TableBody>
                   <TableRow sx={{ border: `1px solid ${borderColor}` }}>
-                    <TableCell sx={{ fontWeight: 600 }}>5</TableCell>
+                    <TableCell sx={{ fontWeight: 600, border: `1px solid ${borderColor}`  }}>5</TableCell>
                     <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                       Always manifested
                     </TableCell>
@@ -409,7 +409,7 @@ const StudentFacultyEvaluation = () => {
                   </TableRow>
 
                   <TableRow sx={{ border: `1px solid ${borderColor}` }}>
-                    <TableCell sx={{ fontWeight: 600 }}>4</TableCell>
+                    <TableCell sx={{ border: `1px solid ${borderColor}` , fontWeight: 600 }}>4</TableCell>
                     <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                       Often manifested
                     </TableCell>
@@ -419,7 +419,7 @@ const StudentFacultyEvaluation = () => {
                   </TableRow>
 
                   <TableRow sx={{ border: `1px solid ${borderColor}` }}>
-                    <TableCell sx={{ fontWeight: 600 }}>3</TableCell>
+                    <TableCell sx={{ fontWeight: 600, border: `1px solid ${borderColor}`  }}>3</TableCell>
                     <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                       Sometimes manifested
                     </TableCell>
@@ -429,7 +429,7 @@ const StudentFacultyEvaluation = () => {
                   </TableRow>
 
                   <TableRow sx={{ border: `1px solid ${borderColor}` }}>
-                    <TableCell sx={{ fontWeight: 600 }}>2</TableCell>
+                    <TableCell sx={{ fontWeight: 600, border: `1px solid ${borderColor}`  }}>2</TableCell>
                     <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                       Seldom manifested
                     </TableCell>
@@ -439,7 +439,7 @@ const StudentFacultyEvaluation = () => {
                   </TableRow>
 
                   <TableRow sx={{ border: `1px solid ${borderColor}` }}>
-                    <TableCell sx={{ fontWeight: 600 }}>1</TableCell>
+                    <TableCell sx={{ fontWeight: 600, border: `1px solid ${borderColor}`  }}>1</TableCell>
                     <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                       Never manifested
                     </TableCell>

@@ -89,6 +89,13 @@ const AdminDashboard1 = () => {
 
   }, [settings]);
 
+  const getBranchLabel = (branchId) => {
+    const branch = branches.find((item) => String(item.id) === String(branchId));
+    return branch?.branch || "—";
+  };
+
+
+
 
   const stepsData = [
     {
@@ -1856,12 +1863,7 @@ const AdminDashboard1 = () => {
                         {filteredCurriculum.map((item, index) => (
                           <MenuItem key={index} value={item.curriculum_id}>
                             {`(${item.program_code}): ${item.program_description}${item.major ? ` (${item.major})` : ""
-                              } (${Number(item.components) === 1
-                                ? "Manila Campus"
-                                : Number(item.components) === 2
-                                  ? "Cavite Campus"
-                                  : "—"
-                              })`}
+                              } (${item.current_year}-${item.next_year}) (${getBranchLabel(item.components)})`}
                           </MenuItem>
                         ))}
 
@@ -1877,67 +1879,55 @@ const AdminDashboard1 = () => {
 
                   {/* <Box display="flex" alignItems="center" gap={2} mb={1}>
                            <label className="w-40 font-medium">Course Applied:</label>
-                           <FormControl fullWidth size="small" required error={!!errors.program2}>
-                             <InputLabel>Course Applied</InputLabel>
-                             <Select
-                               name="program2"
-                               value={person.program2 || ""}
-                               onBlur={() => handleUpdate(person)} onChange={handleChange}
-                               label="Program 2"
-                             >
-                               <MenuItem value=""><em>Select Program</em></MenuItem>
-                                 {filteredCurriculum.map((item, index) => (
-  <MenuItem key={index} value={item.curriculum_id}>
-    {`(${item.program_code}): ${item.program_description}${
-      item.major ? ` (${item.major})` : ""
-    } (${
-      Number(item.components) === 1
-        ? "Manila Campus"
-        : Number(item.components) === 2
-        ? "Cavite Campus"
-        : "—"
-    })`}
-  </MenuItem>
-))}
-
-                             </Select>
-                             {errors.program2 && (
-                               <FormHelperText>This field is required.</FormHelperText>
-                             )}
-                           </FormControl>
+                            <FormControl fullWidth size="small" required error={!!errors.program2}>
+                                                                      <InputLabel>Course Applied</InputLabel>
+                                                                      <Select
+                                                                          name="program2"
+                                                                          value={person.program2 || ""}
+                                                                          onBlur={() => handleUpdate(person)} onChange={handleChange}
+                                                                          label="Program 2"
+                                                                      >
+                                                                          <MenuItem value=""><em>Select Program</em></MenuItem>
+                                                                          {filteredCurriculum.map((item, index) => (
+                                                                              <MenuItem key={index} value={item.curriculum_id}>
+                                                                                  {`(${item.program_code}): ${item.program_description}${item.major ? ` (${item.major})` : ""
+                                                                                      } (${item.current_year}-${item.next_year}) (${getBranchLabel(item.components)})`}
+                                                                              </MenuItem>
+                                                                          ))}
+                          
+                          
+                                                                      </Select>
+                                                                      {errors.program2 && (
+                                                                          <FormHelperText>This field is required.</FormHelperText>
+                                                                      )}
+                                                                  </FormControl>
                          </Box> */}
 
                   {/* Program 3 */}
                   {/* <Box display="flex" alignItems="center" gap={2}>
                            <label className="w-40 font-medium">Course Applied:</label>
-                           <FormControl fullWidth size="small" required error={!!errors.program3}>
-                             <InputLabel>Course Applied</InputLabel>
-                             <Select
-                               name="program3"
-                               value={person.program3 || ""}
-                               onBlur={() => handleUpdate(person)} onChange={handleChange}
-                               label="Program 3"
-                             >
-                               <MenuItem value=""><em>Select Program</em></MenuItem>
-                                  {filteredCurriculum.map((item, index) => (
-  <MenuItem key={index} value={item.curriculum_id}>
-    {`(${item.program_code}): ${item.program_description}${
-      item.major ? ` (${item.major})` : ""
-    } (${
-      Number(item.components) === 1
-        ? "Manila Campus"
-        : Number(item.components) === 2
-        ? "Cavite Campus"
-        : "—"
-    })`}
-  </MenuItem>
-))}
-
-                             </Select>
-                             {errors.program3 && (
-                               <FormHelperText>This field is required.</FormHelperText>
-                             )}
-                           </FormControl>
+                          <FormControl fullWidth size="small" required error={!!errors.program3}>
+                                                                    <InputLabel>Course Applied</InputLabel>
+                                                                    <Select
+                                                                        name="program3"
+                                                                        value={person.program3 || ""}
+                                                                        onBlur={() => handleUpdate(person)} onChange={handleChange}
+                                                                        label="Program 3"
+                                                                    >
+                                                                        <MenuItem value=""><em>Select Program</em></MenuItem>
+                                                                        {filteredCurriculum.map((item, index) => (
+                                                                            <MenuItem key={index} value={item.curriculum_id}>
+                                                                                {`(${item.program_code}): ${item.program_description}${item.major ? ` (${item.major})` : ""
+                                                                                    } (${item.current_year}-${item.next_year}) (${getBranchLabel(item.components)})`}
+                                                                            </MenuItem>
+                                                                        ))}
+                        
+                        
+                                                                    </Select>
+                                                                    {errors.program3 && (
+                                                                        <FormHelperText>This field is required.</FormHelperText>
+                                                                    )}
+                                                                </FormControl>
                          </Box> */}
 
                   {/* Year Level */}

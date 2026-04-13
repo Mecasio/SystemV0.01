@@ -8,9 +8,9 @@ const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
 router.get("/student-info", async (req, res) => {
-  const {searchQuery, campus} = req.query;
+  const { searchQuery, campus } = req.query;
 
-  try{
+  try {
     const keyword = `%${searchQuery}%`;
 
     const [searchStudentNumber] = await db3.query(
@@ -28,8 +28,8 @@ router.get("/student-info", async (req, res) => {
       [searchQuery, keyword, keyword, keyword, searchQuery]
     );
 
-    if(searchStudentNumber.length === 0){
-      return res.status(400).json({error: "student is not found"});
+    if (searchStudentNumber.length === 0) {
+      return res.status(400).json({ error: "student is not found" });
     }
 
     const student_number = searchStudentNumber[0].student_number;
@@ -69,8 +69,8 @@ router.get("/student-info", async (req, res) => {
       `, [student_number, campus]
     )
 
-    if(rows.length === 0){
-      return res.status(400).json({error: "student record is not found"});
+    if (rows.length === 0) {
+      return res.status(400).json({ error: "student record is not found" });
     }
 
     res.json(rows)
@@ -81,9 +81,9 @@ router.get("/student-info", async (req, res) => {
 })
 
 router.get("/student-info/:student_number", async (req, res) => {
-  const {student_number} = req.params;
+  const { student_number } = req.params;
 
-  try{
+  try {
     const [rows] = await db3.query(
       `
         SELECT DISTINCT
@@ -121,8 +121,8 @@ router.get("/student-info/:student_number", async (req, res) => {
 
     console.log("Inserted Data: ", rows);
 
-    if(rows.length === 0){
-      return res.status(400).json({error: "student record is not found"});
+    if (rows.length === 0) {
+      return res.status(400).json({ error: "student record is not found" });
     }
 
     res.json(rows)
@@ -133,7 +133,7 @@ router.get("/student-info/:student_number", async (req, res) => {
 })
 
 router.post("/update_student", upload.single("profile_picture"), async (req, res) => {
-  const { person_id } = req.body; 
+  const { person_id } = req.body;
   if (!person_id || !req.file) {
     return res.status(400).send("Missing person_id or file.");
   }
@@ -244,84 +244,161 @@ router.get("/api/grading_status", async (req, res) => {
   }
 });
 
+
 router.get("/api/student_grade/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
-    // ðŸ”Ž Check if there are professors not evaluated yet
+
     const [pending] = await db3.execute(
       `
-      SELECT DISTINCT COUNT(*) AS total_professors
+      SELECT COUNT(*) AS total_professors
       FROM enrolled_subject AS es
-      JOIN student_numbering_table AS snt ON es.student_number = snt.student_number
-      WHERE es.fe_status = 0 AND snt.person_id = ?
-    `,
+      JOIN student_numbering_table AS snt
+        ON es.student_number = snt.student_number
+      WHERE es.fe_status = 0
+      AND snt.person_id = ?
+      `,
       [id],
     );
 
-    // ðŸ”Ž Fetch all enrolled courses with details
     const [rows] = await db3.execute(
       `
-      SELECT DISTINCT
-        ct.course_description,
-        ct.course_code,
-        es.en_remarks,
-        ct.course_unit,
-        ct.lab_unit,
-        pgt.program_code,
-        pgt.program_description,
-        st.description AS section_description,
-        pft.lname AS prof_lastname,
-        rdt.description AS day_description,
-        tt.school_time_start,
-        tt.school_time_end,
-        rt.room_description,
-        yt.year_description AS first_year,
-        yt.year_description + 1 AS last_year,
-        smt.semester_description,
-        IFNULL(pft.fname, 'TBA') AS fname,
-        IFNULL(pft.lname, 'TBA') AS lname,
-        es.final_grade,
-        es.fe_status,
-        es.en_remarks
-      FROM enrolled_subject AS es
-        JOIN student_numbering_table AS snt ON es.student_number = snt.student_number
-        JOIN person_table AS pt ON snt.person_id = pt.person_id
-        JOIN course_table AS ct ON es.course_id = ct.course_id
-        JOIN dprtmnt_section_table AS dst ON es.department_section_id = dst.id
-        JOIN curriculum_table AS cct ON es.curriculum_id = cct.curriculum_id
-        JOIN program_table AS pgt ON cct.program_id = pgt.program_id
-        JOIN section_table AS st ON dst.section_id = st.id
-        LEFT JOIN time_table AS tt
-          ON tt.course_id = es.course_id
-          AND tt.department_section_id = es.department_section_id
-          AND tt.school_year_id = es.active_school_year_id
-        LEFT JOIN room_day_table AS rdt ON tt.room_day = rdt.id
-        LEFT JOIN room_table AS rt ON tt.department_room_id = rt.room_id
-        LEFT JOIN prof_table AS pft ON tt.professor_id = pft.prof_id
-        JOIN active_school_year_table AS sy ON es.active_school_year_id = sy.id
-        JOIN year_table AS yt ON sy.year_id = yt.year_id
-        JOIN semester_table AS smt ON sy.semester_id = smt.semester_id
-      WHERE pt.person_id = ? ORDER BY yt.year_description DESC, CASE smt.semester_description
-        WHEN 'First Semester' THEN 1
-        WHEN 'Second Semester' THEN 2
-        ELSE 3
-      END DESC
-    `,
+    SELECT DISTINCT
+
+  ct.course_description,
+  ct.course_code,
+  es.en_remarks,
+  es.remarks,
+  ct.course_unit,
+  ct.lab_unit,
+
+  pgt.program_code,
+  pgt.program_description,
+
+  st.description AS section_description,
+
+  pft.lname AS prof_lastname,
+  rdt.description AS day_description,
+  tt.school_time_start,
+  tt.school_time_end,
+  rt.room_description,
+
+  -- ✅ YEAR LEVEL (FROM student_status_table)
+  ylt.year_level_description,
+  sst.year_level_id,
+
+  -- ✅ SEMESTER / SCHOOL YEAR
+  smt.semester_description,
+  smt.semester_id,
+  yt.year_description,
+
+  IFNULL(pft.fname, 'TBA') AS fname,
+  IFNULL(pft.lname, 'TBA') AS lname,
+
+  es.final_grade,
+  es.fe_status,
+  es.active_school_year_id,
+
+  pt.last_name,
+  pt.first_name,
+  pt.middle_name,
+
+  snt.student_number,
+
+  CASE
+    WHEN LOWER(IFNULL(es.remarks, '')) = 'migrated from old system'
+    THEN 1
+    ELSE 0
+  END AS is_migrated
+
+FROM enrolled_subject AS es
+
+JOIN student_numbering_table AS snt
+  ON es.student_number = snt.student_number
+
+JOIN person_table AS pt
+  ON snt.person_id = pt.person_id
+
+-- ✅ IMPORTANT JOIN
+JOIN student_status_table AS sst
+  ON sst.student_number = es.student_number
+  AND sst.active_school_year_id = es.active_school_year_id
+
+LEFT JOIN dprtmnt_section_table AS dst
+  ON es.department_section_id = dst.id
+
+JOIN curriculum_table AS cct
+  ON es.curriculum_id = cct.curriculum_id
+
+JOIN program_table AS pgt
+  ON cct.program_id = pgt.program_id
+
+LEFT JOIN section_table AS st
+  ON dst.section_id = st.id
+
+LEFT JOIN time_table AS tt
+  ON tt.course_id = es.course_id
+  AND tt.department_section_id = es.department_section_id
+  AND tt.school_year_id = es.active_school_year_id
+
+LEFT JOIN room_day_table AS rdt
+  ON tt.room_day = rdt.id
+
+LEFT JOIN room_table AS rt
+  ON tt.department_room_id = rt.room_id
+
+LEFT JOIN prof_table AS pft
+  ON tt.professor_id = pft.prof_id
+
+JOIN active_school_year_table AS sy
+  ON es.active_school_year_id = sy.id
+
+JOIN year_table AS yt
+  ON sy.year_id = yt.year_id
+
+JOIN semester_table AS smt
+  ON sy.semester_id = smt.semester_id
+
+JOIN course_table AS ct
+  ON es.course_id = ct.course_id
+
+-- OPTIONAL (if still needed)
+LEFT JOIN program_tagging_table AS ptg
+  ON ptg.curriculum_id = es.curriculum_id
+  AND ptg.course_id = es.course_id
+
+LEFT JOIN year_level_table AS ylt
+  ON sst.year_level_id = ylt.year_level_id
+
+WHERE pt.person_id = ?
+
+-- ✅ LATEST FIRST (IMPORTANT)
+ORDER BY
+  yt.year_description DESC,
+  smt.semester_id DESC,
+  sst.year_level_id DESC;
+      `,
       [id],
     );
 
     if (rows.length === 0) {
-      return res.status(404).json({ error: "Schedule not found" });
+      return res.status(404).json({
+        error: "Schedule not found",
+      });
     }
 
-    let responseRows = rows;
-    res.json(responseRows);
+    res.json(rows);
+
   } catch (error) {
     console.error("Error fetching person:", error);
-    res.status(500).json({ error: "Database error" });
+    res.status(500).json({
+      error: "Database error",
+    });
   }
 });
+
+
 
 router.get("/api/student/view_latest_grades/:id", async (req, res) => {
   const { id } = req.params;
@@ -333,6 +410,7 @@ router.get("/api/student/view_latest_grades/:id", async (req, res) => {
         ct.course_description,
         ct.course_code,
         es.en_remarks,
+        es.remarks,
         ct.course_unit,
         ct.lab_unit,
         pgt.program_code,
@@ -350,15 +428,19 @@ router.get("/api/student/view_latest_grades/:id", async (req, res) => {
         smt.semester_description,
         es.final_grade,
         es.fe_status,
-        es.en_remarks
+        es.en_remarks,
+        CASE
+          WHEN LOWER(IFNULL(es.remarks, '')) = 'migrated from old system' THEN 1
+          ELSE 0
+        END AS is_migrated
       FROM enrolled_subject AS es
         JOIN student_numbering_table AS snt ON es.student_number = snt.student_number
         JOIN person_table AS pt ON snt.person_id = pt.person_id
         JOIN course_table AS ct ON es.course_id = ct.course_id
-        JOIN dprtmnt_section_table AS dst ON es.department_section_id = dst.id
+        LEFT JOIN dprtmnt_section_table AS dst ON es.department_section_id = dst.id
         JOIN curriculum_table AS cct ON es.curriculum_id = cct.curriculum_id
         JOIN program_table AS pgt ON cct.program_id = pgt.program_id
-        JOIN section_table AS st ON dst.section_id = st.id
+        LEFT JOIN section_table AS st ON dst.section_id = st.id
         LEFT JOIN time_table AS tt
           ON tt.course_id = es.course_id
         AND tt.department_section_id = es.department_section_id
@@ -402,7 +484,10 @@ router.get("/api/student_course/:id", async (req, res) => {
         LEFT JOIN year_table AS yrt ON sy.year_id = yrt.year_id
         LEFT JOIN year_table AS cyt ON cct.year_id = cyt.year_id
         LEFT JOIN semester_table AS smt ON sy.semester_id = smt.semester_id
-      WHERE pst.person_id = ? AND sy.astatus = 1 AND es.fe_status = 0;
+      WHERE pst.person_id = ?
+        AND sy.astatus = 1
+        AND es.fe_status = 0
+        AND LOWER(IFNULL(es.remarks, '')) <> 'migrated from old system';
     `,
       [id],
     );

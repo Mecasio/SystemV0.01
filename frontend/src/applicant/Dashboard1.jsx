@@ -92,6 +92,11 @@ const Dashboard1 = (props) => {
 
   }, [settings]);
 
+    const getBranchLabel = (branchId) => {
+    const branch = branches.find((item) => String(item.id) === String(branchId));
+    return branch?.branch || "—";
+  };
+
   const navigate = useNavigate();
   const [userID, setUserID] = useState("");
   const [user, setUser] = useState("");
@@ -1600,12 +1605,7 @@ const Dashboard1 = (props) => {
                               }}
                             >
                               {`(${item.program_code}): ${item.program_description}${item.major ? ` (${item.major})` : ""
-                                } (${Number(item.components) === 1
-                                  ? "Manila Campus"
-                                  : Number(item.components) === 2
-                                    ? "Cavite Campus"
-                                    : "—"
-                                })`}
+                                } (${item.current_year}-${item.next_year}) (${getBranchLabel(item.components)})`}
 
                               {/* Slot info */}
                               {isFull ? (

@@ -35,41 +35,103 @@ function generateRandomPassword(length = 10) {
 
 router.get("/applicant_list", async (req, res) => {
   try {
-    const sql = `
-SELECT snt.student_number, pt.campus, pt.last_name, pt.person_id, pt.first_name, pt.middle_name, pt.emailAddress, 
-       pgt.program_code, pgt.program_id, pgt.program_description, pgt.major, 
-       dt.dprtmnt_name, dt.dprtmnt_id, dt.dprtmnt_code, 
-       sts.year_level_id, ylt.year_level_description 
-FROM enrolled_subject es
-INNER JOIN student_numbering_table snt ON es.student_number = snt.student_number
-INNER JOIN person_table pt ON snt.person_id = pt.person_id
-INNER JOIN curriculum_table ct ON es.curriculum_id = ct.curriculum_id
-INNER JOIN program_table pgt ON ct.program_id = pgt.program_id
-INNER JOIN dprtmnt_curriculum_table dct ON ct.curriculum_id = dct.curriculum_id
-INNER JOIN dprtmnt_table dt ON dct.dprtmnt_id = dt.dprtmnt_id
-INNER JOIN student_status_table sts ON snt.student_number = sts.student_number
-    AND sts.id = (
-        SELECT MAX(id) 
-        FROM student_status_table 
-        WHERE student_number = snt.student_number
-    )
-INNER JOIN year_level_table ylt ON sts.year_level_id = ylt.year_level_id
-GROUP BY es.student_number;
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 100;
+    const search = req.query.search || "";
+
+    const offset = (page - 1) * limit;
+
+    let whereClause = "";
+    let params = [];
+
+    if (search) {
+      whereClause = `
+        WHERE 
+          snt.student_number LIKE ? OR
+          pt.last_name LIKE ? OR
+          pt.first_name LIKE ? OR
+          pt.middle_name LIKE ? OR
+          pgt.program_code LIKE ? OR
+          dt.dprtmnt_name LIKE ?
+      `;
+
+      const searchValue = `%${search}%`;
+      params = [
+        searchValue,
+        searchValue,
+        searchValue,
+        searchValue,
+        searchValue,
+        searchValue
+      ];
+    }
+
+  const sql = `
+  SELECT 
+    snt.student_number,
+    pt.campus,
+    pt.last_name,
+    pt.person_id,
+    pt.first_name,
+    pt.middle_name,
+    pt.emailAddress,
+    pgt.program_code,
+    pgt.program_id,
+    pgt.program_description,
+    pgt.major,
+    dt.dprtmnt_name,
+    dt.dprtmnt_id
+  FROM enrolled_subject es
+  INNER JOIN student_numbering_table snt 
+    ON es.student_number = snt.student_number
+  INNER JOIN person_table pt 
+    ON snt.person_id = pt.person_id
+  INNER JOIN curriculum_table ct 
+    ON es.curriculum_id = ct.curriculum_id
+  INNER JOIN program_table pgt 
+    ON ct.program_id = pgt.program_id
+  INNER JOIN dprtmnt_curriculum_table dct 
+    ON ct.curriculum_id = dct.curriculum_id
+  INNER JOIN dprtmnt_table dt 
+    ON dct.dprtmnt_id = dt.dprtmnt_id
+  ${whereClause}
+  GROUP BY es.student_number
+  ORDER BY snt.student_number ASC
+  LIMIT ? OFFSET ?
+`;
+
+    const [rows] = await db3.query(sql, [...params, limit, offset]);
+
+    const countSql = `
+      SELECT COUNT(DISTINCT snt.student_number) as total
+      FROM enrolled_subject es
+      INNER JOIN student_numbering_table snt 
+        ON es.student_number = snt.student_number
+      INNER JOIN person_table pt 
+        ON snt.person_id = pt.person_id
+      INNER JOIN curriculum_table ct 
+        ON es.curriculum_id = ct.curriculum_id
+      INNER JOIN program_table pgt 
+        ON ct.program_id = pgt.program_id
+      INNER JOIN dprtmnt_curriculum_table dct 
+        ON ct.curriculum_id = dct.curriculum_id
+      INNER JOIN dprtmnt_table dt 
+        ON dct.dprtmnt_id = dt.dprtmnt_id
+      ${whereClause}
     `;
 
-    const [rows] = await db3.query(sql);
+    const [countRows] = await db3.query(countSql, params);
 
-    console.log("ROWS:", rows);
-
-    res.json(rows);
+    res.json({
+      data: rows,
+      total: countRows[0].total,
+      page,
+      totalPages: Math.ceil(countRows[0].total / limit)
+    });
 
   } catch (error) {
-    console.error("Error fetching applicants:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Server error"
-    });
+    console.error(error);
+    res.status(500).json({ success: false });
   }
 });
 

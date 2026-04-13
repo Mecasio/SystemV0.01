@@ -44,7 +44,7 @@ const allowedOrigins = [
   "http://192.168.50.55:5173",
   "http://192.168.50.211:5173",
   "http://136.239.248.62:5173",
-  "http://192.168.50.69:5173",
+  "http://192.168.50.60:5173",
   "http://192.168.1.9:5173",
 ];
 
@@ -3314,6 +3314,8 @@ app.get("/api/applied_program", async (req, res) => {
         ct.curriculum_id,
         ct.year_id,
         yt.year_description,
+        yt.year_description AS current_year,
+        yt.year_description + 1 AS next_year,
         pt.program_id,
         pt.program_code,
         pt.program_description,
@@ -3326,7 +3328,8 @@ app.get("/api/applied_program", async (req, res) => {
       INNER JOIN program_table AS pt ON pt.program_id = ct.program_id
       INNER JOIN dprtmnt_curriculum_table AS dc ON ct.curriculum_id = dc.curriculum_id
       INNER JOIN year_table AS yt ON ct.year_id = yt.year_id
-      INNER JOIN dprtmnt_table AS d ON dc.dprtmnt_id = d.dprtmnt_id
+      INNER JOIN dprtmnt_table AS d ON dc.dprtmnt_id = d.dprtmnt_id 
+      WHERE ct.lock_status = 1
     `);
 
     if (rows.length === 0) {

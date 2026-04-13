@@ -255,10 +255,6 @@ const ProgramUnit = () => {
         return `${startYear} - ${startYear + 1}`;
     };
 
-    const getBranchLabel = (branchId) => {
-        const branch = branches.find((item) => Number(item.id) === Number(branchId));
-        return branch?.branch || "�";
-    };
 
     const [filteredPrograms, setFilteredPrograms] = useState([]);
 

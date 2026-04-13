@@ -482,7 +482,9 @@ export default function DepartmentCurriculumPanel() {
                       {/* Program Code / Description */}
                       <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                         {m.p_code || ""} — {m.p_description || ""}
-                        {m.year_description ? ` (${m.year_description})` : ""} ({m.p_major || ""})
+                        {m.year_description
+                          ? ` (${formatSchoolYear(m.year_description)}: ${m.p_major || ""})`
+                          : ""}
                       </TableCell>
 
                       {/* Actions */}

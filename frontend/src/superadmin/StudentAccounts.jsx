@@ -181,19 +181,27 @@ export default function StudentAccounts() {
     const fetchPersons = async () => {
         try {
             const res = await axios.get(
-                `${API_BASE_URL}/api/applicant_list?page=${currentPage}`
+                `${API_BASE_URL}/api/applicant_list`,
+                {
+                    params: {
+                        page: currentPage,
+                        limit: 100,
+                        search: searchQuery
+                    }
+                }
             );
 
-            console.log("API RESPONSE:", res.data);
-            console.log("TYPE:", typeof res.data);
-            console.log("LENGTH:", res.data.length);
-
-            setPersons(res.data);
+            setPersons(res.data.data);
+            setTotalPages(res.data.totalPages);
+            setTotalStudents(res.data.total);
 
         } catch (err) {
-            console.error("FETCH ERROR:", err);
+            console.error(err);
         }
     };
+
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalStudents, setTotalStudents] = useState(0);
 
     const handleOpen = async (person) => {
         try {
@@ -474,39 +482,21 @@ export default function StudentAccounts() {
 
     const [searchQuery, setSearchQuery] = useState("");
 
-    const filteredStudents = persons.filter((student) => {
-        const query = searchQuery.toLowerCase();
-
-        return (
-            student.student_number?.toLowerCase().includes(query) ||
-            student.last_name?.toLowerCase().includes(query) ||
-            student.first_name?.toLowerCase().includes(query) ||
-            student.middle_name?.toLowerCase().includes(query) ||
-            student.program_code?.toLowerCase().includes(query) ||
-            student.dprtmnt_name?.toLowerCase().includes(query)
-
-
-        );
-    });
-
 
     useEffect(() => {
-        fetchPersons();
+        const timeout = setTimeout(() => {
+            fetchPersons();
+        }, 500);
+
+        return () => clearTimeout(timeout);
     }, [currentPage, searchQuery]);
 
-    const totalPages = Math.ceil(filteredStudents.length / rowsPerPage);
 
     const startIndex =
         (currentPage - 1) *
         rowsPerPage;
 
-    const currentData =
-        filteredStudents.slice(
-            startIndex,
-            startIndex +
-
-            rowsPerPage
-        );
+    const currentData = persons || [];
 
     const paginationButtonStyle = {
         minWidth: 70,
@@ -644,7 +634,7 @@ export default function StudentAccounts() {
                                         fontWeight="bold"
                                         color="white"
                                     >
-                                        Total Students: {filteredStudents.length}
+                                        Total Students: {totalStudents}
                                     </Typography>
 
                                     {/* PAGINATION */}
@@ -878,7 +868,7 @@ export default function StudentAccounts() {
                                             border: `1px solid ${borderColor}`
                                         }}
                                     >
-                                        {index + 1}
+                                        {startIndex + index + 1}
                                     </TableCell>
 
                                     <TableCell
@@ -1004,7 +994,7 @@ export default function StudentAccounts() {
                                         fontWeight="bold"
                                         color="white"
                                     >
-                                        Total Students: {filteredStudents.length}
+                                        Total Students: {totalStudents}
                                     </Typography>
 
                                     <Box

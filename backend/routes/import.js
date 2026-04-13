@@ -1938,6 +1938,10 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
       if (!birthdate) return null;
 
       const d = new Date(birthdate);
+
+      // ❗ ADD THIS
+      if (isNaN(d.getTime())) return null;
+
       const now = new Date();
 
       let age = now.getFullYear() - d.getFullYear();
@@ -2461,9 +2465,12 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
 
       const birthDateValue = personValues[birthIndex];
 
-      personValues[ageIndex] = birthDateValue
+      const computedAge = birthDateValue
         ? calculateAge(birthDateValue)
         : null;
+
+      personValues[ageIndex] =
+        computedAge === null || isNaN(computedAge) ? null : computedAge;
 
       const personValueMap = {};
       columns.forEach((col, idx) => {
