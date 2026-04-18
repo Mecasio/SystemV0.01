@@ -33,6 +33,7 @@ const ReportOfGrade = () => {
     const [fetchedLogo, setFetchedLogo] = useState(null);
     const [companyName, setCompanyName] = useState("");
     const [shortTerm, setShortTerm] = useState("");
+    const [gradeConversion, setGradeConversions] = useState([]);
 
     useEffect(() => {
         if (!settings) return;
@@ -72,7 +73,6 @@ const ReportOfGrade = () => {
         }
     }, [settings]);
 
-
     const [userID, setUserID] = useState("");
     const [user, setUser] = useState("");
     const [userRole, setUserRole] = useState("");
@@ -89,8 +89,6 @@ const ReportOfGrade = () => {
     const [selectedSchoolSemester, setSelectedSchoolSemester] = useState('');
     const [selectedActiveSchoolYear, setSelectedActiveSchoolYear] = useState('');
 
-
-
     const navigate = useNavigate();
 
     const [activeStep, setActiveStep] = useState(4);
@@ -104,8 +102,6 @@ const ReportOfGrade = () => {
         { label: "Report of Grades", to: "/report_of_grades", icon: <GradeIcon /> },
         { label: "Transcript of Records", to: "/transcript_of_records", icon: <SchoolIcon /> },
     ];
-
-
 
     useEffect(() => {
         const queryParams = new URLSearchParams(location.search);
@@ -325,12 +321,67 @@ const ReportOfGrade = () => {
         }
     }, [selectedSchoolYear, selectedSchoolSemester]);
 
+    useEffect(() => {
+        fetchGradeConversionDic();
+    }, [])
+
+    const fetchGradeConversionDic = async () => {
+        try{
+            const res = await axios.get(`${API_BASE_URL}/grade-conversion`);
+            setGradeConversions(res.data);
+
+            console.log("Fetching Successfully");
+        }catch(err){
+            console.log("Error Fetching Data", err);
+        }
+    };
+
     const handleSchoolYearChange = (event) => {
         setSelectedSchoolYear(event.target.value);
     };
 
     const handleSchoolSemesterChange = (event) => {
         setSelectedSchoolSemester(event.target.value);
+    };
+
+    const handleGradeConversion = (grade) => {
+        if (grade === null || grade === undefined || grade === "") return "";
+
+        const normalizedGrade = String(grade).trim().toUpperCase();
+
+        if (normalizedGrade === "0" || Number(normalizedGrade) === 0) return "";
+        if (normalizedGrade === "INC") return "INC";
+        if (normalizedGrade === "DROP" || normalizedGrade === "DRP") return "DRP";
+
+        const numericGrade = Number(normalizedGrade);
+        if (Number.isNaN(numericGrade)) return grade;
+
+        if (numericGrade > 0 && numericGrade <= 5) {
+            return Number.isInteger(numericGrade)
+                ? String(numericGrade)
+                : numericGrade.toFixed(2);
+        }
+
+        const matchedConversion = gradeConversion.find((row) => {
+            const minScore = Number(row.min_score);
+            const maxScore = Number(row.max_score);
+
+            return (
+                Number.isFinite(minScore) &&
+                Number.isFinite(maxScore) &&
+                numericGrade >= minScore &&
+                numericGrade <= maxScore
+            );
+        });
+
+        if (!matchedConversion?.equivalent_grade) {
+            return grade;
+        }
+
+        const equivalentGrade = Number(matchedConversion.equivalent_grade);
+        return Number.isNaN(equivalentGrade)
+        ? matchedConversion.equivalent_grade
+        : equivalentGrade.toFixed(2);
     };
 
     const filteredStudents = studentDetails
@@ -347,6 +398,7 @@ const ReportOfGrade = () => {
     const getLevelBySection = (section) => {
         if (!section) return null;
         const yearNumber = parseInt(section[0]);
+        // ISSUE: MAKE IT DYNAMIC
         switch (yearNumber) {
             case 1: return "First Year";
             case 2: return "Second Year";
@@ -373,15 +425,11 @@ const ReportOfGrade = () => {
         return lec + lab;
     };
 
-
-
     const divToPrintRef = useRef();
 
     const printDiv = () => {
         window.print();
     };
-
-
 
     // Put this at the very bottom before the return 
     if (loading || hasAccess === null) {
@@ -904,7 +952,7 @@ const ReportOfGrade = () => {
                                                     <span style={{ margin: "0", padding: "0", fontSize: "14px" }}>{p.program_code} {p.section}</span>
                                                 </td>
                                                 <td>
-                                                    <span style={{ margin: "0", padding: "0", display: "flex", justifyContent: "center", width: "6rem" }}>{p.final_grade}</span>
+                                                    <span style={{ margin: "0", padding: "0", display: "flex", justifyContent: "center", width: "6rem" }}>{handleGradeConversion(p.final_grade)}</span>
                                                 </td>
                                                 <td>
                                                     <span style={{ margin: "0", padding: "0", display: "flex", justifyContent: "center", width: "6rem" }}></span>

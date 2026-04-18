@@ -113,7 +113,6 @@ router.get("/student-info/:student_number", async (req, res) => {
           smt.semester_description,
           snt.student_number,
           IFNULL(es.final_grade, "-") as final_grade,
-          IFNULL(es.grades_status, "") as grades_status,
           IFNULL(es.en_remarks, 0) as en_remarks,
           ylt.year_level_description, 
           cst.course_id,
@@ -171,7 +170,7 @@ router.put("/update_student_year_level", async (req, res) => {
     console.log("Internal Server Error: " + err);
     res.status(500).json({ message: "Server error" });
   }
-});  
+});
 
 router.post("/update_student", upload.single("profile_picture"), async (req, res) => {
   const { person_id } = req.body;
@@ -308,7 +307,6 @@ SELECT DISTINCT
   ct.course_description,
   ct.course_code,
   es.en_remarks,
-  es.grades_status,
   es.remarks,
   ct.course_unit,
   ct.lab_unit,
@@ -334,7 +332,7 @@ SELECT DISTINCT
   IFNULL(pft.fname, 'TBA') AS fname,
   IFNULL(pft.lname, 'TBA') AS lname,
 
-  -- ✅ ORIGINAL GRADE / RE-EXAM VALUE FOR registrar grade file
+  -- ✅ ORIGINAL GRADE
   es.final_grade,
 
   -- ✅ ADD THESE (FIX)
@@ -479,6 +477,7 @@ ORDER BY
     });
   }
 });
+
 
 router.get("/api/student/view_latest_grades/:id", async (req, res) => {
   const { id } = req.params;
@@ -1199,6 +1198,84 @@ router.get("/student_enrollment/:student_number", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed fetching students" });
+  }
+});
+
+
+router.get("/api/student/:person_id/curriculum-subjects", async (req, res) => {
+  try {
+    const { person_id } = req.params;
+
+    const [rows] = await db3.query(`
+      SELECT DISTINCT
+    pt.person_id,
+    pt.student_number,
+    pt.first_name,
+    pt.last_name,
+
+    es.curriculum_id,
+
+    -- ✅ ADD THIS (CURRICULUM INFO)
+    p.program_code,
+    p.program_description,
+    y.year_description,
+
+    ptg.year_level_id,
+    yl.year_level_description,
+    ptg.semester_id,
+    s.semester_description,
+
+    co.course_id,
+    co.course_code,
+    co.course_description,
+    co.lec_unit,
+    co.lab_unit,
+    co.course_unit,
+
+    ptg.lec_fee,
+    ptg.lab_fee,
+    ptg.amount
+
+FROM person_table pt
+
+JOIN student_numbering_table snt 
+    ON pt.person_id = snt.person_id
+
+JOIN enrolled_subject es 
+    ON es.student_number = snt.student_number
+
+-- ✅ JOIN curriculum
+JOIN curriculum_table ct 
+    ON ct.curriculum_id = es.curriculum_id
+
+JOIN program_table p 
+    ON p.program_id = ct.program_id
+
+JOIN year_table y 
+    ON y.year_id = ct.year_id
+
+-- existing joins
+JOIN program_tagging_table ptg 
+    ON ptg.curriculum_id = es.curriculum_id
+
+JOIN course_table co 
+    ON co.course_id = ptg.course_id
+
+JOIN year_level_table yl 
+    ON yl.year_level_id = ptg.year_level_id
+
+JOIN semester_table s 
+    ON s.semester_id = ptg.semester_id
+
+WHERE pt.person_id = ?
+ORDER BY ptg.year_level_id, ptg.semester_id;
+    `, [person_id]);
+
+    res.json(rows);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch curriculum subjects" });
   }
 });
 

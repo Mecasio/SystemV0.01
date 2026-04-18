@@ -154,6 +154,7 @@ const TOR = () => {
   });
 
   const [campusAddress, setCampusAddress] = useState("");
+  const [gradeConversion, setGradeConversions] = useState([]);
 
   useEffect(() => {
     if (settings && settings.address) {
@@ -440,6 +441,22 @@ const TOR = () => {
     fetchRegistrars();
   }, [pageId]);
 
+  useEffect(() => {
+    fetchGradeConversionDic();
+  }, [])
+
+  const fetchGradeConversionDic = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/grade-conversion`);
+      setGradeConversions(Array.isArray(res.data) ? res.data : []);
+
+      console.log("Fetch successful");
+    } catch (err) {
+      console.log("Error Fetching Data: ", err);
+      setGradeConversions([]);
+    }
+  };
+
   const paginatedRegistrars = registrars.slice(
     registrarPage * REGISTRARS_PER_PAGE,
     registrarPage * REGISTRARS_PER_PAGE + REGISTRARS_PER_PAGE,
@@ -589,6 +606,46 @@ const TOR = () => {
     setSelectedCheckedBy((prev) =>
       prev?.employee_id === user.employee_id ? null : user,
     );
+  };
+
+  const handleGradeConversion = (grade) => {
+    if (grade === null || grade === undefined || grade === "") return "";
+
+    const normalizedGrade = String(grade).trim().toUpperCase();
+
+    if (normalizedGrade === "0" || Number(normalizedGrade) === 0) return "";
+    if (normalizedGrade === "INC") return "INC";
+    if (normalizedGrade === "DROP" || normalizedGrade === "DRP") return "DRP";
+
+    const numericGrade = Number(normalizedGrade);
+    if (Number.isNaN(numericGrade)) return grade;
+
+    if (numericGrade > 0 && numericGrade <= 5) {
+      return Number.isInteger(numericGrade)
+        ? String(numericGrade)
+        : numericGrade.toFixed(2);
+    }
+
+    const matchedConversion = gradeConversion.find((row) => {
+      const minScore = Number(row.min_score);
+      const maxScore = Number(row.max_score);
+
+      return (
+        Number.isFinite(minScore) &&
+        Number.isFinite(maxScore) &&
+        numericGrade >= minScore &&
+        numericGrade <= maxScore
+      );
+    });
+
+    if (!matchedConversion?.equivalent_grade) {
+      return grade;
+    }
+
+    const equivalentGrade = Number(matchedConversion.equivalent_grade);
+    return Number.isNaN(equivalentGrade)
+      ? matchedConversion.equivalent_grade
+      : equivalentGrade.toFixed(2);
   };
 
   // Put this at the very bottom before the return
@@ -1989,7 +2046,11 @@ const TOR = () => {
                                           textAlign: "center",
                                         }}
                                       >
-                                        <span>{p.final_grade}</span>
+                                        <span>
+                                          {handleGradeConversion(
+                                            p.final_grade || p.numeric_grade,
+                                          )}
+                                        </span>
                                       </div>
                                       <div
                                         style={{

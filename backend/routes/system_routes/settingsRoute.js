@@ -184,8 +184,8 @@ router.post(
           border_color ?? currentSettings.border_color ?? "#000000",
           stepper_color ?? currentSettings.stepper_color ?? "#000000",
           sidebar_button_color ??
-          currentSettings.sidebar_button_color ??
-          "#000000",
+            currentSettings.sidebar_button_color ??
+            "#000000",
           title_color ?? currentSettings.title_color ?? "#000000",
           subtitle_color ?? currentSettings.subtitle_color ?? "#555555",
           parsedBranches,
@@ -320,13 +320,12 @@ router.post("/branches", async (req, res) => {
       start_time: null,
       end_time: null,
 
-
       // ✅ INCLUDED
       academicPrograms: [
         { id: 0, name: "Undergraduate", open: 1 },
         { id: 1, name: "Graduate", open: 0 },
         { id: 2, name: "Techvoc", open: 0 },
-      ]
+      ],
     };
 
     branches.push(newBranch);
@@ -359,7 +358,7 @@ router.put("/branches/:id", async (req, res) => {
     end_date,
     start_time,
     end_time,
-    academicPrograms
+    academicPrograms,
   } = req.body;
 
   try {
@@ -393,15 +392,9 @@ router.put("/branches/:id", async (req, res) => {
         return {
           ...b,
 
-          branch:
-            typeof branch !== "undefined"
-              ? branch
-              : b.branch,
+          branch: typeof branch !== "undefined" ? branch : b.branch,
 
-          address:
-            typeof address !== "undefined"
-              ? address
-              : b.address,
+          address: typeof address !== "undefined" ? address : b.address,
 
           registration_open:
             typeof registration_open !== "undefined"
@@ -414,9 +407,7 @@ router.put("/branches/:id", async (req, res) => {
               : b.start_date,
 
           end_date:
-            typeof end_date !== "undefined"
-              ? end_date || null
-              : b.end_date,
+            typeof end_date !== "undefined" ? end_date || null : b.end_date,
 
           start_time:
             typeof start_time !== "undefined"
@@ -424,18 +415,14 @@ router.put("/branches/:id", async (req, res) => {
               : b.start_time,
 
           end_time:
-            typeof end_time !== "undefined"
-              ? end_time || null
-              : b.end_time,
+            typeof end_time !== "undefined" ? end_time || null : b.end_time,
 
-          academicPrograms:
-            academicPrograms ?? b.academicPrograms
+          academicPrograms: academicPrograms ?? b.academicPrograms,
         };
       }
 
       return b;
     });
-
 
     if (!found) {
       return res.status(404).json({ message: "Branch not found" });
@@ -484,90 +471,102 @@ router.get("/registration-status/:branch_id", async (req, res) => {
 
   try {
     const [rows] = await db.query(
-      "SELECT branches FROM company_settings WHERE id = 1"
+      "SELECT branches FROM company_settings WHERE id = 1",
     );
 
     if (rows.length === 0) {
-      return res.status(404).json({
-        message: "No settings found"
-      });
+      return res.status(404).json({ message: "No settings found" });
     }
 
     let branches = JSON.parse(rows[0].branches || "[]");
 
+    // ✅ Manila timezone safe
     const now = new Date(
       new Date().toLocaleString("en-US", {
-        timeZone: "Asia/Manila"
-      })
+        timeZone: "Asia/Manila",
+      }),
     );
 
     let updated = false;
 
     const updatedBranches = branches.map((b) => {
-
       if (b.id == branch_id) {
-
-        const start = b.start_date
-          ? new Date(b.start_date)
-          : null;
-
-        const end = b.end_date
-          ? new Date(b.end_date)
-          : null;
-
         let isOpen = false;
 
-        if (start && end) {
+        if (b.start_date && b.end_date) {
+          const start = new Date(b.start_date + ":00+08:00");
+          const end = new Date(b.end_date + ":00+08:00");
 
-          if (now >= start && now <= end) {
-            isOpen = true;
+          // ✅ Extract DATE RANGE (ignore time)
+          const today = new Date(now);
+          today.setHours(0, 0, 0, 0);
+
+          const startDate = new Date(start);
+          startDate.setHours(0, 0, 0, 0);
+
+          const endDate = new Date(end);
+          endDate.setHours(0, 0, 0, 0);
+
+          const withinDateRange = today >= startDate && today <= endDate;
+
+          if (withinDateRange) {
+            // ✅ Extract TIME from admin input (NOT hardcoded)
+            const startHour = start.getHours();
+            const startMinute = start.getMinutes();
+
+            const endHour = end.getHours();
+            const endMinute = end.getMinutes();
+
+            const nowHour = now.getHours();
+            const nowMinute = now.getMinutes();
+
+            const nowTotal = nowHour * 60 + nowMinute;
+            const startTotal = startHour * 60 + startMinute;
+            const endTotal = endHour * 60 + endMinute;
+
+            if (startTotal < endTotal) {
+              // 🟢 NORMAL (same day)
+              if (nowTotal >= startTotal && nowTotal <= endTotal) {
+                isOpen = true;
+              }
+            } else {
+              // 🔴 CROSS MIDNIGHT (like 6PM → 6AM)
+              if (nowTotal >= startTotal || nowTotal <= endTotal) {
+                isOpen = true;
+              }
+            }
           }
 
           if (now > end) {
             updated = true;
             isOpen = false;
           }
-
         }
 
         return {
           ...b,
-          registration_open: isOpen ? 1 : 0
+          registration_open: isOpen ? 1 : 0,
         };
-
       }
 
       return b;
-
     });
 
     if (updated) {
-      await db.query(
-        "UPDATE company_settings SET branches = ? WHERE id = 1",
-        [JSON.stringify(updatedBranches)]
-      );
+      await db.query("UPDATE company_settings SET branches = ? WHERE id = 1", [
+        JSON.stringify(updatedBranches),
+      ]);
     }
 
-    const branch = updatedBranches.find(
-      (b) => b.id == branch_id
-    );
+    const branch = updatedBranches.find((b) => b.id == branch_id);
 
     res.json({
-      registration_open:
-        branch?.registration_open || 0
+      registration_open: branch?.registration_open || 0,
     });
-
   } catch (err) {
-
     console.error("STATUS ERROR:", err);
-
-    res.status(500).json({
-      message: err.message
-    });
-
+    res.status(500).json({ message: err.message });
   }
 });
-
-
 
 module.exports = router;

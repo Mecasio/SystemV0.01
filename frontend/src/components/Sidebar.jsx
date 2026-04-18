@@ -819,6 +819,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
             <NavItem to="/student_dashboard" icon={DashboardIcon} label="Dashboard" active={isActive("/student_dashboard")} />
             <NavItem to="/student_schedule" icon={EventNoteIcon} label="Schedule" active={isActive("/student_schedule")} />
             <NavItem to="/grades_page" icon={GradeIcon} label="Grades" active={isActive("/grades_page")} />
+            <NavItem to="/student_section_offering" icon={MenuBook} label="Curriculum" active={isActive("/student_section_offering")} />
             <NavItem to="/student_faculty_evaluation" icon={AssignmentTurnedInIcon} label="Faculty Evaluation" active={isActive("/student_faculty_evaluation")} />
             <NavItem to="/student_dashboard1" icon={PersonIcon} label="Student Profile" active={/^\/student_dashboard[1-5]$/.test(loc)} />
             <div className="sb-section-label">Setting</div>

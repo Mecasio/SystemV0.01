@@ -164,7 +164,7 @@ const Register = () => {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!branchId || !checkBranchStatus(branchId)) {
+    if (!branchId || !registrationOpen) {
       setSnack({
         open: true,
         message: "Registration is closed for this campus.",
@@ -172,7 +172,7 @@ const Register = () => {
       });
       return;
     }
-
+    
     if (!emailRegex.test(usersData.email)) {
       setSnack({
         open: true,
@@ -390,11 +390,14 @@ const Register = () => {
           `${API_BASE_URL}/api/registration-status/${branchId}`
         );
 
-        setRegistrationOpen(res.data.registration_open);
+        const isOpen = res.data.registration_open === 1;
 
-        if (!res.data.registration_open) {
-          setOpenBranchDialog(true); // ✅ not openClosedDialog
+        setRegistrationOpen(isOpen);
+
+        if (!isOpen) {
+          setOpenBranchDialog(true); // ✅ THIS is your "closed" indicator
         }
+
       } catch (err) {
         console.error(err);
       }
@@ -407,88 +410,6 @@ const Register = () => {
 
   const fieldDisabled = !branchSelected || !registrationOpen;
 
-  const checkBranchStatus = (branchIdToCheck) => {
-    if (!branchIdToCheck) return false;
-
-    const branch = branches.find(
-      (b) => b.id.toString() === branchIdToCheck
-    );
-
-    if (!branch) return false;
-
-    const now = new Date(
-      new Date().toLocaleString("en-US", {
-        timeZone: "Asia/Manila"
-      })
-    );
-
-    const startDate = branch.start_date
-      ? new Date(branch.start_date)
-      : null;
-
-    const endDate = branch.end_date
-      ? new Date(branch.end_date)
-      : null;
-
-    let isOpen = true;
-
-    // DATE CHECK
-    if (startDate && now < startDate) {
-      isOpen = false;
-    }
-
-    if (endDate && now > endDate) {
-      isOpen = false;
-    }
-
-    // TIME CHECK
-    if (branch.start_time && branch.end_time) {
-
-      const nowMinutes =
-        now.getHours() * 60 + now.getMinutes();
-
-      const [sh, sm] = branch.start_time.split(":");
-      const [eh, em] = branch.end_time.split(":");
-
-      const startMinutes =
-        parseInt(sh) * 60 + parseInt(sm);
-
-      const endMinutes =
-        parseInt(eh) * 60 + parseInt(em);
-
-      if (startMinutes < endMinutes) {
-        // Normal schedule
-        if (
-          nowMinutes < startMinutes ||
-          nowMinutes > endMinutes
-        ) {
-          isOpen = false;
-        }
-      } else {
-        // Overnight schedule (6PM → 6AM)
-        if (
-          nowMinutes < startMinutes &&
-          nowMinutes > endMinutes
-        ) {
-          isOpen = false;
-        }
-      }
-
-    }
-
-    // ADMIN TOGGLE
-    if (branch.registration_open !== 1) {
-      isOpen = false;
-    }
-
-    setRegistrationOpen(isOpen);
-
-    if (!isOpen) {
-      setOpenBranchDialog(true);
-    }
-
-    return isOpen;
-  };
 
 
 
@@ -527,12 +448,6 @@ const Register = () => {
   };
 
   const [branchStatusMessage, setBranchStatusMessage] = useState("");
-
-  useEffect(() => {
-    if (!branchId) return;
-
-    checkBranchStatus(branchId);
-  }, [branchId, branches]); // 🔥 IMPORTANT: include branches
 
 
   {/* Unified Dialog Style */ }
@@ -639,34 +554,11 @@ const Register = () => {
                   }}
                 >
                   <option value="">Select Campus</option>
-                  {branches.map((b) => {
-                    const now = new Date(
-                      new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" })
-                    );
-
-                    const start = b.start_date ? new Date(b.start_date) : null;
-                    const end = b.end_date ? new Date(b.end_date) : null;
-
-                    let isClosed = false;
-
-                    // 🔥 Check date range
-                    if (start && end) {
-                      if (now < start || now > end) {
-                        isClosed = true;
-                      }
-                    }
-
-                    // 🔥 Check admin toggle
-                    if (b.registration_open !== 1) {
-                      isClosed = true;
-                    }
-
-                    return (
-                      <option key={b.id} value={b.id}>
-                        {b.branch} {isClosed ? " (Closed)" : ""}
-                      </option>
-                    );
-                  })}
+                  {branches.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.branch} 
+                    </option>
+                  ))}
                 </select>
                 <ArrowDropDownIcon
                   sx={{
@@ -938,7 +830,7 @@ const Register = () => {
 
 
               </div>
-          
+
 
 
               <div className="TextField" style={{ position: "relative" }}>
@@ -1480,7 +1372,7 @@ const Register = () => {
               <Typography sx={dialogStyles.contentTextCenter}>
                 Registration Hours:
                 <br />
-                <strong>
+                <strong style={{fontSize: "32px",}}>
                   {new Date(selectedBranch.start_date)
                     .toLocaleTimeString("en-US", {
                       hour: "numeric",
