@@ -7991,7 +7991,7 @@ app.get("/api/applied_program/:dprtmnt_id", async (req, res) => {
       INNER JOIN dprtmnt_curriculum_table AS dc ON ct.curriculum_id = dc.curriculum_id
       INNER JOIN year_table AS yt ON ct.year_id = yt.year_id
       INNER JOIN dprtmnt_table AS d ON dc.dprtmnt_id = d.dprtmnt_id
-      WHERE d.dprtmnt_id = ?
+      WHERE d.dprtmnt_id = ? AND ct.lock_status = 1
 
     `,
       [dprtmnt_id],
