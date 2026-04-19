@@ -38,6 +38,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { FaFileExcel } from "react-icons/fa";
+import SaveIcon from '@mui/icons-material/Save';
 
 const CoursePanel = () => {
   const settings = useContext(SettingsContext);
@@ -1027,10 +1028,8 @@ const CoursePanel = () => {
 
         <DialogActions>
           <Button
-            variant="contained"
             color="error"
-
-
+            variant="outlined"
             onClick={() => setOpenDeleteDialog(false)}>
             Cancel
           </Button>
@@ -1195,8 +1194,8 @@ const CoursePanel = () => {
         >
           <Button
             onClick={() => setOpenCourseDialog(false)}
-            variant="contained"
             color="error"
+            variant="outlined"
 
 
           >
@@ -1205,7 +1204,11 @@ const CoursePanel = () => {
 
           <Button
             variant="contained"
-            sx={{ px: 4, fontWeight: 600 }}
+            sx={{
+              px: 4,
+              fontWeight: 600,
+              textTransform: "none"
+            }}
             onClick={() => {
               if (editMode) {
                 handleUpdateCourse();
@@ -1215,7 +1218,7 @@ const CoursePanel = () => {
               setOpenCourseDialog(false);
             }}
           >
-            {editMode ? "Update Course" : "Insert Course"}
+            <SaveIcon fontSize="small" /> Save
           </Button>
         </DialogActions>
       </Dialog>

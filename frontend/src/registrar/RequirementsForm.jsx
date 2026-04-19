@@ -31,6 +31,9 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
+import SaveIcon from '@mui/icons-material/Save';
+
+
 const RequirementsForm = () => {
   const settings = useContext(SettingsContext);
 
@@ -665,22 +668,51 @@ const RequirementsForm = () => {
                   <Button
                     variant="contained"
                     size="small"
-                    sx={{ backgroundColor: "green" }}
+                    style={{
+                      backgroundColor: "green",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "5px",
+                      padding: "8px 14px",
+
+                      cursor: "pointer",
+                      width: "100px",
+                      height: "40px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "5px",
+
+                    }}
                     onClick={() => handleOpenEditDialog(req)}
                   >
-                    Edit
+                    <EditIcon fontSize="small" /> Edit
                   </Button>
 
                   <Button
                     variant="contained"
                     size="small"
-                    sx={{ backgroundColor: "#9E0000" }}
+                    style={{
+
+                      backgroundColor: "#9E0000",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "5px",
+                      padding: "8px 14px",
+                      cursor: "pointer",
+                      width: "100px",
+                      height: "40px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "5px",
+                    }}
                     onClick={() => {
                       setRequirementToDelete(req);
                       setOpenDeleteDialog(true);
                     }}
                   >
-                    Delete
+                    <DeleteIcon fontSize="small" /> Delete
                   </Button>
                 </TableCell>
 
@@ -1132,10 +1164,9 @@ const RequirementsForm = () => {
         <DialogActions>
 
           <Button
-            variant="contained"
+
             color="error"
-
-
+            variant="outlined"
 
             onClick={() =>
               setOpenDialog(false)
@@ -1147,17 +1178,16 @@ const RequirementsForm = () => {
           <Button
             variant="contained"
             onClick={handleSubmit}
+
             sx={{
-              backgroundColor:
-                isEditing
-                  ? "#2e7d32"
-                  : "#1976d2",
-              fontWeight: "bold"
+              px: 4,
+              fontWeight: 600,
+              textTransform: "none"
             }}
           >
-            {isEditing
-              ? "Update"
-              : "Save"}
+            <SaveIcon fontSize="small" /> Save
+
+
           </Button>
 
         </DialogActions>
@@ -1179,9 +1209,9 @@ const RequirementsForm = () => {
 
         <DialogActions>
           <Button
-            variant="contained"
-            color="error"
 
+            color="error"
+            variant="outlined"
 
             onClick={() => setOpenDeleteDialog(false)}>
             Cancel

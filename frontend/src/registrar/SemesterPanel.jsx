@@ -24,6 +24,9 @@ import {
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
+import SaveIcon from '@mui/icons-material/Save';
+
+
 const SemesterPanel = () => {
   const settings = useContext(SettingsContext);
   const [headerColor, setHeaderColor] = useState("#1976d2");
@@ -209,7 +212,7 @@ const SemesterPanel = () => {
                     }
                   }}
                 >
-                  + Add Schedule
+                  + Add Semester
                 </Button>
               </Box>
             </TableRow>
@@ -222,8 +225,8 @@ const SemesterPanel = () => {
       <Grid item xs={12} md={7}>
 
 
-        <Box sx={{ maxHeight: 400, overflowY: "auto" }}>
-          <TableContainer sx={{ maxHeight: 400 }}>
+        <Box sx={{ overflowY: "auto" }}>
+          <TableContainer>
             <Table size="small" stickyHeader>
               <TableHead>
                 <TableRow>
@@ -316,9 +319,8 @@ const SemesterPanel = () => {
         >
           <Button
             onClick={() => setOpenDialog(false)}
-            variant="contained"
             color="error"
-
+            variant="outlined"
 
             sx={{
               textTransform: "none",
@@ -334,8 +336,7 @@ const SemesterPanel = () => {
             sx={{
               px: 4,
               fontWeight: 600,
-              textTransform: "none",
-
+              textTransform: "none"
             }}
             onClick={async () => {
               await handleSubmit({
@@ -345,7 +346,8 @@ const SemesterPanel = () => {
               setOpenDialog(false);
             }}
           >
-            Save
+            <SaveIcon fontSize="small" /> Save
+
           </Button>
         </DialogActions>
       </Dialog>

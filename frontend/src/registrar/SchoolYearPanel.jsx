@@ -20,6 +20,9 @@ import SearchIcon from "@mui/icons-material/Search";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
+import SaveIcon from '@mui/icons-material/Save';
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const SchoolYearPanel = () => {
   const settings = useContext(SettingsContext);
@@ -445,7 +448,7 @@ const SchoolYearPanel = () => {
       </TableContainer>
 
 
-      <Box sx={{ maxHeight: 750, overflowY: "auto" }}>
+      <Box sx={{ overflowY: "auto" }}>
         <table className="w-full text-sm" style={{ borderCollapse: "collapse", border: `1px solid ${borderColor}` }}>
           <thead>
             <tr style={{ backgroundColor: "#F5f5f5", color: "#000" }}>
@@ -463,20 +466,61 @@ const SchoolYearPanel = () => {
                 <td className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>{`${sy.year_description}-${parseInt(sy.year_description) + 1}`}</td>
                 <td className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>{sy.semester_description}</td>
                 <td className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>{sy.astatus === 1 ? "Active" : "Inactive"}</td>
-                <td className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>
-                  <Button size="small"
-                    sx={{ backgroundColor: "green", color: "white", mr: 1, }}
-                    onClick={() => {
-                      handleEdit(sy);
-                      setOpenDialog(true); // 👉 open dialog when editing
+                <td
+                  className="p-2 text-center"
+                  style={{ border: `1px solid ${borderColor}` }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      gap: "6px",
+                      whiteSpace: "nowrap"
                     }}
+                  >
+                    <Button
+                      size="small"
+                      sx={{
+                        backgroundColor: "green",
+                        color: "white",
+                        borderRadius: "5px",
+                        padding: "8px 14px",
+                        width: "100px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "5px",
+                      }}
+                      onClick={() => {
+                        handleEdit(sy);
+                        setOpenDialog(true);
+                      }}
+                    >
+                      <EditIcon fontSize="small" /> Edit
+                    </Button>
 
-                  >Edit</Button>
-                  <Button size="small" sx={{ backgroundColor: "#B22222", color: "white", "&:hover": { backgroundColor: "#8B0000" } }} onClick={() => {
-                    setSchoolYearToDelete(sy);
-                    setOpenDeleteDialog(true);
-                  }}
-                  >Delete</Button>
+                    <Button
+                      size="small"
+                      sx={{
+                        backgroundColor: "#9E0000",
+                        color: "white",
+                        borderRadius: "5px",
+                        padding: "8px 14px",
+                        width: "100px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "5px",
+                      }}
+                      onClick={() => {
+                        setSchoolYearToDelete(sy);
+                        setOpenDeleteDialog(true);
+                      }}
+                    >
+                      <DeleteIcon fontSize="small" /> Delete
+                    </Button>
+                  </div>
                 </td>
               </tr>
             )) : (
@@ -691,8 +735,9 @@ const SchoolYearPanel = () => {
 
         <DialogActions>
           <Button
-            variant="contained"
             color="error"
+            variant="outlined"
+
 
 
             onClick={() => {
@@ -837,6 +882,8 @@ const SchoolYearPanel = () => {
             }}
             color="error"
             variant="outlined"
+
+
             sx={{
               textTransform: "none",
               fontWeight: 600
@@ -854,10 +901,12 @@ const SchoolYearPanel = () => {
             sx={{
               px: 4,
               fontWeight: 600,
-              textTransform: "none",
+              textTransform: "none"
             }}
           >
-            {editID ? "Update" : "Save"}
+            <SaveIcon fontSize="small" /> Save
+
+
           </Button>
         </DialogActions>
       </Dialog>

@@ -669,7 +669,7 @@ const ReceiptCounterAssignment = () => {
                                     </TableCell>
                                     <TableCell sx={{ border: `1px solid ${borderColor}` }}>{employee.email}</TableCell>
                                     <TableCell sx={{ border: `1px solid ${borderColor}` }}>{employee.position}</TableCell>
-                                    <TableCell sx={{ display: 'flex', border: `1px solid ${borderColor}`, alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                                    <TableCell sx={{ display: 'flex', borderRight: `1px solid ${borderColor}`, borderBottom: `1px solid ${borderColor}`, alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                                         <Button
                                             variant='contained'
                                             onClick={() => isAssigned ? openEditDialog(employee, assignment) : openAssignDialog(employee)}
@@ -755,10 +755,8 @@ const ReceiptCounterAssignment = () => {
                 </DialogContent>
                 <DialogActions>
                     <Button
-                        variant="contained"
-                        color="error"
-
-
+                  color="error"
+            variant="outlined"
                         onClick={resetModalState}>Cancel</Button>
                     <Button
                         variant="contained"

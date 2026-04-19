@@ -21,6 +21,8 @@ import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import SaveIcon from '@mui/icons-material/Save';
+
 
 const YearLevelPanel = () => {
   const settings = useContext(SettingsContext);
@@ -202,7 +204,7 @@ const YearLevelPanel = () => {
     <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', mb: 2 }}>
         <Typography variant="h4" sx={{ fontWeight: 'bold', color: titleColor, fontSize: '36px' }}>
-          ACADEMIC LEVEL PANEL
+          YEAR LEVEL PANEL
         </Typography>
       </Box>
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
@@ -403,9 +405,8 @@ const YearLevelPanel = () => {
         >
           <Button
             onClick={() => setOpenYearLevelDialog(false)}
-            variant="contained"
             color="error"
-
+            variant="outlined"
 
             sx={{ textTransform: "none" }}
           >
@@ -414,6 +415,7 @@ const YearLevelPanel = () => {
 
           <Button
             variant="contained"
+
             sx={{
               px: 4,
               fontWeight: 600,
@@ -421,7 +423,8 @@ const YearLevelPanel = () => {
             }}
             onClick={handleSave}
           >
-            Save
+            <SaveIcon fontSize="small" /> Save
+
           </Button>
         </DialogActions>
       </Dialog>

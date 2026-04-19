@@ -570,7 +570,7 @@ const MedicalCertificate = () => {
                                             fontSize: "25px",
                                             fontWeight: "bold",
                                             color: "black",
-                                            fontFamily: "Times New Roman",
+                                            fontFamily: "Arial",
                                             marginBottom: "5px",
                                         }}
                                     >
@@ -587,7 +587,7 @@ const MedicalCertificate = () => {
                                         textAlign: "center",
                                         fontSize: "16px",
                                         fontWeight: "bold",
-                                        fontFamily: "Times, New Roman",
+                                        fontFamily: "Arial",
                                         marginLeft: "-95px",
                                         marginTop: "-20px"
                                     }}>
@@ -599,7 +599,7 @@ const MedicalCertificate = () => {
                                         textAlign: "center",
                                         fontSize: "16px",
                                         fontWeight: "bold",
-                                        fontFamily: "Times, New Roman",
+                                        fontFamily: "Arial",
                                         marginLeft: "-100px",
 
                                         marginTop: "30px"
@@ -616,7 +616,7 @@ const MedicalCertificate = () => {
                                 borderCollapse: "collapse",
                                 width: "8in",
                                 margin: "0 auto",
-                                fontFamily: "Times New Roman",
+                                fontFamily: "Arial",
                                 fontSize: "16px",
                                 lineHeight: "1.3",
                             }}
@@ -993,7 +993,7 @@ const MedicalCertificate = () => {
                                             fontSize: "25px",
                                             fontWeight: "bold",
                                             color: "black",
-                                            fontFamily: "Times New Roman",
+                                            fontFamily: "Arial",
                                             marginBottom: "5px",
                                         }}
                                     >
@@ -1010,7 +1010,7 @@ const MedicalCertificate = () => {
                                         textAlign: "center",
                                         fontSize: "16px",
                                         fontWeight: "bold",
-                                        fontFamily: "Times, New Roman",
+                                        fontFamily: "Arial",
                                         marginLeft: "-85px",
                                         marginTop: "-20px"
                                     }}>
@@ -1022,7 +1022,7 @@ const MedicalCertificate = () => {
                                         textAlign: "center",
                                         fontSize: "16px",
                                         fontWeight: "bold",
-                                        fontFamily: "Times, New Roman",
+                                        fontFamily: "Arial",
                                       marginLeft: "-100px",
 
                                         marginTop: "30px"
@@ -1039,7 +1039,7 @@ const MedicalCertificate = () => {
                                 borderCollapse: "collapse",
                                 width: "8in",
                                 margin: "0 auto",
-                                fontFamily: "Times New Roman",
+                                fontFamily: "Arial",
                                 fontSize: "16px",
                                 lineHeight: "1.3",
                             }}

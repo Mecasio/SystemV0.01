@@ -28,6 +28,9 @@ import EaristLogo from "../assets/EaristLogo.png";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
+import SaveIcon from '@mui/icons-material/Save';
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const TOSF = () => {
   const settings = useContext(SettingsContext);
@@ -667,9 +670,13 @@ const TOSF = () => {
             <Button
               type="submit"
               variant="contained"
-              color={editingId ? "warning" : "primary"}
+
             >
-              {editingId ? "Update Record" : "Add Record"}
+              {editingId ? "Update Fee" : (
+                <>
+                  <SaveIcon fontSize="small" /> Save
+                </>
+              )}
             </Button>
 
             {editingId && (
@@ -691,8 +698,8 @@ const TOSF = () => {
                   });
 
                 }}
-                variant="contained"
                 color="error"
+                variant="outlined"
 
 
                 sx={{ ml: 2 }}
@@ -837,12 +844,15 @@ const TOSF = () => {
                       backgroundColor: "green",
                       color: "white",
                       borderRadius: "5px",
-                      marginRight: "6px",
-                      width: "85px",
-                      height: "35px",
+                      padding: "8px 14px",
+                      width: "100px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "5px",
                     }}
                   >
-                    Edit
+                    <EditIcon fontSize="small" /> Edit
                   </Button>
 
                   <Button
@@ -852,11 +862,15 @@ const TOSF = () => {
                       backgroundColor: "#9E0000",
                       color: "white",
                       borderRadius: "5px",
-                      width: "85px",
-                      height: "35px",
+                      padding: "8px 14px",
+                      width: "100px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "5px",
                     }}
                   >
-                    Delete
+                    <DeleteIcon fontSize="small" /> Delete
                   </Button>
                 </TableCell>
               </TableRow>
@@ -919,17 +933,20 @@ const TOSF = () => {
               <Button
                 type="submit"
                 variant="contained"
-                color={editingScholarshipId ? "warning" : "primary"}
+        
               >
-                {editingScholarshipId ? "Update Scholarship Type" : "Add Scholarship Type"}
+                {editingScholarshipId ? "Update Scholarship Type" : (
+                  <>
+                    <SaveIcon fontSize="small" /> Save
+                  </>
+                )}
               </Button>
 
               {editingScholarshipId && (
                 <Button
                   onClick={resetScholarshipForm}
-                  variant="contained"
                   color="error"
-
+                  variant="outlined"
 
                   sx={{ ml: 2 }}
                 >
@@ -1100,12 +1117,15 @@ const TOSF = () => {
                         backgroundColor: "green",
                         color: "white",
                         borderRadius: "5px",
-                        marginRight: "6px",
-                        width: "85px",
-                        height: "35px",
+                        padding: "8px 14px",
+                        width: "100px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "5px",
                       }}
                     >
-                      Edit
+                      <EditIcon fontSize="small" /> Edit
                     </Button>
                     <Button
                       onClick={() => handleScholarshipDelete(item.id)}
@@ -1114,11 +1134,15 @@ const TOSF = () => {
                         backgroundColor: "#9E0000",
                         color: "white",
                         borderRadius: "5px",
-                        width: "85px",
-                        height: "35px",
+                        padding: "8px 14px",
+                        width: "100px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "5px",
                       }}
                     >
-                      Delete
+                      <DeleteIcon fontSize="small" /> Delete
                     </Button>
                   </TableCell>
                 </TableRow>

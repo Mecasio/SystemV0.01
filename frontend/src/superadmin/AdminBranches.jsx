@@ -216,7 +216,7 @@ const AdminBranches = () => {
     }
   };
 
- 
+
   const formatLocal = (date) => {
     if (!date) return "";
     return date.slice(0, 16); // ✅ NO conversion
@@ -551,19 +551,19 @@ const AdminBranches = () => {
         >
           <Button
             onClick={() => setOpenBranchDialog(false)}
-            variant="contained"
             color="error"
-
-
+            variant="outlined"
           >
             Cancel
           </Button>
 
           <Button
             variant="contained"
+
             sx={{
               px: 4,
-              fontWeight: 600
+              fontWeight: 600,
+              textTransform: "none"
             }}
             onClick={async () => {
               if (!branchName || !branchAddress) return;
@@ -607,7 +607,8 @@ const AdminBranches = () => {
               }
             }}
           >
-            {editingBranch ? "Update Branch" : "Save Branch"}
+            <SaveIcon fontSize="small" /> Save
+
           </Button>
         </DialogActions>
       </Dialog>

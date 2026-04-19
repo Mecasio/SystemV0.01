@@ -32,6 +32,8 @@ import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
 import SearchIcon from "@mui/icons-material/Search";
+import EditIcon from "@mui/icons-material/Edit";
+import SaveIcon from '@mui/icons-material/Save';
 
 const UserPageAccess = () => {
   const settings = useContext(SettingsContext);
@@ -1016,15 +1018,33 @@ const UserPageAccess = () => {
                     sx={{
                       color: "black",
                       border: `1px solid ${borderColor}`,
-                      textAlign: "center",
                     }}
                   >
-                    <Button
-                      variant="contained"
-                      onClick={() => loadUserAccess(u)}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center"
+                      }}
                     >
-                      Edit Access
-                    </Button>
+                      <Button
+                        variant="contained"
+                        onClick={() => loadUserAccess(u)}
+                        sx={{
+                          backgroundColor: "green",
+                          color: "white",
+                          borderRadius: "5px",
+                          padding: "8px 14px",
+                          width: "160px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "5px",
+                        }}
+                      >
+                        <EditIcon fontSize="small" /> Edit Access
+                      </Button>
+                    </Box>
                   </TableCell>
                 </TableRow>
               ))}
@@ -1405,11 +1425,12 @@ const UserPageAccess = () => {
 
         <DialogActions>
           <Button
-            variant="contained"
             color="error"
+            variant="outlined"
+
             onClick={() => setOpenModal(false)}
           >
-            Close
+            Cancel
           </Button>
         </DialogActions>
       </Dialog>
@@ -1424,21 +1445,27 @@ const UserPageAccess = () => {
 
         <DialogContent dividers>
           <Box display="flex" gap={2} mb={2}>
+
+
+            <TextField
+              label="Description"
+              fullWidth
+              value={accessDescription}
+              onChange={(e) => setAccessDescription(e.target.value)}
+              sx={{ mb: 3 }}
+            />
             <Button
               variant="contained"
-              color="success"
+              sx={{
+                px: 4,
+                fontWeight: 600,
+                textTransform: "none"
+              }}
               onClick={handleCreateAssignAll}
             >
               Assign All
             </Button>
           </Box>
-          <TextField
-            label="Description"
-            fullWidth
-            value={accessDescription}
-            onChange={(e) => setAccessDescription(e.target.value)}
-            sx={{ mb: 3 }}
-          />
 
           <Paper sx={{ border: `1px solid ${borderColor}` }}>
             <TableContainer>
@@ -1508,8 +1535,8 @@ const UserPageAccess = () => {
 
         <DialogActions>
           <Button
-            variant="contained"
             color="error"
+            variant="outlined"
 
 
             onClick={() => setOpenCreateModal(false)}
@@ -1517,8 +1544,13 @@ const UserPageAccess = () => {
             Cancel
           </Button>
 
-          <Button variant="contained" color="success" onClick={saveAccess}>
-            Save Access
+          <Button variant="contained" sx={{
+            px: 4,
+            fontWeight: 600,
+            textTransform: "none"
+          }} onClick={saveAccess}>
+            <SaveIcon fontSize="small" /> Save
+
           </Button>
         </DialogActions>
       </Dialog>
@@ -1650,8 +1682,8 @@ const UserPageAccess = () => {
 
         <DialogActions>
           <Button
-            variant="contained"
             color="error"
+            variant="outlined"
 
 
             onClick={() => setOpenEditAccessModal(false)}
@@ -1661,10 +1693,14 @@ const UserPageAccess = () => {
 
           <Button
             variant="contained"
-            color="success"
+            sx={{
+              px: 4,
+              fontWeight: 600,
+              textTransform: "none"
+            }}
             onClick={saveEditedAccess}
           >
-            Save Changes
+            <SaveIcon fontSize="small" /> Save
           </Button>
         </DialogActions>
       </Dialog>

@@ -36,6 +36,9 @@ import * as XLSX from "xlsx";
 import LockResetIcon from "@mui/icons-material/LockReset";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import ImageIcon from "@mui/icons-material/Image";
+import SaveIcon from '@mui/icons-material/Save';
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 
 const RegisterProf = () => {
@@ -719,7 +722,7 @@ const RegisterProf = () => {
                   <Box display="flex" justifyContent="space-between" alignItems="center" >
                     {/* Left: Applicant List Count */}
                     <Typography fontSize="14px" fontWeight="bold" color="white">
-                      Faculty Account's: {filteredProfessors.length} 
+                      Faculty Account's: {filteredProfessors.length}
                     </Typography>
 
                     {/* Right: Pagination Controls */}
@@ -927,7 +930,7 @@ const RegisterProf = () => {
                         textTransform: "none",
                         fontWeight: "bold",
                         width: "350px",
-                        "&:hover": { backgroundColor: "#000" },
+                        
                       }}
                     >
                       Add Professor
@@ -1148,13 +1151,16 @@ const RegisterProf = () => {
                     sx={{
                       backgroundColor: "green",
                       color: "white",
-                      textTransform: "none",
-                      fontWeight: "bold",
-
+                      borderRadius: "5px",
+                      padding: "8px 14px",
+                      width: "100px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "5px",
                     }}
-                    variant="contained"
                   >
-                    EDIT
+                    <EditIcon fontSize="small" /> Edit
                   </Button>
                 </TableCell>
                 <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
@@ -1366,9 +1372,8 @@ const RegisterProf = () => {
         >
           <Button
             onClick={handleCloseDialog}
-            variant="contained"
             color="error"
-
+            variant="outlined"
 
           >
             Cancel

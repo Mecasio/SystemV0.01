@@ -35,6 +35,7 @@ import API_BASE_URL from "../apiConfig";
 const API = `${API_BASE_URL}/api/email-templates`;
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import SaveIcon from '@mui/icons-material/Save';
 
 
 export default function EmailTemplateManager() {
@@ -925,7 +926,8 @@ export default function EmailTemplateManager() {
             variant="contained"
             sx={{
               px: 4,
-              fontWeight: 600
+              fontWeight: 600,
+              textTransform: "none"
             }}
             onClick={async () => {
               if (editing) {
@@ -937,7 +939,8 @@ export default function EmailTemplateManager() {
               setOpenFormDialog(false);
             }}
           >
-            {editing ? "Update Template" : "Save Template"}
+            <SaveIcon fontSize="small" /> Save
+
           </Button>
         </DialogActions>
       </Dialog>

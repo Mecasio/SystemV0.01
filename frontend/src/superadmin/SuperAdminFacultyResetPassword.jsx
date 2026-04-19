@@ -496,10 +496,10 @@ const SuperAdminFacultyResetPassword = () => {
                   sx={{
                     border: `1px solid ${borderColor}`,
                     fontWeight: "bold",
-                    color: f.status === 0 ? "green" : "red",
+                    color: f.status === 1 ? "green" : "red",
                   }}
                 >
-                  {f.status === 0 ? "Active" : "Inactive"}
+                  {f.status === 1 ? "Active" : "Inactive"}
                 </TableCell>
 
               </TableRow>

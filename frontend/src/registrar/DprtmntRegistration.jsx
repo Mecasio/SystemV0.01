@@ -33,7 +33,7 @@ import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-
+import SaveIcon from '@mui/icons-material/Save';
 
 const DepartmentRegistration = () => {
 
@@ -431,16 +431,49 @@ const DepartmentRegistration = () => {
         </Grid>
       </Paper>
 
-      <Dialog open={openModal} onClose={() => setOpenModal(false)} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Dialog
+        open={openModal}
+        onClose={() => setOpenModal(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            overflow: "hidden",
+            boxShadow: 6
+          }
+        }}
+      >
+        {/* HEADER */}
+        <DialogTitle
+          sx={{
+            background: settings?.header_color || "#1976d2",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "1.1rem",
+            py: 2,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center"
+          }}
+        >
           {editMode ? "Edit Department" : "Add New Department"}
 
-          <IconButton onClick={() => setOpenModal(false)}>
+          <IconButton
+            onClick={() => setOpenModal(false)}
+            sx={{ color: "white" }}
+          >
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent dividers>
+
+        {/* CONTENT */}
+        <DialogContent sx={{ p: 3 }}>
           <Box display="flex" flexDirection="column" gap={2} mt={1}>
+            <Typography fontWeight="bold" mb={1} mt={2}>
+              Department Name:
+            </Typography>
+
             <TextField
               label="Department Name"
               name="dep_name"
@@ -448,6 +481,11 @@ const DepartmentRegistration = () => {
               onChange={handleChangesForEverything}
               fullWidth
             />
+
+            <Typography fontWeight="bold" mb={1} mt={2}>
+             Department Code:
+            </Typography>
+
             <TextField
               label="Department Code"
               name="dep_code"
@@ -457,25 +495,43 @@ const DepartmentRegistration = () => {
             />
           </Box>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
+
+        {/* ACTIONS */}
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2,
+            borderTop: "1px solid #e0e0e0"
+          }}
+        >
           <Button
-            variant="contained"
-            sx={{ backgroundColor: "#primary", color: "white", }}
-            onClick={handleAddingDepartment}
-          >
-            Save
-          </Button>
-          <Button
-            variant="contained"
             color="error"
-
-
+            variant="outlined"
+            sx={{
+              textTransform: "none",
+              fontWeight: 600
+            }}
             onClick={() => setOpenModal(false)}
           >
             Cancel
           </Button>
+
+          <Button
+            variant="contained"
+            sx={{
+              px: 4,
+              fontWeight: 600,
+              textTransform: "none"
+            }}
+            onClick={handleAddingDepartment}
+          >
+            <SaveIcon fontSize="small" style={{ marginRight: 6 }} />
+            Save
+          </Button>
         </DialogActions>
       </Dialog>
+
+
       <Snackbar
         open={snack.open}
         autoHideDuration={3000}

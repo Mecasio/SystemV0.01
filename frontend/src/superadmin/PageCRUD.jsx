@@ -32,6 +32,7 @@ import LoadingOverlay from "../components/LoadingOverlay";
 
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import SaveIcon from '@mui/icons-material/Save';
 
 
 
@@ -329,18 +330,16 @@ const PageCRUD = () => {
 
             <Button
                 variant="contained"
-                startIcon={<IoMdAddCircle size={20} />}
+
                 onClick={handleOpen}
+
                 sx={{
-                    backgroundColor: settings?.header_color || "#1976d2",
-                    borderRadius: "10px",
-                    textTransform: "none",
-                    px: 3,
-                    py: 1,
-                    fontSize: "16px",
+                    px: 4,
+                    fontWeight: 600,
+                    textTransform: "none"
                 }}
             >
-                Add New Page
+                + Add New Page
             </Button>
 
             <div style={{ height: "30px" }}></div>
@@ -382,7 +381,7 @@ const PageCRUD = () => {
                                         <TableCell
                                             align="center"
                                             sx={{
-                                                border: `1px solid ${borderColor}`,
+                                                borderBottom: `1px solid ${borderColor}`,
                                                 display: "flex",
                                                 justifyContent: "center",
                                                 alignItems: "center",
@@ -516,8 +515,9 @@ const PageCRUD = () => {
 
                 <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 2 }}>
                     <Button onClick={handleClose}
-                        variant="contained"
                         color="error"
+                        variant="outlined"
+
 
                     >
                         Cancel
@@ -526,8 +526,13 @@ const PageCRUD = () => {
                         onClick={handleSubmit}
                         variant="contained"
 
+                        sx={{
+                            px: 4,
+                            fontWeight: 600,
+                            textTransform: "none"
+                        }}
                     >
-                        {currentPageId ? "Update Page" : "Add Page"}
+                        <SaveIcon fontSize="small" /> Save
                     </Button>
                 </DialogActions>
             </Dialog>

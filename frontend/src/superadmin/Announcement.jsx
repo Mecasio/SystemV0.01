@@ -10,8 +10,6 @@ import {
     TableHead,
     TableRow,
     TableCell,
-    TableBody,
-    Card,
     Paper,
     Grid,
     Snackbar,
@@ -29,7 +27,6 @@ import {
     DialogContent,
     DialogActions,
 } from "@mui/material";
-import CampaignIcon from "@mui/icons-material/Campaign";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
@@ -37,6 +34,7 @@ import API_BASE_URL from "../apiConfig";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Cropper from "react-easy-crop";
+import SaveIcon from '@mui/icons-material/Save';
 
 
 const AnnouncementPanel = () => {
@@ -482,7 +480,7 @@ const AnnouncementPanel = () => {
                                                 setOpenFormDialog(true);
                                             }}
                                         >
-                                            Create Announcement
+                                         + Create Announcement
                                         </Button>
                                     </Box>
                                 </Box>
@@ -829,9 +827,8 @@ const AnnouncementPanel = () => {
 
                 <DialogActions>
                     <Button
-                        variant="contained"
                         color="error"
-
+                        variant="outlined"
 
                         onClick={() => setOpenDeleteDialog(false)}>
                         Cancel
@@ -872,9 +869,8 @@ const AnnouncementPanel = () => {
 
                 <DialogActions>
                     <Button
-                        variant="contained"
                         color="error"
-
+                        variant="outlined"
 
                         onClick={() => setOpenCrop(false)}>Cancel</Button>
                     <Button variant="contained" onClick={handleCropSave}>
@@ -1068,10 +1064,8 @@ const AnnouncementPanel = () => {
                     }}
                 >
                     <Button
-                        variant="contained"
                         color="error"
-
-
+                        variant="outlined"
                         onClick={() => setOpenFormDialog(false)}
                     >
                         Cancel
@@ -1083,8 +1077,14 @@ const AnnouncementPanel = () => {
                             handleSubmit(e);
                             setOpenFormDialog(false);
                         }}
+                        sx={{
+                            px: 4,
+                            fontWeight: 600,
+                            textTransform: "none"
+                        }}
                     >
-                        {editingId ? "Update Announcement" : "Create Announcement"}
+                        <SaveIcon fontSize="small" /> Save
+
                     </Button>
                 </DialogActions>
             </Dialog>

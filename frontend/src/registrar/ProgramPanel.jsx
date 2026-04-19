@@ -30,6 +30,7 @@ import {
   Grid,
   FormControl, Select, MenuItem
 } from "@mui/material";
+import SaveIcon from '@mui/icons-material/Save';
 
 const ProgramPanel = () => {
   const settings = useContext(SettingsContext);
@@ -1081,23 +1082,26 @@ const ProgramPanel = () => {
               setEditMode(false);
               setEditId(null);
             }}
-            variant="contained"
             color="error"
-
-
+            variant="outlined"
           >
             Cancel
           </Button>
 
           <Button
             variant="contained"
-            sx={{ px: 4, fontWeight: 600 }}
+            sx={{
+              px: 4,
+              fontWeight: 600,
+              textTransform: "none"
+            }}
             onClick={() => {
               handleAddingProgram();
               setOpenProgramDialog(false);
             }}
           >
-            {editMode ? "Update Program" : "Insert Program"}
+     <SaveIcon fontSize="small" /> Save
+
           </Button>
         </DialogActions>
       </Dialog>
@@ -1118,9 +1122,8 @@ const ProgramPanel = () => {
 
         <DialogActions>
           <Button
-            variant="contained"
             color="error"
-
+            variant="outlined"
 
             onClick={() => setOpenDeleteDialog(false)}>
             Cancel

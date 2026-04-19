@@ -40,6 +40,8 @@ import { useNavigate } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import SaveIcon from '@mui/icons-material/Save';
+
 
 const RoomRegistration = () => {
   const settings = useContext(SettingsContext);
@@ -1130,10 +1132,10 @@ const RoomRegistration = () => {
 
           <Button
             variant="contained"
-            sx={{
-            
+           sx={{
               px: 4,
-              fontWeight: 600
+              fontWeight: 600,
+              textTransform: "none"
             }}
             onClick={() => {
               if (editingRoom) {
@@ -1144,7 +1146,8 @@ const RoomRegistration = () => {
               }
             }}
           >
-            {editingRoom ? "Update Room" : "Save Room"}
+           <SaveIcon fontSize="small" /> Save
+
           </Button>
         </DialogActions>
       </Dialog>

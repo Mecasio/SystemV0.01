@@ -6,6 +6,10 @@ import AddIcon from "@mui/icons-material/Add";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
+import SaveIcon from '@mui/icons-material/Save';
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+
 const EvaluationCRUD = () => {
 
     const settings = useContext(SettingsContext);
@@ -659,10 +663,20 @@ const EvaluationCRUD = () => {
                                     <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}`, }}>
                                         <Button
                                             variant="contained"
-                                            sx={{ backgroundColor: "#4CAF50", color: "white" }}
+                                            sx={{
+                                                backgroundColor: "green",
+                                                color: "white",
+                                                borderRadius: "5px",
+                                                padding: "8px 14px",
+                                                width: "100px",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                gap: "5px",
+                                            }}
                                             onClick={() => handleEditCategory(cat)}
                                         >
-                                            Edit
+                                            <EditIcon fontSize="small" /> Edit
                                         </Button>
                                     </TableCell>
                                 </TableRow>
@@ -708,7 +722,17 @@ const EvaluationCRUD = () => {
                                     <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{q.fourth_choice}</TableCell>
                                     <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{q.fifth_choice}</TableCell>
                                     <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
-                                        <Button style={{ background: "#4CAF50", color: "white", width: "100px" }} onClick={() => handleEdit(q)}>Edit</Button>
+                                        <Button sx={{
+                                            backgroundColor: "green",
+                                            color: "white",
+                                            borderRadius: "5px",
+                                            padding: "8px 14px",
+                                            width: "100px",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            gap: "5px",
+                                        }} onClick={() => handleEdit(q)}>  <EditIcon fontSize="small" /> Edit</Button>
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -720,15 +744,44 @@ const EvaluationCRUD = () => {
                     </TableBody>
                 </Table>
             </TableContainer>
-            <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm">
-                <DialogTitle sx={{ color: "maroon", fontWeight: "bold" }}>
+            <Dialog
+                open={openDialog}
+                onClose={handleCloseDialog}
+                fullWidth
+                maxWidth="sm"
+                PaperProps={{
+                    sx: {
+                        borderRadius: 3,
+                        overflow: "hidden",
+                        boxShadow: 6
+                    }
+                }}
+            >
+                {/* HEADER */}
+                <DialogTitle
+                    sx={{
+                        background: settings?.header_color || "#1976d2",
+                        color: "#fff",
+                        fontWeight: 700,
+                        fontSize: "1.1rem",
+                        py: 2,
+                        mb: 2
+                    }}
+                >
                     {editMode ? "Edit Question" : "Add New Question"}
                 </DialogTitle>
-                <hr style={{ border: "1px solid #ccc", width: "100%" }} />
 
-                <DialogContent sx={{ mt: 2 }}>
+                {/* CONTENT */}
+                <DialogContent sx={{ p: 3 }}>
                     <Stack spacing={2}>
-                        <FormControl fullWidth>
+                        <Typography
+                            variant="subtitle1"
+                            fontWeight={700}
+                            sx={{ mb: 1, mt: 1 }}
+                        >
+                            Question Category:
+                        </Typography>
+                        <FormControl fullWidth size="small">
                             <InputLabel>Select Category</InputLabel>
                             <Select
                                 name="category"
@@ -743,56 +796,138 @@ const EvaluationCRUD = () => {
                                 ))}
                             </Select>
                         </FormControl>
-                        <TextField
-                            label="Question Description"
-                            name="question"
-                            value={formData.question}
-                            onChange={handleChange}
-                            fullWidth
-                        />
-                        <TextField label="Choice 1" name="choice1" value={formData.choice1} onChange={handleChange} fullWidth />
-                        <TextField label="Choice 2" name="choice2" value={formData.choice2} onChange={handleChange} fullWidth />
-                        <TextField label="Choice 3" name="choice3" value={formData.choice3} onChange={handleChange} fullWidth />
-                        <TextField label="Choice 4" name="choice4" value={formData.choice4} onChange={handleChange} fullWidth />
-                        <TextField label="Choice 5" name="choice5" value={formData.choice5} onChange={handleChange} fullWidth />
+                        <Typography
+                            variant="subtitle1"
+                            fontWeight={700}
+                            sx={{ mb: 1, mt: 1 }}
+                        >
+                            Question Description:
+                        </Typography>
+                        <TextField size="small" label="Question Description" name="question" value={formData.question} onChange={handleChange} fullWidth />
+                        <Typography
+                            variant="subtitle1"
+                            fontWeight={700}
+                            sx={{ mb: 1, mt: 1 }}
+                        >
+                            Choice 1:
+                        </Typography>
+                        <TextField size="small" label="Choice 1" name="choice1" value={formData.choice1} onChange={handleChange} fullWidth />
+                        <Typography
+                            variant="subtitle1"
+                            fontWeight={700}
+                            sx={{ mb: 1, mt: 1 }}
+                        >
+                               Choice 2:
+                        </Typography>
+                        <TextField size="small" label="Choice 2" name="choice2" value={formData.choice2} onChange={handleChange} fullWidth />
+                        <Typography
+                            variant="subtitle1"
+                            fontWeight={700}
+                            sx={{ mb: 1, mt: 1 }}
+                        >
+                              Choice 3:
+                        </Typography>
+                        <TextField size="small" label="Choice 3" name="choice3" value={formData.choice3} onChange={handleChange} fullWidth />
+                        <Typography
+                            variant="subtitle1"
+                            fontWeight={700}
+                            sx={{ mb: 1, mt: 1 }}
+                        >
+                               Choice 4:
+                        </Typography>
+                        <TextField size="small" label="Choice 4" name="choice4" value={formData.choice4} onChange={handleChange} fullWidth />
+                        <Typography
+                            variant="subtitle1"
+                            fontWeight={700}
+                            sx={{ mb: 1, mt: 1 }}
+                        >
+                           Choice 5:
+                        </Typography>
+                        <TextField size="small" label="Choice 5" name="choice5" value={formData.choice5} onChange={handleChange} fullWidth />
                     </Stack>
                 </DialogContent>
 
-                <DialogActions>
+                {/* ACTIONS */}
+                <DialogActions
+                    sx={{
+                        px: 3,
+                        py: 2,
+                        borderTop: "1px solid #e0e0e0"
+                    }}
+                >
                     <Button
-                        variant="contained"
                         color="error"
+                        variant="outlined"
+                        sx={{ textTransform: "none", fontWeight: 600 }}
+                        onClick={handleCloseDialog}
+                    >
+                        Cancel
+                    </Button>
 
-
-                        onClick={handleCloseDialog}>Cancel</Button>
                     <Button
                         variant="contained"
+                        sx={{ px: 4, fontWeight: 600, textTransform: "none" }}
                         onClick={handleSaveQuestion}
-                        sx={{
-                            backgroundColor: "#800000",
-                            "&:hover": { backgroundColor: "#6D2323" },
-                            fontWeight: "bold",
-                        }}
                     >
-                        {editMode ? "Save Changes" : "Insert Question"}
+                        <SaveIcon fontSize="small" style={{ marginRight: 6 }} />
+                        Save
                     </Button>
                 </DialogActions>
             </Dialog>
-            <Dialog open={categoryDialogOpen} onClose={handleCategoryDialogClose} fullWidth maxWidth="sm">S
-                <DialogTitle sx={{ color: "maroon", fontWeight: "bold" }}>
+            <Dialog
+                open={categoryDialogOpen}
+                onClose={handleCategoryDialogClose}
+                fullWidth
+                maxWidth="sm"
+                PaperProps={{
+                    sx: {
+                        borderRadius: 3,
+                        overflow: "hidden",
+                        boxShadow: 6
+                    }
+                }}
+            >
+                {/* HEADER */}
+                <DialogTitle
+                    sx={{
+                        background: settings?.header_color || "#1976d2",
+                        color: "#fff",
+                        fontWeight: 700,
+                        fontSize: "1.1rem",
+                        py: 2,
+                        mb: 2
+                    }}
+                >
                     {categoryEditMode ? "Edit Category" : "Add New Category"}
                 </DialogTitle>
-                <hr style={{ border: "1px solid #ccc", width: "100%" }} />
-                <DialogContent sx={{ mt: 2 }}>
+
+                {/* CONTENT */}
+                <DialogContent sx={{ p: 3 }}>
                     <Stack spacing={2}>
+                        <Typography
+                            variant="subtitle1"
+                            fontWeight={700}
+                            sx={{ mb: 1, mt: 1 }}
+                        >
+                            Title:
+                        </Typography>
                         <TextField
+                            size="small"
                             label="Title"
                             name="title"
                             value={categoryFormData.title}
                             onChange={handleCategoryChange}
                             fullWidth
                         />
+                        <Typography
+                            variant="subtitle1"
+                            fontWeight={700}
+                            sx={{ mb: 1, mt: 1 }}
+                        >
+                            Description:
+                        </Typography>
                         <TextField
+                            size="small"
                             label="Description"
                             name="description"
                             value={categoryFormData.description}
@@ -801,19 +936,31 @@ const EvaluationCRUD = () => {
                         />
                     </Stack>
                 </DialogContent>
-                <DialogActions>
+
+                {/* ACTIONS */}
+                <DialogActions
+                    sx={{
+                        px: 3,
+                        py: 2,
+                        borderTop: "1px solid #e0e0e0"
+                    }}
+                >
                     <Button
-                        variant="contained"
                         color="error"
+                        variant="outlined"
+                        sx={{ textTransform: "none", fontWeight: 600 }}
+                        onClick={handleCategoryDialogClose}
+                    >
+                        Cancel
+                    </Button>
 
-
-                        onClick={handleCategoryDialogClose}>Cancel</Button>
                     <Button
                         variant="contained"
+                        sx={{ px: 4, fontWeight: 600, textTransform: "none" }}
                         onClick={handleSaveCategory}
-                        sx={{ backgroundColor: "#800000", "&:hover": { backgroundColor: "#6D2323" }, fontWeight: "bold" }}
                     >
-                        {categoryEditMode ? "Save Changes" : "Insert Category"}
+                        <SaveIcon fontSize="small" style={{ marginRight: 6 }} />
+                        Save
                     </Button>
                 </DialogActions>
             </Dialog>

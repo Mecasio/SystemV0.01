@@ -25,7 +25,12 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  TextField,
+  IconButton
 } from "@mui/material";
+
+import CloseIcon from "@mui/icons-material/Close";
+import SaveIcon from "@mui/icons-material/Save";
 
 
 const DepartmentRoom = () => {
@@ -42,6 +47,7 @@ const DepartmentRoom = () => {
   const [companyName, setCompanyName] = useState("");
   const [shortTerm, setShortTerm] = useState("");
   const [campusAddress, setCampusAddress] = useState("");
+  const [branches, setBranches] = useState([]);
 
   useEffect(() => {
     if (!settings) return;
@@ -51,8 +57,8 @@ const DepartmentRoom = () => {
     if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
     if (settings.border_color) setBorderColor(settings.border_color);
     if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
-    if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);   // ✅ NEW
-    if (settings.stepper_color) setStepperColor(settings.stepper_color);           // ✅ NEW
+    if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);
+    if (settings.stepper_color) setStepperColor(settings.stepper_color);
 
     // 🏫 Logo
     if (settings.logo_url) {
@@ -61,12 +67,23 @@ const DepartmentRoom = () => {
       setFetchedLogo(EaristLogo);
     }
 
-    // 🏷️ School Information
+    // 🏷️ School Info
     if (settings.company_name) setCompanyName(settings.company_name);
     if (settings.short_term) setShortTerm(settings.short_term);
     if (settings.campus_address) setCampusAddress(settings.campus_address);
 
+    // ✅ Branches (JSON stored in DB)
+    if (settings.branches) {
+      setBranches(
+        typeof settings.branches === "string"
+          ? JSON.parse(settings.branches)
+          : settings.branches
+      );
+    }
+
   }, [settings]);
+
+
 
   // 🧠 Snackbar State
   const [snackbar, setSnackbar] = useState({
@@ -180,6 +197,14 @@ const DepartmentRoom = () => {
     }));
   };
 
+  const [openModal, setOpenModal] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+
+  const [department, setDepartment] = useState({
+    dep_name: "",
+    dep_code: "",
+  });
+
   const handleAssignRoom = async () => {
     try {
       await axios.post(`${API_BASE_URL}/api/assign`, room);
@@ -201,6 +226,44 @@ const DepartmentRoom = () => {
     }
   };
 
+  const handleAddingDepartment = async () => {
+    try {
+      if (editMode) {
+        await axios.put(`${API_BASE_URL}/update_department`, department);
+      } else {
+        await axios.post(`${API_BASE_URL}/add_department`, department);
+      }
+
+      fetchDepartment(); // refresh list
+
+      setSnackbar({
+        open: true,
+        message: editMode
+          ? "Department updated successfully!"
+          : "Department added successfully!",
+        severity: "success",
+      });
+
+      setOpenModal(false);
+      setDepartment({ dep_name: "", dep_code: "" });
+
+    } catch (err) {
+      console.error("Error saving department:", err);
+      setSnackbar({
+        open: true,
+        message: "Failed to save department.",
+        severity: "error",
+      });
+    }
+  };
+
+  const handleChangesForEverything = (e) => {
+    const { name, value } = e.target;
+    setDepartment((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   const [openUnassignDialog, setOpenUnassignDialog] = useState(false);
   const [roomToUnassign, setRoomToUnassign] = useState(null);
@@ -247,80 +310,38 @@ const DepartmentRoom = () => {
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
 
-      <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
-        <Table>
-          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
-            <TableRow>
-              <TableCell sx={{ color: 'white', textAlign: "Center" }}>Department Room</TableCell>
-            </TableRow>
-          </TableHead>
-        </Table>
-      </TableContainer>
-
-      <Paper
-        elevation={3}
+      <Box
         sx={{
-          p: 3,
-          border: `1px solid ${borderColor}`,
-
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
         }}
       >
-        <Box display="flex" gap={2} alignItems="flex-start" mb={4}>
-
-
-          <Box width="50%">
-            <Typography variant="body1" fontWeight="bold">
-              Select Department:
-            </Typography>
-            <Select
-              name="dprtmnt_id"
-              value={room.dprtmnt_id}
-              onChange={handleChange}
-              displayEmpty
-              fullWidth
-            >
-              <MenuItem value="">Select Department</MenuItem>
-              {departmentList.map((dept) => (
-                <MenuItem key={dept.dprtmnt_id} value={dept.dprtmnt_id}>
-                  {dept.dprtmnt_name}
-                </MenuItem>
-              ))}
-            </Select>
-          </Box>
-
-          <Box width="50%">
-            <Typography variant="body1" fontWeight="bold">
-              Select Room:
-            </Typography>
-            <Select
-              name="room_id"
-              value={room.room_id}
-              onChange={handleChange}
-              displayEmpty
-              fullWidth
-            >
-              <MenuItem value="">Select Available Room</MenuItem>
-              {roomList
-                .filter((room) => !assignedRoomIds.includes(room.room_id))
-                .map((room) => (
-                  <MenuItem key={room.room_id} value={room.room_id}>
-                    {room.room_description}
-                  </MenuItem>
-                ))}
-            </Select>
-          </Box>
-
-          <Button
-            variant="contained"
-            style={{ backgroundColor: "#primary", color: "#fff", width: "200px" }}
-            onClick={handleAssignRoom}
-            disabled={!room.room_id || !room.dprtmnt_id}
-            sx={{ height: 56, alignSelf: "flex-end" }}
-          >
-            Save
-          </Button>
+        <Box>
+          <Typography variant="body1" sx={{ color: subtitleColor }}>
+         Assign room to each Department
+          </Typography>
         </Box>
-      </Paper>
+
+        <Button
+          variant="contained"
+          sx={{
+            textTransform: "none",
+            fontWeight: 600,
+            px: 4,
+        
+          }}
+          onClick={() => {
+            setEditMode(false);
+            setDepartment({ dep_name: "", dep_code: "" });
+            setOpenModal(true);
+          }}
+        >
+          + Add Department
+        </Button>
+      </Box>
+
 
 
       <br />
@@ -444,6 +465,104 @@ const DepartmentRoom = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+
+      <Dialog
+        open={openModal}
+        onClose={() => setOpenModal(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            overflow: "hidden",
+            boxShadow: 6
+          }
+        }}
+      >
+        {/* HEADER */}
+        <DialogTitle
+          sx={{
+            background: settings?.header_color || "#1976d2",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "1.1rem",
+            py: 2,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center"
+          }}
+        >
+          {editMode ? "Edit Department" : "Add New Department"}
+
+          <IconButton
+            onClick={() => setOpenModal(false)}
+            sx={{ color: "white" }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
+        {/* CONTENT */}
+        <DialogContent sx={{ p: 3 }}>
+          <Box display="flex" flexDirection="column" gap={2} mt={1}>
+            <Typography fontWeight="bold" mt={2}>
+              Department Name:
+            </Typography>
+
+            <TextField
+              label="Department Name"
+              name="dep_name"
+              value={department.dep_name}
+              onChange={handleChangesForEverything}
+              fullWidth
+            />
+
+            <Typography fontWeight="bold" mt={2}>
+              Department Code:
+            </Typography>
+
+            <TextField
+              label="Department Code"
+              name="dep_code"
+              value={department.dep_code}
+              onChange={handleChangesForEverything}
+              fullWidth
+            />
+          </Box>
+        </DialogContent>
+
+        {/* ACTIONS */}
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2,
+            borderTop: "1px solid #e0e0e0"
+          }}
+        >
+          <Button
+            color="error"
+            variant="outlined"
+            sx={{ textTransform: "none", fontWeight: 600 }}
+            onClick={() => setOpenModal(false)}
+          >
+            Cancel
+          </Button>
+
+          <Button
+            variant="contained"
+            sx={{
+              px: 4,
+              fontWeight: 600,
+              textTransform: "none",
+      
+            }}
+            onClick={handleAddingDepartment}
+          >
+           <SaveIcon fontSize="small" /> Save
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

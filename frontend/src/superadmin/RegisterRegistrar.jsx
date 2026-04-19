@@ -25,6 +25,7 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
+    Grid
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
@@ -32,7 +33,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
-
+import SaveIcon from '@mui/icons-material/Save';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 
 const RegisterRegistrar = () => {
 
@@ -752,13 +754,16 @@ const RegisterRegistrar = () => {
                                             sx={{
                                                 backgroundColor: "green",
                                                 color: "white",
-                                                textTransform: "none",
-                                                fontWeight: "bold",
-
+                                                borderRadius: "5px",
+                                                padding: "8px 14px",
+                                                width: "100px",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                gap: "5px",
                                             }}
-                                            variant="contained"
                                         >
-                                            EDIT
+                                            <EditIcon fontSize="small" /> Edit
                                         </Button>
                                     </TableCell>
 
@@ -798,92 +803,144 @@ const RegisterRegistrar = () => {
             </TableContainer>
 
 
-            {/* ➕ / ✏️ Registrar Modal */}
-            <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm">
-                <DialogTitle sx={{ color: "maroon", fontWeight: "bold" }}>
+            <Dialog
+                open={openDialog}
+                onClose={handleCloseDialog}
+                fullWidth
+                maxWidth="sm"
+                PaperProps={{
+                    sx: {
+                        borderRadius: 3,
+                        overflow: "hidden",
+                        boxShadow: 6
+                    }
+                }}
+            >
+                {/* HEADER */}
+                <DialogTitle
+                    sx={{
+                        background: settings?.header_color || "#1976d2",
+                        color: "#fff",
+                        fontWeight: 700,
+                        fontSize: "1.1rem",
+                        py: 2,
+                        mb: 2
+                    }}
+                >
                     {editData ? "Edit Registrar" : "Add New Registrar"}
                 </DialogTitle>
-                <hr style={{ border: "1px solid #ccc", width: "100%" }} />
 
-                <DialogContent sx={{ mt: 2 }}>
-                    <Stack spacing={2}>
-                        {/* 🔹 Profile Picture Upload */}
-                        <Stack direction="row" spacing={2} alignItems="center" justifyContent="flex-start">
-                            <Avatar
-                                src={
-                                    form.preview ||
-                                    (editData?.profile_picture
-                                        ? `${API_BASE_URL}/uploads/Admin1by1/${editData.profile_picture}`
-                                        : "")
-                                }
-                                alt={form.first_name || "Profile"}
-                                sx={{
-                                    width: 80,
-                                    height: 80,
-                                    border: `1px solid ${borderColor}`,
-                                    boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                {/* CONTENT */}
+                <DialogContent sx={{ p: 3 }}>
+
+                    {/* PROFILE SECTION */}
+                    <Typography fontWeight={700} mb={2}>
+                        Profile
+                    </Typography>
+
+                    <Stack direction="row" spacing={2} alignItems="center">
+                        <Avatar
+                            src={
+                                form.preview ||
+                                (editData?.profile_picture
+                                    ? `${API_BASE_URL}/uploads/Admin1by1/${editData.profile_picture}`
+                                    : "")
+                            }
+                            sx={{
+                                width: 80,
+                                height: 80,
+                                boxShadow: 2
+                            }}
+                        />
+
+                        <Button
+                            variant="outlined"
+                            component="label"
+                            startIcon={<UploadFileIcon />}
+                            sx={{
+                                borderRadius: 2,
+                                textTransform: "none",
+                                px: 3
+                            }}
+                        >
+                            Upload Image
+                            <input
+                                hidden
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                    const file = e.target.files[0];
+                                    if (file) {
+                                        setForm({
+                                            ...form,
+                                            profile_picture: file,
+                                            preview: URL.createObjectURL(file),
+                                        });
+                                    }
                                 }}
                             />
-                            <Button
-                                variant="outlined"
-                                component="label"
-                                sx={{
-                                    borderColor: "#6D2323",
-                                    color: "#6D2323",
-                                    textTransform: "none",
-                                    fontWeight: "bold",
-                                    "&:hover": { borderColor: "#800000", color: "#800000" },
-                                }}
-                            >
-                                Upload Image
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    hidden
-                                    onChange={(e) => {
-                                        const file = e.target.files[0];
-                                        if (file) {
-                                            setForm({
-                                                ...form,
-                                                profile_picture: file,
-                                                preview: URL.createObjectURL(file),
-                                            });
-                                        }
-                                    }}
-                                />
-                            </Button>
-                        </Stack>
+                        </Button>
+                    </Stack>
 
-                        {/* 🔹 Registrar Information */}
+                    {/* REGISTRAR INFO */}
+                    <Typography fontWeight={700} mt={3} mb={2}>
+                        Registrar Information
+                    </Typography>
+
+                    <Grid container spacing={2}>
+                        <Grid item xs={12}>
+                            <TextField
+                                size="small"
+                                label="Employee ID"
+                                name="employee_id"
+                                value={form.employee_id}
+                                onChange={handleChange}
+                                fullWidth
+                            />
+                        </Grid>
+
+                        <Grid item xs={6}>
+                            <TextField
+                                size="small"
+                                label="First Name"
+                                name="first_name"
+                                value={form.first_name}
+                                onChange={handleChange}
+                                fullWidth
+                            />
+                        </Grid>
+
+                        <Grid item xs={6}>
+                            <TextField
+                                size="small"
+                                label="Last Name"
+                                name="last_name"
+                                value={form.last_name}
+                                onChange={handleChange}
+                                fullWidth
+                            />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                            <TextField
+                                size="small"
+                                label="Middle Name"
+                                name="middle_name"
+                                value={form.middle_name}
+                                onChange={handleChange}
+                                fullWidth
+                            />
+                        </Grid>
+                    </Grid>
+
+                    {/* ACCOUNT */}
+                    <Typography fontWeight={700} mt={3} mb={2}>
+                        Account Details
+                    </Typography>
+
+                    <Stack spacing={2}>
                         <TextField
-                            label="Employee ID"
-                            name="employee_id"
-                            value={form.employee_id}
-                            onChange={handleChange}
-                            fullWidth
-                        />
-                        <TextField
-                            label="Last Name"
-                            name="last_name"
-                            value={form.last_name}
-                            onChange={handleChange}
-                            fullWidth
-                        />
-                        <TextField
-                            label="Middle Name"
-                            name="middle_name"
-                            value={form.middle_name}
-                            onChange={handleChange}
-                            fullWidth
-                        />
-                        <TextField
-                            label="First Name"
-                            name="first_name"
-                            value={form.first_name}
-                            onChange={handleChange}
-                            fullWidth
-                        />
-                        <TextField
+                            size="small"
                             label="Email"
                             name="email"
                             value={form.email}
@@ -891,7 +948,9 @@ const RegisterRegistrar = () => {
                             type="email"
                             fullWidth
                         />
+
                         <TextField
+                            size="small"
                             label={editData ? "New Password (optional)" : "Password"}
                             name="password"
                             value={form.password}
@@ -899,12 +958,13 @@ const RegisterRegistrar = () => {
                             type="password"
                             fullWidth
                         />
+                    </Stack>
 
-                        {/* 🔹 Department Dropdown */}
-                        <FormControl fullWidth>
-                            <InputLabel id="department-label">Department</InputLabel>
+                    {/* DROPDOWNS */}
+                    <Stack spacing={2} mt={3}>
+                        <FormControl fullWidth size="small">
+                            <InputLabel>Department</InputLabel>
                             <Select
-                                labelId="department-label"
                                 name="dprtmnt_id"
                                 value={form.dprtmnt_id}
                                 label="Department"
@@ -918,13 +978,15 @@ const RegisterRegistrar = () => {
                                 ))}
                             </Select>
                         </FormControl>
-                        <FormControl fullWidth>
-                            <InputLabel id="access-level-select-label">Access Level</InputLabel>
+
+                        <FormControl fullWidth size="small">
+                            <InputLabel>Access Level</InputLabel>
                             <Select
-                                labelId="access-level-select-label"
                                 value={form.access_level}
                                 label="Access Level"
-                                onChange={(e) => setForm({ ...form, access_level: e.target.value })}
+                                onChange={(e) =>
+                                    setForm({ ...form, access_level: e.target.value })
+                                }
                             >
                                 <MenuItem value="">Select Access Level</MenuItem>
                                 {accessLevels.map((access) => (
@@ -934,12 +996,11 @@ const RegisterRegistrar = () => {
                                 ))}
                             </Select>
                         </FormControl>
-                        {/* 🔹 Status Dropdown (Active/Inactive) */}
+
                         {editData && (
-                            <FormControl fullWidth>
-                                <InputLabel id="status-label">Status</InputLabel>
+                            <FormControl fullWidth size="small">
+                                <InputLabel>Status</InputLabel>
                                 <Select
-                                    labelId="status-label"
                                     name="status"
                                     value={form.status}
                                     label="Status"
@@ -951,25 +1012,33 @@ const RegisterRegistrar = () => {
                             </FormControl>
                         )}
                     </Stack>
+
                 </DialogContent>
 
-                <DialogActions>
+                {/* ACTIONS */}
+                <DialogActions
+                    sx={{
+                        px: 3,
+                        py: 2,
+                        borderTop: "1px solid #e0e0e0"
+                    }}
+                >
                     <Button
-                        variant="contained"
+                        onClick={handleCloseDialog}
                         color="error"
+                        variant="outlined"
+                        sx={{ textTransform: "none", fontWeight: 600 }}
+                    >
+                        Cancel
+                    </Button>
 
-
-                        onClick={handleCloseDialog}>Cancel</Button>
                     <Button
                         variant="contained"
+                        sx={{ px: 4, fontWeight: 600, textTransform: "none" }}
                         onClick={handleSubmit}
-                        sx={{
-                            backgroundColor: mainButtonColor,
-                            "&:hover": { backgroundColor: "#000000" },
-                            fontWeight: "bold",
-                        }}
                     >
-                        {editData ? "Save Changes" : "Register"}
+            
+                        <SaveIcon fontSize="small" /> Save
                     </Button>
                 </DialogActions>
             </Dialog>

@@ -20,7 +20,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import ProgramTaggingFilter from "../registrar/ProgramTaggingFilter";
 import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import { FaFileExcel } from "react-icons/fa";
-
+import SaveIcon from '@mui/icons-material/Save';
 
 const ProgramTagging = () => {
   const settings = useContext(SettingsContext);
@@ -973,7 +973,7 @@ const ProgramTagging = () => {
             </Table>
           </TableContainer>
 
-          <div style={styles.taggedProgramsContainer}>
+          <div>
             {taggedPrograms.length > 0 ? (
 
               <table style={{ ...styles.table, mt: "-15px", mb: 4 }}>
@@ -987,7 +987,8 @@ const ProgramTagging = () => {
                         backgroundColor: "#f5f5f5",
                         border: `1px solid ${borderColor}`,
                         color: "black",
-                        textAlign: "center"
+                        textAlign: "center",
+                        fontSize: "13px"
                       }}
                     >
                       #
@@ -1000,7 +1001,8 @@ const ProgramTagging = () => {
                         backgroundColor: "#f5f5f5",
                         border: `1px solid ${borderColor}`,
                         color: "black",
-                        textAlign: "center"
+                        textAlign: "center",
+                        fontSize: "13px"
                       }}
                     >
                       Curriculum
@@ -1011,7 +1013,8 @@ const ProgramTagging = () => {
                         backgroundColor: "#f5f5f5",
                         border: `1px solid ${borderColor}`,
                         color: "black",
-                        textAlign: "center"
+                        textAlign: "center",
+                        fontSize: "13px"
                       }}
                     >
                       Course
@@ -1022,7 +1025,8 @@ const ProgramTagging = () => {
                         backgroundColor: "#f5f5f5",
                         border: `1px solid ${borderColor}`,
                         color: "black",
-                        textAlign: "center"
+                        textAlign: "center",
+                        fontSize: "13px"
                       }}
                     >
                       Year Level
@@ -1033,7 +1037,8 @@ const ProgramTagging = () => {
                         backgroundColor: "#f5f5f5",
                         border: `1px solid ${borderColor}`,
                         color: "black",
-                        textAlign: "center"
+                        textAlign: "center",
+                        fontSize: "13px"
                       }}
                     >
                       Semester
@@ -1045,7 +1050,8 @@ const ProgramTagging = () => {
                         backgroundColor: "#f5f5f5",
                         border: `1px solid ${borderColor}`,
                         color: "black",
-                        textAlign: "center"
+                        textAlign: "center",
+                        fontSize: "13px"
                       }}
                     >
                       Lec Fee
@@ -1056,7 +1062,8 @@ const ProgramTagging = () => {
                         backgroundColor: "#f5f5f5",
                         border: `1px solid ${borderColor}`,
                         color: "black",
-                        textAlign: "center"
+                        textAlign: "center",
+                        fontSize: "13px"
                       }}
                     >
                       Lab Fee
@@ -1067,7 +1074,8 @@ const ProgramTagging = () => {
                         backgroundColor: "#f5f5f5",
                         border: `1px solid ${borderColor}`,
                         color: "black",
-                        textAlign: "center"
+                        textAlign: "center",
+                        fontSize: "13px"
                       }}
                     >
                       Computer Fee
@@ -1078,7 +1086,8 @@ const ProgramTagging = () => {
                         backgroundColor: "#f5f5f5",
                         border: `1px solid ${borderColor}`,
                         color: "black",
-                        textAlign: "center"
+                        textAlign: "center",
+                        fontSize: "13px"
                       }}
                     >
                       Laboratory Fee
@@ -1089,7 +1098,8 @@ const ProgramTagging = () => {
                         backgroundColor: "#f5f5f5",
                         border: `1px solid ${borderColor}`,
                         color: "black",
-                        textAlign: "center"
+                        textAlign: "center",
+                        fontSize: "13px"
                       }}
                     >
                       NSTP Fee
@@ -1100,7 +1110,8 @@ const ProgramTagging = () => {
                         backgroundColor: "#f5f5f5",
                         border: `1px solid ${borderColor}`,
                         color: "black",
-                        textAlign: "center"
+                        textAlign: "center",
+                        fontSize: "13px"
                       }}
                     >
                       Actions
@@ -1111,41 +1122,41 @@ const ProgramTagging = () => {
                   {currentPrograms.map((program, index) => (
 
                     <tr key={program.program_tagging_id}>
-                      <td style={{ ...styles.td, border: `1px solid ${borderColor}` }}>
+                      <td style={{ ...styles.td, border: `1px solid ${borderColor}`, fontSize: "13px" }}>
                         {indexOfFirstItem + index + 1}
                       </td>
-                      <td style={{ ...styles.td, border: `1px solid ${borderColor}` }}>
+                      <td style={{ ...styles.td, border: `1px solid ${borderColor}`, fontSize: "13px" }}>
                         {formatSchoolYear(program.year_description)}  ({program.program_code}) – {program.curriculum_description}
                         {program.major ? ` (${program.major})` : ""}
                       </td>
 
 
 
-                      <td style={{ ...styles.td, border: `1px solid ${borderColor}` }}>
+                      <td style={{ ...styles.td, border: `1px solid ${borderColor}`, fontSize: "13px" }}>
                         ({program.course_code}) - {program.course_description} - ({program.prereq})
                       </td>
-                      <td style={{ ...styles.td, border: `1px solid ${borderColor}`, textAlign: "center" }}>
+                      <td style={{ ...styles.td, border: `1px solid ${borderColor}`, textAlign: "center", fontSize: "13px" }}>
                         {program.year_level_description}
                       </td>
-                      <td style={{ ...styles.td, border: `1px solid ${borderColor}`, textAlign: "center" }}>
+                      <td style={{ ...styles.td, border: `1px solid ${borderColor}`, textAlign: "center", fontSize: "13px" }}>
                         {program.semester_description}
                       </td>
-                      <td style={{ ...styles.td, border: `1px solid ${borderColor}`, textAlign: "center" }}>
+                      <td style={{ ...styles.td, border: `1px solid ${borderColor}`, textAlign: "center", fontSize: "13px" }}>
                         {program.lec_fee ?? "—"}
                       </td>
-                      <td style={{ ...styles.td, border: `1px solid ${borderColor}`, textAlign: "center" }}>
+                      <td style={{ ...styles.td, border: `1px solid ${borderColor}`, textAlign: "center", fontSize: "13px" }}>
                         {program.lab_fee ?? "—"}
                       </td>
 
-                      <td style={{ ...styles.td, border: `1px solid ${borderColor}`, textAlign: "center" }}>
+                      <td style={{ ...styles.td, border: `1px solid ${borderColor}`, textAlign: "center", fontSize: "13px" }}>
                         {Number(program.iscomputer_lab) === 1 ? "Yes" : "No"}
                       </td>
 
-                      <td style={{ ...styles.td, border: `1px solid ${borderColor}`, textAlign: "center" }}>
+                      <td style={{ ...styles.td, border: `1px solid ${borderColor}`, textAlign: "center", fontSize: "13px" }}>
                         {Number(program.islaboratory_fee) === 1 ? "Yes" : "No"}
                       </td>
 
-                      <td style={{ ...styles.td, border: `1px solid ${borderColor}`, textAlign: "center" }}>
+                      <td style={{ ...styles.td, border: `1px solid ${borderColor}`, textAlign: "center", fontSize: "13px" }}>
                         {Number(program.is_nstp) === 1 ? "Yes" : "No"}
                       </td>
 
@@ -1166,60 +1177,61 @@ const ProgramTagging = () => {
                           ...styles.td,
                           whiteSpace: "nowrap",
                           border: `1px solid ${borderColor}`,
-
                         }}
                       >
-                        <button
-                          onClick={() => {
-                            handleEdit(program);
-                            setOpenFormDialog(true);
-                          }}
+                        <div
                           style={{
-                            backgroundColor: "green",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "5px",
-                            padding: "8px 14px",
-
-                            cursor: "pointer",
-                            width: "100px",
-                            height: "40px",
                             display: "flex",
-                            alignItems: "center",
+                            gap: "6px",
                             justifyContent: "center",
-                            gap: "5px",
-
-
+                            alignItems: "center"
                           }}
                         >
-                          <EditIcon fontSize="small" /> Edit
-                        </button>
+                          <button
+                            onClick={() => {
+                              handleEdit(program);
+                              setOpenFormDialog(true);
+                            }}
+                            style={{
+                              backgroundColor: "green",
+                              color: "white",
+                              border: "none",
+                              borderRadius: "5px",
+                              cursor: "pointer",
+                              width: "100px",
+                              height: "40px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: "5px",
+                            }}
+                          >
+                            <EditIcon fontSize="small" /> Edit
+                          </button>
 
-                        <button
-                          onClick={() => {
-                            setDeleteId(program.program_tagging_id);
-                            setProgramToDelete(program); // 👈 save full row
-                            setOpenDeleteDialog(true);
-                          }}
-                          style={{
-
-                            backgroundColor: "#9E0000",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "5px",
-                            padding: "8px 14px",
-                            cursor: "pointer",
-                            width: "100px",
-                            height: "40px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: "5px",
-                          }}
-                        >
-                          <DeleteIcon fontSize="small" /> Delete
-                        </button>
-
+                          <button
+                            onClick={() => {
+                              setDeleteId(program.program_tagging_id);
+                              setProgramToDelete(program);
+                              setOpenDeleteDialog(true);
+                            }}
+                            style={{
+                              backgroundColor: "#9E0000",
+                              color: "white",
+                              border: "none",
+                              borderRadius: "5px",
+                              height: "40px",
+                              cursor: "pointer",
+                              width: "100px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: "5px",
+                            }}
+                          >
+                            <DeleteIcon fontSize="small" /> Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -1712,10 +1724,8 @@ const ProgramTagging = () => {
           }}
         >
           <Button
-            variant="contained"
             color="error"
-
-
+            variant="outlined"
             onClick={() => setOpenFormDialog(false)}
           >
             Cancel
@@ -1727,8 +1737,14 @@ const ProgramTagging = () => {
               handleInsertingProgTag();
               setOpenFormDialog(false);
             }}
+            sx={{
+              px: 4,
+              fontWeight: 600,
+              textTransform: "none",
+        
+            }}
           >
-            {editingId ? "Update Program Tag" : "Insert Program Tag"}
+            <SaveIcon fontSize="small" /> Save
           </Button>
         </DialogActions>
       </Dialog>
@@ -1750,8 +1766,8 @@ const ProgramTagging = () => {
 
         <DialogActions>
           <Button
-            variant="contained"
             color="error"
+            variant="outlined"
 
 
             onClick={() => setOpenDeleteDialog(false)}>
@@ -1790,9 +1806,8 @@ const ProgramTagging = () => {
 
         <DialogActions>
           <Button
-            variant="contained"
             color="error"
-
+            variant="outlined"
 
             onClick={() => setOpenDeleteAllDialog(false)}>
             Cancel
@@ -1869,11 +1884,7 @@ const styles = {
     borderRadius: "5px",
     border: "1px solid #ccc",
   },
-  taggedProgramsContainer: {
 
-    maxHeight: "750px",
-
-  },
   table: {
     width: "100%",
     borderCollapse: "collapse",

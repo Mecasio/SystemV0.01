@@ -502,16 +502,19 @@ const HealthRecord = () => {
                                                 paddingBottom: 0,
                                             }}
                                         >
-                                            <div style={{ fontFamily: "Arial", fontSize: "13px" }}>
+                                            <div style={{
+                                                fontSize: "13px",
+                                                fontFamily: "Arial",
+                                            }}>
                                                 Republic of the Philippines
                                             </div>
                                             <div
                                                 style={{
 
-                                                    letterSpacing: "2px",
                                                     fontWeight: "bold",
-                                                    fontSize: "12px",
-                                                    fontFamily: "Arial"
+                                                    fontFamily: "Arial",
+                                                    fontSize: "16px",
+                                                    textTransform: "Uppercase"
                                                 }}
                                             >
                                                 {firstLine}
@@ -519,17 +522,20 @@ const HealthRecord = () => {
                                             {secondLine && (
                                                 <div
                                                     style={{
-                                                        fontSize: "12px",
-                                                        letterSpacing: "2px",
                                                         fontWeight: "bold",
-                                                        fontFamily: "Arial"
+                                                        fontFamily: "Arial",
+                                                        fontSize: "16px",
+                                                        textTransform: "Uppercase"
                                                     }}
                                                 >
                                                     {secondLine}
                                                 </div>
                                             )}
                                             {campusAddress && (
-                                                <div style={{ fontSize: "12px", letterSpacing: "1px", fontFamily: "Arial" }}>
+                                                <div style={{
+                                                    fontSize: "13px",
+                                                    fontFamily: "Arial",
+                                                }}>
                                                     {campusAddress}
                                                 </div>
                                             )}

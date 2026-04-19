@@ -370,7 +370,7 @@ const YearUpdateForm = () => {
         </Table>
       </TableContainer>
 
-      <Box sx={{ maxHeight: 750, overflowY: "auto" }}>
+      <Box sx={{ overflowY: "auto" }}>
         <table
           className="w-full border border-gray-300"
           style={{

@@ -23,6 +23,9 @@ import {
   DialogContent,
   DialogActions,
 } from "@mui/material";
+import SaveIcon from '@mui/icons-material/Save';
+
+
 const YearPanel = () => {
   const settings = useContext(SettingsContext);
 
@@ -655,8 +658,9 @@ const YearPanel = () => {
         >
           <Button
             onClick={() => setOpenYearDialog(false)}
-            variant="contained"
             color="error"
+            variant="outlined"
+
 
 
           >
@@ -665,13 +669,18 @@ const YearPanel = () => {
 
           <Button
             variant="contained"
-            sx={{ px: 4, fontWeight: 600 }}
+            sx={{
+              px: 4,
+              fontWeight: 600,
+              textTransform: "none"
+            }}
             onClick={(e) => {
               handleSubmit(e);
               setOpenYearDialog(false);
             }}
           >
-            Save Year
+        <SaveIcon fontSize="small" /> Save
+
           </Button>
         </DialogActions>
       </Dialog>

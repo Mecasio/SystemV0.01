@@ -23,6 +23,7 @@ import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
+import SaveIcon from '@mui/icons-material/Save';
 
 import TextField from "@mui/material/TextField";
 import SearchIcon from "@mui/icons-material/Search";
@@ -916,9 +917,8 @@ const DepartmentSection = () => {
         >
 
           <Button
-            variant="contained"
             color="error"
-
+            variant="outlined"
 
             sx={{
               textTransform: "none",
@@ -944,7 +944,9 @@ const DepartmentSection = () => {
               setOpenFormDialog(false);
             }}
           >
-            {editId ? "Update" : "Save"}
+            <SaveIcon fontSize="small" /> Save
+
+
           </Button>
 
         </DialogActions>

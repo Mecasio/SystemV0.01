@@ -27,6 +27,9 @@ import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
 import SearchIcon from "@mui/icons-material/Search";
+import SaveIcon from '@mui/icons-material/Save';
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const SectionPanel = () => {
   const settings = useContext(SettingsContext);
@@ -415,7 +418,7 @@ const SectionPanel = () => {
                         }
                       }}
                     >
-                      + Add Schedule
+                      + Add Section
                     </Button>
                   </Box>
                 </Box>
@@ -433,7 +436,7 @@ const SectionPanel = () => {
 
 
 
-      <TableContainer sx={{ maxHeight: 400, overflowY: 'auto' }}>
+      <TableContainer sx={{ overflowY: 'auto' }}>
         <Table>
           <TableHead style={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
@@ -457,27 +460,40 @@ const SectionPanel = () => {
                       sx={{
                         backgroundColor: "green",
                         color: "white",
-                        "&:hover": { backgroundColor: "#0f7a0f" },
+                        borderRadius: "5px",
+                        padding: "8px 14px",
+                        width: "100px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "5px",
                       }}
+
                       onClick={() => handleEdit(section)}
                     >
-                      Edit
+                      <EditIcon fontSize="small" /> Edit
                     </Button>
 
                     <Button
                       variant="contained"
                       size="small"
                       sx={{
-                        backgroundColor: "#B22222",
+                        backgroundColor: "#9E0000",
                         color: "white",
-                        "&:hover": { backgroundColor: "#8B1A1A" },
+                        borderRadius: "5px",
+                        padding: "8px 14px",
+                        width: "100px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "5px",
                       }}
                       onClick={() => {
                         setSectionToDelete(section);
                         setOpenDeleteDialog(true);
                       }}
                     >
-                      Delete
+                      <DeleteIcon fontSize="small" /> Delete
                     </Button>
                   </Box>
                 </TableCell>
@@ -720,8 +736,8 @@ const SectionPanel = () => {
               setEditId(null);
               setDescription("");
             }}
-            variant="contained"
             color="error"
+            variant="outlined"
 
 
             sx={{
@@ -734,6 +750,7 @@ const SectionPanel = () => {
 
           <Button
             variant="contained"
+
             sx={{
               px: 4,
               fontWeight: 600,
@@ -741,7 +758,8 @@ const SectionPanel = () => {
             }}
             onClick={handleSubmit}
           >
-            {editId ? "Update" : "Save"}
+            <SaveIcon fontSize="small" /> Save
+
           </Button>
         </DialogActions>
       </Dialog>
