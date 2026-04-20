@@ -40,6 +40,7 @@ const NSTP_TYPES = [
   {
     key: "CWTS",
     label: "CWTS",
+    component: 1,
     color: "#1B5E20",
     bg: "#E8F5E9",
     border: "#2E7D32",
@@ -47,6 +48,7 @@ const NSTP_TYPES = [
   {
     key: "LTS",
     label: "LTS",
+    component: 2,
     color: "#0D47A1",
     bg: "#E3F2FD",
     border: "#1565C0",
@@ -54,6 +56,7 @@ const NSTP_TYPES = [
   {
     key: "MTS",
     label: "MTS",
+    component: 3,
     color: "#4A148C",
     bg: "#F3E5F5",
     border: "#6A1B9A",
@@ -199,8 +202,6 @@ const NSTPTagging = () => {
     setAllSectionStudents(res.data || []);
   };
 
-  // ── Fetch tagged students — updates right panel + taggedNumbers set ───────
-  // Backend returns 404 with { error } when no rows — treat as empty array
   const fetchTaggedStudents = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/get_nstp_tagged_student`, {
@@ -213,7 +214,6 @@ const NSTPTagging = () => {
       setTaggedStudents(tagged);
       setTaggedNumbers(new Set(tagged.map((s) => String(s.student_number))));
     } catch (err) {
-      // 404 = no tagged students yet — clear the panel gracefully
       if (err.response?.status === 404) {
         setTaggedStudents([]);
         setTaggedNumbers(new Set());
@@ -226,6 +226,17 @@ const NSTPTagging = () => {
   // ── Fetch both panels — used after Enroll All / Unenroll All ─────────────
   const fetchBothPanels = async () => {
     await Promise.all([fetchSectionStudents(), fetchTaggedStudents()]);
+  };
+
+  const syncTaggedState = (students) => {
+    setTaggedStudents(students);
+    setTaggedNumbers(new Set(students.map((s) => String(s.student_number))));
+  };
+
+  const refreshTaggedStudentsInBackground = () => {
+    fetchTaggedStudents().catch((err) => {
+      console.error("Background refresh for tagged students failed:", err);
+    });
   };
 
   // ── Search — fetches both panels so tagged students appear immediately ────
@@ -268,6 +279,39 @@ const NSTPTagging = () => {
     };
   };
 
+  const buildOptimisticTaggedStudent = (studentNumber) => {
+    const student = allSectionStudents.find(
+      (s) => String(s.student_number) === String(studentNumber),
+    );
+
+    if (!student) return null;
+
+    return {
+      ...student,
+      component: NSTP_COMPONENT_MAP[selectedNstp],
+    };
+  };
+
+  const addOptimisticTaggedStudent = (studentNumber) => {
+    const nextStudent = buildOptimisticTaggedStudent(studentNumber);
+    if (!nextStudent) return;
+
+    syncTaggedState([
+      ...taggedStudents.filter(
+        (s) => String(s.student_number) !== String(studentNumber),
+      ),
+      nextStudent,
+    ]);
+  };
+
+  const removeOptimisticTaggedStudent = (studentNumber) => {
+    syncTaggedState(
+      taggedStudents.filter(
+        (s) => String(s.student_number) !== String(studentNumber),
+      ),
+    );
+  };
+
   // ── Enroll All ────────────────────────────────────────────────────────────
   const handleEnrollAll = async () => {
     setActionLoading(true);
@@ -277,12 +321,20 @@ const NSTPTagging = () => {
         ...meta,
         nstp_type: NSTP_COMPONENT_MAP[selectedNstp],
       });
+      syncTaggedState(
+        allSectionStudents.map((student) => ({
+          ...student,
+          component: NSTP_COMPONENT_MAP[selectedNstp],
+        })),
+      );
       setSnackbar({
         open: true,
         message: `All students enrolled in ${selectedNstp}.`,
         severity: "success",
       });
-      await fetchBothPanels();
+      fetchBothPanels().catch((err) => {
+        console.error("Background refresh after NSTP enroll all failed:", err);
+      });
     } catch (err) {
       setSnackbar({
         open: true,
@@ -300,12 +352,15 @@ const NSTPTagging = () => {
     try {
       const meta = getSectionMeta();
       await axios.put(`${API_BASE_URL}/unenroll_nstp_component`, meta);
+      syncTaggedState([]);
       setSnackbar({
         open: true,
         message: "All students unenrolled.",
         severity: "success",
       });
-      await fetchBothPanels();
+      fetchBothPanels().catch((err) => {
+        console.error("Background refresh after NSTP unenroll all failed:", err);
+      });
     } catch (err) {
       setSnackbar({
         open: true,
@@ -328,13 +383,14 @@ const NSTPTagging = () => {
           nstp_type: NSTP_COMPONENT_MAP[selectedNstp],
         },
       );
+      addOptimisticTaggedStudent(studentNumber);
       setSnackbar({
         open: true,
         message: `Student ${studentNumber} enrolled in ${selectedNstp}.`,
         severity: "success",
       });
       // Only refresh tagged panel — left panel stays intact
-      await fetchTaggedStudents();
+      refreshTaggedStudentsInBackground();
     } catch (err) {
       setSnackbar({
         open: true,
@@ -352,13 +408,14 @@ const NSTPTagging = () => {
         `${API_BASE_URL}/unenroll_nstp_component/${studentNumber}`,
         meta,
       );
+      removeOptimisticTaggedStudent(studentNumber);
       setSnackbar({
         open: true,
         message: `Student ${studentNumber} unenrolled.`,
         severity: "success",
       });
       // Only refresh tagged panel — left panel stays intact
-      await fetchTaggedStudents();
+      refreshTaggedStudentsInBackground();
     } catch (err) {
       setSnackbar({
         open: true,

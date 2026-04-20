@@ -437,25 +437,11 @@ const AssignScheduleToApplicants = () => {
         setSnack(prev => ({ ...prev, open: false }));
     };
 
+    const getSelectedScheduleData = () =>
+        schedules.find((s) => Number(s.schedule_id) === Number(selectedSchedule));
 
-    useEffect(() => {
-        fetchSchedules();
-        fetchAllApplicants();
-    }, []);
 
-    // ✅ BASIC verify document schedules (NO counts)
-    const fetchSchedules = async () => {
-        try {
-            const res = await axios.get(
-                `${API_BASE_URL}/verify_document_schedule_list`
-            );
-            setSchedules(Array.isArray(res.data) ? res.data : []);
-        } catch (err) {
-            console.error("Error fetching verify schedules:", err);
-        }
-    };
-
-    // ✅ Verify schedules WITH occupancy & remaining slots
+    // ✅ Always use the verify schedules source with occupancy counts
     const fetchSchedulesWithCount = async () => {
         try {
             const res = await axios.get(
@@ -593,7 +579,7 @@ const AssignScheduleToApplicants = () => {
             return;
         }
 
-        const schedule = schedules.find(s => s.schedule_id === selectedSchedule);
+        const schedule = getSelectedScheduleData();
         if (!schedule) {
             setSnack({ open: true, message: "Selected schedule not found.", severity: "error" });
             return;
@@ -669,7 +655,7 @@ const AssignScheduleToApplicants = () => {
             return;
         }
 
-        const schedule = schedules.find(s => s.schedule_id === selectedSchedule);
+        const schedule = getSelectedScheduleData();
         if (!schedule) {
             setSnack({ open: true, message: "Selected schedule not found.", severity: "error" });
             return;
@@ -785,7 +771,7 @@ const AssignScheduleToApplicants = () => {
             return;
         }
 
-        const sched = schedules.find(s => s.schedule_id === selectedSchedule);
+        const sched = getSelectedScheduleData();
         if (!sched) {
             setSnack({ open: true, message: "Schedule not found.", severity: "error" });
             return;
@@ -1316,7 +1302,7 @@ ${officeName}`
                                 fullWidth
                                 value={
                                     selectedSchedule
-                                        ? schedules.find((s) => s.schedule_id === selectedSchedule)?.evaluator || "Not assigned"
+                                        ? getSelectedScheduleData()?.evaluator || "Not assigned"
                                         : ""
                                 }
                                 InputProps={{ readOnly: true }}
@@ -1339,7 +1325,7 @@ ${officeName}`
                                 fullWidth
                                 value={
                                     selectedSchedule
-                                        ? schedules.find((s) => s.schedule_id === selectedSchedule)?.room_quota || "N/A"
+                                        ? getSelectedScheduleData()?.room_quota || "N/A"
                                         : ""
                                 }
                                 InputProps={{ readOnly: true }}
@@ -1363,8 +1349,8 @@ ${officeName}`
                                 value={
                                     selectedSchedule
                                         ? (() => {
-                                            const s = schedules.find((x) => x.schedule_id === selectedSchedule);
-                                            return s ? `${s.current_occupancy}/${s.room_quota}` : "";
+                                            const s = getSelectedScheduleData();
+                                            return s ? `${s.current_occupancy ?? 0}/${s.room_quota}` : "";
                                         })()
                                         : ""
                                 }

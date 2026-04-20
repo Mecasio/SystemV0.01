@@ -419,23 +419,11 @@ const AssignScheduleToApplicants = () => {
     setSnack(prev => ({ ...prev, open: false }));
   };
 
+  const getSelectedScheduleData = () =>
+    schedules.find((s) => Number(s.schedule_id) === Number(selectedSchedule));
 
-  useEffect(() => {
-    fetchSchedules();
-    fetchAllApplicants();
-  }, []);
 
-  // ✅ Keep your original function (exam_schedules)
-  const fetchSchedules = async () => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/exam_schedules`);
-      setSchedules(Array.isArray(res.data) ? res.data : []);
-    } catch (err) {
-      console.error("Error fetching schedules:", err);
-    }
-  };
-
-  // ✅ Create a separate one for schedules with counts
+  // ✅ Always use the schedule source with occupancy counts
   const fetchSchedulesWithCount = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/exam_schedules_with_count`);
@@ -529,7 +517,7 @@ const AssignScheduleToApplicants = () => {
       return;
     }
 
-    const schedule = schedules.find(s => s.schedule_id === selectedSchedule);
+    const schedule = getSelectedScheduleData();
     if (!schedule) {
       setSnack({ open: true, message: "Selected schedule not found.", severity: "error" });
       return;
@@ -616,7 +604,7 @@ const AssignScheduleToApplicants = () => {
       return;
     }
 
-    const schedule = schedules.find(s => s.schedule_id === selectedSchedule);
+    const schedule = getSelectedScheduleData();
     if (!schedule) {
       setSnack({ open: true, message: "Selected schedule not found.", severity: "error" });
       return;
@@ -706,9 +694,7 @@ const AssignScheduleToApplicants = () => {
     }
 
     // 2️⃣ Find selected schedule details
-    const sched = schedules.find(
-      (s) => s.schedule_id === selectedSchedule
-    );
+    const sched = getSelectedScheduleData();
 
     if (!sched) {
       setSnack({
@@ -829,19 +815,6 @@ Admission Office`;
   };
 
   const [schedules, setSchedules] = useState([]);
-
-  useEffect(() => {
-    const fetchSchedules = async () => {
-      try {
-        const res = await axios.get(`${API_BASE_URL}/exam_schedules_with_count`);
-        setSchedules(Array.isArray(res.data) ? res.data : []);
-      } catch (err) {
-        console.error("Error fetching schedules:", err);
-      }
-    };
-
-    fetchSchedules();
-  }, []);
 
   const handleRowClick = (person_id) => {
     if (!person_id) return;
@@ -1223,7 +1196,7 @@ Admission Office`;
                 fullWidth
                 value={
                   selectedSchedule
-                    ? schedules.find((s) => s.schedule_id === selectedSchedule)?.proctor || "Not assigned"
+                    ? getSelectedScheduleData()?.proctor || "Not assigned"
                     : ""
                 }
                 InputProps={{ readOnly: true }}
@@ -1246,7 +1219,7 @@ Admission Office`;
                 fullWidth
                 value={
                   selectedSchedule
-                    ? schedules.find((s) => s.schedule_id === selectedSchedule)?.room_quota || "N/A"
+                    ? getSelectedScheduleData()?.room_quota || "N/A"
                     : ""
                 }
                 InputProps={{ readOnly: true }}
@@ -1270,8 +1243,8 @@ Admission Office`;
                 value={
                   selectedSchedule
                     ? (() => {
-                      const s = schedules.find((x) => x.schedule_id === selectedSchedule);
-                      return s ? `${s.current_occupancy}/${s.room_quota}` : "";
+                      const s = getSelectedScheduleData();
+                      return s ? `${s.current_occupancy ?? 0}/${s.room_quota}` : "";
                     })()
                     : ""
                 }

@@ -486,7 +486,7 @@ const SearchCertificateOfRegistration = () => {
                 Student Name:&nbsp;
                 <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: "normal", textDecoration: "underline" }}>
                   {studentData && studentData.last_name
-                    ? `${studentData.last_name.toUpperCase()}, ${studentData.first_name.toUpperCase()} ${studentData.middle_name.toUpperCase()}`
+                    ? `${studentData.last_name?.toUpperCase()}, ${studentData.first_name?.toUpperCase()} ${studentData.middle_name?.toUpperCase() || ""}`
                     : "N/A"}
                 </span>
               </TableCell>

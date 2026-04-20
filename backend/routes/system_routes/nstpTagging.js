@@ -73,9 +73,6 @@ router.get("/get_nstp_tagged_student", async (req, res) => {
       [department_section_id, active_school_year_id],
     );
 
-    if (rows.length === 0) {
-      return res.status(404).json({ error: "No students found" });
-    }
     res.json(rows);
   } catch (err) {
     console.error(err);

@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useContext, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useContext,
+  useMemo,
+  useDeferredValue,
+} from "react";
 import { SettingsContext } from "../App";
 import axios from "axios";
 import {
@@ -36,12 +42,11 @@ import {
   setRemarksFromRatingDynamic,
 } from "../utils/gradeConversion";
 
-// 🎨 Global Body Style based on your requirements
 const bodyStyle = {
   fontSize: "15px",
   letterSpacing: "-0.9px",
   wordSpacing: "3px",
-  color: "#333", // Ensuring high contrast for accessibility
+  color: "#333",
 };
 
 const StudentGradeFile = () => {
@@ -82,6 +87,7 @@ const StudentGradeFile = () => {
 
   // Selected State
   const [selectedYearLevel, setSelectedYearLevel] = useState(null);
+  const deferredGlobalSearch = useDeferredValue(globalSearch);
 
   // 👤 Auth & Loading
   const [userID, setUserID] = useState("");
@@ -194,13 +200,12 @@ const StudentGradeFile = () => {
 
   useEffect(() => {
     fetchYearLevels();
-    fetchAllStudents();
   }, []);
 
   useEffect(() => {
     // Dynamic grade conversion keeps this editor aligned with the grade_conversion table.
     axios
-      .get(`${API_BASE_URL}/grade-conversion`)
+      .get(`${API_BASE_URL}/admin/grade-conversion`)
       .then((res) => setGradeConversions(res.data))
       .catch((err) => {
         console.error("Failed to fetch grade conversions:", err);
@@ -256,7 +261,7 @@ const StudentGradeFile = () => {
             yearLevel,
             semester,
             schoolYearId,
-            termData,
+            termData: [...termData].sort((a, b) => a.id - b.id),
             currentYear: Number(termData?.[0]?.current_year) || 0,
           })),
         ),
@@ -342,6 +347,48 @@ const StudentGradeFile = () => {
     if (enRemarks === 5) return "NO GRADE";
     if (enRemarks === 6) return "UNDEFINED GRADE";
     return "-";
+  };
+
+  const getDisplayedFinalGrade = (course) => {
+    if (course?.__edited) {
+      return convertRawToRating(course.final_grade);
+    }
+
+    if (
+      course?.numeric_grade !== null &&
+      course?.numeric_grade !== undefined &&
+      course?.numeric_grade !== ""
+    ) {
+      return String(course.numeric_grade);
+    }
+
+    const storedFinalGrade = course?.final_grade;
+    const normalizedFinalGrade = String(storedFinalGrade ?? "")
+      .trim()
+      .toUpperCase();
+
+    if (!normalizedFinalGrade || normalizedFinalGrade === "-") {
+      return "";
+    }
+
+    if (normalizedFinalGrade === "INC") {
+      return "Incomplete";
+    }
+
+    if (normalizedFinalGrade === "DRP" || normalizedFinalGrade === "DROP") {
+      return "Dropped";
+    }
+
+    const numericFinalGrade = Number(storedFinalGrade);
+    if (
+      Number.isFinite(numericFinalGrade) &&
+      numericFinalGrade > 0 &&
+      numericFinalGrade <= 5
+    ) {
+      return numericFinalGrade.toFixed(2);
+    }
+
+    return convertRawToRating(storedFinalGrade) || String(storedFinalGrade);
   };
 
   const GradeSelect = ({ value, onChange, placeholder = "" }) => {
@@ -509,7 +556,7 @@ const StudentGradeFile = () => {
   }, [selectedStudentNumber]);
 
   const filteredStudents = useMemo(() => {
-    const trimmedQuery = globalSearch.trim().toLowerCase();
+    const trimmedQuery = deferredGlobalSearch.trim().toLowerCase();
 
     if (trimmedQuery.length < 2) return [];
 
@@ -528,10 +575,10 @@ const StudentGradeFile = () => {
         );
       })
       .slice(0, 10);
-  }, [allStudents, globalSearch]);
+  }, [allStudents, deferredGlobalSearch]);
 
   useEffect(() => {
-    const trimmedQuery = globalSearch.trim();
+    const trimmedQuery = deferredGlobalSearch.trim();
 
     if (trimmedQuery.length === 0) {
       setSearchStatus("");
@@ -548,7 +595,7 @@ const StudentGradeFile = () => {
         ? `Showing ${filteredStudents.length} matching student${filteredStudents.length > 1 ? "s" : ""}`
         : "No students found",
     );
-  }, [filteredStudents, globalSearch]);
+  }, [filteredStudents, deferredGlobalSearch]);
 
   // ==========================================
   // HANDLERS
@@ -845,12 +892,26 @@ const StudentGradeFile = () => {
         <Box sx={{ width: 450, maxWidth: "100%" }}>
           <Autocomplete
             options={filteredStudents}
+            filterOptions={(options) => options}
             loading={isLoadingStudentDirectory}
             value={selectedStudent}
             inputValue={globalSearch}
+            onOpen={() => {
+              if (!allStudents.length && !isLoadingStudentDirectory) {
+                fetchAllStudents();
+              }
+            }}
             onChange={(_, student) => handleSelectStudent(student)}
             onInputChange={(_, value, reason) => {
               setGlobalSearch(value);
+
+              if (
+                value.trim().length >= 2 &&
+                !allStudents.length &&
+                !isLoadingStudentDirectory
+              ) {
+                fetchAllStudents();
+              }
 
               if (reason === "clear" || value.trim().length === 0) {
                 setSelectedStudentNumber("");
@@ -1133,7 +1194,6 @@ const StudentGradeFile = () => {
                     background: mainButtonColor,
                   }}
                   onClick={() => {
-                    // Fix: Corrected access to termData properties
                     setSelectedTermContext({
                       active_school_year_id: termData[0].active_school_year_id,
                     });
@@ -1340,9 +1400,7 @@ const StudentGradeFile = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {[...termData]
-                    .sort((a, b) => a.id - b.id)
-                    .map((course, index) => (
+                  {termData.map((course, index) => (
                       <TableRow key={course.course_id} hover>
                         <TableCell
                           sx={{
@@ -1439,7 +1497,7 @@ const StudentGradeFile = () => {
                         >
                           <input
                             type="text"
-                            value={convertRawToRating(course.final_grade)}
+                            value={getDisplayedFinalGrade(course)}
                             readOnly
                             style={{
                               border: "none",

@@ -329,7 +329,7 @@ const CertificateOfRegistrationForCollege = forwardRef(
 
     const [sections, setSections] = useState([]);
     const [selectedSection, setSelectedSection] = useState("");
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [departments, setDepartments] = useState([]);
     const [selectedDepartment, setSelectedDepartment] = useState(null);
@@ -407,22 +407,16 @@ const CertificateOfRegistrationForCollege = forwardRef(
     // Fetch department sections based on selected department
     const fetchDepartmentSections = async () => {
       try {
-        setLoading(true);
         const response = await axios.get(
           `${API_BASE_URL}/api/department-sections`,
           {
             params: { departmentId: selectedDepartment },
           },
         );
-        // Artificial delay
-        setTimeout(() => {
-          setSections(response.data);
-          setLoading(false);
-        }, 700); // 3 seconds delay
+        setSections(response.data);
       } catch (err) {
         console.error("Error fetching department sections:", err);
         setError("Failed to load department sections");
-        setLoading(false);
       }
     };
 
@@ -519,13 +513,25 @@ const CertificateOfRegistrationForCollege = forwardRef(
           setYearLevelDescription(yearLevelDescription);
           setYearLevelId(yearLevel);
           setYearDescription(yearDesc);
+          setData([
+            {
+              student_number: studentNum,
+              first_name,
+              middle_name,
+              last_name,
+              major: major || "",
+              year_level_description: yearLevelDescription,
+              year_description: yearDesc,
+              curriculum_id: active_curriculum,
+            },
+          ]);
 
           // 2. Fetch full student data (COR info)
           const corResponse = await axios.get(
             `${API_BASE_URL}/student-data/${studentNum}`,
           );
           const fullData = corResponse.data;
-          setData([fullData]); // Wrap in array for data[0] compatibility
+          setData((prev) => [{ ...(prev[0] || {}), ...fullData }]);
 
           // 3. Set additional fields: gender, age, email, program
           setGender(fullData.gender || null);

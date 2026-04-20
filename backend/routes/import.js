@@ -278,7 +278,10 @@ const normalizeImportedCourseCode = (courseCode) =>
   normalizeText(courseCode).toUpperCase();
 
 const deriveLegacyImportOutcome = (numericInput, gradeConversions) => {
-  const storedNumericGrade = getStoredNumericGrade(numericInput, gradeConversions);
+  const storedNumericGrade = getStoredNumericGrade(
+    numericInput,
+    gradeConversions,
+  );
   const { enRemark, status } = deriveRemarkAndStatusFromNumeric(
     numericInput,
     gradeConversions,
@@ -1773,7 +1776,7 @@ router.post("/api/exam/import", upload.single("file"), async (req, res) => {
       ],
     );
 
-    (req.app.get("io") || { emit: () => { } }).emit("notification", {
+    (req.app.get("io") || { emit: () => {} }).emit("notification", {
       type: "upload",
       message: "📊 Bulk Entrance Exam Scores uploaded",
       applicant_number: null,
@@ -2179,8 +2182,8 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
 
     const programMapRows = studentNumbers.length
       ? (
-        await db3.query(
-          `
+          await db3.query(
+            `
             SELECT 
               snt.student_number,
               MAX(sst.active_curriculum) AS curriculum_id,
@@ -2197,9 +2200,9 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
             WHERE snt.student_number IN (?)
             GROUP BY snt.student_number
             `,
-          [studentNumbers],
-        )
-      )[0]
+            [studentNumbers],
+          )
+        )[0]
       : [];
 
     const programMap = {};
@@ -2220,7 +2223,6 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
       if (!Object.values(row).some((v) => v)) continue;
 
       totalRows++;
-
 
       const rawStudentNumber = row[0]?.toString().trim();
       const normalizedStudentNumber = normalizeStudentNumber(rawStudentNumber);
@@ -2253,7 +2255,7 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
   WHERE s.student_number = ?
   LIMIT 1
   `,
-        [rawStudentNumber]
+        [rawStudentNumber],
       );
 
       // fallback
@@ -2271,7 +2273,7 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
     WHERE s.student_number = ?
     LIMIT 1
     `,
-          [normalizedStudentNumber]
+          [normalizedStudentNumber],
         );
       }
 
@@ -2309,8 +2311,6 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
 
       const existingPerson = personCheck[0];
 
-
-
       const resolvedProgram =
         programMap[studentNumber]?.curriculum_id ??
         existingPerson.program ??
@@ -2334,7 +2334,6 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
       // ---------------------------------------
       // (REST OF YOUR CODE UNCHANGED)
       // ---------------------------------------
-
 
       function splitFullName(fullName) {
         if (!fullName || typeof fullName !== "string") {
@@ -2374,9 +2373,6 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
       }
 
       let birthTmp = null;
-
-
-
 
       const excelToDbMap = {
         0: "student_number",
@@ -2493,15 +2489,12 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
 
       // ✅ FINAL TERMINAL OUTPUT (ONLY ONCE)
 
-
       const birthIndex = columns.indexOf("birthOfDate");
       const ageIndex = columns.indexOf("age");
 
       const birthDateValue = personValues[birthIndex];
 
-      const computedAge = birthDateValue
-        ? calculateAge(birthDateValue)
-        : null;
+      const computedAge = birthDateValue ? calculateAge(birthDateValue) : null;
 
       personValues[ageIndex] =
         computedAge === null || isNaN(computedAge) ? null : computedAge;
@@ -2539,7 +2532,7 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
       console.table(
         missingStudents.map((sn) => ({
           studentNumber: sn,
-        }))
+        })),
       );
       console.log("====================================\n");
     }
@@ -3059,7 +3052,9 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
           importedCourseCode,
           currentSY.normalizedSemester,
         );
-        const raw = String(row.D || "").trim().toUpperCase();
+        const raw = String(row.D || "")
+          .trim()
+          .toUpperCase();
         const reExamGrade = String(row.E || "").trim();
         let finalGrade = 0.0;
         let enRemark = 0;
@@ -3185,7 +3180,7 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
 
     // Place 1 guard: only First/Second Semester affect year level progression and allNonOngoingSemesters
     const allNonOngoingSemesters = []; // First + Second Sem only (non-ongoing)
-    const allSummerSemesters = [];    // Summer only (non-ongoing)
+    const allSummerSemesters = []; // Summer only (non-ongoing)
 
     for (const block of results) {
       const { normalizedSchoolYear, normalizedSemester, subjects } = block;
@@ -3269,7 +3264,7 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
     const semesterOrder = {
       "First Semester": 1,
       "Second Semester": 2,
-      "Summer": 3,
+      Summer: 3,
     };
 
     const semesterYearLevelMap = {};
@@ -3329,7 +3324,79 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
       }
     }
 
-    // --- Step 6: Insert/Update per block ---
+    const targetActiveSchoolYearIds = new Set();
+
+    for (const block of results) {
+      const { normalizedSchoolYear, normalizedSemester } = block;
+
+      if (!normalizedSchoolYear || !normalizedSemester) continue;
+
+      const [[schoolYearRow]] = await connection.query(
+        "SELECT year_id FROM year_table WHERE year_description = ?",
+        [normalizedSchoolYear],
+      );
+      if (!schoolYearRow) continue;
+
+      const [[semesterRow]] = await connection.query(
+        "SELECT semester_id FROM semester_table WHERE semester_description = ?",
+        [normalizedSemester],
+      );
+      if (!semesterRow) continue;
+
+      const [[activeYear]] = await connection.query(
+        "SELECT id FROM active_school_year_table WHERE year_id = ? AND semester_id = ?",
+        [schoolYearRow.year_id, semesterRow.semester_id],
+      );
+      if (!activeYear) continue;
+
+      targetActiveSchoolYearIds.add(activeYear.id);
+    }
+
+    if (targetActiveSchoolYearIds.size > 0) {
+      const activeSchoolYearIds = [...targetActiveSchoolYearIds];
+
+      const [existingEnrolledRows] = await connection.query(
+        `SELECT 1
+         FROM enrolled_subject
+         WHERE student_number = ?
+           AND curriculum_id = ?
+           AND active_school_year_id IN (?) 
+         LIMIT 1`,
+        [studentNumber, curriculum.curriculum_id, activeSchoolYearIds],
+      );
+
+      if (existingEnrolledRows.length > 0) {
+        await connection.query(
+          `DELETE FROM enrolled_subject
+           WHERE student_number = ?
+             AND curriculum_id = ?
+             AND active_school_year_id IN (?)`,
+          [studentNumber, curriculum.curriculum_id, activeSchoolYearIds],
+        );
+      }
+
+      const [existingStatusRows] = await connection.query(
+        `SELECT 1
+         FROM student_status_table
+         WHERE student_number = ?
+           AND active_curriculum = ?
+           AND active_school_year_id IN (?)
+         LIMIT 1`,
+        [studentNumber, curriculum.curriculum_id, activeSchoolYearIds],
+      );
+
+      if (existingStatusRows.length > 0) {
+        await connection.query(
+          `DELETE FROM student_status_table
+           WHERE student_number = ?
+             AND active_curriculum = ?
+             AND active_school_year_id IN (?)`,
+          [studentNumber, curriculum.curriculum_id, activeSchoolYearIds],
+        );
+      }
+    }
+
+    // --- Step 6: Insert fresh records per block ---
     let totalInserted = 0,
       totalUpdated = 0;
 
@@ -3368,53 +3435,29 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
         );
         if (!course) continue;
 
-        const [result] = await connection.query(
-          `UPDATE enrolled_subject
-           SET final_grade = ?, en_remarks = ?, status = ?, component = ?, grades_status = ?
-           WHERE student_number = ?
-             AND course_id = ?
-             AND curriculum_id = ?
-             AND active_school_year_id = ?`,
+        await connection.query(
+          `INSERT INTO enrolled_subject
+            (student_number, curriculum_id, course_id, component, active_school_year_id,
+             midterm, finals, final_grade, en_remarks, grades_status, department_section_id, status, fe_status, remarks)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
+            studentNumber,
+            curriculum.curriculum_id,
+            course.course_id,
+            subj.component || 0,
+            active_school_year_id,
+            0,
+            0,
             subj.final_grade,
             subj.en_remark,
-            subj.status,
-            subj.component || 0,
             subj.grade_status,
-            studentNumber,
-            course.course_id,
-            curriculum.curriculum_id,
-            active_school_year_id,
+            req.body.department_section_id || 0,
+            1,
+            0,
+            "migrated from old system",
           ],
         );
-
-        if (result.affectedRows > 0) {
-          totalUpdated += result.affectedRows;
-        } else {
-          await connection.query(
-            `INSERT INTO enrolled_subject
-              (student_number, curriculum_id, course_id, component, active_school_year_id,
-               midterm, finals, final_grade, en_remarks, grades_status, department_section_id, status, fe_status, remarks)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [
-              studentNumber,
-              curriculum.curriculum_id,
-              course.course_id,
-              subj.component || 0,
-              active_school_year_id,
-              0,
-              0,
-              subj.final_grade,
-              subj.en_remark,
-              subj.grade_status,
-              req.body.department_section_id || 0,
-              1,
-              0,
-              "migrated from old system",
-            ],
-          );
-          totalInserted++;
-        }
+        totalInserted++;
       }
     }
 
@@ -3659,7 +3702,7 @@ router.post("/api/qualifying_exam/import", async (req, res) => {
       ["upload", message, null, registrarEmail, registrarFullName],
     );
 
-    (req.app.get("io") || { emit: () => { } }).emit("notification", {
+    (req.app.get("io") || { emit: () => {} }).emit("notification", {
       type: "upload",
       message,
       applicant_number: null,
@@ -3674,7 +3717,5 @@ router.post("/api/qualifying_exam/import", async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
-
-
 
 module.exports = router;

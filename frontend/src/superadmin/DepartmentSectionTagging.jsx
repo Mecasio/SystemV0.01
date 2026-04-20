@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import { SettingsContext } from "../App";
 import axios from "axios";
 import {
@@ -92,11 +92,14 @@ const DepartmentSectionTagging = () => {
   const [schoolYears,         setSchoolYears]         = useState([]);
   const [semesters,           setSemesters]           = useState([]);
 
-  const [selectedDepartment, setSelectedDepartment] = useState("");
-  const [selectedCurriculum, setSelectedCurriculum] = useState("");
-  const [selectedSection,    setSelectedSection]    = useState("");
-  const [selectedYear,       setSelectedYear]       = useState("");
-  const [selectedSemester,   setSelectedSemester]   = useState("");
+  // ── FILTER SELECTIONS (for search) ───────────────────────────────────────
+  const [filterDepartment, setFilterDepartment] = useState("");
+  const [filterCurriculum, setFilterCurriculum] = useState("");
+  const [filterYear,       setFilterYear]       = useState("");
+  const [filterSemester,   setFilterSemester]   = useState("");
+
+  // ── INSERTION SELECTIONS (for enrollment) ────────────────────────────────
+  const [insertSection, setInsertSection] = useState("");
 
   // ── Load all dropdowns once on mount ─────────────────────────────────────
   useEffect(() => {
@@ -126,14 +129,14 @@ const DepartmentSectionTagging = () => {
         // Pre-select active school year/semester
         if (activeRes.data?.length > 0) {
           const active = activeRes.data[0];
-          setSelectedYear(active.year_id);
-          setSelectedSemester(active.semester_id);
+          setFilterYear(active.year_id);
+          setFilterSemester(active.semester_id);
         }
 
         // Pre-select first department
         if (depts.length > 0) {
           const firstDept = String(depts[0].dprtmnt_id ?? depts[0].id ?? "");
-          setSelectedDepartment(firstDept);
+          setFilterDepartment(firstDept);
         }
       } catch (err) {
         console.error("Failed to fetch dropdowns:", err);
@@ -144,98 +147,104 @@ const DepartmentSectionTagging = () => {
 
   // ── Filter curriculums when department changes ────────────────────────────
   useEffect(() => {
-    if (!selectedDepartment) {
+    if (!filterDepartment) {
       setFilteredCurriculums([]);
-      setSelectedCurriculum("");
+      setFilterCurriculum("");
       return;
     }
 
     const filtered = allCurriculums.filter(
-      (c) => String(c.dprtmnt_id) === String(selectedDepartment)
+      (c) => String(c.dprtmnt_id) === String(filterDepartment)
     );
     setFilteredCurriculums(filtered);
 
     // Auto-select first curriculum
     if (filtered.length > 0) {
-      setSelectedCurriculum(String(filtered[0].curriculum_id ?? ""));
+      setFilterCurriculum(String(filtered[0].curriculum_id ?? ""));
     } else {
-      setSelectedCurriculum("");
+      setFilterCurriculum("");
     }
-  }, [selectedDepartment, allCurriculums]);
+  }, [filterDepartment, allCurriculums]);
 
   // ── Filter sections when curriculum changes ───────────────────────────────
-  // Sections are filtered by matching curriculum_id in department_section records
   const filteredSections = departmentSections.filter(
-    (s) => String(s.curriculum_id) === String(selectedCurriculum)
+    (s) => String(s.curriculum_id) === String(filterCurriculum)
   );
 
   // Auto-select first section when filtered list changes
   useEffect(() => {
     if (filteredSections.length > 0) {
-      setSelectedSection(String(filteredSections[0].department_section_id ?? ""));
+      setInsertSection(String(filteredSections[0].department_section_id ?? ""));
     } else {
-      setSelectedSection("");
+      setInsertSection("");
     }
-  }, [selectedCurriculum]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [filterCurriculum]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Resolve active_school_year_id ─────────────────────────────────────────
   const [activeSYID, setActiveSYID] = useState("");
 
   useEffect(() => {
-    if (!selectedYear || !selectedSemester) return;
+    if (!filterYear || !filterSemester) return;
     axios
-      .get(`${API_BASE_URL}/get_selecterd_year/${selectedYear}/${selectedSemester}`)
+      .get(`${API_BASE_URL}/get_selecterd_year/${filterYear}/${filterSemester}`)
       .then((res) => {
         if (res.data?.length > 0) setActiveSYID(res.data[0].school_year_id);
       })
       .catch(() => {});
-  }, [selectedYear, selectedSemester]);
+  }, [filterYear, filterSemester]);
 
   // ── Table data ────────────────────────────────────────────────────────────
-  // allCurriculumStudents — full student list, never filtered out of left panel
   const [allCurriculumStudents, setAllCurriculumStudents] = useState([]);
   const [enrolledStudents,      setEnrolledStudents]      = useState([]);
-  // enrolledNumbers — Set<string> for O(1) button state lookup
   const [enrolledNumbers,       setEnrolledNumbers]       = useState(new Set());
+  const latestCurriculumRequestRef = useRef(0);
+  const latestEnrolledRequestRef = useRef(0);
 
   const [searched,  setSearched]  = useState(false);
   const [searching, setSearching] = useState(false);
 
   // ── Fetch all students under the curriculum ───────────────────────────────
   const fetchCurriculumStudents = async () => {
+    const requestId = ++latestCurriculumRequestRef.current;
     const res = await axios.get(`${API_BASE_URL}/get_student_per_curriculum`, {
       params: {
-        curriculum_id:        selectedCurriculum,
+        curriculum_id:        filterCurriculum,
         active_school_year_id: activeSYID,
       },
     });
-    setAllCurriculumStudents(Array.isArray(res.data) ? res.data : []);
+    if (requestId === latestCurriculumRequestRef.current) {
+      setAllCurriculumStudents(Array.isArray(res.data) ? res.data : []);
+    }
   };
 
-  // ── Fetch already-enrolled students — right panel + enrolledNumbers set ───
-  // Backend may return 404 when none enrolled — treat as empty
+  // ── Fetch already-enrolled students ────────────────────────────────────────
   const fetchEnrolledStudents = async () => {
+    const requestId = ++latestEnrolledRequestRef.current;
     try {
       const res = await axios.get(`${API_BASE_URL}/get_student_already_tagged`, {
         params: {
-          curriculum_id:        selectedCurriculum,
+          curriculum_id:        filterCurriculum,
           active_school_year_id: activeSYID,
         },
       });
       const enrolled = Array.isArray(res.data) ? res.data : [];
-      setEnrolledStudents(enrolled);
-      setEnrolledNumbers(new Set(enrolled.map((s) => String(s.student_number))));
+      if (requestId === latestEnrolledRequestRef.current) {
+        setEnrolledStudents(enrolled);
+        setEnrolledNumbers(new Set(enrolled.map((s) => String(s.student_number))));
+      }
     } catch (err) {
       if (err.response?.status === 404) {
-        setEnrolledStudents([]);
-        setEnrolledNumbers(new Set());
+        if (requestId === latestEnrolledRequestRef.current) {
+          setEnrolledStudents([]);
+          setEnrolledNumbers(new Set());
+        }
       } else {
         console.error("Failed to fetch enrolled students:", err);
       }
     }
   };
 
-  // ── Fetch both panels — used after bulk actions ───────────────────────────
+  // ── Fetch both panels ──────────────────────────────────────────────────────
   const fetchBothPanels = async () => {
     await Promise.all([
       fetchCurriculumStudents(),
@@ -243,9 +252,20 @@ const DepartmentSectionTagging = () => {
     ]);
   };
 
-  // ── Search — fetch both panels so enrolled students show immediately ───────
+  const syncEnrolledState = (students) => {
+    setEnrolledStudents(students);
+    setEnrolledNumbers(new Set(students.map((s) => String(s.student_number))));
+  };
+
+  const refreshEnrolledStudentsInBackground = () => {
+    fetchEnrolledStudents().catch((err) => {
+      console.error("Background refresh for enrolled students failed:", err);
+    });
+  };
+
+  // ── Search ─────────────────────────────────────────────────────────────────
   const handleSearch = async () => {
-    if (!selectedCurriculum || !activeSYID) {
+    if (!filterCurriculum || !activeSYID) {
       setSnackbar({
         open: true,
         message: "Please select all filters before searching.",
@@ -276,14 +296,54 @@ const DepartmentSectionTagging = () => {
   const [actionLoading, setActionLoading] = useState(false);
 
   const getEnrollMeta = () => ({
-    curriculum_id:        selectedCurriculum,
+    curriculum_id:        filterCurriculum,
     active_school_year_id: activeSYID,
-    department_section_id: selectedSection,
+    department_section_id: insertSection,
   });
+
+  const buildOptimisticSectionStudent = (studentNumber) => {
+    const student = allCurriculumStudents.find(
+      (s) => String(s.student_number) === String(studentNumber)
+    );
+
+    if (!student) return null;
+
+    return {
+      ...student,
+      section_description: insertSectionLabel,
+      section: insertSectionLabel,
+    };
+  };
+
+  const addOptimisticEnrollment = (studentNumber) => {
+    const nextStudent = buildOptimisticSectionStudent(studentNumber);
+    if (!nextStudent) return;
+
+    setEnrolledStudents((prev) => {
+      const next = [
+        ...prev.filter(
+          (s) => String(s.student_number) !== String(studentNumber)
+        ),
+        nextStudent,
+      ];
+      setEnrolledNumbers(new Set(next.map((s) => String(s.student_number))));
+      return next;
+    });
+  };
+
+  const removeOptimisticEnrollment = (studentNumber) => {
+    setEnrolledStudents((prev) => {
+      const next = prev.filter(
+        (s) => String(s.student_number) !== String(studentNumber)
+      );
+      setEnrolledNumbers(new Set(next.map((s) => String(s.student_number))));
+      return next;
+    });
+  };
 
   // ── Enroll All ────────────────────────────────────────────────────────────
   const handleEnrollAll = async () => {
-    if (!selectedSection) {
+    if (!insertSection) {
       setSnackbar({
         open: true,
         message: "Please select a section before enrolling.",
@@ -293,13 +353,28 @@ const DepartmentSectionTagging = () => {
     }
     setActionLoading(true);
     try {
-      await axios.put(`${API_BASE_URL}/enrolled_student_in_section`, getEnrollMeta());
+      const res = await axios.put(
+        `${API_BASE_URL}/enrolled_student_in_section`,
+        getEnrollMeta()
+      );
+      syncEnrolledState([
+        ...enrolledStudents,
+        ...allCurriculumStudents
+          .filter((student) => !enrolledNumbers.has(String(student.student_number)))
+          .map((student) => ({
+            ...student,
+            section_description: insertSectionLabel,
+            section: insertSectionLabel,
+          })),
+      ]);
       setSnackbar({
         open: true,
-        message: "All students enrolled successfully.",
+        message: res.data?.message || "Students enrolled successfully.",
         severity: "success",
       });
-      await fetchBothPanels();
+      fetchBothPanels().catch((err) => {
+        console.error("Background refresh after enroll all failed:", err);
+      });
     } catch (err) {
       setSnackbar({ open: true, message: "Enroll all failed.", severity: "error" });
     } finally {
@@ -309,7 +384,7 @@ const DepartmentSectionTagging = () => {
 
   // ── Unenroll All ──────────────────────────────────────────────────────────
   const handleUnenrollAll = async () => {
-    if (!selectedSection) {
+    if (!insertSection) {
       setSnackbar({
         open: true,
         message: "Please select a section before unenrolling.",
@@ -319,13 +394,19 @@ const DepartmentSectionTagging = () => {
     }
     setActionLoading(true);
     try {
-      await axios.put(`${API_BASE_URL}/unenrolled_student_in_section`, getEnrollMeta());
+      const res = await axios.put(
+        `${API_BASE_URL}/unenrolled_student_in_section`,
+        getEnrollMeta()
+      );
+      syncEnrolledState([]);
       setSnackbar({
         open: true,
-        message: "All students unenrolled successfully.",
+        message: res.data?.message || "All students unenrolled successfully.",
         severity: "success",
       });
-      await fetchBothPanels();
+      fetchBothPanels().catch((err) => {
+        console.error("Background refresh after unenroll all failed:", err);
+      });
     } catch (err) {
       setSnackbar({ open: true, message: "Unenroll all failed.", severity: "error" });
     } finally {
@@ -333,9 +414,9 @@ const DepartmentSectionTagging = () => {
     }
   };
 
-  // ── Enroll Single — only refreshes enrolled panel ─────────────────────────
+  // ── Enroll Single ─────────────────────────────────────────────────────────
   const handleEnrollSingle = async (studentNumber) => {
-    if (!selectedSection) {
+    if (!insertSection) {
       setSnackbar({
         open: true,
         message: "Please select a section before enrolling.",
@@ -348,12 +429,13 @@ const DepartmentSectionTagging = () => {
         `${API_BASE_URL}/enrolled_student_in_section/${studentNumber}`,
         getEnrollMeta()
       );
+      addOptimisticEnrollment(studentNumber);
       setSnackbar({
         open: true,
         message: `Student ${studentNumber} enrolled successfully.`,
         severity: "success",
       });
-      await fetchEnrolledStudents();
+      refreshEnrolledStudentsInBackground();
     } catch (err) {
       setSnackbar({
         open: true,
@@ -363,19 +445,20 @@ const DepartmentSectionTagging = () => {
     }
   };
 
-  // ── Unenroll Single — only refreshes enrolled panel ──────────────────────
+  // ── Unenroll Single ───────────────────────────────────────────────────────
   const handleUnenrollSingle = async (studentNumber) => {
     try {
       await axios.put(
         `${API_BASE_URL}/unenrolled_student_in_section/${studentNumber}`,
         getEnrollMeta()
       );
+      removeOptimisticEnrollment(studentNumber);
       setSnackbar({
         open: true,
         message: `Student ${studentNumber} unenrolled successfully.`,
         severity: "success",
       });
-      await fetchEnrolledStudents();
+      refreshEnrolledStudentsInBackground();
     } catch (err) {
       setSnackbar({
         open: true,
@@ -409,12 +492,12 @@ const DepartmentSectionTagging = () => {
     borderBottom: `1px solid ${borderColor}`,
   };
 
-  const canManageStudents = Boolean(selectedCurriculum && selectedSection && activeSYID);
+  const canManageStudents = Boolean(filterCurriculum && insertSection && activeSYID);
 
   // ── Helper: get selected section label ───────────────────────────────────
-  const selectedSectionLabel = (() => {
+  const insertSectionLabel = (() => {
     const sec = filteredSections.find(
-      (s) => String(s.department_section_id) === String(selectedSection)
+      (s) => String(s.department_section_id) === String(insertSection)
     );
     if (!sec) return "—";
     return `${sec.program_code || ""} — ${sec.section_description || ""}`;
@@ -443,14 +526,16 @@ const DepartmentSectionTagging = () => {
       </Typography>
       <Divider sx={{ mb: 3 }} />
 
-      {/* ── Filter Bar ───────────────────────────────────────────────────── */}
+      {/* ══════════════════════════════════════════════════════════════════ */}
+      {/* ── CONTAINER 1: FILTER & SEARCH ─────────────────────────────────── */}
+      {/* ══════════════════════════════════════════════════════════════════ */}
       <Paper
         elevation={0}
         sx={{
           border: `1px solid ${borderColor}`,
           borderRadius: "10px",
           p: 2.5,
-          mb: 3,
+          mb: 2,
           backgroundColor: "#fff",
         }}
       >
@@ -464,7 +549,7 @@ const DepartmentSectionTagging = () => {
             textTransform: "uppercase",
           }}
         >
-          Filter
+          Filter & Search
         </Typography>
 
         <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "flex-end" }}>
@@ -473,9 +558,9 @@ const DepartmentSectionTagging = () => {
           <FormControl size="small" sx={{ minWidth: 200, flex: "1 1 200px" }}>
             <InputLabel>Department</InputLabel>
             <Select
-              value={String(selectedDepartment || "")}
+              value={String(filterDepartment || "")}
               label="Department"
-              onChange={(e) => setSelectedDepartment(e.target.value)}
+              onChange={(e) => setFilterDepartment(e.target.value)}
             >
               <MenuItem value="" disabled>Select Department</MenuItem>
               {departments.map((d) => {
@@ -489,13 +574,13 @@ const DepartmentSectionTagging = () => {
             </Select>
           </FormControl>
 
-          {/* Curriculum — filtered by selected department */}
+          {/* Curriculum */}
           <FormControl size="small" sx={{ minWidth: 260, flex: "1 1 260px" }}>
             <InputLabel>Curriculum</InputLabel>
             <Select
-              value={String(selectedCurriculum || "")}
+              value={String(filterCurriculum || "")}
               label="Curriculum"
-              onChange={(e) => setSelectedCurriculum(e.target.value)}
+              onChange={(e) => setFilterCurriculum(e.target.value)}
               disabled={filteredCurriculums.length === 0}
             >
               <MenuItem value="" disabled>Select Curriculum</MenuItem>
@@ -510,34 +595,13 @@ const DepartmentSectionTagging = () => {
             </Select>
           </FormControl>
 
-          {/* Section — filtered by selected curriculum */}
-          <FormControl size="small" sx={{ minWidth: 200, flex: "1 1 200px" }}>
-            <InputLabel>Section</InputLabel>
-            <Select
-              value={String(selectedSection || "")}
-              label="Section"
-              onChange={(e) => setSelectedSection(e.target.value)}
-              disabled={filteredSections.length === 0}
-            >
-              <MenuItem value="" disabled>Select Section</MenuItem>
-              {filteredSections.map((s) => {
-                const val = String(s.department_section_id ?? "");
-                return (
-                  <MenuItem key={val} value={val}>
-                    {s.program_code} — {s.section_description}
-                  </MenuItem>
-                );
-              })}
-            </Select>
-          </FormControl>
-
           {/* School Year */}
           <FormControl size="small" sx={{ minWidth: 160 }}>
             <InputLabel>School Year</InputLabel>
             <Select
-              value={selectedYear}
+              value={filterYear}
               label="School Year"
-              onChange={(e) => setSelectedYear(e.target.value)}
+              onChange={(e) => setFilterYear(e.target.value)}
             >
               <MenuItem value="" disabled>Select Year</MenuItem>
               {schoolYears.map((yr) => (
@@ -552,9 +616,9 @@ const DepartmentSectionTagging = () => {
           <FormControl size="small" sx={{ minWidth: 180 }}>
             <InputLabel>Semester</InputLabel>
             <Select
-              value={selectedSemester}
+              value={filterSemester}
               label="Semester"
-              onChange={(e) => setSelectedSemester(e.target.value)}
+              onChange={(e) => setFilterSemester(e.target.value)}
             >
               <MenuItem value="" disabled>Select Semester</MenuItem>
               {semesters.map((sem) => (
@@ -589,26 +653,77 @@ const DepartmentSectionTagging = () => {
             {searching ? "Searching…" : "Search"}
           </Button>
         </Box>
+      </Paper>
 
-        {/* Selected section info */}
-        {selectedSection && (
-          <Box sx={{ mt: 1.5, display: "flex", alignItems: "center", gap: 1 }}>
-            <Typography sx={{ fontSize: "12px", color: "#666" }}>
-              Selected Section:
-            </Typography>
-            <Chip
-              label={selectedSectionLabel}
-              size="small"
-              sx={{
-                backgroundColor: "#e3f2fd",
-                color: "#1565c0",
-                fontWeight: 600,
-                fontSize: "11px",
-                height: "20px",
-              }}
-            />
-          </Box>
-        )}
+      {/* ══════════════════════════════════════════════════════════════════ */}
+      {/* ── CONTAINER 2: SECTION SELECTION FOR INSERTION ─────────────────── */}
+      {/* ══════════════════════════════════════════════════════════════════ */}
+      <Paper
+        elevation={0}
+        sx={{
+          border: `1px solid ${borderColor}`,
+          borderRadius: "10px",
+          p: 2.5,
+          mb: 3,
+          backgroundColor: "#fff",
+        }}
+      >
+        <Typography
+          sx={{
+            fontSize: "12px",
+            fontWeight: 600,
+            color: "#888",
+            letterSpacing: "0.08em",
+            mb: 1.5,
+            textTransform: "uppercase",
+          }}
+        >
+          Section Selection for Enrollment
+        </Typography>
+
+        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "flex-end" }}>
+
+          {/* Section — filtered by selected curriculum */}
+          <FormControl size="small" sx={{ minWidth: 280, flex: "1 1 280px" }}>
+            <InputLabel>Section</InputLabel>
+            <Select
+              value={String(insertSection || "")}
+              label="Section"
+              onChange={(e) => setInsertSection(e.target.value)}
+              disabled={filteredSections.length === 0}
+            >
+              <MenuItem value="" disabled>Select Section</MenuItem>
+              {filteredSections.map((s) => {
+                const val = String(s.department_section_id ?? "");
+                return (
+                  <MenuItem key={val} value={val}>
+                    {s.program_code} — {s.section_description}
+                  </MenuItem>
+                );
+              })}
+            </Select>
+          </FormControl>
+
+          {/* Selected section info chip */}
+          {insertSection && (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography sx={{ fontSize: "12px", color: "#666" }}>
+                Selected:
+              </Typography>
+              <Chip
+                label={insertSectionLabel}
+                size="small"
+                sx={{
+                  backgroundColor: "#e3f2fd",
+                  color: "#1565c0",
+                  fontWeight: 600,
+                  fontSize: "11px",
+                  height: "24px",
+                }}
+              />
+            </Box>
+          )}
+        </Box>
       </Paper>
 
       {/* ── Enroll All / Unenroll All ─────────────────────────────────────── */}
@@ -618,8 +733,8 @@ const DepartmentSectionTagging = () => {
         <Tooltip
           title={
             canManageStudents
-              ? `Enroll all students into ${selectedSectionLabel}`
-              : "Please select department, curriculum, section, and school year first"
+              ? `Enroll all students into ${insertSectionLabel}`
+              : "Please complete filter and select a section first"
           }
         >
           <span>
@@ -654,7 +769,7 @@ const DepartmentSectionTagging = () => {
           title={
             canManageStudents
               ? "Unenroll all enrolled students from this section"
-              : "Please select department, curriculum, section, and school year first"
+              : "Please complete filter and select a section first"
           }
         >
           <span>
@@ -778,7 +893,7 @@ const DepartmentSectionTagging = () => {
                                 variant="contained"
                                 startIcon={<EnrollIcon sx={{ fontSize: "14px !important" }} />}
                                 onClick={() => handleEnrollSingle(s.student_number)}
-                                disabled={!selectedSection}
+                                disabled={!insertSection}
                                 sx={{
                                   backgroundColor: mainButtonColor,
                                   color: "#fff",

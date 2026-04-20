@@ -3,116 +3,181 @@ const { db, db3 } = require("../database/database");
 
 const router = express.Router();
 
+const memoryCache = {
+  data: new Map(),
+  set(key, value, ttlMs = 80000) {
+    // 3 min default
+    this.data.set(key, {
+      value,
+      expires: Date.now() + ttlMs,
+    });
+  },
+  get(key) {
+    const item = this.data.get(key);
+    if (!item) return null;
+    if (Date.now() > item.expires) {
+      this.data.delete(key);
+      return null;
+    }
+    return item.value;
+  },
+  clear() {
+    this.data.clear();
+  },
+};
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, item] of memoryCache.data.entries()) {
+    if (now > item.expires) {
+      memoryCache.data.delete(key);
+    }
+  }
+}, 1000000);
+
 router.get("/programs/availability", async (req, res) => {
   const { year_id, semester_id } = req.query;
+
   try {
     if (!year_id || !semester_id) {
-      return res.status(400).json({ message: "Missing year_id or semester_id" });
+      return res
+        .status(400)
+        .json({ message: "Missing year_id or semester_id" });
     }
 
-    const [activeRows] = await db3.query(
-      "SELECT id FROM active_school_year_table WHERE year_id = ? AND semester_id = ? LIMIT 1",
-      [year_id, semester_id],
-    );
-    const activeSchoolYearId = activeRows[0]?.id;
+    // Check cache first
+    const cacheKey = `prog_${year_id}_${semester_id}`;
+    const cached = memoryCache.get(cacheKey);
+    if (cached) {
+      return res.json(cached);
+    }
+
+    // Parallel query execution
+    const [activeResult, programsResult] = await Promise.all([
+      db3.query(
+        "SELECT id FROM active_school_year_table WHERE year_id = ? AND semester_id = ? LIMIT 1",
+        [year_id, semester_id],
+      ),
+      db3.query(`
+        SELECT 
+          dc.dprtmnt_curriculum_id,
+          dc.dprtmnt_id,
+          dc.curriculum_id,
+          dt.dprtmnt_name,
+          dt.dprtmnt_code,
+          ct.year_id,
+          y.year_description,
+          ct.program_id,
+          p.program_description,
+          p.program_code,
+          p.major,
+          p.components
+        FROM dprtmnt_curriculum_table dc
+        INNER JOIN dprtmnt_table dt ON dc.dprtmnt_id = dt.dprtmnt_id
+        INNER JOIN curriculum_table ct ON dc.curriculum_id = ct.curriculum_id
+        INNER JOIN program_table p ON ct.program_id = p.program_id
+        INNER JOIN year_table y ON ct.year_id = y.year_id
+        WHERE ct.lock_status = 1
+        ORDER BY dt.dprtmnt_name, p.program_description
+      `),
+    ]);
+
+    const activeSchoolYearId = activeResult[0][0]?.id;
 
     if (!activeSchoolYearId) {
       return res.json([]);
     }
 
-    // Step 1: Get all programs from db3
-    const [curriculum] = await db3.query(`
-      SELECT 
-        dc.dprtmnt_curriculum_id,
-        dc.dprtmnt_id,
-        dc.curriculum_id,
-        dt.dprtmnt_name,
-        dt.dprtmnt_code,
-        ct.curriculum_id AS ct_curriculum_id,
-        ct.year_id,
-        y.year_description,
-        ct.program_id,
-        ct.lock_status,
-        p.program_description,
-        p.program_code,
-        p.major,
-        p.components
-      FROM dprtmnt_curriculum_table AS dc
-      INNER JOIN dprtmnt_table AS dt 
-        ON dc.dprtmnt_id = dt.dprtmnt_id
-      INNER JOIN curriculum_table AS ct 
-        ON dc.curriculum_id = ct.curriculum_id
-      INNER JOIN program_table AS p 
-        ON ct.program_id = p.program_id
-      INNER JOIN year_table AS y
-        ON ct.year_id = y.year_id
-      WHERE ct.lock_status = 1
-      ORDER BY dt.dprtmnt_name, p.program_description;
-    `);
+    const programs = programsResult[0];
 
-    const curriculumIds = curriculum.map((p) => p.curriculum_id);
+    if (programs.length === 0) {
+      const emptyResult = [];
+      memoryCache.set(cacheKey, emptyResult);
+      return res.json(emptyResult);
+    }
 
-    // Step 2: Get slots and applicants from db
-    const [slots] = await db.query(
-      `
-      SELECT
-        ps.curriculum_id,
-        ps.max_slots,
-        ps.active_school_year_id
-      FROM program_slots ps
-      WHERE ps.curriculum_id IN (?)
-        AND ps.active_school_year_id = ?
-      GROUP BY ps.curriculum_id, ps.max_slots, ps.active_school_year_id
-    `,
-      [curriculum.length ? curriculumIds : [0], activeSchoolYearId],
-    );
+    // Extract curriculum IDs efficiently
+    const curriculumIds = programs.map((p) => p.curriculum_id);
 
-    const [totalEnrolled] = await db3.query(
-      `
-        SELECT es.student_number, es.curriculum_id
-        FROM enrollment.enrolled_subject AS es
-        INNER JOIN enrollment.student_status_table AS sts ON es.student_number = sts.student_number
-        INNER JOIN admission.program_slots AS ps
-          ON es.curriculum_id = ps.curriculum_id
-          AND ps.active_school_year_id = ?
-        WHERE es.active_school_year_id = ?
-          AND sts.year_level_id = 1
-        GROUP BY es.student_number, es.curriculum_id, es.active_school_year_id;
-      `,
-      [activeSchoolYearId, activeSchoolYearId],
-    );
+    // Parallel fetch slots and enrollment data
+    const [slotsResult, enrollmentResult] = await Promise.all([
+      db.query(
+        `SELECT curriculum_id, max_slots, active_school_year_id
+         FROM program_slots 
+         WHERE curriculum_id IN (?) AND active_school_year_id = ?`,
+        [curriculumIds, activeSchoolYearId],
+      ),
+      db3.query(
+        `SELECT curriculum_id, COUNT(DISTINCT student_number) as total_enrolled
+         FROM enrollment.enrolled_subject es
+         WHERE curriculum_id IN (?)
+           AND active_school_year_id = ?
+           AND EXISTS (
+             SELECT 1 FROM enrollment.student_status_table sts
+             WHERE sts.student_number = es.student_number 
+             AND sts.year_level_id = 1
+           )
+         GROUP BY curriculum_id`,
+        [curriculumIds, activeSchoolYearId],
+      ),
+    ]);
 
-    const enrolledCountMap = totalEnrolled.reduce((acc, e) => {
-      acc[e.curriculum_id] = (acc[e.curriculum_id] || 0) + 1;
-      return acc;
-    }, {});
+    const slots = slotsResult[0];
+    const enrollment = enrollmentResult[0];
 
-    // Step 3: Merge data
-    const merged = curriculum.map((p) => {
-      const slot = slots.find((s) => s.curriculum_id === p.curriculum_id);
-      const enrolled = totalEnrolled.find(
-        (e) => e.curriculum_id === p.curriculum_id,
+    // Build lookup objects (faster than Map for small datasets, no extra dependency)
+    const slotsLookup = {};
+    for (let i = 0; i < slots.length; i++) {
+      slotsLookup[slots[i].curriculum_id] = slots[i];
+    }
+
+    const enrollmentLookup = {};
+    for (let i = 0; i < enrollment.length; i++) {
+      enrollmentLookup[enrollment[i].curriculum_id] = Number(
+        enrollment[i].total_enrolled,
       );
+    }
 
-      const max_slots = slot?.max_slots || 0;
-      const total_enrolled = enrolledCountMap[p.curriculum_id] || 0;
+    // Merge data efficiently using plain object spread
+    const results = new Array(programs.length);
+    for (let i = 0; i < programs.length; i++) {
+      const p = programs[i];
+      const slot = slotsLookup[p.curriculum_id];
+      const maxSlots = slot?.max_slots || 0;
+      const totalEnrolled = enrollmentLookup[p.curriculum_id] || 0;
 
-      return {
-        ...p,
-        active_school_year_id: slot?.active_school_year_id || activeSchoolYearId,
-        max_slots,
-        total_enrolled,
-        remaining: Math.max(max_slots - total_enrolled, 0),
+      results[i] = {
+        dprtmnt_curriculum_id: p.dprtmnt_curriculum_id,
+        dprtmnt_id: p.dprtmnt_id,
+        curriculum_id: p.curriculum_id,
+        dprtmnt_name: p.dprtmnt_name,
+        dprtmnt_code: p.dprtmnt_code,
+        ct_curriculum_id: p.curriculum_id,
+        year_id: p.year_id,
+        year_description: p.year_description,
+        program_id: p.program_id,
+        lock_status: 1,
+        program_description: p.program_description,
+        program_code: p.program_code,
+        major: p.major,
+        components: p.components,
+        active_school_year_id:
+          slot?.active_school_year_id || activeSchoolYearId,
+        max_slots: maxSlots,
+        total_enrolled: totalEnrolled,
+        remaining: maxSlots - totalEnrolled > 0 ? maxSlots - totalEnrolled : 0,
       };
-    });
+    }
 
-    res.json(merged);
+    // Cache the results
+    memoryCache.set(cacheKey, results);
+
+    res.json(results);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to fetch program availability" });
   }
 });
-
 
 router.post("/apply", async (req, res) => {
   console.log("apply route body:", req.body);
@@ -290,7 +355,9 @@ router.post("/program-slots/department", async (req, res) => {
 
     const curriculumIds = curriculumRows.map((row) => row.curriculum_id);
     if (!curriculumIds.length) {
-      return res.status(404).json({ message: "No programs found for department" });
+      return res
+        .status(404)
+        .json({ message: "No programs found for department" });
     }
 
     await connection.beginTransaction();
@@ -333,7 +400,9 @@ router.post("/program-slots/department", async (req, res) => {
   } catch (err) {
     await connection.rollback();
     console.error("Error saving department program slots:", err);
-    res.status(500).json({ message: "Failed to save department program slots" });
+    res
+      .status(500)
+      .json({ message: "Failed to save department program slots" });
   } finally {
     connection.release();
   }
@@ -417,4 +486,4 @@ router.post("/program-slots/all", async (req, res) => {
   }
 });
 
-module.exports = router
+module.exports = router;
