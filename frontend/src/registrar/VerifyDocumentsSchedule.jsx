@@ -38,6 +38,8 @@ import InputAdornment from "@mui/material/InputAdornment";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DateField from "../components/DateField";
+import SaveIcon from '@mui/icons-material/Save';
+
 
 const VerifyDocumentsSchedule = () => {
 
@@ -1544,7 +1546,7 @@ const VerifyDocumentsSchedule = () => {
                                 fontWeight={700}
                                 sx={{ mb: 1, }}
                             >
-                             End Time
+                                End Time
                             </Typography>
                             <TextField
                                 fullWidth
@@ -1623,7 +1625,7 @@ const VerifyDocumentsSchedule = () => {
                             }
                         }}
                     >
-                        {editingSchedule ? "Update Schedule" : "Save Schedule"}
+                        <SaveIcon fontSize="small" /> Save
                     </Button>
                 </DialogActions>
             </Dialog>

@@ -36,6 +36,8 @@ import InputAdornment from "@mui/material/InputAdornment";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DateField from "../components/DateField";
+import ScoreIcon from "@mui/icons-material/Score"
+import SaveIcon from '@mui/icons-material/Save';
 
 
 
@@ -1389,10 +1391,14 @@ const AssignQualifyingInterviewExam = () => {
 
                     <Button
                         variant="contained"
-                        sx={{ px: 4, fontWeight: 600 }}
+                        sx={{
+                            px: 4,
+                            fontWeight: 600,
+                            textTransform: "none"
+                        }}
                         onClick={handleSaveSchedule}
                     >
-                        {editingSchedule ? "Update Schedule" : "Save Schedule"}
+                        <SaveIcon fontSize="small" /> Save
                     </Button>
                 </DialogActions>
             </Dialog>

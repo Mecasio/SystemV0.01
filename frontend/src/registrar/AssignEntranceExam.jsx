@@ -36,6 +36,8 @@ import InputAdornment from "@mui/material/InputAdornment";
 import EditIcon from "@mui/icons-material/Edit";
 import DateField from "../components/DateField";
 import DeleteIcon from "@mui/icons-material/Delete";
+import ScoreIcon from "@mui/icons-material/Score"
+import SaveIcon from '@mui/icons-material/Save';
 
 
 
@@ -1345,7 +1347,7 @@ const AssignEntranceExam = () => {
                 fontWeight={700}
                 sx={{ mb: 1, }}
               >
-              Entrance Examination Date
+                Entrance Examination Date
               </Typography>
               <DateField
                 fullWidth
@@ -1494,7 +1496,11 @@ const AssignEntranceExam = () => {
 
           <Button
             variant="contained"
-            sx={{ px: 4, fontWeight: 600 }}
+            sx={{
+              px: 4,
+              fontWeight: 600,
+              textTransform: "none"
+            }}
             onClick={() => {
               if (editingSchedule) {
                 setOpenUpdateDialog(true);
@@ -1504,7 +1510,7 @@ const AssignEntranceExam = () => {
               }
             }}
           >
-            {editingSchedule ? "Update Schedule" : "Save Schedule"}
+            <SaveIcon fontSize="small" /> Save
           </Button>
         </DialogActions>
       </Dialog>

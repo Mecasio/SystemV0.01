@@ -2108,7 +2108,7 @@ Admission Office`);
         maxWidth="md"
         fullWidth
       >
-        <DialogTitle sx={{ bgcolor: "#800000", color: "white" }}>
+        <DialogTitle sx={{ backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
           ✉️ Edit & Send Email
         </DialogTitle>
 
@@ -2155,8 +2155,8 @@ Admission Office`);
 
           <Button
             onClick={() => setConfirmOpen(false)}
-            variant="contained"
             color="error"
+            variant="outlined"
 
 
           >

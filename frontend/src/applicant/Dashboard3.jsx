@@ -1061,12 +1061,14 @@ const Dashboard3 = (props) => {
             </Box>
 
             <Typography style={{ fontSize: "20px", color: mainButtonColor, fontWeight: "bold" }}>
-              Strand (For Senior High School) <Asterisk show={requiresSeniorHigh} />
+              Strand (For Senior High School)
             </Typography>
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
 
-
+            <Typography variant="subtitle1" mb={1}>
+             Strand <Asterisk show={requiresSeniorHigh} />
+            </Typography>
             <FormControl fullWidth size="small" className="mb-4">
               <InputLabel id="strand-label">Strand</InputLabel>
               <Select

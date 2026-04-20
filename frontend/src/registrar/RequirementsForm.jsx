@@ -1146,7 +1146,7 @@ const RequirementsForm = () => {
               </MenuItem>
 
               <MenuItem value="6">
-                Foreign Applicant
+                Foreign Applicant/Student
               </MenuItem>
 
               <MenuItem value="7">

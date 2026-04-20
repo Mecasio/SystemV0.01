@@ -2209,8 +2209,8 @@ ${officeName}`
 
                     <Button
                         onClick={() => setConfirmOpen(false)}
-                        variant="contained"
                         color="error"
+                        variant="outlined"
 
 
                     >

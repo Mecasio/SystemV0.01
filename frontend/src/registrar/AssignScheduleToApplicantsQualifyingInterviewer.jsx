@@ -2207,8 +2207,7 @@ Thank you and good luck!`
                 maxWidth="md"
                 fullWidth
             >
-                {/* Title with maroon background + white text */}
-                <DialogTitle sx={{ bgcolor: "#800000", color: "white" }}>
+                <DialogTitle sx={{ backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
                     ✉️ Edit & Send Email
                 </DialogTitle>
 
@@ -2258,9 +2257,8 @@ Thank you and good luck!`
                 <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
                     <Button
                         onClick={() => setConfirmOpen(false)}
-                        variant="contained"
                         color="error"
-
+                        variant="outlined"
 
                     >
                         Cancel
