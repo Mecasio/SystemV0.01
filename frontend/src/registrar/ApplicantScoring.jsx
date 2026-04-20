@@ -977,22 +977,32 @@ const ApplicantScoring = () => {
         }
     };
 
-    // typed changes: update editScores and UI only (no auto-save)
+    const saveTimers = useRef({});
+
     // typed changes: update editScores and UI only (no auto-save)
     const handleScoreChange = (person, field, value) => {
+        const numericValue = value === "" ? "" : Number(value);
+
+        // 1. Update local state instantly (UI)
         setEditScores(prev => ({
             ...prev,
             [person.person_id]: {
                 ...prev[person.person_id],
-                [field]: Number(value)
+                [field]: numericValue
             }
         }));
 
-        // update UI immediately (so table shows typed value)
-        // <-- UPDATE persons (table source) instead of applicants
-        setPersons(prev => prev.map(p => p.person_id === person.person_id ? { ...p, [field]: Number(value) } : p));
-    };
+        setPersons(prev =>
+            prev.map(p =>
+                p.person_id === person.person_id
+                    ? { ...p, [field]: numericValue }
+                    : p
+            )
+        );
 
+    
+    };
+    
     const buildPayload = (person) => {
         const scores = editScores[person.person_id] || {};
 
@@ -1018,7 +1028,11 @@ const ApplicantScoring = () => {
             setSaving(true);
 
             const payload = buildPayload(person);
-            const res = await axios.post(`${API_BASE_URL}/api/exam/save`, payload);
+            const res = await axios.post(`${API_BASE_URL}/api/exam/save`, payload, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`
+                }
+            });
 
             if (!res.data?.success) {
                 throw new Error(res.data?.error || "Save failed");
@@ -1082,7 +1096,11 @@ const ApplicantScoring = () => {
             // iterate over persons (table data), not applicants
             for (const person of persons) {
                 const payload = buildPayload(person);
-                await axios.post(`${API_BASE_URL}/api/exam/save`, payload);
+                await axios.post(`${API_BASE_URL}/api/exam/save`, payload, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`
+                    }
+                });
             }
 
             // refresh table source from server to ensure consistency

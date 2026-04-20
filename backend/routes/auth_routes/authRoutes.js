@@ -59,8 +59,6 @@ async function getApplicantNumberByPersonId(personId) {
 async function insertAuditLog({
   actorId,
   role,
-  resourceType,
-  resource,
   outcome,
   reason,
   messageOverride,
@@ -77,14 +75,12 @@ async function insertAuditLog({
 
     await db.query(
       `INSERT INTO audit_logs
-        (actor_id, role, action, resource_type, resource, message, severity)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        (actor_id, role, action, message, severity)
+       VALUES (?, ?, ?, ?, ?)`,
       [
         actorId || "unknown",
         role || "unknown",
         AUTH_ACTION,
-        resourceType || "unknown",
-        resource || "unknown",
         message,
         getAuthSeverity({ outcome }),
       ],
@@ -264,8 +260,6 @@ router.post("/register", async (req, res) => {
     await insertAuditLog({
       actorId: normalizedEmail || "unknown",
       role: "applicant",
-      resourceType: "applicant",
-      resource: normalizedEmail || "unknown",
       outcome: "FAILED",
       messageOverride: `REGISTER FAILED - ${normalizedEmail || "unknown"}`,
       reason: "Missing required fields",
@@ -280,8 +274,6 @@ router.post("/register", async (req, res) => {
     await insertAuditLog({
       actorId: normalizedEmail || "unknown",
       role: "applicant",
-      resourceType: "applicant",
-      resource: normalizedEmail || "unknown",
       outcome: "FAILED",
       messageOverride: `REGISTER FAILED - ${normalizedEmail || "unknown"}`,
       reason: "No OTP request found",
@@ -296,8 +288,6 @@ router.post("/register", async (req, res) => {
     await insertAuditLog({
       actorId: normalizedEmail || "unknown",
       role: "applicant",
-      resourceType: "applicant",
-      resource: normalizedEmail || "unknown",
       outcome: "FAILED",
       messageOverride: `REGISTER FAILED - ${normalizedEmail || "unknown"}`,
       reason: "OTP expired",
@@ -314,8 +304,6 @@ router.post("/register", async (req, res) => {
     await insertAuditLog({
       actorId: normalizedEmail || "unknown",
       role: "applicant",
-      resourceType: "applicant",
-      resource: normalizedEmail || "unknown",
       outcome: "FAILED",
       messageOverride: `REGISTER FAILED - ${normalizedEmail || "unknown"}`,
       reason: "Invalid OTP",
@@ -344,8 +332,6 @@ router.post("/register", async (req, res) => {
       await insertAuditLog({
         actorId: normalizedEmail || "unknown",
         role: "applicant",
-        resourceType: "applicant",
-        resource: normalizedEmail || "unknown",
         outcome: "FAILED",
         messageOverride: `REGISTER FAILED - ${normalizedEmail || "unknown"}`,
         reason: "Email already registered",
@@ -478,8 +464,6 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     await insertAuditLog({
       actorId: normalizedEmail || "unknown",
       role: "applicant",
-      resourceType: "applicant",
-      resource: normalizedEmail || "unknown",
       outcome: "SUCCESS",
       messageOverride: `REGISTER SUCCESS - ${normalizedEmail || "unknown"}`,
     });
@@ -493,8 +477,6 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     await insertAuditLog({
       actorId: normalizedEmail || "unknown",
       role: "applicant",
-      resourceType: "applicant",
-      resource: normalizedEmail || "unknown",
       outcome: "FAILED",
       messageOverride: `REGISTER FAILED - ${normalizedEmail || "unknown"} `,
       reason: "Internal server error",
@@ -713,8 +695,6 @@ router.post("/login", async (req, res) => {
     await insertAuditLog({
       actorId: loginCredentials,
       role: "unknown",
-      resourceType: "unknown",
-      resource: loginCredentials,
       outcome: "LOCKED",
       reason: `Account locked (Attempt ${record.count || 3} out of 3)`,
     });
@@ -788,8 +768,6 @@ WHERE (ua.email = ? OR ua.employee_id = ?)
         await insertAuditLog({
           actorId: loginCredentials,
           role: "unknown",
-          resourceType: "unknown",
-          resource: loginCredentials,
           outcome: "LOCKED",
           reason: `Invalid email or student number (Attempt ${record.count} out of 3)`,
         });
@@ -802,8 +780,6 @@ WHERE (ua.email = ? OR ua.employee_id = ?)
       await insertAuditLog({
         actorId: loginCredentials,
         role: "unknown",
-        resourceType: "unknown",
-        resource: loginCredentials,
         outcome: "FAILED",
         reason: `Invalid Email, Employee ID, or Student number (Attempt ${record.count} out of 3)`,
       });
@@ -815,8 +791,6 @@ WHERE (ua.email = ? OR ua.employee_id = ?)
 
     const user = results[0];
     const actorId =  user.employee_id || user.student_number || user.person_id || user.email;
-    const resourceType = user.employee_id ? "employee" : "student";
-    const resource = user.employee_id || user.student_number || user.person_id || user.email;
 
     // ======================================
     // 🔥 FIX: normalize require_otp properly
@@ -835,8 +809,6 @@ WHERE (ua.email = ? OR ua.employee_id = ?)
         await insertAuditLog({
           actorId,
           role: user.role,
-          resourceType,
-          resource,
           outcome: "LOCKED",
           reason: `Invalid password (Attempt ${record.count} out of 3)`,
         });
@@ -850,8 +822,6 @@ WHERE (ua.email = ? OR ua.employee_id = ?)
       await insertAuditLog({
         actorId,
         role: user.role,
-        resourceType,
-        resource,
         outcome: "FAILED",
         reason: `Invalid password (Attempt ${record.count} out of 3)`,
       });
@@ -867,8 +837,6 @@ WHERE (ua.email = ? OR ua.employee_id = ?)
       await insertAuditLog({
         actorId,
         role: user.role,
-        resourceType,
-        resource,
         outcome: "FAILED",
         reason: "Inactive account",
       });
@@ -915,8 +883,7 @@ WHERE (ua.email = ? OR ua.employee_id = ?)
       otpStore[user.email].auditContext = {
         actorId,
         role: user.role,
-        resourceType,
-        resource,
+    
       };
       delete loginAttempts[loginCredentials];
 
@@ -973,8 +940,7 @@ WHERE (ua.email = ? OR ua.employee_id = ?)
     await insertAuditLog({
       actorId,
       role: user.role,
-      resourceType,
-      resource,
+
       outcome: successOutcome,
     });
     delete loginAttempts[loginCredentials];
@@ -1012,8 +978,7 @@ router.post("/login_applicant", async (req, res) => {
     await insertAuditLog({
       actorId: loginKey,
       role: "applicant",
-      resourceType: "applicant",
-      resource: loginKey,
+ 
       outcome: "LOCKED",
       reason: `Account locked (Attempt ${record.count || 3} out of 3)`,
     });
@@ -1041,8 +1006,7 @@ router.post("/login_applicant", async (req, res) => {
         await insertAuditLog({
           actorId: loginKey,
           role: "applicant",
-          resourceType: "applicant",
-          resource: loginKey,
+ 
           outcome: "LOCKED",
           reason: `Invalid email or password (Attempt ${record.count} out of 3)`,
         });
@@ -1055,8 +1019,7 @@ router.post("/login_applicant", async (req, res) => {
       await insertAuditLog({
         actorId: loginKey,
         role: "applicant",
-        resourceType: "applicant",
-        resource: loginKey,
+    
         outcome: "FAILED",
         reason: `Invalid email or password (Attempt ${record.count} out of 3)`,
       });
@@ -1078,8 +1041,7 @@ router.post("/login_applicant", async (req, res) => {
         await insertAuditLog({
           actorId: applicantActor,
           role: "applicant",
-          resourceType: "applicant",
-          resource: applicantActor,
+      
           outcome: "LOCKED",
           reason: `Invalid password (Attempt ${record.count} out of 3)`,
         });
@@ -1092,8 +1054,7 @@ router.post("/login_applicant", async (req, res) => {
       await insertAuditLog({
         actorId: applicantActor,
         role: "applicant",
-        resourceType: "applicant",
-        resource: applicantActor,
+  
         outcome: "FAILED",
         reason: `Invalid password (Attempt ${record.count} out of 3)`,
       });
@@ -1103,8 +1064,7 @@ router.post("/login_applicant", async (req, res) => {
       await insertAuditLog({
         actorId: applicantActor,
         role: "applicant",
-        resourceType: "applicant",
-        resource: applicantActor,
+   
         outcome: "FAILED",
         reason: "Inactive account",
       });
@@ -1193,8 +1153,7 @@ router.post("/login_applicant", async (req, res) => {
     await insertAuditLog({
       actorId: applicantNumber,
       role: user.role,
-      resourceType: "applicant",
-      resource: applicantNumber,
+  
       outcome: successOutcome,
     });
     delete loginAttempts[loginKey];
@@ -1273,8 +1232,6 @@ router.post("/verify-otp", async (req, res) => {
   await insertAuditLog({
     actorId: auditContext.actorId || email,
     role: auditContext.role || "unknown",
-    resourceType: auditContext.resourceType || "unknown",
-    resource: auditContext.resource || email,
     outcome: successOutcome,
   });
 

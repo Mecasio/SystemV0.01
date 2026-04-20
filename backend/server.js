@@ -83,6 +83,8 @@ const tosfPanel = require("./routes/system_routes/tosfRoute");
 const paymentExporting = require("./routes/system_routes/paymentExportingRoute");
 const corExporting = require("./routes/system_routes/corExportingRoute");
 const entranceExamSchedule = require("./routes/admission_routes/entranceExamSchedule");
+const applicantScoringRoute = require("./routes/admission_routes/applicantScoringRoute");
+const interviewQualifyingRoute = require("./routes/admission_routes/interviewQualifyingRoute");
 const verifyDocumentSchedule = require("./routes/admission_routes/verifyDocumentSchedule");
 const QualifyingInterviewExam = require("./routes/admission_routes/QualifyingInterviewExam");
 const medicalExamRoute = require("./routes/admission_routes/medicalExamRoute");
@@ -151,6 +153,8 @@ app.use("/", tosfPanel);
 app.use("/", paymentExporting);
 app.use("/", corExporting);
 app.use("/", entranceExamSchedule);
+app.use("/", applicantScoringRoute);
+app.use("/", interviewQualifyingRoute);
 app.use("/", verifyDocumentSchedule);
 app.use("/", QualifyingInterviewExam);
 app.use("/", medicalExamRoute);
@@ -546,157 +550,6 @@ app.get("/api/employee/:employee_id", async (req, res) => {
   }
 });
 
-app.post("/api/exam/save", async (req, res) => {
-  console.log(" /api/exam/save HIT", req.body);
-
-  try {
-    const {
-      applicant_number,
-      english = null,
-      science = null,
-      filipino = null,
-      math = null,
-      abstract = null,
-      final_rating = null,
-      status = "",
-    } = req.body;
-
-    if (!applicant_number) {
-      return res.status(400).json({ error: "applicant_number is required" });
-    }
-
-    // 1) applicant_number -> person_id
-    const [rows] = await db.query(
-      "SELECT person_id FROM applicant_numbering_table WHERE applicant_number = ? LIMIT 1",
-      [applicant_number],
-    );
-
-    if (!rows || rows.length === 0) {
-      return res.status(400).json({ error: "Applicant number not found" });
-    }
-
-    const personId = rows[0].person_id;
-
-    // 2) Old data (for notifications)
-    const [oldRows] = await db.query(
-      "SELECT English, Science, Filipino, Math, Abstract, status FROM admission_exam WHERE person_id = ? LIMIT 1",
-      [personId],
-    );
-    const oldData = oldRows[0] || null;
-
-    // 3) Ensure numeric values or NULL
-    const e = english === null ? null : Number(english);
-    const s = science === null ? null : Number(science);
-    const f = filipino === null ? null : Number(filipino);
-    const m = math === null ? null : Number(math);
-    const a = abstract === null ? null : Number(abstract);
-    const fr = final_rating === null ? null : Number(final_rating);
-
-    // 4) INSERT or UPDATE
-    await db.query(
-      `INSERT INTO admission_exam
-     (person_id, English, Science, Filipino, Math, Abstract, final_rating, status, date_created)
-   VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
-   ON DUPLICATE KEY UPDATE
-     English = VALUES(English),
-     Science = VALUES(Science),
-     Filipino = VALUES(Filipino),
-     Math = VALUES(Math),
-     Abstract = VALUES(Abstract),
-     final_rating = VALUES(final_rating),
-     status = VALUES(status),
-     date_created = NOW()`,
-      [personId, e, s, f, m, a, fr, status === "" ? null : status],
-    );
-
-    // 5) Notifications (only if changed)
-    const actorEmail = "earistmis@gmail.com";
-    const actorName = "SYSTEM";
-
-    if (oldData) {
-      const subjects = [
-        { key: "English", label: "English", newVal: e },
-        { key: "Science", label: "Science", newVal: s },
-        { key: "Filipino", label: "Filipino", newVal: f },
-        { key: "Math", label: "Math", newVal: m },
-        { key: "Abstract", label: "Abstract", newVal: a },
-      ];
-
-      for (const subj of subjects) {
-        const oldVal = oldData[subj.key];
-
-        if ((oldVal ?? null) != (subj.newVal ?? null)) {
-          const message = `“ Entrance Exam updated (${subj.label}: ${oldVal ?? 0} †’ ${subj.newVal ?? 0}) for Applicant #${applicant_number}`;
-
-          await db.query(
-            `INSERT INTO notifications (type, message, applicant_number, actor_email, actor_name, timestamp)
-             SELECT ?, ?, ?, ?, ?, NOW()
-             FROM DUAL
-             WHERE NOT EXISTS (
-               SELECT 1 FROM notifications
-               WHERE applicant_number = ?
-                 AND message = ?
-                 AND DATE(timestamp) = CURDATE()
-             )`,
-            [
-              "update",
-              message,
-              applicant_number,
-              actorEmail,
-              actorName,
-              applicant_number,
-              message,
-            ],
-          );
-
-          if (io && io.emit) {
-            io.emit("notification", {
-              type: "update",
-              message,
-              applicant_number,
-              actor_email: actorEmail,
-              actor_name: actorName,
-              timestamp: new Date().toISOString(),
-            });
-          }
-        }
-      }
-    }
-
-    // 6) Return fresh saved values (NORMALIZED TO LOWERCASE)
-    const [savedRows] = await db.query(
-      "SELECT person_id, English, Science, Filipino, Math, Abstract, final_rating, status, date_created FROM admission_exam WHERE person_id = ? LIMIT 1",
-      [personId],
-    );
-
-    const saved = savedRows[0] || null;
-
-    //  Normalize keys to lowercase so React UI updates instantly
-    const normalized = {
-      person_id: saved.person_id,
-      english: Number(saved.English),
-      science: Number(saved.Science),
-      filipino: Number(saved.Filipino),
-      math: Number(saved.Math),
-      abstract: Number(saved.Abstract),
-      final_rating: Number(saved.final_rating),
-      status: saved.status,
-      date_created: saved.date_created,
-    };
-
-    return res.json({
-      success: true,
-      message: "Exam data saved!",
-      saved: normalized,
-    });
-  } catch (err) {
-    console.error(" ERROR saving exam:", err);
-    return res.status(500).json({
-      error: "Failed to save exam data",
-      details: String(err.message || err),
-    });
-  }
-});
 
 //  Unified Save or Update for Qualifying / Interview Scores (with duplicate-safe notifications)
 app.post("/api/interview/save", async (req, res) => {
@@ -1411,9 +1264,8 @@ app.put("/api/submitted-documents/:upload_id", async (req, res) => {
 
     const applicant_number = appInfo?.applicant_number || "Unknown";
 
-    const fullName = `${appInfo?.last_name || ""}, ${
-      appInfo?.first_name || ""
-    } ${appInfo?.middle_name?.charAt(0) || ""}.`;
+    const fullName = `${appInfo?.last_name || ""}, ${appInfo?.first_name || ""
+      } ${appInfo?.middle_name?.charAt(0) || ""}.`;
 
     // 3. Actor info
     let actorEmail = "earistmis@gmail.com";

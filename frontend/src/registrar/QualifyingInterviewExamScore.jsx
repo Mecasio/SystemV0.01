@@ -135,37 +135,37 @@ const QualifyingExamScore = () => {
   };
 
   const tabs = [
-     {
-             label: "Admission Process For College",
-             to: "/applicant_list",
-             icon: <SchoolIcon fontSize="large" />,
-         },
-         {
-             label: "Applicant Form",
-             to: "/registrar_dashboard1",
-             icon: <AssignmentIcon fontSize="large" />,
-         },
-         {
-             label: "Student Requirements",
-             to: "/registrar_requirements",
-             icon: <AssignmentTurnedInIcon fontSize="large" />,
-         },
-         {
-             label: "Qualifying / Interview Schedule Management",
-             to: "/assign_schedule_applicants_qualifying_interview",
-             icon: <ScheduleIcon fontSize="large" />
-         },
-         {
-             label: "Qualifying / Interview Exam Score",
-             to: "/qualifying_interview_exam_scores",
-             icon: <ScoreIcon fontSize="large" />,
-         },
-         {
-             label: "Student Numbering",
-             to: "/student_numbering_per_college",
-             icon: <DashboardIcon fontSize="large" />,
-         },
- 
+    {
+      label: "Admission Process For College",
+      to: "/applicant_list",
+      icon: <SchoolIcon fontSize="large" />,
+    },
+    {
+      label: "Applicant Form",
+      to: "/registrar_dashboard1",
+      icon: <AssignmentIcon fontSize="large" />,
+    },
+    {
+      label: "Student Requirements",
+      to: "/registrar_requirements",
+      icon: <AssignmentTurnedInIcon fontSize="large" />,
+    },
+    {
+      label: "Qualifying / Interview Schedule Management",
+      to: "/assign_schedule_applicants_qualifying_interview",
+      icon: <ScheduleIcon fontSize="large" />
+    },
+    {
+      label: "Qualifying / Interview Exam Score",
+      to: "/qualifying_interview_exam_scores",
+      icon: <ScoreIcon fontSize="large" />,
+    },
+    {
+      label: "Student Numbering",
+      to: "/student_numbering_per_college",
+      icon: <DashboardIcon fontSize="large" />,
+    },
+
   ];
 
   const navigate = useNavigate();
@@ -197,6 +197,10 @@ const QualifyingExamScore = () => {
         edits.qualifying_interview_score ??
         person.qualifying_interview_score ??
         0,
+
+      // ✅ ADD THIS
+      status: edits.status ?? person.status ?? "",
+
       user_person_id: userID,
     };
   };
@@ -206,52 +210,43 @@ const QualifyingExamScore = () => {
       setLoading(true);
 
       const payload = buildPayload(person);
+
       const res = await axios.post(
         `${API_BASE_URL}/api/interview/save`,
         payload,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
 
       if (!res.data?.success) {
-        throw new Error(res.data?.error || "Saving failed");
+        throw new Error("Saving failed");
       }
 
-      const qExam = Number(payload.qualifying_exam_score);
-      const qInterview = Number(payload.qualifying_interview_score);
-      const finalRating = (qExam + qInterview) / 2;
-
-      // 🔥 Update UI instantly
-      setPersons((prev) =>
-        prev.map((p) =>
-          p.person_id === person.person_id
-            ? {
-              ...p,
-              qualifying_exam_score: qExam,
-              qualifying_interview_score: qInterview,
-              final_rating: finalRating,
-            }
-            : p,
-        ),
-      );
-
-      // 🧹 Clear edit buffer
-      setEditScores((prev) => {
-        const copy = { ...prev };
-        delete copy[person.person_id];
-        return copy;
-      });
-
-      setSnack({ open: true, message: "Score saved!", severity: "success" });
-    } catch (err) {
-      console.error(err);
       setSnack({
         open: true,
-        message: "Save failed: " + (err.response?.data?.error || err.message),
+        message: "Score saved successfully!",
+        severity: "success",
+      });
+
+    } catch (err) {
+      console.error(err);
+
+      setSnack({
+        open: true,
+        message:
+          "Save failed: " +
+          (err.response?.data?.error || err.message),
         severity: "error",
       });
+
     } finally {
       setLoading(false);
     }
   };
+
 
   const saveAllRows = async () => {
     try {
@@ -259,7 +254,17 @@ const QualifyingExamScore = () => {
 
       for (const person of persons) {
         const payload = buildPayload(person);
-        await axios.post(`${API_BASE_URL}/api/interview/save`, payload);
+        const token = localStorage.getItem("token");
+
+        await axios.post(
+          `${API_BASE_URL}/api/interview/save`,
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
       }
 
       // Refresh table from DB for safety
@@ -1109,10 +1114,10 @@ const QualifyingExamScore = () => {
     return () => window.removeEventListener("online", syncPendingScores);
   }, []);
 
-  const debounceTimers = {};
+  const debounceTimers = useRef({});
+  const manualSaveRef = useRef({});
 
   const handleScoreChange = (person, field, value) => {
-    // 1️⃣ Update local state for instant UI feedback
     setEditScores((prev) => ({
       ...prev,
       [person.person_id]: {
@@ -1120,46 +1125,8 @@ const QualifyingExamScore = () => {
         [field]: value,
       },
     }));
-
-    // 2️⃣ Prepare updated scores
-    const updatedScores = {
-      qualifying_exam_score:
-        field === "qualifying_exam_score"
-          ? value
-          : (editScores[person.person_id]?.qualifying_exam_score ??
-            person.qualifying_exam_score ??
-            0),
-      qualifying_interview_score:
-        field === "qualifying_interview_score"
-          ? value
-          : (editScores[person.person_id]?.qualifying_interview_score ??
-            person.qualifying_interview_score ??
-            0),
-    };
-
-    // 3️⃣ Cancel any previous debounce for this applicant
-    if (debounceTimers[person.applicant_number]) {
-      clearTimeout(debounceTimers[person.applicant_number]);
-    }
-
-    // 4️⃣ Set new debounce timer
-    debounceTimers[person.applicant_number] = setTimeout(async () => {
-      const payload = {
-        applicant_number: person.applicant_number,
-        qualifying_exam_score: updatedScores.qualifying_exam_score,
-        qualifying_interview_score: updatedScores.qualifying_interview_score,
-        user_person_id: localStorage.getItem("person_id"),
-      };
-
-      try {
-        // ✅ Make ONE stable save call — not multiple
-        await axios.post(`${API_BASE_URL}/api/interview/save`, payload);
-        console.log("✅ Saved qualifying/interview scores once:", payload);
-      } catch (err) {
-        console.error("❌ Auto-save error:", err.response?.data || err.message);
-      }
-    }, 1500); // Increased debounce to 1.5s to prevent overlap
   };
+
 
   const [customCount, setCustomCount] = useState(0);
   const [selectedSchedule, setSelectedSchedule] = useState("");
