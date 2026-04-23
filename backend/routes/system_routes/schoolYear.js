@@ -97,19 +97,20 @@ router.put("/year_table/:id", async (req, res) => {
 });
 
 router.post("/semesters", async (req, res) => {
-  const { semester_description } = req.body;
+  const { semester_description, semester_code } = req.body;
 
-  if (!semester_description) {
-    return res.status(400).json({ error: "semester_description is required" });
+  if (!semester_description || !semester_code) {
+    return res.status(400).json({ error: "missing fields is required" });
   }
 
-  const query = "INSERT INTO semester_table (semester_description) VALUES (?)";
+  const query = "INSERT INTO semester_table (semester_description, semester_code) VALUES (?, ?)";
 
   try {
-    const [result] = await db3.query(query, [semester_description]);
+    const [result] = await db3.query(query, [semester_description, semester_code]);
     res.status(201).json({
       semester_id: result.insertId,
       semester_description,
+      semester_code,
     });
   } catch (err) {
     console.error("Insert error:", err);
@@ -383,7 +384,7 @@ router.get("/api/school-years", async (req, res) => {
 });
 
 
-// âœ… Get all saved school years with semester info
+
 router.get("/api/school_years", async (req, res) => {
   try {
     const [rows] = await db3.query(`
@@ -403,7 +404,7 @@ router.get("/api/school_years", async (req, res) => {
   }
 });
 
-// âœ… Get year list only
+
 router.get("/api/year_table", async (req, res) => {
   try {
     const [rows] = await db3.query(
@@ -416,7 +417,7 @@ router.get("/api/year_table", async (req, res) => {
   }
 });
 
-// âœ… Get semester list only
+
 router.get("/api/semester_table", async (req, res) => {
   try {
     const [rows] = await db3.query(`SELECT * FROM semester_table`);

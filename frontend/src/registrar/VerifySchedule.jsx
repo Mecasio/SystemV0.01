@@ -1820,7 +1820,12 @@ ${officeName}`
                                 const isAssigned = person.schedule_id !== null;
 
                                 return (
-                                    <TableRow key={person.person_id}>
+                                    <TableRow
+                                        key={person.person_id}
+                                        sx={{
+                                            backgroundColor: index % 2 === 0 ? "#ffffff" : "lightgray", // white / light gray
+                                        }}
+                                    >
                                         {/* Auto-increment # */}
                                         <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}`, fontSize: "12px" }}>
                                             {indexOfFirstItem + index + 1}

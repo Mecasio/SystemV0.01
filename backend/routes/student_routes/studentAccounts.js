@@ -18,91 +18,74 @@ const transporter = nodemailer.createTransport({
 });
 
 
-
 router.get("/student_list", async (req, res) => {
   try {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 100;
-    const search = req.query.search || "";
+    const search = req.query.search?.trim() || "";
 
     const offset = (page - 1) * limit;
 
     let whereClause = "";
     let params = [];
 
+    // ✅ FAST SEARCH (index-friendly)
     if (search) {
       whereClause = `
         WHERE 
           snt.student_number LIKE ? OR
           pt.last_name LIKE ? OR
-          pt.first_name LIKE ? OR
-          pt.middle_name LIKE ? OR
-          pgt.program_code LIKE ? OR
-          dt.dprtmnt_name LIKE ?
+          pt.first_name LIKE ?
       `;
 
-      const searchValue = `%${search}%`;
-      params = [
-        searchValue,
-        searchValue,
-        searchValue,
-        searchValue,
-        searchValue,
-        searchValue
-      ];
+      const searchValue = `${search}%`; // ✅ removed leading %
+      params = [searchValue, searchValue, searchValue];
     }
 
+    // ✅ MAIN QUERY (FILTER FIRST, LESS JOINS)
     const sql = `
-  SELECT 
-    snt.student_number,
-    pt.campus,
-    pt.last_name,
-    pt.person_id,
-    pt.first_name,
-    pt.middle_name,
-    pt.emailAddress,
-    pgt.program_code,
-    pgt.program_id,
-    pgt.program_description,
-    pgt.major,
-    dt.dprtmnt_name,
-    dt.dprtmnt_id
-  FROM enrolled_subject es
-  INNER JOIN student_numbering_table snt 
-    ON es.student_number = snt.student_number
-  INNER JOIN person_table pt 
-    ON snt.person_id = pt.person_id
-  INNER JOIN curriculum_table ct 
-    ON es.curriculum_id = ct.curriculum_id
-  INNER JOIN program_table pgt 
-    ON ct.program_id = pgt.program_id
-  INNER JOIN dprtmnt_curriculum_table dct 
-    ON ct.curriculum_id = dct.curriculum_id
-  INNER JOIN dprtmnt_table dt 
-    ON dct.dprtmnt_id = dt.dprtmnt_id
-  ${whereClause}
-  GROUP BY es.student_number
-  ORDER BY snt.student_number ASC
-  LIMIT ? OFFSET ?
-`;
+      SELECT DISTINCT
+        snt.student_number,
+        pt.campus,
+        pt.person_id,
+        pt.last_name,
+        pt.first_name,
+        pt.middle_name,
+        pt.emailAddress,
+        pgt.program_code,
+        pgt.program_id,
+        pgt.program_description,
+        pgt.major,
+        dt.dprtmnt_name,
+        dt.dprtmnt_id
+      FROM student_numbering_table snt
+      INNER JOIN person_table pt 
+        ON snt.person_id = pt.person_id
+
+      LEFT JOIN enrolled_subject es
+        ON es.student_number = snt.student_number
+      LEFT JOIN curriculum_table ct 
+        ON es.curriculum_id = ct.curriculum_id
+      LEFT JOIN program_table pgt 
+        ON ct.program_id = pgt.program_id
+      LEFT JOIN dprtmnt_curriculum_table dct 
+        ON ct.curriculum_id = dct.curriculum_id
+      LEFT JOIN dprtmnt_table dt 
+        ON dct.dprtmnt_id = dt.dprtmnt_id
+
+      ${whereClause}
+      ORDER BY snt.student_number ASC
+      LIMIT ? OFFSET ?
+    `;
 
     const [rows] = await db3.query(sql, [...params, limit, offset]);
 
-    const countSql = `
-      SELECT COUNT(DISTINCT snt.student_number) as total
-      FROM enrolled_subject es
-      INNER JOIN student_numbering_table snt 
-        ON es.student_number = snt.student_number
+    // ✅ LIGHTWEIGHT COUNT (no heavy joins)
+    let countSql = `
+      SELECT COUNT(*) as total
+      FROM student_numbering_table snt
       INNER JOIN person_table pt 
         ON snt.person_id = pt.person_id
-      INNER JOIN curriculum_table ct 
-        ON es.curriculum_id = ct.curriculum_id
-      INNER JOIN program_table pgt 
-        ON ct.program_id = pgt.program_id
-      INNER JOIN dprtmnt_curriculum_table dct 
-        ON ct.curriculum_id = dct.curriculum_id
-      INNER JOIN dprtmnt_table dt 
-        ON dct.dprtmnt_id = dt.dprtmnt_id
       ${whereClause}
     `;
 
@@ -112,7 +95,7 @@ router.get("/student_list", async (req, res) => {
       data: rows,
       total: countRows[0].total,
       page,
-      totalPages: Math.ceil(countRows[0].total / limit)
+      totalPages: Math.ceil(countRows[0].total / limit),
     });
 
   } catch (error) {
@@ -120,8 +103,6 @@ router.get("/student_list", async (req, res) => {
     res.status(500).json({ success: false });
   }
 });
-
-
 
 
 router.get("/student_list/:student_number", async (req, res) => {

@@ -860,7 +860,14 @@ export default function StudentAccounts() {
                             >
                                 Email Address
                             </TableCell>
-
+                            <TableCell
+                                sx={{
+                                    border: `1px solid ${borderColor}`,
+                                    backgroundColor: "#f5f5f5"
+                                }}
+                            >
+                                Notify Applicants
+                            </TableCell>
 
                         </TableRow>
 
@@ -874,6 +881,9 @@ export default function StudentAccounts() {
 
                                 <TableRow
                                     key={row.person_id}
+                                    sx={{
+                                        backgroundColor: index % 2 === 0 ? "#ffffff" : "lightgray", // white / light gray
+                                    }}
                                 >
                                     <TableCell
                                         sx={{
@@ -957,6 +967,21 @@ export default function StudentAccounts() {
                                                 No Email
                                             </Typography>
                                         )}
+                                    </TableCell>
+                                    <TableCell
+                                        sx={{
+                                            border: `1px solid ${borderColor}`
+                                        }}
+                                    >
+                                        <Button
+                                            variant="contained"
+                                            color="success"
+                                            size="small"
+                                            onClick={handleNotify}
+                                            sx={{ minWidth: 140, height: 40 }}
+                                        >
+                                            Send
+                                        </Button>
                                     </TableCell>
 
 
@@ -1279,8 +1304,8 @@ export default function StudentAccounts() {
                     {/* CANCEL */}
                     <Button
                         onClick={() => setOpen(false)}
-                     color="error"
-            variant="outlined"
+                        color="error"
+                        variant="outlined"
 
                         startIcon={<CancelIcon />}
                         sx={{

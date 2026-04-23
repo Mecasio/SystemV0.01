@@ -2938,7 +2938,12 @@ Thank you, best regards
                 const finalRating = Number(person.final_rating) || 0; // ✅ use backend value
 
                 return (
-                  <TableRow key={person.person_id}>
+                   <TableRow
+                                                   key={person.person_id}
+                                                   sx={{
+                                                       backgroundColor: index % 2 === 0 ? "#ffffff" : "lightgray", // white / light gray
+                                                   }}
+                                               >
                     {/* # */}
                     <TableCell
                       sx={{
@@ -3453,7 +3458,7 @@ Thank you, best regards
         <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
           <Button
             onClick={() => setConfirmOpen(false)}
-         color="error"
+            color="error"
             variant="outlined"
           >
             Cancel

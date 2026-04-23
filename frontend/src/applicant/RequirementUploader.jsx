@@ -113,9 +113,12 @@ const RequirementUploader = () => {
         verifiableRequirements.length > 0 &&
         verifiableRequirements.every((r) => uploadedIds.has(r.id));
 
-      // ✅ Only show Congratulations if all required are uploaded (not every upload)
-      if (!allRequirementsCompleted && allRequiredUploaded) {
-        setOpenConfirmModal(true); // ✅ show REVIEW modal first
+      if (
+        uploadsData.length > 0 &&
+        allRequiredUploaded &&
+        !allRequirementsCompleted
+      ) {
+        setOpenConfirmModal(true);
       }
 
       // ✅ Update completion state
@@ -171,10 +174,11 @@ const RequirementUploader = () => {
     formData.append("person_id", personId);
 
     try {
-      await axios.post(`${API_BASE_URL}/api/upload`, formData, {
+      await axios.post(`${API_BASE_URL}/form//api/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
+      // ✅ REFRESH STATE IMMEDIATELY
       await fetchUploads(personId);
 
       setSnack({
@@ -182,6 +186,8 @@ const RequirementUploader = () => {
         severity: "success",
         message: "File uploaded successfully.",
       });
+
+
     } catch (err) {
       console.error("Upload error:", err);
 
@@ -201,14 +207,29 @@ const RequirementUploader = () => {
 
   const handleDelete = async (uploadId) => {
     try {
-      await axios.delete(`${API_BASE_URL}/uploads/${uploadId}`, {
+      await axios.delete(`${API_BASE_URL}/form/uploads/${uploadId}`, {
         headers: { "x-person-id": userID },
       });
 
-      fetchUploads(userID);
+      setSnack({
+        open: true,
+        severity: "success",
+        message: "File deleted successfully",
+      });
+
+      // slight delay so snackbar shows before refresh
+      setTimeout(() => {
+        fetchUploads(userID);
+      }, 300);
+
     } catch (err) {
       console.error("Delete error:", err);
-      alert("Failed to delete. Please try again.");
+
+      setSnack({
+        open: true,
+        severity: "error",
+        message: "Failed to delete file",
+      });
     }
   };
 
@@ -561,8 +582,9 @@ const RequirementUploader = () => {
         <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 2 }}>
           {/* Cancel */}
           <Button
-            variant="contained"
             color="error"
+            variant="outlined"
+
             onClick={() => setOpenConfirmModal(false)}
           >
             Cancel
@@ -614,7 +636,7 @@ const RequirementUploader = () => {
             fontSize: "36px",
           }}
         >
-         APPLICANT'S DOCUMENTS
+          APPLICANT'S DOCUMENTS
         </Typography>
       </Box>
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />

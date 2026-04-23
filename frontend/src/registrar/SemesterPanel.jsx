@@ -26,7 +26,6 @@ import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
 import SaveIcon from '@mui/icons-material/Save';
 
-
 const SemesterPanel = () => {
   const settings = useContext(SettingsContext);
   const [headerColor, setHeaderColor] = useState("#1976d2");
@@ -78,6 +77,7 @@ const SemesterPanel = () => {
   const pageId = 58;
 
   const [semesterDescription, setSemesterDescription] = useState("");
+  const [semesterCode, setSemesterCode] = useState("");
   const [semesters, setSemesters] = useState([]);
 
   // Snackbar state
@@ -149,8 +149,10 @@ const SemesterPanel = () => {
     try {
       await axios.post(`${API_BASE_URL}/semesters`, {
         semester_description: semesterDescription,
+        semester_code: semesterCode,
       });
       setSemesterDescription("");
+      setSemesterCode("");
       fetchSemesters();
       setSnackbar({ open: true, message: "Semester added successfully!", severity: "success" });
     } catch (err) {
@@ -250,6 +252,16 @@ const SemesterPanel = () => {
                   >
                     Description
                   </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      border: `1px solid ${borderColor}`,
+                      color: "black",
+                      backgroundColor: "#f5f5f5",
+                    }}
+                  >
+                    Code
+                  </TableCell>
                 </TableRow>
               </TableHead>
 
@@ -258,6 +270,7 @@ const SemesterPanel = () => {
                   <TableRow key={index}>
                     <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>{semester.semester_id}</TableCell>
                     <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>{semester.semester_description}</TableCell>
+                    <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>{semester.semester_code}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -296,17 +309,32 @@ const SemesterPanel = () => {
 
         {/* CONTENT */}
         <DialogContent sx={{ p: 3 }}>
-          <Typography fontWeight="bold" mb={1} mt={1}>
-            Semester Description
-          </Typography>
+          <Box>
+            <Typography fontWeight="bold" mb={1} mt={1}>
+              Semester Description
+            </Typography>
 
-          <TextField
-            fullWidth
-            placeholder="Enter semester (e.g., First Semester)"
-            value={semesterDescription}
-            onChange={(e) => setSemesterDescription(e.target.value)}
-            autoFocus
-          />
+            <TextField
+              fullWidth
+              placeholder="Enter semester (e.g., First Semester)"
+              value={semesterDescription}
+              onChange={(e) => setSemesterDescription(e.target.value)}
+              autoFocus
+            />
+          </Box>
+          <Box>
+            <Typography fontWeight="bold" mb={1} mt={1}>
+              Semester Code
+            </Typography>
+
+            <TextField
+              fullWidth
+              placeholder="Enter semester code (e.g., 1, 2, 3)"
+              value={semesterCode}
+              onChange={(e) => setSemesterCode(e.target.value)}
+              autoFocus
+            />
+          </Box>
         </DialogContent>
 
         {/* ACTIONS */}

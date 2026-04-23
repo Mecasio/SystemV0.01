@@ -580,7 +580,12 @@ const ArchivedModule = () => {
               </TableRow>
             ) : (
               paginatedAccounts.map((account, index) => (
-                <TableRow key={account.person_id} hover>
+                <TableRow
+                  key={account.person_id}
+                  sx={{
+                    backgroundColor: index % 2 === 0 ? "#ffffff" : "lightgray", // 👈 alternating
+                  }}
+                >
                   <TableCell sx={{
                     textAlign: "center",
                     border: `1px solid ${borderColor}`,
@@ -861,7 +866,7 @@ const ArchivedModule = () => {
         </DialogContent>
         <DialogActions>
           <Button
-         color="error"
+            color="error"
             variant="outlined"
 
             onClick={closeDialog} disabled={actionLoading}>
@@ -904,7 +909,7 @@ const ArchivedModule = () => {
         </DialogContent>
         <DialogActions>
           <Button
-       color="error"
+            color="error"
             variant="outlined"
             onClick={closeDialog} disabled={actionLoading}>
             Cancel

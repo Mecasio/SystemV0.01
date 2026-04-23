@@ -1000,9 +1000,9 @@ const ApplicantScoring = () => {
             )
         );
 
-    
+
     };
-    
+
     const buildPayload = (person) => {
         const scores = editScores[person.person_id] || {};
 
@@ -1820,7 +1820,12 @@ const ApplicantScoring = () => {
                                     (editScores[person.person_id]?.abstract ?? abstract)
                                 ) / 5;
                             return (
-                                <TableRow key={person.person_id}>
+                           <TableRow
+                                                           key={person.person_id}
+                                                           sx={{
+                                                               backgroundColor: index % 2 === 0 ? "#ffffff" : "lightgray", // white / light gray
+                                                           }}
+                                                       >
                                     <TableCell sx={{
                                         color: "black",
                                         textAlign: "center",
@@ -1833,7 +1838,7 @@ const ApplicantScoring = () => {
                                     <TableCell
                                         onClick={() => handleRowClick(person.person_id)}
                                         sx={{
-                                            color: "black",
+                                            color: "blue",
                                             textAlign: "center",
                                             border: `1px solid ${borderColor}`,
                                             py: 0.5,
@@ -1848,7 +1853,7 @@ const ApplicantScoring = () => {
                                     <TableCell
                                         onClick={() => handleRowClick(person.person_id)}
                                         sx={{
-                                            color: "black",
+                                            color: "blue",
                                             textAlign: "center",
                                             border: `1px solid ${borderColor}`,
                                             py: 0.5,

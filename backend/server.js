@@ -33,7 +33,15 @@ app.use(
 );
 app.use(
   "/ApplicantOnlineDocuments",
-  express.static(path.join(__dirname, "uploads", "ApplicantOnlineDocuments")),
+  express.static(
+    path.join(__dirname, "uploads", "ApplicantOnlineDocuments")
+  )
+);
+app.use(
+  "/StudentOnlineDocuments",
+  express.static(
+    path.join(__dirname, "uploads", "StudentOnlineDocuments")
+  )
 );
 app.use("/assets", express.static(path.join(__dirname, "assets")));
 
@@ -49,7 +57,7 @@ const allowedOrigins = [
   "http://192.168.50.55:5173",
   "http://192.168.50.211:5173",
   "http://136.239.248.62:5173",
-  "http://192.168.50.38:5173",
+  "http://192.168.50.58:5173",
   "http://192.168.1.9:5173",
 ];
 
@@ -852,112 +860,7 @@ async function getActorInfo(user_person_id) {
   return { actorEmail, actorName };
 }
 
-app.post("/api/upload", upload.single("file"), async (req, res) => {
-  const { requirements_id, person_id, remarks } = req.body;
 
-  if (!requirements_id || !person_id || !req.file) {
-    return res.status(400).json({ error: "Missing required fields or file" });
-  }
-
-  try {
-    //  Applicant info
-    const [[appInfo]] = await db.query(
-      `
-      SELECT ant.applicant_number, pt.last_name, pt.first_name, pt.middle_name
-      FROM applicant_numbering_table ant
-      JOIN person_table pt ON ant.person_id = pt.person_id
-      WHERE ant.person_id = ?
-    `,
-      [person_id],
-    );
-
-    const applicant_number = appInfo?.applicant_number || "Unknown";
-    const fullName = `${appInfo?.last_name || ""}, ${appInfo?.first_name || ""} ${appInfo?.middle_name?.charAt(0) || ""}.`;
-
-    //  Requirement description + short label
-    const [descRows] = await db.query(
-      "SELECT description, short_label FROM requirements_table WHERE id = ?",
-      [requirements_id],
-    );
-
-    if (!descRows.length)
-      return res.status(404).json({ message: "Requirement not found" });
-
-    const { description, short_label } = descRows[0];
-
-    //  Use the short_label directly from DB
-    const shortLabel = short_label || "Unknown";
-
-    const year = new Date().getFullYear();
-    const ext = path.extname(req.file.originalname).toLowerCase();
-
-    //  Construct filename
-    const filename = `${applicant_number}_${shortLabel}_${year}${ext}`;
-    const uploadDir = path.join(
-      __dirname,
-      "uploads",
-      "ApplicantOnlineDocuments",
-    );
-
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
-
-    const finalPath = path.join(uploadDir, filename);
-
-    //  Delete any existing file for the same applicant + requirement
-    const [existingFiles] = await db.query(
-      `SELECT upload_id, file_path FROM requirement_uploads
-       WHERE person_id = ? AND requirements_id = ?`,
-      [person_id, requirements_id],
-    );
-
-    for (const file of existingFiles) {
-      const oldPath = path.join(
-        __dirname,
-        "uploads",
-        "ApplicantOnlineDocuments",
-        file.file_path,
-      );
-
-      try {
-        await fs.promises.unlink(oldPath);
-      } catch (err) {
-        if (err.code !== "ENOENT")
-          console.warn("File delete warning:", err.message);
-      }
-
-      await db.query("DELETE FROM requirement_uploads WHERE upload_id = ?", [
-        file.upload_id,
-      ]);
-    }
-
-    //  Save new file
-    await fs.promises.writeFile(finalPath, req.file.buffer);
-
-    await db.query(
-      `INSERT INTO requirement_uploads
-        (requirements_id, person_id, file_path, original_name, status, remarks)
-       VALUES (?, ?, ?, ?, 0, ?)`,
-      [
-        requirements_id,
-        person_id,
-        filename,
-        req.file.originalname,
-        remarks || null,
-      ],
-    );
-
-    res.status(201).json({ message: " Upload successful" });
-  } catch (err) {
-    console.error("Upload error:", err);
-    res
-      .status(500)
-      .json({ error: "Failed to save upload", details: err.message });
-  }
-});
 
 //  ADMIN DELETE
 app.delete("/admin/uploads/:uploadId", async (req, res) => {
@@ -1084,47 +987,6 @@ app.get("/api/requirements/by-status/:status", async (req, res) => {
   }
 });
 
-app.delete("/uploads/:id", async (req, res) => {
-  const person_id = req.headers["x-person-id"];
-  const { id } = req.params;
-
-  if (!person_id) {
-    return res.status(401).json({ message: "Unauthorized: Missing person ID" });
-  }
-
-  try {
-    const [results] = await db.query(
-      "SELECT file_path FROM requirement_uploads WHERE upload_id = ? AND person_id = ?",
-      [id, person_id],
-    );
-
-    if (!results.length) {
-      return res.status(403).json({ error: "Unauthorized or file not found" });
-    }
-
-    const fullPath = path.join(
-      __dirname,
-      "uploads",
-      "ApplicantOnlineDocuments",
-      results[0].file_path,
-    );
-
-    try {
-      await fs.promises.unlink(fullPath);
-    } catch (err) {
-      if (err.code !== "ENOENT") {
-        console.error("File delete error:", err);
-      }
-    }
-
-    await db.query("DELETE FROM requirement_uploads WHERE upload_id = ?", [id]);
-
-    res.json({ message: "Requirement deleted successfully" });
-  } catch (err) {
-    console.error("Delete error:", err);
-    res.status(500).json({ error: "Failed to delete requirement" });
-  }
-});
 
 app.put("/api/interview_applicants/:applicant_id/status", async (req, res) => {
   const { applicant_id } = req.params;

@@ -523,10 +523,10 @@ const AssignScheduleToApplicantsInterviewer = () => {
           prev.map((s) =>
             s.schedule_id == selectedSchedule
               ? {
-                  ...s,
-                  current_occupancy:
-                    s.current_occupancy + (res.assigned?.length || 0),
-                }
+                ...s,
+                current_occupancy:
+                  s.current_occupancy + (res.assigned?.length || 0),
+              }
               : s,
           ),
         );
@@ -656,9 +656,9 @@ const AssignScheduleToApplicantsInterviewer = () => {
           prev.map((s) =>
             s.schedule_id === selectedSchedule
               ? {
-                  ...s,
-                  current_occupancy: currentCount + (res.assigned?.length || 0),
-                }
+                ...s,
+                current_occupancy: currentCount + (res.assigned?.length || 0),
+              }
               : s,
           ),
         );
@@ -1519,11 +1519,11 @@ Thank you and good luck!`,
                 value={
                   selectedSchedule
                     ? (() => {
-                        const s = getSelectedScheduleData();
-                        return s
-                          ? `${s.current_occupancy ?? 0}/${s.room_quota}`
-                          : "";
-                      })()
+                      const s = getSelectedScheduleData();
+                      return s
+                        ? `${s.current_occupancy ?? 0}/${s.room_quota}`
+                        : "";
+                    })()
                     : ""
                 }
                 InputProps={{ readOnly: true }}
@@ -2076,8 +2076,12 @@ Thank you and good luck!`,
                 const isAssigned = !!person.schedule_id; // ✅ check if already assigned
 
                 return (
-                  <TableRow key={person.person_id}>
-                    {/* Auto-increment # */}
+                  <TableRow
+                    key={person.person_id}
+                    sx={{
+                      backgroundColor: idx % 2 === 0 ? "#ffffff" : "lightgray", // white / light gray
+                    }}
+                  >
                     <TableCell
                       sx={{
                         textAlign: "center",
@@ -2486,7 +2490,7 @@ Thank you and good luck!`,
         <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
           <Button
             onClick={() => setConfirmOpen(false)}
-      color="error"
+            color="error"
             variant="outlined"
           >
             Cancel

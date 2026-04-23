@@ -3533,7 +3533,11 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
         );
 
         if (activeSY) {
-          const ongoingYearLevel = runningYearLevel + 1;
+          const currentSchoolYearLevel = yearLevelPerSY.find(
+            (entry) => entry.schoolYear === latestOngoing.schoolYear,
+          )?.yearLevel;
+          const ongoingYearLevel =
+            currentSchoolYearLevel || Math.max(runningYearLevel + 1, 1);
 
           const [existingStatus] = await connection.query(
             `SELECT id FROM student_status_table

@@ -12,22 +12,26 @@ import {
   Paper,
   Snackbar,
   Alert,
-  AlertTitle
+  AlertTitle,
 } from "@mui/material";
 import axios from "axios";
-import API_BASE_URL from "../apiConfig"
+import API_BASE_URL from "../apiConfig";
 import PersonIcon from "@mui/icons-material/Person";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-
 
 // ─── Remark Badge ─────────────────────────────────────────────────
 const REMARK_MAP = {
   0: { label: "Ongoing", bg: "#E8F5E9", color: "#9e9c1e", border: "#807700" },
   1: { label: "Passed", bg: "#E8F5E9", color: "#2E7D32", border: "#A5D6A7" },
   2: { label: "Failed", bg: "#FFEBEE", color: "#C62828", border: "#EF9A9A" },
-  3: { label: "Incomplete", bg: "#FFF8E1", color: "#E65100", border: "#FFE082" },
+  3: {
+    label: "Incomplete",
+    bg: "#FFF8E1",
+    color: "#E65100",
+    border: "#FFE082",
+  },
   4: { label: "Dropped", bg: "#F3F4F6", color: "#4B5563", border: "#D1D5DB" },
 };
 
@@ -35,27 +39,25 @@ const RemarkBadge = ({ value }) => {
   const style = REMARK_MAP[value];
   if (!style) return <span style={{ color: "#9CA3AF", fontSize: 12 }}>—</span>;
   return (
-    <span style={{
-      display: "inline-flex",
-      alignItems: "center",
-      background: style.bg,
-      color: style.color,
-      border: `1px solid ${style.border}`,
-      borderRadius: 6,
-      padding: "2px 10px",
-      fontSize: 11,
-      fontWeight: 600,
-      letterSpacing: "0.04em",
-      textTransform: "uppercase",
-    }}>
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        background: style.bg,
+        color: style.color,
+        border: `1px solid ${style.border}`,
+        borderRadius: 6,
+        padding: "2px 10px",
+        fontSize: 11,
+        fontWeight: 600,
+        letterSpacing: "0.04em",
+        textTransform: "uppercase",
+      }}
+    >
       {style.label}
     </span>
-
-
   );
 };
-
-
 
 const getUnitDisplay = (row) => {
   const course = parseInt(row.course_unit) || 0;
@@ -66,10 +68,8 @@ const getUnitDisplay = (row) => {
   return course + lab;
 };
 
-
 // ─── Term Sorting ─────────────────────────────────────────────────
 // Order within a year: First Semester → Second Semester → Summer / Midyear
-
 
 const yearOrder = {
   "First Year": 1,
@@ -82,7 +82,7 @@ const yearOrder = {
 const semesterOrder = {
   "First Semester": 1,
   "Second Semester": 2,
-  "Summer": 3,
+  Summer: 3,
 };
 
 const sortTerms = (terms) =>
@@ -97,10 +97,7 @@ const sortTerms = (terms) =>
     if (yA !== yB) return yB - yA;
 
     // ✅ DESCENDING SEM (2nd → 1st → summer)
-    return (
-      semesterOrder[semB.join(" ")] -
-      semesterOrder[semA.join(" ")]
-    );
+    return semesterOrder[semB.join(" ")] - semesterOrder[semA.join(" ")];
   });
 // ─── Main Component ───────────────────────────────────────────────
 const StudentGradingPage = () => {
@@ -123,10 +120,12 @@ const StudentGradingPage = () => {
     if (settings.title_color) setTitleColor(settings.title_color);
     if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
     if (settings.border_color) setBorderColor(settings.border_color);
-    if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
+    if (settings.main_button_color)
+      setMainButtonColor(settings.main_button_color);
     if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);
     if (settings.stepper_color) setStepperColor(settings.stepper_color);
-    if (settings.logo_url) setFetchedLogo(`${API_BASE_URL}${settings.logo_url}`);
+    if (settings.logo_url)
+      setFetchedLogo(`${API_BASE_URL}${settings.logo_url}`);
     else setFetchedLogo(EaristLogo);
     if (settings.company_name) setCompanyName(settings.company_name);
     if (settings.short_term) setShortTerm(settings.short_term);
@@ -154,7 +153,6 @@ const StudentGradingPage = () => {
         window.location.href = "/faculty_dashboard";
       } else {
         fetchStudentGrade(storedID);
-        console.log("you are an", storedRole);
       }
     } else {
       window.location.href = "/login";
@@ -162,6 +160,7 @@ const StudentGradingPage = () => {
   }, []);
 
   const fetchStudentGrade = async (id) => {
+    setLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/api/student_grade/${id}`);
       const data = res.data;
@@ -171,36 +170,50 @@ const StudentGradingPage = () => {
         const termKey = `${subj.year_level_description || "N/A"} ${subj.semester_description || "N/A"}`;
         if (!groupedByTerm[termKey]) groupedByTerm[termKey] = [];
         groupedByTerm[termKey].push(subj);
-        console.log(data);
       });
 
-      const processedGrades = Object.values(groupedByTerm).flatMap((termSubjects) => {
-        const allReleased = termSubjects.every((s) => s.fe_status === 1 || s.is_migrated);
-        if (!allReleased) {
-          return termSubjects.map((s) => ({
-            ...s,
-            final_grade: s.fe_status === 1 || s.is_migrated ? s.final_grade : null,
-            numeric_grade: s.fe_status === 1 || s.is_migrated ? s.numeric_grade : null,
-            descriptive_grade: s.fe_status === 1 || s.is_migrated ? s.descriptive_grade : null,
-            en_remarks: s.fe_status === 1 || s.is_migrated ? s.en_remarks : null,
-          }));
-        }
-        return termSubjects;
-      });
+      const processedGrades = Object.values(groupedByTerm).flatMap(
+        (termSubjects) => {
+          const allReleased = termSubjects.every(
+            (s) => s.fe_status === 1 || s.is_migrated,
+          );
+          if (!allReleased) {
+            return termSubjects.map((s) => ({
+              ...s,
+              final_grade:
+                s.fe_status === 1 || s.is_migrated ? s.final_grade : null,
+              numeric_grade:
+                s.fe_status === 1 || s.is_migrated ? s.numeric_grade : null,
+              descriptive_grade:
+                s.fe_status === 1 || s.is_migrated ? s.descriptive_grade : null,
+              en_remarks:
+                s.fe_status === 1 || s.is_migrated ? s.en_remarks : null,
+            }));
+          }
+          return termSubjects;
+        },
+      );
 
       setStudentGrade(processedGrades);
     } catch (error) {
       console.error(error);
+      setStudentGrade([]);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     if (!gradingActive || studentGrade.length === 0) return;
-    const pending = studentGrade.filter((subj) => subj.fe_status === 0 && !subj.is_migrated).length;
+    const pending = studentGrade.filter(
+      (subj) => subj.fe_status === 0 && !subj.is_migrated,
+    ).length;
     if (pending > 0) {
-      setMessage(`Grades are available. Please evaluate all your professors. Remaining: ${pending}`);
+      setMessage(
+        `Grades are available. Please evaluate all your professors. Remaining: ${pending}`,
+      );
     } else {
-      viewGrade();
+      setMessage("");
     }
   }, [gradingActive, studentGrade]);
 
@@ -220,41 +233,10 @@ const StudentGradingPage = () => {
     }
   };
 
-  useEffect(() => { fetchGradingStatus(); }, []);
+  useEffect(() => {
+    fetchGradingStatus();
+  }, []);
 
-  const viewGrade = async () => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/api/student/view_latest_grades/${userID}`);
-
-      if (res.data.status === "ok") {
-        setMessage("");
-
-        setStudentGrade((prev) => {
-          return prev.map((oldRow) => {
-            // find matching subject
-            const match = res.data.grades.find(
-              (g) => g.course_code === oldRow.course_code
-            );
-
-            return match
-              ? {
-                ...oldRow,                 // ✅ KEEP student info
-                final_grade: match.final_grade,
-                en_remarks: match.en_remarks,
-                fe_status: match.fe_status,
-              }
-              : oldRow;
-          });
-        });
-
-      } else {
-        setMessage(res.data.message || "No grades available");
-      }
-    } catch (err) {
-      console.error("Failed to fetch grades:", err);
-      setMessage("Error fetching grades.");
-    }
-  }
 
   const yearLabelMap = {
     "First Year": "1st Year",
@@ -268,10 +250,13 @@ const StudentGradingPage = () => {
     return yearLabelMap[year] || year;
   };
 
-
-  const rawTerms = [...new Set(studentGrade.map(
-    (row) => `${row.year_level_description} ${row.semester_description}`
-  ))];
+  const rawTerms = [
+    ...new Set(
+      studentGrade.map(
+        (row) => `${row.year_level_description} ${row.semester_description}`,
+      ),
+    ),
+  ];
   const sortedTerms = sortTerms(rawTerms);
   const headerBg = settings?.header_color || "#1976d2";
   const programInfo = studentGrade[0] || null;
@@ -299,15 +284,16 @@ const StudentGradingPage = () => {
 
   // ──────────────────────────────────────────────────────────────
   return (
-    <Box sx={{
-      height: "calc(100vh - 150px)",
-      overflowY: "auto",
-      paddingRight: 1,
-      backgroundColor: "transparent",
-      mt: 1,
-      padding: 2,
-    }}>
-
+    <Box
+      sx={{
+        height: "calc(100vh - 150px)",
+        overflowY: "auto",
+        paddingRight: 1,
+        backgroundColor: "transparent",
+        mt: 1,
+        padding: 2,
+      }}
+    >
       {/* ── Snackbar ── */}
       <Snackbar
         open={!!message}
@@ -315,50 +301,80 @@ const StudentGradingPage = () => {
         onClose={() => setMessage("")}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Alert onClose={() => setMessage("")} severity="warning" sx={{ width: "100%" }}>
+        <Alert
+          onClose={() => setMessage("")}
+          severity="warning"
+          sx={{ width: "100%" }}
+        >
           {message}
         </Alert>
       </Snackbar>
 
       {/* ── Page Header ── */}
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2.5 }}>
-
-
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2.5 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          mb: 2.5,
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            mb: 2.5,
+          }}
+        >
           <Box>
-            <Typography variant="h4" sx={{ fontWeight: "bold", color: titleColor, fontSize: "36px", lineHeight: 1.2 }}>
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: "bold",
+                color: titleColor,
+                fontSize: "36px",
+                lineHeight: 1.2,
+              }}
+            >
               STUDENT GRADES
             </Typography>
             {programInfo && (
-              <Typography variant="body2" sx={{ color: subtitleColor, mt: "6px", fontSize: 18 }}>
+              <Typography
+                variant="body2"
+                sx={{ color: subtitleColor, mt: "6px", fontSize: 18 }}
+              >
                 {programInfo.program_description} ({programInfo.program_code})
               </Typography>
             )}
           </Box>
         </Box>
 
-
         {/* Grading Status Pill */}
-        <Box sx={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: "6px",
-          px: "14px",
-          py: "6px",
-          borderRadius: "20px",
-          fontSize: 12,
-          fontWeight: 600,
-          letterSpacing: "0.03em",
-          backgroundColor: gradingActive ? "#E8F5E9" : "#FFF3E0",
-          color: gradingActive ? "#2E7D32" : "#E65100",
-          border: `1px solid ${gradingActive ? "#A5D6A7" : "#FFCC80"}`,
-        }}>
-          <Box sx={{
-            width: 7,
-            height: 7,
-            borderRadius: "50%",
-            backgroundColor: gradingActive ? "#43A047" : "#FB8C00",
-          }} />
+        <Box
+          sx={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            px: "14px",
+            py: "6px",
+            borderRadius: "20px",
+            fontSize: 12,
+            fontWeight: 600,
+            letterSpacing: "0.03em",
+            backgroundColor: gradingActive ? "#E8F5E9" : "#FFF3E0",
+            color: gradingActive ? "#2E7D32" : "#E65100",
+            border: `1px solid ${gradingActive ? "#A5D6A7" : "#FFCC80"}`,
+          }}
+        >
+          <Box
+            sx={{
+              width: 7,
+              height: 7,
+              borderRadius: "50%",
+              backgroundColor: gradingActive ? "#43A047" : "#FB8C00",
+            }}
+          />
           {gradingActive ? "Grades Available" : "Not Yet Available"}
         </Box>
       </Box>
@@ -379,11 +395,10 @@ const StudentGradingPage = () => {
           "& .MuiAlert-message": {
             width: "100%",
             textAlign: "center",
-
           },
           "& .MuiAlert-icon": {
             alignItems: "center",
-          }
+          },
         }}
       >
         <AlertTitle
@@ -394,7 +409,6 @@ const StudentGradingPage = () => {
         >
           Attention to All Students
         </AlertTitle>
-
         Viewing grades online through the <b>Student Information System</b> is
         strictly for personal use only. Students who need an official copy from
         the Registrar for interoffice transactions must submit a request for the
@@ -403,24 +417,33 @@ const StudentGradingPage = () => {
         <br />
         Please note that the grades posted in the
         <b> Student Information System</b> from previous school years were
-        migrated from the old enrollment system and are still subject to checking
-        and validation by the Registrar.
+        migrated from the old enrollment system and are still subject to
+        checking and validation by the Registrar.
       </Alert>
 
       <br />
 
-
       {/* ── Grade Tables per Term ── */}
-      {studentGrade.length > 0 ? (
+      {loading ? (
+        <Box sx={{ textAlign: "center", py: 8 }}>
+          <Typography sx={{ color: subtitleColor, fontSize: 14 }}>
+            Loading grades...
+          </Typography>
+        </Box>
+      ) : studentGrade.length > 0 ? (
         sortedTerms.map((term, idx) => {
           const [schoolYear, ...semParts] = term.split(" ");
           const semester = semParts.join(" ");
 
           const termSubjects = studentGrade
-            .filter((row) =>
-              `${row.year_level_description} ${row.semester_description}` === term
+            .filter(
+              (row) =>
+                `${row.year_level_description} ${row.semester_description}` ===
+                term,
             )
-            .sort((a, b) => (a.course_code || "").localeCompare(b.course_code || ""));
+            .sort((a, b) =>
+              (a.course_code || "").localeCompare(b.course_code || ""),
+            );
 
           const yearLevel = termSubjects[0]?.year_level_description;
           const semesterLabel = termSubjects[0]?.semester_description;
@@ -429,8 +452,6 @@ const StudentGradingPage = () => {
 
           return (
             <Box key={idx} sx={{ mb: 5 }}>
-
-
               <Box
                 sx={{
                   display: "flex",
@@ -445,8 +466,14 @@ const StudentGradingPage = () => {
                 }}
               >
                 {/* LEFT SECTION */}
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2, width: "100%" }}>
-
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2,
+                    width: "100%",
+                  }}
+                >
                   {/* PERSON ICON */}
                   <Box
                     sx={{
@@ -495,11 +522,16 @@ const StudentGradingPage = () => {
                             }}
                           >
                             STUDENT NUMBER:{" "}
-                            <Box component="span" style={{ fontWeight: "normal", marginLeft: "15px" }}>
+                            <Box
+                              component="span"
+                              style={{
+                                fontWeight: "normal",
+                                marginLeft: "15px",
+                              }}
+                            >
                               {programInfo.student_number}
                             </Box>
                           </Typography>
-
 
                           {/* NAME */}
                           <Typography
@@ -510,8 +542,15 @@ const StudentGradingPage = () => {
                             }}
                           >
                             NAME:
-                            <Box component="span" style={{ fontWeight: "normal", marginLeft: "15px" }}>
-                              {programInfo.last_name}, {programInfo.first_name} {programInfo.middle_name}
+                            <Box
+                              component="span"
+                              style={{
+                                fontWeight: "normal",
+                                marginLeft: "15px",
+                              }}
+                            >
+                              {programInfo.last_name}, {programInfo.first_name}{" "}
+                              {programInfo.middle_name}
                             </Box>
                           </Typography>
                           {/* GWA BELOW NAME */}
@@ -537,8 +576,6 @@ const StudentGradingPage = () => {
                                   : "—"}
                               </Box>
                               <br />
-
-
                               {/* {honorTitle && (
                                 <Box
 
@@ -553,8 +590,6 @@ const StudentGradingPage = () => {
                               )} */}
                             </Typography>
                           )}
-
-
                         </Box>
                       )}
                     </Box>
@@ -571,12 +606,15 @@ const StudentGradingPage = () => {
                           }}
                         >
                           PROGRAM:
-                          <Box component="span" style={{ fontWeight: "normal", marginLeft: "15px" }}>
-                            ({programInfo.program_code}) {programInfo.program_description} {programInfo.major}</Box>
+                          <Box
+                            component="span"
+                            style={{ fontWeight: "normal", marginLeft: "15px" }}
+                          >
+                            ({programInfo.program_code}){" "}
+                            {programInfo.program_description}{" "}
+                            {programInfo.major}
+                          </Box>
                         </Typography>
-
-
-
 
                         {/* YEAR / SEM */}
                         <Typography
@@ -587,18 +625,19 @@ const StudentGradingPage = () => {
                           }}
                         >
                           YEAR / SEMESTER:
-                          <Box component="span" style={{ fontWeight: "normal", marginLeft: "15px" }}>
-                            {formatYearLabel(yearLevel)} - {semesterLabel}</Box>
+                          <Box
+                            component="span"
+                            style={{ fontWeight: "normal", marginLeft: "15px" }}
+                          >
+                            {formatYearLabel(yearLevel)} - {semesterLabel}
+                          </Box>
                         </Typography>
-
-
                       </Box>
                     )}
                   </Box>
                 </Box>
 
                 {/* GWA BADGE */}
-
               </Box>
 
               {/* ── Table ── */}
@@ -614,21 +653,86 @@ const StudentGradingPage = () => {
                 <Table size="small" sx={{ tableLayout: "fixed" }}>
                   <TableHead>
                     <TableRow>
-                      <TableCell sx={{ ...headCell, width: "48px", textAlign: "center", border: `1px solid ${borderColor}` }}>#</TableCell>
-                      <TableCell sx={{ ...headCell, width: "120px", border: `1px solid ${borderColor}` }}>Code</TableCell>
-                      <TableCell sx={{ ...headCell, border: `1px solid ${borderColor}` }}>Subject</TableCell>
-                      <TableCell sx={{ ...headCell, width: "200px", border: `1px solid ${borderColor}` }}>Faculty</TableCell>
-                      <TableCell sx={{ ...headCell, width: "70px", textAlign: "center", border: `1px solid ${borderColor}` }}>Units</TableCell>
-                      <TableCell sx={{ ...headCell, width: "120px", textAlign: "center", border: `1px solid ${borderColor}` }}>Section</TableCell>
-                      <TableCell sx={{ ...headCell, width: "110px", textAlign: "center", border: `1px solid ${borderColor}` }}>Final Grade</TableCell>
-                      <TableCell sx={{ ...headCell, width: "120px", textAlign: "center", border: `1px solid ${borderColor}` }}>Status</TableCell>
+                      <TableCell
+                        sx={{
+                          ...headCell,
+                          width: "48px",
+                          textAlign: "center",
+                          border: `1px solid ${borderColor}`,
+                        }}
+                      >
+                        #
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          ...headCell,
+                          width: "120px",
+                          border: `1px solid ${borderColor}`,
+                        }}
+                      >
+                        Code
+                      </TableCell>
+                      <TableCell
+                        sx={{ ...headCell, border: `1px solid ${borderColor}` }}
+                      >
+                        Subject
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          ...headCell,
+                          width: "200px",
+                          border: `1px solid ${borderColor}`,
+                        }}
+                      >
+                        Faculty
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          ...headCell,
+                          width: "70px",
+                          textAlign: "center",
+                          border: `1px solid ${borderColor}`,
+                        }}
+                      >
+                        Units
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          ...headCell,
+                          width: "120px",
+                          textAlign: "center",
+                          border: `1px solid ${borderColor}`,
+                        }}
+                      >
+                        Section
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          ...headCell,
+                          width: "110px",
+                          textAlign: "center",
+                          border: `1px solid ${borderColor}`,
+                        }}
+                      >
+                        Final Grade
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          ...headCell,
+                          width: "120px",
+                          textAlign: "center",
+                          border: `1px solid ${borderColor}`,
+                        }}
+                      >
+                        Status
+                      </TableCell>
                     </TableRow>
                   </TableHead>
 
                   <TableBody>
                     {termSubjects.map((row, i) => {
-                      row.numeric_grade
-                      row.descriptive_grade
+                      row.numeric_grade;
+                      row.descriptive_grade;
                       return (
                         <TableRow
                           key={i}
@@ -637,36 +741,109 @@ const StudentGradingPage = () => {
                             "&:last-child td": { borderBottom: "none" },
                           }}
                         >
-                          <TableCell sx={{ ...bodyCell, border: `1px solid ${borderColor}`, width: "48px", textAlign: "center", color: subtitleColor, fontSize: 12 }}>
+                          <TableCell
+                            sx={{
+                              ...bodyCell,
+                              border: `1px solid ${borderColor}`,
+                              width: "48px",
+                              textAlign: "center",
+                              color: subtitleColor,
+                              fontSize: 12,
+                            }}
+                          >
                             {i + 1}
                           </TableCell>
-                          <TableCell sx={{ ...bodyCell, border: `1px solid ${borderColor}`, fontWeight: 600, fontSize: 12, color: subtitleColor }}>
+                          <TableCell
+                            sx={{
+                              ...bodyCell,
+                              border: `1px solid ${borderColor}`,
+                              fontWeight: 600,
+                              fontSize: 12,
+                              color: subtitleColor,
+                            }}
+                          >
                             {row.course_code}
                           </TableCell>
-                          <TableCell sx={{ ...bodyCell, border: `1px solid ${borderColor}`, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          <TableCell
+                            sx={{
+                              ...bodyCell,
+                              border: `1px solid ${borderColor}`,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
                             {row.course_description}
                           </TableCell>
-                          <TableCell sx={{ ...bodyCell, border: `1px solid ${borderColor}`, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                            {row.fname === "TBA" && row.lname === "TBA"
-                              ? <span style={{ color: "#9CA3AF", fontStyle: "italic" }}>TBA</span>
-                              : `Prof. ${row.fname} ${row.lname}`}
+                          <TableCell
+                            sx={{
+                              ...bodyCell,
+                              border: `1px solid ${borderColor}`,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {row.fname === "TBA" && row.lname === "TBA" ? (
+                              <span
+                                style={{
+                                  color: "#9CA3AF",
+                                  fontStyle: "italic",
+                                }}
+                              >
+                                TBA
+                              </span>
+                            ) : (
+                              `Prof. ${row.fname} ${row.lname}`
+                            )}
                           </TableCell>
-                          <TableCell sx={{ ...bodyCell, border: `1px solid ${borderColor}`, textAlign: "center", fontWeight: 500 }}>
+                          <TableCell
+                            sx={{
+                              ...bodyCell,
+                              border: `1px solid ${borderColor}`,
+                              textAlign: "center",
+                              fontWeight: 500,
+                            }}
+                          >
                             {getUnitDisplay(row)}
                           </TableCell>
-                          <TableCell sx={{ ...bodyCell, textAlign: "center", border: `1px solid ${borderColor}`, }}>
+                          <TableCell
+                            sx={{
+                              ...bodyCell,
+                              textAlign: "center",
+                              border: `1px solid ${borderColor}`,
+                            }}
+                          >
                             {row.program_code}-{row.section_description}
                           </TableCell>
-                          <TableCell sx={{ ...bodyCell, textAlign: "center", border: `1px solid ${borderColor}` }}>
+                          <TableCell
+                            sx={{
+                              ...bodyCell,
+                              textAlign: "center",
+                              border: `1px solid ${borderColor}`,
+                            }}
+                          >
                             {row.numeric_grade ? (
-                              <span style={{ fontWeight: 700, fontSize: 14, color: titleColor }}>
+                              <span
+                                style={{
+                                  fontWeight: 700,
+                                  fontSize: 14,
+                                  color: titleColor,
+                                }}
+                              >
                                 {row.numeric_grade}
                               </span>
                             ) : (
                               <span style={{ color: "#9CA3AF" }}>—</span>
                             )}
                           </TableCell>
-                          <TableCell sx={{ ...bodyCell, textAlign: "center", border: `1px solid ${borderColor}` }}>
+                          <TableCell
+                            sx={{
+                              ...bodyCell,
+                              textAlign: "center",
+                              border: `1px solid ${borderColor}`,
+                            }}
+                          >
                             <RemarkBadge value={row.en_remarks} />
                           </TableCell>
                         </TableRow>
@@ -680,7 +857,9 @@ const StudentGradingPage = () => {
         })
       ) : (
         <Box sx={{ textAlign: "center", py: 8 }}>
-          <Typography sx={{ color: subtitleColor, fontSize: 14 }}>No grades available.</Typography>
+          <Typography sx={{ color: subtitleColor, fontSize: 14 }}>
+            No grades available.
+          </Typography>
         </Box>
       )}
     </Box>

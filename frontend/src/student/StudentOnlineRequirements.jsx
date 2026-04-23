@@ -80,8 +80,8 @@ const StudentOnlineRequirements = () => {
 
     useEffect(() => {
         const StudentPersonId = localStorage.getItem("person_id");
-        
-        if(!StudentPersonId){
+
+        if (!StudentPersonId) {
             console.log("No Student person id detected.")
         }
 
@@ -137,53 +137,6 @@ const StudentOnlineRequirements = () => {
     const [openModal, setOpenModal] = useState(false);
     const [openConfirmModal, setOpenConfirmModal] = useState(false);
 
-    const fetchUploads = async (personId) => {
-        try {
-            // ✅ Fetch user's uploaded files
-            const res = await axios.get(`${API_BASE_URL}/uploads/${personId}`);
-            const uploadsData = res.data;
-            console.log(uploadsData);
-            setUploads(uploadsData);
-
-            // ✅ Map uploaded files to their requirement IDs
-            const rebuiltSelectedFiles = {};
-            uploadsData.forEach((upload) => {
-                rebuiltSelectedFiles[upload.requirements_id] = upload.original_name;
-            });
-            setSelectedFiles(rebuiltSelectedFiles);
-
-            // ✅ Get all verifiable requirements from DB
-            // ✅ Get ONLY Regular + Verifiable requirements
-            const reqRes = await axios.get(
-                `${API_BASE_URL}/requirements/${personId}`,
-            );
-
-            const verifiableRequirements = reqRes.data.filter(
-                (r) => r.is_verifiable === 1 && r.category === "Main",
-            );
-
-            // ✅ Compare uploaded vs required
-            const uploadedIds = new Set(uploadsData.map((u) => u.requirements_id));
-
-            const allRequiredUploaded =
-                verifiableRequirements.length > 0 &&
-                verifiableRequirements.every((r) => uploadedIds.has(r.id));
-
-            // ✅ Only show Congratulations if all required are uploaded (not every upload)
-            if (!allRequirementsCompleted && allRequiredUploaded) {
-                setOpenConfirmModal(true); // ✅ show REVIEW modal first
-            }
-
-            // ✅ Update completion state
-            setAllRequirementsCompleted(allRequiredUploaded);
-            localStorage.setItem(
-                "requirementsCompleted",
-                allRequiredUploaded ? "1" : "0",
-            );
-        } catch (err) {
-            console.error("❌ Fetch uploads failed:", err);
-        }
-    };
 
     useEffect(() => {
         const completed = localStorage.getItem("requirementsCompleted");
@@ -240,13 +193,18 @@ const StudentOnlineRequirements = () => {
         formData.append("person_id", userID);
 
         try {
-            await axios.post(`${API_BASE_URL}/api/upload`, formData, {
+            await axios.post(`${API_BASE_URL}/api/upload/enrollment`, formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
 
-            fetchStudentDocuments(
-                localStorage.getItem("student_number")
-            );
+            setSnack({
+                open: true,
+                severity: "success",
+                message: "File uploaded successfully",
+            });
+
+            fetchStudentDocuments(localStorage.getItem("person_id"));
+
         } catch (err) {
             console.error("Upload error:", err);
 
@@ -260,19 +218,29 @@ const StudentOnlineRequirements = () => {
 
     const handleDelete = async (uploadId) => {
         try {
-            await axios.delete(`${API_BASE_URL}/uploads/${uploadId}`, {
-                headers: { "x-person-id": userID },
+            await axios.delete(
+                `${API_BASE_URL}/api/student-upload/${uploadId}`
+            );
+
+            setSnack({
+                open: true,
+                severity: "success",
+                message: "File deleted successfully",
             });
 
-            fetchStudentDocuments(
-                localStorage.getItem("student_number")
-            );
+            fetchStudentDocuments(localStorage.getItem("person_id"));
+
         } catch (err) {
             console.error("Delete error:", err);
-            alert("Failed to delete. Please try again.");
+
+            setSnack({
+                open: true,
+                severity: "error",
+                message: "Failed to delete file",
+            });
         }
     };
-
+    
     const isFormValid = () => {
         // ✅ Get MAIN required requirements
         const requiredMain = requirements.filter(
@@ -387,7 +355,7 @@ const StudentOnlineRequirements = () => {
                             >
                                 Browse File
                                 <input
-                                    key={selectedFiles[doc.key] || Date.now()}
+                                    key={selectedFiles[doc.id] || doc.id}
                                     hidden
                                     type="file"
                                     accept=".jpg,.jpeg,.png,.pdf"
@@ -496,48 +464,7 @@ const StudentOnlineRequirements = () => {
                 </Alert>
             </Snackbar>
 
-            <Dialog
-                open={openModal}
-                onClose={() => setOpenModal(false)}
-                maxWidth="sm"
-                fullWidth
-            >
-                <DialogTitle sx={{ fontWeight: "bold", textAlign: "center" }}>
-                    🎉 Application Submitted Successfully!
-                </DialogTitle>
 
-                <DialogContent>
-                    <Typography sx={{ mt: 2, textAlign: "justify", fontSize: "16px" }}>
-                        Congratulations! You have successfully submitted your application to{" "}
-                        <strong>{companyName}</strong>.
-                    </Typography>
-
-                    <Typography sx={{ mt: 2, textAlign: "justify", fontSize: "16px" }}>
-                        Please wait for the <strong>Admission Office</strong> to contact you
-                        regarding the evaluation of your original documents that you
-                        uploaded.
-                    </Typography>
-
-                    <Typography sx={{ mt: 2, textAlign: "justify", fontSize: "15px" }}>
-                        Kindly check your Gmail account and Student Dashboard regularly
-                        for updates regarding your application status.
-                    </Typography>
-                </DialogContent>
-
-                <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
-                    <Button
-                        variant="contained"
-                        onClick={() => setOpenModal(false)}
-                        sx={{
-                            fontWeight: "bold",
-                            textTransform: "none",
-                            minWidth: "120px",
-                        }}
-                    >
-                        Close
-                    </Button>
-                </DialogActions>
-            </Dialog>
 
             <Dialog
                 open={openConfirmModal}
@@ -728,21 +655,21 @@ const StudentOnlineRequirements = () => {
                             lineHeight: 1.6,
                         }}
                     >
-                        <strong style={{ color: "#600000" }}>Notice:</strong> Student's are
-                        required to submit all{" "}
-                        <strong>Main Requirements (required) documents</strong> to proceed
-                        with the application. <strong>Optional documents</strong> are not
-                        required but may be uploaded if available. Only files in{" "}
-                        <strong>JPG, JPEG, PNG, or PDF</strong> format are allowed for
-                        upload. Please make sure that the file you are submitting does not
-                        exceed the <strong>maximum file size of 4 MB</strong>. Any file that
-                        goes beyond the allowed size limit or is not in the required format
-                        will not be accepted by the system.
+                        <strong style={{ color: "#600000" }}>Notice:</strong> Students are required to submit all{" "}
+                        <strong>Main Requirements (required documents)</strong> to complete their enrollment records.
+                        <strong> Optional documents</strong> are not required but may be uploaded if available.
+
+                        Only files in <strong>JPG, JPEG, PNG, or PDF</strong> format are allowed for upload.
+                        Please ensure that the file you are submitting does not exceed the
+                        <strong> maximum file size of 4 MB</strong>. Any file that exceeds the allowed size
+                        limit or is not in the required format will not be accepted by the system.
+
                         <br />
                         <br />
-                        To avoid delays in the processing of your application, kindly review
-                        and verify the file’s format and size before uploading. Thank you
-                        for your cooperation.
+
+                        To avoid delays in the processing of your records, kindly review and verify the file’s
+                        format and size before uploading. Please also ensure that all submitted documents are
+                        clear and legible. Thank you for your cooperation.
                     </Typography>
                 </Box>
             </Box>
@@ -861,7 +788,7 @@ const StudentOnlineRequirements = () => {
                                     {docs.map((doc) =>
                                         renderRow({
                                             id: doc.id,
-                                            label: doc.description,
+                                            description: doc.description,
                                             is_required: doc.is_required,
                                             is_optional: doc.is_optional,
                                             upload_id: doc.upload_id,

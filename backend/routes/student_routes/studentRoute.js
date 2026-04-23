@@ -288,178 +288,142 @@ router.get("/api/student_grade/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
-    const [pending] = await db3.execute(
+    const [[studentInfo]] = await db3.execute(
       `
-      SELECT COUNT(*) AS total_professors
-      FROM enrolled_subject AS es
-      JOIN student_numbering_table AS snt
-        ON es.student_number = snt.student_number
-      WHERE es.fe_status = 0
-      AND snt.person_id = ?
+      SELECT
+        snt.student_number,
+        pt.last_name,
+        pt.first_name,
+        pt.middle_name
+      FROM student_numbering_table AS snt
+      JOIN person_table AS pt
+        ON snt.person_id = pt.person_id
+      WHERE pt.person_id = ?
+      LIMIT 1
       `,
-      [id]
+      [id],
     );
+
+    if (!studentInfo) {
+      return res.status(404).json({
+        error: "Student not found",
+      });
+    }
 
     const [rows] = await db3.execute(
       `
-SELECT DISTINCT
+      SELECT
 
-  ct.course_description,
-  ct.course_code,
-  es.en_remarks,
-  es.remarks,
-  ct.course_unit,
-  ct.lab_unit,
+        ct.course_description,
+        ct.course_code,
+        es.en_remarks,
+        es.remarks,
+        ct.course_unit,
+        ct.lab_unit,
 
-  pgt.program_code,
-  pgt.program_description,
+        pgt.program_code,
+        pgt.program_description,
 
-  st.description AS section_description,
+        st.description AS section_description,
 
-  pft.lname AS prof_lastname,
-  rdt.description AS day_description,
-  tt.school_time_start,
-  tt.school_time_end,
-  rt.room_description,
+        ylt.year_level_description,
+        sst.year_level_id,
 
-  ylt.year_level_description,
-  sst.year_level_id,
+        smt.semester_description,
+        smt.semester_id,
+        yt.year_description,
 
-  smt.semester_description,
-  smt.semester_id,
-  yt.year_description,
+        IFNULL(pft.fname, 'TBA') AS fname,
+        IFNULL(pft.lname, 'TBA') AS lname,
 
-  IFNULL(pft.fname, 'TBA') AS fname,
-  IFNULL(pft.lname, 'TBA') AS lname,
+        -- ✅ ORIGINAL GRADE
+        es.final_grade,
 
-  -- ✅ ORIGINAL GRADE
-  es.final_grade,
+        -- ✅ ADD THESE (FIX)
+        gc_main.equivalent_grade AS numeric_grade,
+        gc_main.descriptive_rating AS descriptive_grade,
 
-  -- ✅ ADD THESE (FIX)
-  gc_main.equivalent_grade AS numeric_grade,
-  gc_main.descriptive_rating AS descriptive_grade,
+        es.fe_status,
+        es.active_school_year_id,
 
-  es.fe_status,
-  es.active_school_year_id,
+        ? AS last_name,
+        ? AS first_name,
+        ? AS middle_name,
 
-  pt.last_name,
-  pt.first_name,
-  pt.middle_name,
+        ? AS student_number,
 
-  snt.student_number,
+        CASE
+          WHEN LOWER(IFNULL(es.remarks, '')) = 'migrated from old system'
+          THEN 1
+          ELSE 0
+        END AS is_migrated
 
-  honors.gwa,
-  honors.honor_title,
+      FROM enrolled_subject AS es
 
-  CASE
-    WHEN LOWER(IFNULL(es.remarks, '')) = 'migrated from old system'
-    THEN 1
-    ELSE 0
-  END AS is_migrated
+      JOIN student_status_table AS sst
+        ON sst.student_number = es.student_number
+        AND sst.active_school_year_id = es.active_school_year_id
 
-FROM enrolled_subject AS es
+      LEFT JOIN dprtmnt_section_table AS dst
+        ON es.department_section_id = dst.id
 
-JOIN student_numbering_table AS snt
-  ON es.student_number = snt.student_number
+      JOIN curriculum_table AS cct
+        ON es.curriculum_id = cct.curriculum_id
 
-JOIN person_table AS pt
-  ON snt.person_id = pt.person_id
+      JOIN program_table AS pgt
+        ON cct.program_id = pgt.program_id
 
-JOIN student_status_table AS sst
-  ON sst.student_number = es.student_number
-  AND sst.active_school_year_id = es.active_school_year_id
+      LEFT JOIN section_table AS st
+        ON dst.section_id = st.id
 
-LEFT JOIN dprtmnt_section_table AS dst
-  ON es.department_section_id = dst.id
+      LEFT JOIN prof_table AS pft
+        ON pft.prof_id = (
+          SELECT tt.professor_id
+          FROM time_table AS tt
+          WHERE tt.course_id = es.course_id
+            AND tt.department_section_id = es.department_section_id
+            AND tt.school_year_id = es.active_school_year_id
+            AND tt.professor_id IS NOT NULL
+          ORDER BY tt.id ASC
+          LIMIT 1
+        )
 
-JOIN curriculum_table AS cct
-  ON es.curriculum_id = cct.curriculum_id
+      JOIN active_school_year_table AS sy
+        ON es.active_school_year_id = sy.id
 
-JOIN program_table AS pgt
-  ON cct.program_id = pgt.program_id
+      JOIN year_table AS yt
+        ON sy.year_id = yt.year_id
 
-LEFT JOIN section_table AS st
-  ON dst.section_id = st.id
+      JOIN semester_table AS smt
+        ON sy.semester_id = smt.semester_id
 
-LEFT JOIN time_table AS tt
-  ON tt.course_id = es.course_id
-  AND tt.department_section_id = es.department_section_id
-  AND tt.school_year_id = es.active_school_year_id
+      JOIN course_table AS ct
+        ON es.course_id = ct.course_id
 
-LEFT JOIN room_day_table AS rdt
-  ON tt.room_day = rdt.id
+      -- ✅ MAIN CONVERSION JOIN
+      LEFT JOIN grade_conversion gc_main
+        ON es.final_grade BETWEEN gc_main.min_score AND gc_main.max_score
 
-LEFT JOIN room_table AS rt
-  ON tt.department_room_id = rt.room_id
+      LEFT JOIN program_tagging_table AS ptg
+        ON ptg.curriculum_id = es.curriculum_id
+        AND ptg.course_id = es.course_id
 
-LEFT JOIN prof_table AS pft
-  ON tt.professor_id = pft.prof_id
+      LEFT JOIN year_level_table AS ylt
+        ON sst.year_level_id = ylt.year_level_id
+      WHERE es.student_number = ?
 
-JOIN active_school_year_table AS sy
-  ON es.active_school_year_id = sy.id
-
-JOIN year_table AS yt
-  ON sy.year_id = yt.year_id
-
-JOIN semester_table AS smt
-  ON sy.semester_id = smt.semester_id
-
-JOIN course_table AS ct
-  ON es.course_id = ct.course_id
-
--- ✅ MAIN CONVERSION JOIN
-LEFT JOIN grade_conversion gc_main
-  ON es.final_grade BETWEEN gc_main.min_score AND gc_main.max_score
-
-LEFT JOIN program_tagging_table AS ptg
-  ON ptg.curriculum_id = es.curriculum_id
-  AND ptg.course_id = es.course_id
-
-LEFT JOIN year_level_table AS ylt
-  ON sst.year_level_id = ylt.year_level_id
-
--- ✅ FIXED SUBQUERY (NO gc_main HERE)
-LEFT JOIN (
-  SELECT 
-    g.student_number,
-    g.year_id,
-    g.semester_id,
-    g.gwa,
-    hr.title AS honor_title
-  FROM (
-    SELECT 
-      es.student_number,
-      sy.year_id,
-      sy.semester_id,
-      AVG(gc.equivalent_grade) AS gwa
-    FROM enrolled_subject es
-    JOIN grade_conversion gc 
-      ON es.final_grade BETWEEN gc.min_score AND gc.max_score
-    JOIN active_school_year_table sy 
-      ON es.active_school_year_id = sy.id
-    WHERE es.final_grade > 0
-    GROUP BY es.student_number, sy.year_id, sy.semester_id
-  ) g
-  LEFT JOIN honors_rules hr
-    ON g.gwa <= hr.max_allowed_grade
-  WHERE hr.max_allowed_grade = (
-    SELECT MIN(max_allowed_grade)
-    FROM honors_rules
-    WHERE g.gwa <= max_allowed_grade
-  )
-) honors
-ON honors.student_number = es.student_number
-AND honors.year_id = sy.year_id
-AND honors.semester_id = sy.semester_id
-
-WHERE pt.person_id = ?
-
-ORDER BY
-  yt.year_description DESC,
-  smt.semester_id DESC,
-  sst.year_level_id DESC;
+      ORDER BY
+        yt.year_description DESC,
+        smt.semester_id DESC,
+        sst.year_level_id DESC;
       `,
-      [id]
+      [
+        studentInfo.last_name,
+        studentInfo.first_name,
+        studentInfo.middle_name,
+        studentInfo.student_number,
+        studentInfo.student_number,
+      ],
     );
 
     if (rows.length === 0) {
@@ -467,6 +431,24 @@ ORDER BY
         error: "Schedule not found",
       });
     }
+
+    const gwaByTerm = rows.reduce((acc, row) => {
+      const grade = Number(row.numeric_grade);
+      if (!Number.isFinite(grade) || grade <= 0) return acc;
+
+      const key = `${row.year_description}-${row.semester_id}`;
+      if (!acc[key]) acc[key] = { total: 0, count: 0 };
+      acc[key].total += grade;
+      acc[key].count += 1;
+      return acc;
+    }, {});
+
+    rows.forEach((row) => {
+      const key = `${row.year_description}-${row.semester_id}`;
+      const term = gwaByTerm[key];
+      row.gwa = term?.count ? term.total / term.count : null;
+      row.honor_title = null;
+    });
 
     res.json(rows);
 
@@ -1290,45 +1272,48 @@ router.get("/api/student-documents/:studentNumber", async (req, res) => {
 
     const [rows] = await db3.execute(
       `
-     SELECT 
-      snt.student_number,
+    SELECT 
+  snt.student_number,
 
-      -- PERSON INFO
-      pt.person_id,
-      pt.first_name,
-      pt.middle_name,
-      pt.last_name,
-      pt.profile_img,
-      pt.emailAddress,
+  pt.person_id,
+  pt.first_name,
+  pt.middle_name,
+  pt.last_name,
+  pt.applyingAs,
+  pt.profile_img,
+  pt.emailAddress,
 
-      -- REQUIREMENT INFO
-      rt.id AS requirements_id,
-      rt.description,
-      rt.category,
-      rt.is_optional,
+  rt.id AS requirements_id,
+  rt.description,
+  rt.category,
+  rt.is_optional,
 
-      -- UPLOAD INFO
-      ru.upload_id,
-      ru.original_name,
-      ru.file_path,
-      ru.remarks,
-      ru.status,
-      ru.document_status,
-      ru.missing_documents,
-      ru.registrar_status,
-      ru.created_at
+  ru.upload_id,
+  ru.original_name,
+  ru.file_path,
+  ru.remarks,
+  ru.status,
+  ru.document_status,
+  ru.missing_documents,
+  ru.registrar_status,
+  ru.created_at
 
-  FROM student_numbering_table snt
+FROM student_numbering_table snt
 
-  INNER JOIN person_table pt
-    ON snt.person_id = pt.person_id
-  INNER JOIN requirements_table rt
-    ON pt.applyingAs = rt.applicant_type
-  INNER JOIN requirement_uploads ru
-    ON ru.person_id = pt.person_id
-  WHERE snt.person_id = ? AND pt.applyingAs = rt.applicant_type 
+INNER JOIN person_table pt
+  ON snt.person_id = pt.person_id
+
+INNER JOIN requirements_table rt
+  ON pt.applyingAs = rt.applicant_type 
   OR rt.applicant_type = 0
-  ORDER BY rt.category, rt.description;
+
+LEFT JOIN requirement_uploads ru
+  ON ru.person_id = pt.person_id 
+  AND ru.requirements_id = rt.id
+
+WHERE snt.person_id = ?
+
+ORDER BY rt.category, rt.description;
       `,
       [studentNumber]
     );
@@ -1350,47 +1335,172 @@ router.get("/api/student-documents/:studentNumber", async (req, res) => {
   }
 });
 
-router.post("/api/upload", upload.single("file"), async (req, res) => {
-  try {
-    const file = req.file;
-    const { requirements_id, person_id } = req.body;
+router.post("/api/upload/enrollment", upload.single("file"), async (req, res) => {
+  const { requirements_id, person_id, remarks } = req.body;
 
-    if (!file) {
-      return res.status(400).json({
-        error: "No file uploaded",
-      });
+  if (!requirements_id || !person_id || !req.file) {
+    return res.status(400).json({ error: "Missing required fields or file" });
+  }
+
+  try {
+    // ✅ Get student info (instead of applicant)
+    const [[studentInfo]] = await db3.query(
+      `
+      SELECT snt.student_number, pt.last_name, pt.first_name, pt.middle_name
+      FROM student_numbering_table snt
+      JOIN person_table pt ON snt.person_id = pt.person_id
+      WHERE snt.person_id = ?
+      `,
+      [person_id]
+    );
+
+    const student_number = studentInfo?.student_number || "Unknown";
+
+    // ✅ Get requirement info
+    const [descRows] = await db3.query(
+      "SELECT description, short_label FROM requirements_table WHERE id = ?",
+      [requirements_id]
+    );
+
+    if (!descRows.length) {
+      return res.status(404).json({ message: "Requirement not found" });
     }
 
-    await db3.execute(
-      `
-      INSERT INTO requirement_uploads (
-        requirements_id,
-        person_id,
-        original_name,
-        file_path,
-        status,
-        created_at
-      )
-      VALUES (?, ?, ?, ?, 0, NOW())
-      `,
+    const { short_label } = descRows[0];
+
+    const year = new Date().getFullYear();
+    const ext = path.extname(req.file.originalname).toLowerCase();
+
+    // ✅ Filename
+    const filename = `${student_number}_${short_label}_${year}${ext}`;
+
+    // ✅ New folder
+    const uploadDir = path.join(
+      __dirname,
+      "..",
+      "..",
+      "uploads",
+      "StudentOnlineDocuments"
+    );
+
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    const finalPath = path.join(uploadDir, filename);
+
+    // ✅ Delete old file (same logic as main API)
+    const [existingFiles] = await db3.query(
+      `SELECT upload_id, file_path FROM requirement_uploads
+       WHERE person_id = ? AND requirements_id = ?`,
+      [person_id, requirements_id]
+    );
+
+    for (const file of existingFiles) {
+      const oldPath = path.join(
+        __dirname,
+        "..",
+        "..",
+        "uploads",
+        "StudentOnlineDocuments",
+        file.file_path
+      );
+
+      try {
+        await fs.promises.unlink(oldPath);
+      } catch (err) {
+        if (err.code !== "ENOENT") {
+          console.warn("Delete warning:", err.message);
+        }
+      }
+
+      await db3.query(
+        "DELETE FROM requirement_uploads WHERE upload_id = ?",
+        [file.upload_id]
+      );
+    }
+
+    // ✅ Save file
+    await fs.promises.writeFile(finalPath, req.file.buffer);
+
+    // ✅ Insert DB
+    await db3.query(
+      `INSERT INTO requirement_uploads
+        (requirements_id, person_id, file_path, original_name, status, remarks)
+       VALUES (?, ?, ?, ?, 0, ?)`,
       [
         requirements_id,
         person_id,
-        file.originalname,
-        file.filename,
+        filename,
+        req.file.originalname,
+        remarks || null,
       ]
     );
 
-    res.json({
+    res.status(201).json({ message: "Enrollment upload successful" });
+
+  } catch (err) {
+    console.error("Enrollment upload error:", err);
+    res.status(500).json({
+      error: "Failed to upload",
+      details: err.message,
+    });
+  }
+});
+
+router.delete("/api/student-upload/:uploadId", async (req, res) => {
+  const { uploadId } = req.params;
+
+  try {
+    // 1. Get file info
+    const [rows] = await db3.query(
+      "SELECT file_path FROM requirement_uploads WHERE upload_id = ?",
+      [uploadId]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    const filePath = rows[0].file_path;
+
+    // 2. Correct folder (StudentOnlineDocuments)
+    const fullPath = path.join(
+      __dirname,
+      "..",
+      "..",
+      "uploads",
+      "StudentOnlineDocuments",
+      filePath
+    );
+
+    // 3. Delete file
+    try {
+      await fs.promises.unlink(fullPath);
+    } catch (err) {
+      if (err.code !== "ENOENT") {
+        console.warn("File delete warning:", err.message);
+      }
+    }
+
+    // 4. Delete DB record
+    await db3.query(
+      "DELETE FROM requirement_uploads WHERE upload_id = ?",
+      [uploadId]
+    );
+
+    res.status(200).json({
       success: true,
-      message: "File uploaded successfully",
+      message: "Student file deleted successfully",
     });
 
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error("Student delete error:", err);
 
     res.status(500).json({
-      error: "Upload failed",
+      success: false,
+      message: "Delete failed",
+      error: err.message,
     });
   }
 });

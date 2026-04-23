@@ -367,8 +367,13 @@ const PageCRUD = () => {
                         </TableHead>
                         <TableBody>
                             {pages.length > 0 ? (
-                                pages.map((page) => (
-                                    <TableRow key={page.id} hover>
+                                pages.map((page, i) => (
+                                    <TableRow
+                                        key={page.id}
+                                        sx={{
+                                            backgroundColor: i % 2 === 0 ? "#ffffff" : "lightgray",
+                                        }}
+                                    >
                                         <TableCell style={{ border: `1px solid ${borderColor}` }}>
                                             {page.id}
                                         </TableCell>
@@ -515,8 +520,8 @@ const PageCRUD = () => {
 
                 <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 2 }}>
                     <Button onClick={handleClose}
-                    color="error"
-            variant="outlined"
+                        color="error"
+                        variant="outlined"
 
                     >
                         Cancel

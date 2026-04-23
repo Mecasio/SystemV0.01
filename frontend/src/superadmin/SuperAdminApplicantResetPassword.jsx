@@ -592,7 +592,12 @@ const SuperAdminApplicantResetPassword = () => {
               </TableRow>
             ) : (
               currentRows.map((applicant, index) => (
-                <TableRow key={index}>
+                <TableRow
+                  key={index}
+                  sx={{
+                    backgroundColor: index % 2 === 0 ? "#ffffff" : "lightgray", // 👈 alternating
+                  }}
+                >
                   <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>
                     {indexOfFirstRow + index + 1}
                   </TableCell>

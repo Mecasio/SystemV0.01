@@ -300,10 +300,10 @@ const SuperAdminStudentResetPassword = () => {
   const totalPages = Math.ceil(students.length / rowsPerPage);
 
   const indexOfLast = currentPage * rowsPerPage;
-  const indexOfFirst = indexOfLast - rowsPerPage;
+  const indexOfFirstRow = indexOfLast - rowsPerPage;
 
   const currentRows =
-    students.slice(indexOfFirst, indexOfLast);
+    students.slice(indexOfFirstRow, indexOfLast);
 
 
   /* =====================================
@@ -619,11 +619,14 @@ const SuperAdminStudentResetPassword = () => {
             ) : (
 
               currentRows.map((s, i) => (
-
-                <TableRow key={i}>
-
+                <TableRow
+                  key={i}
+                  sx={{
+                    backgroundColor: i % 2 === 0 ? "#ffffff" : "lightgray",
+                  }}
+                >
                   <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>
-                    {indexOfFirst + i + 1}
+                    {indexOfFirstRow + i + 1}
                   </TableCell>
 
                   <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>
@@ -825,7 +828,7 @@ const SuperAdminStudentResetPassword = () => {
             label="Birthdate"
             value={userInfo?.birthdate || ""}
             InputProps={{ readOnly: true }}
-           />
+          />
 
           <TextField
             select

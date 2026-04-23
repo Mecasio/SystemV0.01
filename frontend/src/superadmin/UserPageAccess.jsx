@@ -460,10 +460,10 @@ const UserPageAccess = () => {
         prev.map((level) =>
           Number(level.access_id) === Number(editAccessId)
             ? {
-                ...level,
-                access_description: editAccessDescription,
-                access_page: selectedPages,
-              }
+              ...level,
+              access_description: editAccessDescription,
+              access_page: selectedPages,
+            }
             : level,
         ),
       );
@@ -941,8 +941,14 @@ const UserPageAccess = () => {
             </TableHead>
 
             <TableBody>
-              {paginatedUsers.map((u, p) => (
-                <TableRow key={u.id}>
+              {paginatedUsers.map((u, i) => (
+
+                <TableRow
+                  key={u.id}
+                  sx={{
+                    backgroundColor: i % 2 === 0 ? "#ffffff" : "lightgray",
+                  }}
+                >
                   <TableCell
                     sx={{
                       color: "black",
@@ -1446,7 +1452,7 @@ const UserPageAccess = () => {
 
         <DialogActions>
           <Button
-         color="error"
+            color="error"
             variant="outlined"
             onClick={() => setOpenModal(false)}
           >
@@ -1553,7 +1559,7 @@ const UserPageAccess = () => {
 
         <DialogActions>
           <Button
-          color="error"
+            color="error"
             variant="outlined"
             onClick={() => setOpenCreateModal(false)}
           >
@@ -1699,7 +1705,7 @@ const UserPageAccess = () => {
 
         <DialogActions>
           <Button
-         color="error"
+            color="error"
             variant="outlined"
             onClick={() => setOpenEditAccessModal(false)}
           >

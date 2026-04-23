@@ -1,6 +1,6 @@
 const express = require("express");
 const { db, db3 } = require("../database/database");
-
+const bcrypt = require("bcryptjs");
 const router = express.Router();
 
 // Applicant Change Password

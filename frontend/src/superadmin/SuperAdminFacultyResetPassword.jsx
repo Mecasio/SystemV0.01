@@ -479,7 +479,12 @@ const SuperAdminFacultyResetPassword = () => {
 
           <TableBody>
             {currentRows.map((f, index) => (
-              <TableRow key={index}>
+              <TableRow
+                key={index}
+                sx={{
+                  backgroundColor: index % 2 === 0 ? "#ffffff" : "lightgray", // 👈 alternating
+                }}
+              >
                 <TableCell align="center" sx={{ border: `1px solid ${borderColor}`, textAlign: "center", }}>{indexOfFirstRow + index + 1}</TableCell>
                 <TableCell align="center" sx={{ border: `1px solid ${borderColor}`, textAlign: "center", }}>{f.employee_id}</TableCell>
 

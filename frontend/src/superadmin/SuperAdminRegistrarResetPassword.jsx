@@ -537,7 +537,12 @@ const SuperAdminRegistrarResetPassword = () => {
           {/* BODY */}
           <TableBody>
             {currentRows.map((r, index) => (
-              <TableRow key={index}>
+              <TableRow
+                key={index}
+                sx={{
+                  backgroundColor: index % 2 === 0 ? "#ffffff" : "lightgray", // 👈 alternating
+                }}
+              >
                 <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>{indexOfFirstRow + index + 1}</TableCell>
 
                 <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>{r.employee_id}</TableCell>
