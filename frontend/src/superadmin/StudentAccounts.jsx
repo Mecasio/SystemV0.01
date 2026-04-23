@@ -1015,7 +1015,7 @@ export default function StudentAccounts() {
                                             onClick={() => handleOpen(row)}
                                             sx={{ minWidth: 140, height: 40 }}
                                         >
-                                            Manage
+                                           SEND EMAIL
                                         </Button>
                                     </TableCell>
 
