@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useContext, useRef } from "react";
+import React, {
+    useState,
+    useEffect,
+    useContext,
+    useCallback,
+    useMemo
+} from "react";
 import { SettingsContext } from "../App";
 import axios from "axios";
 import {
@@ -8,7 +14,6 @@ import {
     TableHead,
     TableRow,
     TableContainer,
-    Paper,
     Typography,
     Box,
     Button,
@@ -30,7 +35,7 @@ import {
     Snackbar,
     Alert
 } from "@mui/material";
-import CancelIcon from "@mui/icons-material/Cancel";
+
 import PrintIcon from "@mui/icons-material/Print";
 import VpnKeyIcon from "@mui/icons-material/VpnKey";
 import SendIcon from "@mui/icons-material/Send";
@@ -100,9 +105,16 @@ export default function StudentAccounts() {
     });
 
 
-    const branchMap = React.useMemo(() => {
+    const branchMap = useMemo(() => {
         return branches.reduce((acc, branch) => {
             acc[branch.id] = branch.branch;
+            return acc;
+        }, {});
+    }, [branches]);
+
+    const branchAddressMap = useMemo(() => {
+        return branches.reduce((acc, branch) => {
+            acc[branch.id] = branch.address;
             return acc;
         }, {});
     }, [branches]);
@@ -124,6 +136,7 @@ export default function StudentAccounts() {
 
     const [hasAccess, setHasAccess] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [listLoading, setListLoading] = useState(false);
 
 
     const pageId = 143;
@@ -180,10 +193,12 @@ export default function StudentAccounts() {
     const [open, setOpen] = useState(false);
     const [email, setEmail] = useState("");
     const [generatedPassword, setGeneratedPassword] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
 
 
 
-    const fetchPersons = async () => {
+    const fetchPersons = useCallback(async (signal) => {
+        setListLoading(true);
         try {
             const res = await axios.get(
                 `${API_BASE_URL}/api/student_list`,
@@ -192,7 +207,8 @@ export default function StudentAccounts() {
                         page: currentPage,
                         limit: 100,
                         search: searchQuery
-                    }
+                    },
+                    signal
                 }
             );
 
@@ -201,49 +217,38 @@ export default function StudentAccounts() {
             setTotalStudents(res.data.total);
 
         } catch (err) {
+            if (axios.isCancel(err) || err.name === "CanceledError") {
+                return;
+            }
             console.error(err);
+        } finally {
+            if (!signal?.aborted) {
+                setListLoading(false);
+            }
         }
-    };
+    }, [currentPage, searchQuery]);
 
     const [totalPages, setTotalPages] = useState(1);
     const [totalStudents, setTotalStudents] = useState(0);
 
-    const handleOpen = async (person) => {
-        try {
-            setLoading(true);
+    const handleOpen = (person) => {
+        const selectedData = person;
 
-            const res = await axios.get(
-                `${API_BASE_URL}/api/student_list/${person.student_number}`
-            );
+        setSelectedPerson(selectedData);
 
-            let selectedData;
+        // ✅ AUTO-FILL EXISTING EMAIL
+        setEmail(selectedData.emailAddress || "");
 
-            if (res.data.length > 0) {
-                selectedData = res.data[0];
-            } else {
-                selectedData = person;
-            }
+        setGeneratedPassword("");
 
-            setSelectedPerson(selectedData);
-
-            // ✅ AUTO-FILL EXISTING EMAIL
-            setEmail(selectedData.emailAddress || "");
-
-            setGeneratedPassword("");
-
-            setOpen(true);
-
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
+        setOpen(true);
     };
 
 
     const printAccountSlip = (student, password, email) => {
+        const branchAddress = branchAddressMap[student?.campus];
         const resolvedCampusAddress =
-            campusAddress || "No address set in Settings";
+            branchAddress || campusAddress || "No address set in Settings";
 
         const logoSrc = fetchedLogo || EaristLogo;
         const name = companyName?.trim() || "";
@@ -492,23 +497,30 @@ export default function StudentAccounts() {
     };
 
 
-    const [searchQuery, setSearchQuery] = useState("");
-
-
     useEffect(() => {
+        if (!hasAccess) return undefined;
+
+        const controller = new AbortController();
         const timeout = setTimeout(() => {
-            fetchPersons();
+            fetchPersons(controller.signal);
         }, 500);
 
-        return () => clearTimeout(timeout);
-    }, [currentPage, searchQuery]);
+        return () => {
+            clearTimeout(timeout);
+            controller.abort();
+        };
+    }, [fetchPersons, hasAccess]);
 
 
     const startIndex =
         (currentPage - 1) *
         rowsPerPage;
 
-    const currentData = persons || [];
+    const currentData = useMemo(() => persons || [], [persons]);
+    const pageOptions = useMemo(
+        () => Array.from({ length: totalPages }, (_, i) => i + 1),
+        [totalPages]
+    );
 
     const paginationButtonStyle = {
         minWidth: 70,
@@ -540,8 +552,8 @@ export default function StudentAccounts() {
     };
 
     // Put this at the very bottom before the return
-    if (loading || hasAccess === null) {
-        return <LoadingOverlay open={loading} message="Loading..." />;
+    if (hasAccess === null) {
+        return <LoadingOverlay open={true} message="Loading..." />;
     }
 
     if (!hasAccess) {
@@ -550,6 +562,8 @@ export default function StudentAccounts() {
 
     return (
         <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
+
+            <LoadingOverlay open={loading} message="Loading..." />
 
 
 
@@ -707,19 +721,14 @@ export default function StudentAccounts() {
                                                     }
                                                 }}
                                             >
-                                                {Array.from(
-                                                    {
-                                                        length: totalPages
-                                                    },
-                                                    (_, i) => (
-                                                        <MenuItem
-                                                            key={i + 1}
-                                                            value={i + 1}
-                                                        >
-                                                            Page {i + 1}
-                                                        </MenuItem>
-                                                    )
-                                                )}
+                                                {pageOptions.map((page) => (
+                                                    <MenuItem
+                                                        key={page}
+                                                        value={page}
+                                                    >
+                                                        Page {page}
+                                                    </MenuItem>
+                                                ))}
                                             </Select>
                                         </FormControl>
 
@@ -876,7 +885,33 @@ export default function StudentAccounts() {
 
                     <TableBody>
 
-                        {currentData.map(
+                        {listLoading ? (
+                            <TableRow>
+                                <TableCell
+                                    colSpan={8}
+                                    sx={{
+                                        border: `1px solid ${borderColor}`,
+                                        textAlign: "center",
+                                        py: 4
+                                    }}
+                                >
+                                    Loading students...
+                                </TableCell>
+                            </TableRow>
+                        ) : currentData.length === 0 ? (
+                            <TableRow>
+                                <TableCell
+                                    colSpan={8}
+                                    sx={{
+                                        border: `1px solid ${borderColor}`,
+                                        textAlign: "center",
+                                        py: 4
+                                    }}
+                                >
+                                    No students found.
+                                </TableCell>
+                            </TableRow>
+                        ) : currentData.map(
                             (row, index) => (
 
                                 <TableRow
@@ -977,10 +1012,10 @@ export default function StudentAccounts() {
                                             variant="contained"
                                             color="success"
                                             size="small"
-                                            onClick={handleNotify}
+                                            onClick={() => handleOpen(row)}
                                             sx={{ minWidth: 140, height: 40 }}
                                         >
-                                            Send
+                                            Manage
                                         </Button>
                                     </TableCell>
 
@@ -1084,19 +1119,14 @@ export default function StudentAccounts() {
                                                 }
                                                 sx={paginationSelectStyle}
                                             >
-                                                {Array.from(
-                                                    {
-                                                        length: totalPages
-                                                    },
-                                                    (_, i) => (
-                                                        <MenuItem
-                                                            key={i + 1}
-                                                            value={i + 1}
-                                                        >
-                                                            Page {i + 1}
-                                                        </MenuItem>
-                                                    )
-                                                )}
+                                                {pageOptions.map((page) => (
+                                                    <MenuItem
+                                                        key={page}
+                                                        value={page}
+                                                    >
+                                                        Page {page}
+                                                    </MenuItem>
+                                                ))}
                                             </Select>
                                         </FormControl>
 
@@ -1307,12 +1337,8 @@ export default function StudentAccounts() {
                         color="error"
                         variant="outlined"
 
-                        startIcon={<CancelIcon />}
-                        sx={{
-                            fontWeight: 600,
-                            borderRadius: 2,
-                            minWidth: 110
-                        }}
+
+
                     >
                         Cancel
                     </Button>

@@ -21,7 +21,8 @@ const transporter = nodemailer.createTransport({
 router.get("/student_list", async (req, res) => {
   try {
     const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 100;
+    const requestedLimit = Number(req.query.limit) || 100;
+    const limit = Math.min(Math.max(requestedLimit, 1), 200);
     const search = req.query.search?.trim() || "";
 
     const offset = (page - 1) * limit;
@@ -43,42 +44,77 @@ router.get("/student_list", async (req, res) => {
     }
 
     // ✅ MAIN QUERY (FILTER FIRST, LESS JOINS)
-    const sql = `
-      SELECT DISTINCT
+    const listSql = `
+      SELECT
         snt.student_number,
         pt.campus,
         pt.person_id,
         pt.last_name,
         pt.first_name,
         pt.middle_name,
-        pt.emailAddress,
-        pgt.program_code,
-        pgt.program_id,
-        pgt.program_description,
-        pgt.major,
-        dt.dprtmnt_name,
-        dt.dprtmnt_id
+        pt.emailAddress
       FROM student_numbering_table snt
-      INNER JOIN person_table pt 
+      INNER JOIN person_table pt
         ON snt.person_id = pt.person_id
-
-      LEFT JOIN enrolled_subject es
-        ON es.student_number = snt.student_number
-      LEFT JOIN curriculum_table ct 
-        ON es.curriculum_id = ct.curriculum_id
-      LEFT JOIN program_table pgt 
-        ON ct.program_id = pgt.program_id
-      LEFT JOIN dprtmnt_curriculum_table dct 
-        ON ct.curriculum_id = dct.curriculum_id
-      LEFT JOIN dprtmnt_table dt 
-        ON dct.dprtmnt_id = dt.dprtmnt_id
-
       ${whereClause}
       ORDER BY snt.student_number ASC
       LIMIT ? OFFSET ?
     `;
 
-    const [rows] = await db3.query(sql, [...params, limit, offset]);
+    const [students] = await db3.query(listSql, [...params, limit, offset]);
+    let rows = students;
+
+    if (students.length > 0) {
+      const studentNumbers = students.map((student) => student.student_number);
+      const placeholders = studentNumbers.map(() => "?").join(", ");
+
+      const metadataSql = `
+        SELECT
+          latest.student_number,
+          pgt.program_code,
+          pgt.program_id,
+          pgt.program_description,
+          pgt.major,
+          dt.dprtmnt_name,
+          dt.dprtmnt_id
+        FROM (
+          SELECT
+            es.student_number,
+            MAX(es.id) AS enrolled_subject_id
+          FROM enrolled_subject es
+          WHERE es.student_number IN (${placeholders})
+          GROUP BY es.student_number
+        ) latest
+        INNER JOIN enrolled_subject es
+          ON es.id = latest.enrolled_subject_id
+        LEFT JOIN curriculum_table ct
+          ON es.curriculum_id = ct.curriculum_id
+        LEFT JOIN program_table pgt
+          ON ct.program_id = pgt.program_id
+        LEFT JOIN dprtmnt_curriculum_table dct
+          ON ct.curriculum_id = dct.curriculum_id
+        LEFT JOIN dprtmnt_table dt
+          ON dct.dprtmnt_id = dt.dprtmnt_id
+      `;
+
+      const [metadataRows] = await db3.query(metadataSql, studentNumbers);
+      const metadataByStudentNumber = new Map(
+        metadataRows.map((row) => [row.student_number, row]),
+      );
+
+      rows = students.map((student) => {
+        const metadata = metadataByStudentNumber.get(student.student_number);
+        return {
+          ...student,
+          program_code: metadata?.program_code || null,
+          program_id: metadata?.program_id || null,
+          program_description: metadata?.program_description || null,
+          major: metadata?.major || null,
+          dprtmnt_name: metadata?.dprtmnt_name || null,
+          dprtmnt_id: metadata?.dprtmnt_id || null,
+        };
+      });
+    }
 
     // ✅ LIGHTWEIGHT COUNT (no heavy joins)
     let countSql = `
@@ -113,7 +149,7 @@ router.get("/student_list/:student_number", async (req, res) => {
   try {
 
     const sql = `
-SELECT DISTINCT
+SELECT
     snt.student_number,
     pt.person_id,
     pt.last_name,
@@ -131,7 +167,11 @@ INNER JOIN person_table pt
 ON snt.person_id = pt.person_id
 
 LEFT JOIN enrolled_subject es
-ON es.student_number = snt.student_number
+ON es.id = (
+    SELECT MAX(es2.id)
+    FROM enrolled_subject es2
+    WHERE es2.student_number = snt.student_number
+)
 
 LEFT JOIN curriculum_table ct
 ON es.curriculum_id = ct.curriculum_id
@@ -145,16 +185,12 @@ ON ct.curriculum_id = dct.curriculum_id
 LEFT JOIN dprtmnt_table dt
 ON dct.dprtmnt_id = dt.dprtmnt_id
 
-LEFT JOIN (
-    SELECT student_number,
-           MAX(id) AS max_id
-    FROM student_status_table
-    GROUP BY student_number
-) latest
-ON latest.student_number = snt.student_number
-
 LEFT JOIN student_status_table sts
-ON sts.id = latest.max_id
+ON sts.id = (
+    SELECT MAX(sst.id)
+    FROM student_status_table sst
+    WHERE sst.student_number = snt.student_number
+)
 
 LEFT JOIN year_level_table ylt
 ON sts.year_level_id = ylt.year_level_id

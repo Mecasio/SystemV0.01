@@ -762,8 +762,9 @@ const EvaluatorApplicantList = () => {
                   onClick={() => {
                     setOpenDeleteDialog(false);
                     setApplicantToDelete(null);
-             color="error"
-            variant="outlined"
+                    color = "error"
+                    variant = "outlined"
+
                   }}
 
                 >

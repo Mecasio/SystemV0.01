@@ -172,7 +172,7 @@ const Register = () => {
       });
       return;
     }
-    
+
     if (!emailRegex.test(usersData.email)) {
       setSnack({
         open: true,
@@ -556,7 +556,7 @@ const Register = () => {
                   <option value="">Select Campus</option>
                   {branches.map((b) => (
                     <option key={b.id} value={b.id}>
-                      {b.branch} 
+                      {b.branch}
                     </option>
                   ))}
                 </select>
@@ -861,7 +861,11 @@ const Register = () => {
                     This field is required
                   </span>
                 )}
+                <span style={{ fontSize: "14px", color: "red", mt: 1 }}>
+                  Note: Each email can only be used once. Use a valid and unused Gmail account.
+                </span>
               </div>
+
 
               <div className="TextField" style={{ position: "relative" }}>
                 <label htmlFor="password">Password</label>
@@ -1000,8 +1004,7 @@ const Register = () => {
                   }
                   label={
                     <Typography sx={{ fontSize: "14px" }}>
-                      Please check the box to confirm that you have read and accepted the
-                      EARIST requirements before proceeding with the online application.
+                      In order to proceed to the online application, please indicate by checking the box that you have read and agreed to EARIST requirements.
                     </Typography>
                   }
                 />
@@ -1372,7 +1375,7 @@ const Register = () => {
               <Typography sx={dialogStyles.contentTextCenter}>
                 Registration Hours:
                 <br />
-                <strong style={{fontSize: "32px",}}>
+                <strong style={{ fontSize: "32px", }}>
                   {new Date(selectedBranch.start_date)
                     .toLocaleTimeString("en-US", {
                       hour: "numeric",

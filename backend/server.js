@@ -84,6 +84,7 @@ const applicantFormRoute = require("./routes/applicant_routes/applicantFormRoute
 const examPermit = require("./routes/applicant_routes/examPermitRoute");
 const studentRoute = require("./routes/student_routes/studentRoute");
 const adminRoute = require("./routes/admin_routes/registrarRoute");
+const signature = require("./routes/admin_routes/signature");
 const facultyRoute = require("./routes/faculty_routes/facultyRoute");
 const programTagging = require("./routes/system_routes/programTaggingRoute");
 const coursePanel = require("./routes/system_routes/coursePanelRoute");
@@ -150,6 +151,7 @@ app.use("/", userPageAccess);
 app.use("/", programRoute);
 app.use("/auth/", authRoute);
 app.use("/api/", accessRoutes);
+app.use("/", signature);
 app.use("/form/", applicantFormRoute);
 app.use("/exampermit/", examPermit);
 app.use("/", studentRoute);

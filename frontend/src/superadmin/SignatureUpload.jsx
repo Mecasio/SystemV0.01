@@ -7,8 +7,10 @@ import {
     CardContent,
     TextField,
     Typography,
-    CircularProgress
+    CircularProgress,
+    Alert
 } from "@mui/material";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 import { SettingsContext } from "../App";
@@ -220,19 +222,41 @@ const SignatureUpload = () => {
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
 
-            <Box display="flex" flexDirection="column" alignItems="center" mt={5} gap={4}>
+            <Box
+                sx={{
+                    maxWidth: 600,
+                    mx: "auto",
+                    mt: 4
+                }}
+            >
+                <Card
+                    sx={{
+                        borderRadius: 3,
+                        boxShadow: 3,
+                        border: `1px solid ${borderColor}`
+                    }}
+                >
+                    <CardContent sx={{ p: 4 }}>
+                        <Typography
+                            variant="h5"
+                            sx={{ fontWeight: "bold", mb: 1, color: titleColor }}
+                        >
+                            Upload Signature
+                        </Typography>
 
-                {/* ====== Upload Form Card ====== */}
-                <Card sx={{ width: 420 }}>
-                    <CardContent>
-                        <Typography variant="h6">Upload Signature</Typography>
+                        <Typography
+                            variant="body2"
+                            sx={{ mb: 3, color: subtitleColor }}
+                        >
+                            Upload your official signature to be used in documents.
+                        </Typography>
 
                         <Box
                             component="form"
                             onSubmit={handleSubmit}
                             display="flex"
                             flexDirection="column"
-                            gap={2}
+                            gap={3}
                         >
                             <TextField
                                 label="Full Name"
@@ -241,58 +265,109 @@ const SignatureUpload = () => {
                                 fullWidth
                             />
 
-                            <Button variant="outlined" component="label">
-                                Choose Signature Image
+                            {/* Upload Box */}
+                            <Box
+                                sx={{
+                                    border: `2px dashed ${borderColor}`,
+                                    borderRadius: 2,
+                                    p: 3,
+                                    textAlign: "center",
+                                    cursor: "pointer",
+                                    transition: "0.2s",
+                                    "&:hover": {
+                                        backgroundColor: "#f9f9f9"
+                                    }
+                                }}
+                                component="label"
+                            >
+                                <UploadFileIcon sx={{ fontSize: 40, mb: 1 }} />
+
+                                <Typography variant="body2">
+                                    {signature ? signature.name : "Click to upload signature"}
+                                </Typography>
+
                                 <input
                                     type="file"
                                     hidden
                                     accept="image/*"
                                     onChange={(e) => setSignature(e.target.files[0])}
                                 />
+                            </Box>
+
+                            {/* Preview */}
+                            {signature && (
+                                <Box
+                                    component="img"
+                                    src={URL.createObjectURL(signature)}
+                                    alt="Preview"
+                                    sx={{
+                                        width: "100%",
+                                        maxHeight: 150,
+                                        objectFit: "contain",
+                                        border: "1px solid #ddd",
+                                        borderRadius: 2,
+                                        p: 1
+                                    }}
+                                />
+                            )}
+
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                disabled={loading || !fullName || !signature}
+                                sx={{
+                                    backgroundColor: mainButtonColor,
+                                    py: 1.5,
+                                    fontWeight: "bold",
+                                    borderRadius: 2
+                                }}
+                            >
+                                {loading ? <CircularProgress size={24} /> : "Upload Signature"}
                             </Button>
 
-                            <Button type="submit" variant="contained" disabled={loading}>
-                                {loading ? <CircularProgress size={24} /> : "Submit"}
-                            </Button>
-
-                            {message && <Typography>{message}</Typography>}
+                            {message && (
+                                <Alert severity={message.includes("success") ? "success" : "error"}>
+                                    {message}
+                                </Alert>
+                            )}
                         </Box>
                     </CardContent>
                 </Card>
 
-                {/* ====== Display Uploaded Signature Card ====== */}
+                {/* Display Saved Signature */}
                 {dbSignature && (
-                    <Card sx={{ width: 420 }}>
+                    <Card
+                        sx={{
+                            mt: 3,
+                            borderRadius: 3,
+                            boxShadow: 2,
+                             border: `1px solid ${borderColor}`
+                        }}
+                    >
                         <CardContent>
-                            <Box
-                                display="flex"
-                                alignItems="center"
-                                justifyContent="space-between"
-                                gap={2}
-                            >
-                                {/* Left: Full Name */}
-                                <Typography variant="subtitle1" sx={{ flex: 1 }}>
-                                    Name: <strong>{dbSignature.full_name}</strong>
-                                </Typography>
+                            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                                Saved Signature
+                            </Typography>
 
-                                {/* Right: Signature Image */}
-                                <Box
-                                    component="img"
-                                    src={`${API_BASE_URL}/uploads/${dbSignature.signature_image}`}
-                                    alt="Signature"
-                                    sx={{
-                                        width: 200,
-                                        maxHeight: 120,
-                                        objectFit: "contain",
-                                        border: "1px solid #ccc",
-                                        borderRadius: 1,
-                                        p: 1
-                                    }}
-                                />
-                            </Box>
+                            <Typography sx={{ mb: 2 }}>
+                                <strong>{dbSignature.full_name}</strong>
+                            </Typography>
+
+                            <Box
+                                component="img"
+                                src={`${API_BASE_URL}/uploads/${dbSignature.signature_image}`}
+                                alt="Signature"
+                                sx={{
+                                    width: "100%",
+                                    maxHeight: 150,
+                                    objectFit: "contain",
+                                    border: "1px solid #ccc",
+                                    borderRadius: 2,
+                                    p: 1
+                                }}
+                            />
                         </CardContent>
                     </Card>
-
                 )}
             </Box>
         </Box>

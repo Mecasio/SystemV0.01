@@ -3026,17 +3026,114 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
     // Dynamic conversion keeps legacy transcript imports aligned with grade_conversion.
     const gradeConversions = await getGradeConversions();
     const results = [];
+    const resultBlockMap = new Map();
+    const duplicateSubjectWarnings = [];
     let currentSY = null;
     let subjects = [];
+    const subjectMap = new Map();
 
-    for (const row of rowsToInsert) {
+    const hasImportGradeValue = (subject) => {
+      return !(
+        subject.final_grade === 0 ||
+        subject.final_grade === 0.0 ||
+        subject.final_grade === null ||
+        subject.final_grade === undefined ||
+        subject.en_remark === 5
+      );
+    };
+
+    const pushCurrentSubjectBlock = () => {
+      if (!currentSY || subjects.length === 0) {
+        subjects = [];
+        return;
+      }
+
+      const blockKey = [
+        currentSY.normalizedSchoolYear,
+        currentSY.normalizedSemester,
+      ].join("|");
+
+      let targetBlock = resultBlockMap.get(blockKey);
+      if (!targetBlock) {
+        targetBlock = { ...currentSY, subjects: [] };
+        resultBlockMap.set(blockKey, targetBlock);
+        results.push(targetBlock);
+      }
+
+      for (const subject of subjects) {
+        const targetIndex = targetBlock.subjects.length;
+        targetBlock.subjects.push(subject);
+
+        const subjectRecord = subjectMap.get(subject.__importSubjectKey);
+        if (subjectRecord?.subject === subject) {
+          subjectRecord.index = targetIndex;
+          subjectRecord.blockKey = blockKey;
+        }
+      }
+
+      subjects = [];
+    };
+
+    const addSubjectToCurrentBlock = (subject, rowNumber) => {
+      const subjectKey = [
+        currentSY.normalizedSchoolYear,
+        currentSY.normalizedSemester,
+        subject.course_code,
+        subject.component || 0,
+      ].join("|");
+
+      const existing = subjectMap.get(subjectKey);
+      if (!existing) {
+        subject.__importSubjectKey = subjectKey;
+        subjectMap.set(subjectKey, {
+          subject,
+          index: subjects.length,
+          rowNumber,
+        });
+        subjects.push(subject);
+        return;
+      }
+
+      const existingHasGrade = hasImportGradeValue(existing.subject);
+      const incomingHasGrade = hasImportGradeValue(subject);
+      const keptIncoming = !existingHasGrade && incomingHasGrade;
+
+      if (keptIncoming) {
+        subject.__importSubjectKey = subjectKey;
+
+        if (existing.blockKey) {
+          resultBlockMap.get(existing.blockKey).subjects[existing.index] =
+            subject;
+        } else {
+          subjects[existing.index] = subject;
+        }
+
+        subjectMap.set(subjectKey, {
+          subject,
+          index: existing.index,
+          rowNumber,
+          blockKey: existing.blockKey,
+        });
+      }
+
+      duplicateSubjectWarnings.push({
+        schoolYear: currentSY.normalizedSchoolYear,
+        semester: currentSY.normalizedSemester,
+        courseCode: subject.course_code,
+        component: subject.component || 0,
+        keptRow: keptIncoming ? rowNumber : existing.rowNumber,
+        skippedRow: keptIncoming ? existing.rowNumber : rowNumber,
+        reason: keptIncoming
+          ? "Duplicate subject found; kept the later row because it has a grade."
+          : "Duplicate subject found; kept the first row.",
+      });
+    };
+
+    for (const [rowIndex, row] of rowsToInsert.entries()) {
       const text = String(row.A || "").trim();
 
       if (/^School Year/i.test(text)) {
-        if (currentSY && subjects.length > 0) {
-          results.push({ ...currentSY, subjects });
-          subjects = [];
-        }
+        pushCurrentSubjectBlock();
 
         const syMatch = text.match(/School Year:\s*(\d{4})-(\d{4})/i);
         const normalizedSchoolYear = syMatch ? syMatch[1] : null;
@@ -3113,7 +3210,7 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
           }
         }
 
-        subjects.push({
+        addSubjectToCurrentBlock({
           course_code: nstp.courseCode,
           description: row.B || "",
           units: row.C || 0,
@@ -3123,14 +3220,12 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
           grade_status: gradeStatus,
           component: nstp.component,
           nstp_normalized_source: nstp.normalizedSource,
-        });
+        }, rowIndex + 1);
       }
     }
 
     // Push last block if exists
-    if (currentSY && subjects.length > 0) {
-      results.push({ ...currentSY, subjects });
-    }
+    pushCurrentSubjectBlock();
 
     // Validate all course codes exist
     const allCourseCodes = [];
@@ -3598,6 +3693,7 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
       warnings: {
         truncatedByMaxRows,
         formulaRowsRemoved: flaggedRows,
+        duplicateSubjectsSkipped: duplicateSubjectWarnings,
       },
     });
   } catch (err) {

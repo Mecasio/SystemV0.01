@@ -1288,24 +1288,21 @@ const PersonalDataForm = () => {
                                     >
                                         <div style={{ fontWeight: "bold" }}>PERMANENT / HOME ADDRESS</div>
 
-                                        <input
-                                            type="text"
-                                            value={
-                                                person.presentStreet || person.presentBarangay || person.presentMunicipality
-                                                    ? `${person.presentStreet || ""} ${person.presentBarangay || ""}, ${person.presentMunicipality || ""}`
-                                                    : ""
-                                            }
-                                            readOnly
+                                        <div
                                             style={{
                                                 marginTop: "5px",
-                                                border: "none",
-                                                width: "100%",
                                                 fontSize: "15px",
                                                 fontFamily: "Arial",
-                                                outline: "none",
                                                 padding: "2px 4px",
+                                                minHeight: "20px",
+                                                whiteSpace: "pre-wrap",
+                                                wordBreak: "break-word",
                                             }}
-                                        />
+                                        >
+                                            {person.presentStreet || person.presentBarangay || person.presentMunicipality
+                                                ? `${person.presentStreet || ""} ${person.presentBarangay || ""}, ${person.presentMunicipality || ""}`
+                                                : ""}
+                                        </div>
 
 
 
@@ -2293,7 +2290,7 @@ const PersonalDataForm = () => {
                                         fontWeight: "bold",
                                         fontSize: "15px"
                                     }}>
-                               
+
                                     </td>
 
 

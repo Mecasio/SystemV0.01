@@ -174,8 +174,9 @@ router.post("/register", async (req, res) => {
    FROM person_table
    WHERE last_name = ?
    AND middle_name = ?
+   AND first_name = ?
    LIMIT 1`,
-    [lastName.trim(), middleName?.trim() || null]
+    [lastName.trim(), middleName?.trim() || null, firstName.trim()]
   );
 
   if (partialMatch.length > 0) {
@@ -790,7 +791,7 @@ WHERE (ua.email = ? OR ua.employee_id = ?)
     }
 
     const user = results[0];
-    const actorId =  user.employee_id || user.student_number || user.person_id || user.email;
+    const actorId = user.employee_id || user.student_number || user.person_id || user.email;
 
     // ======================================
     // 🔥 FIX: normalize require_otp properly
@@ -883,7 +884,7 @@ WHERE (ua.email = ? OR ua.employee_id = ?)
       otpStore[user.email].auditContext = {
         actorId,
         role: user.role,
-    
+
       };
       delete loginAttempts[loginCredentials];
 
@@ -978,7 +979,7 @@ router.post("/login_applicant", async (req, res) => {
     await insertAuditLog({
       actorId: loginKey,
       role: "applicant",
- 
+
       outcome: "LOCKED",
       reason: `Account locked (Attempt ${record.count || 3} out of 3)`,
     });
@@ -1006,7 +1007,7 @@ router.post("/login_applicant", async (req, res) => {
         await insertAuditLog({
           actorId: loginKey,
           role: "applicant",
- 
+
           outcome: "LOCKED",
           reason: `Invalid email or password (Attempt ${record.count} out of 3)`,
         });
@@ -1019,7 +1020,7 @@ router.post("/login_applicant", async (req, res) => {
       await insertAuditLog({
         actorId: loginKey,
         role: "applicant",
-    
+
         outcome: "FAILED",
         reason: `Invalid email or password (Attempt ${record.count} out of 3)`,
       });
@@ -1041,7 +1042,7 @@ router.post("/login_applicant", async (req, res) => {
         await insertAuditLog({
           actorId: applicantActor,
           role: "applicant",
-      
+
           outcome: "LOCKED",
           reason: `Invalid password (Attempt ${record.count} out of 3)`,
         });
@@ -1054,7 +1055,7 @@ router.post("/login_applicant", async (req, res) => {
       await insertAuditLog({
         actorId: applicantActor,
         role: "applicant",
-  
+
         outcome: "FAILED",
         reason: `Invalid password (Attempt ${record.count} out of 3)`,
       });
@@ -1064,7 +1065,7 @@ router.post("/login_applicant", async (req, res) => {
       await insertAuditLog({
         actorId: applicantActor,
         role: "applicant",
-   
+
         outcome: "FAILED",
         reason: "Inactive account",
       });
@@ -1153,7 +1154,7 @@ router.post("/login_applicant", async (req, res) => {
     await insertAuditLog({
       actorId: applicantNumber,
       role: user.role,
-  
+
       outcome: successOutcome,
     });
     delete loginAttempts[loginKey];
@@ -1259,7 +1260,8 @@ router.post("/request-otp", async (req, res) => {
     return res
       .status(400)
       .json({
-        message: "This Account is already registered and cannot be used again.",
+        message:
+          "This email has already been used for registration. Each applicant can only register once. Please use a different email address."
       });
   }
 

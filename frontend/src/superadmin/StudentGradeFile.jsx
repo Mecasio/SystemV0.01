@@ -354,6 +354,14 @@ const StudentGradeFile = () => {
       return convertRawToRating(course.final_grade);
     }
 
+    const storedGradeStatus = String(
+      course?.grades_status ?? course?.grade_status ?? "",
+    ).trim();
+
+    if (storedGradeStatus) {
+      return storedGradeStatus;
+    }
+
     if (
       course?.numeric_grade !== null &&
       course?.numeric_grade !== undefined &&

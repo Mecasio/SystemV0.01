@@ -260,7 +260,7 @@ const ECATApplicationForm = () => {
       }
 
          .student-table {
-    margin-top: 170px !important;
+    margin-top: 150px !important;
   }
 
 
@@ -1044,7 +1044,8 @@ const ECATApplicationForm = () => {
                     textAlign: "center",
                     display: "block",
                     fontStyle: 'italic',
-                    border: "1px solid black"
+                    border: "1px solid black",
+                    marginBottom: "10px"
                   }}>
                     {"\u00A0\u00A0"}FAMILY BACKGROUND
                   </b>
@@ -1070,7 +1071,7 @@ const ECATApplicationForm = () => {
                     {`${person.father_given_name || ""} ${person.father_middle_name || ""} ${person.father_family_name || ""} ${person.father_ext || ""}`.toUpperCase()}
                   </span>
                   <span style={{ fontSize: "12px" }}>
-                    ({person.father_deceased === "1" ? " " : "✓"}) Living&nbsp;&nbsp;
+                    ({person.father_deceased === "0" ? "✓" : " "}) Living&nbsp;&nbsp;
                     ({person.father_deceased === "1" ? "✓" : " "}) Deceased
                   </span>
                 </div>
@@ -1110,8 +1111,8 @@ const ECATApplicationForm = () => {
                     {`${person.mother_given_name || ""} ${person.mother_middle_name || ""} ${person.mother_family_name || ""}`.toUpperCase()}
                   </span>
                   <span style={{ fontSize: "12px" }}>
-                    ({person.mother_deceased === "Yes" ? " " : "✓"}) Living&nbsp;&nbsp;
-                    ({person.mother_deceased === "Yes" ? "✓" : " "}) Deceased
+                    ({person.mother_deceased === "0" ? "✓" : " "}) Living&nbsp;&nbsp;
+                    ({person.mother_deceased === "1" ? "✓" : " "}) Deceased
                   </span>
                 </div>
               </td>
@@ -1164,7 +1165,7 @@ const ECATApplicationForm = () => {
                   <span style={{ flex: 1, borderBottom: "1px solid black", minWidth: "120px", height: "12px" }}></span>
 
                   <b>Monthly Income:</b>
-                  <span style={{ flex: 1, borderBottom: "1px solid black", minWidth: "120px", height: "12px" }}>0</span>
+                  <span style={{ flex: 1, borderBottom: "1px solid black", minWidth: "120px", height: "12px" }}></span>
 
                   <b>Contact No:</b>
                   <span style={{ flex: 1, borderBottom: "1px solid black", minWidth: "120px", height: "12px" }}>{person.guardian_contact}</span>
@@ -1216,7 +1217,9 @@ const ECATApplicationForm = () => {
                     textAlign: "center",
                     display: "block",
                     fontStyle: 'italic',
-                    border: "1px solid black"
+                    border: "1px solid black",
+                    marginBottom: "10px",
+                    marginTop: "10px"
                   }}>
                     {"\u00A0\u00A0"}EDUCATIONAL BACKGROUND
                   </b>
@@ -1359,7 +1362,8 @@ const ECATApplicationForm = () => {
             margin: "0 auto",
             textAlign: "center",
             tableLayout: "fixed",
-
+            marginBottom: "10px",
+            marginTop: "10px"
           }}
         >
           <tbody>
@@ -1381,7 +1385,8 @@ const ECATApplicationForm = () => {
                     textAlign: "center",
                     display: "block",
                     border: "1px solid black",
-                    fontStyle: 'italic'
+                    fontStyle: 'italic',
+
                   }}>
                     {"\u00A0\u00A0"}ATTESTATION
                   </b>

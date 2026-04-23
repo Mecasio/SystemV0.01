@@ -113,6 +113,7 @@ router.get("/student-info/:student_number", async (req, res) => {
           smt.semester_description,
           snt.student_number,
           IFNULL(es.final_grade, "-") as final_grade,
+          es.grades_status,
           IFNULL(es.en_remarks, 0) as en_remarks,
           ylt.year_level_description, 
           cst.course_id,
