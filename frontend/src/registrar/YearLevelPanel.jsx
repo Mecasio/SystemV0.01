@@ -242,6 +242,9 @@ const YearLevelPanel = () => {
   if (loading || hasAccess === null) return <LoadingOverlay open={loading} message="Loading..." />;
   if (!hasAccess) return <Unauthorized />;
 
+  const showCreateActions = canCreate;
+  const showActionColumn = canEdit || canDelete;
+
   return (
     <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', mb: 2 }}>
@@ -270,14 +273,10 @@ const YearLevelPanel = () => {
                 </TableCell>
 
 
+                {showCreateActions && (
                 <Button
                   variant="contained"
-                  disabled={!canCreate}
                   onClick={() => {
-                    if (!canCreate) {
-                      setSnackbar({ open: true, message: "You do not have permission to create items on this page", severity: "error" });
-                      return;
-                    }
                     setEditMode(false);
                     setSelectedId(null);
                     setYearLevelDescription("");
@@ -287,7 +286,6 @@ const YearLevelPanel = () => {
                   sx={{
                     backgroundColor: "#1976d2", // ✅ Blue
                     color: "#fff",
-                    opacity: canCreate ? 1 : 0.5,
                     fontWeight: "bold",
                     borderRadius: "8px",
                     width: "250px",
@@ -301,6 +299,7 @@ const YearLevelPanel = () => {
                 >
                   + Add Year Level
                 </Button>
+                )}
               </Box>
 
 
@@ -317,7 +316,7 @@ const YearLevelPanel = () => {
               <th style={styles.tableCell}>Year Level ID</th>
               <th style={styles.tableCell}>Year Level Description</th>
               <th style={styles.tableCell}>Type</th>
-              <th style={styles.tableCell}>Actions</th>
+              {showActionColumn && <th style={styles.tableCell}>Actions</th>}
             </tr>
           </thead>
           <tbody>
@@ -326,6 +325,7 @@ const YearLevelPanel = () => {
                 <td style={styles.tableCell}>{level.year_level_id}</td>
                 <td style={styles.tableCell}>{level.year_level_description}</td>
                 <td style={styles.tableCell}>{level.level_type}</td>
+                {showActionColumn && (
                 <td style={styles.tableCell}>
                   <Box sx={{
 
@@ -337,11 +337,11 @@ const YearLevelPanel = () => {
                     gap: "10px", // space between buttons
                   }}
                   >
+                    {canEdit && (
                     <Button
                       variant="contained"
                       size="small"
                       onClick={() => handleEdit(level)}
-                      disabled={!canEdit}
                       sx={{
                         backgroundColor: "green",
                         color: "white",
@@ -352,18 +352,18 @@ const YearLevelPanel = () => {
                         alignItems: "center",
                         justifyContent: "center",
                         gap: "5px",
-                        opacity: canEdit ? 1 : 0.5,
-                        cursor: canEdit ? "pointer" : "not-allowed",
+                        cursor: "pointer",
                       }}
                     >
                       <EditIcon fontSize="small" /> Edit
                     </Button>
+                    )}
 
+                    {canDelete && (
                     <Button
                       variant="contained"
                       size="small"
                       onClick={() => handleDelete(level.year_level_id)}
-                      disabled={!canDelete}
                       sx={{
                         backgroundColor: "#9E0000",
                         color: "white",
@@ -374,14 +374,15 @@ const YearLevelPanel = () => {
                         alignItems: "center",
                         justifyContent: "center",
                         gap: "5px",
-                        opacity: canDelete ? 1 : 0.5,
-                        cursor: canDelete ? "pointer" : "not-allowed",
+                        cursor: "pointer",
                       }}
                     >
                       <DeleteIcon fontSize="small" /> Delete
                     </Button>
+                    )}
                   </Box>
                 </td>
+                )}
               </tr>
             ))}
           </tbody>

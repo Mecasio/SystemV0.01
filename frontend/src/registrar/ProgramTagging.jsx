@@ -549,6 +549,8 @@ const ProgramTagging = () => {
   const [openDeleteAllDialog, setOpenDeleteAllDialog] = useState(false);
 
   const [deleteAllFilter, setDeleteAllFilter] = useState(null);
+  const showCreateActions = canCreate;
+  const showActionColumn = canEdit || canDelete;
 
   const handleDeleteAllTagged = async () => {
     if (!employeeID) {
@@ -805,24 +807,26 @@ const ProgramTagging = () => {
             onChange={handleProgramTaggingImport}
             style={{ display: "none" }}
           />
-          <Button
-            variant="contained"
-            onClick={() => importInputRef.current?.click()}
-            disabled={importingXlsx || !canCreate}
-            sx={{
-              height: 40,
-              textTransform: "none",
-              fontWeight: "bold",
-              minWidth: 210,
-              "&.Mui-disabled": {
-                backgroundColor: "#C9C9C9",
-                color: "#666666",
-              },
-            }}
-          >
-            <FaFileExcel style={{ marginRight: 8 }} />
-            {importingXlsx ? "Importing..." : "Import Program Tagging"}
-          </Button>
+          {showCreateActions && (
+            <Button
+              variant="contained"
+              onClick={() => importInputRef.current?.click()}
+              disabled={importingXlsx}
+              sx={{
+                height: 40,
+                textTransform: "none",
+                fontWeight: "bold",
+                minWidth: 210,
+                "&.Mui-disabled": {
+                  backgroundColor: "#C9C9C9",
+                  color: "#666666",
+                },
+              }}
+            >
+              <FaFileExcel style={{ marginRight: 8 }} />
+              {importingXlsx ? "Importing..." : "Import Program Tagging"}
+            </Button>
+          )}
           <Button
             onClick={() => {
               window.location.href = `${API_BASE_URL}/program_tagging_template`;
@@ -871,17 +875,10 @@ const ProgramTagging = () => {
                     Existing Schedules
                   </TableCell>
 
-                  <Button
+                  {showCreateActions && (
+                    <Button
                     variant="contained"
                     onClick={() => {
-                      if (!canCreate) {
-                        showSnackbar(
-                          "You do not have permission to create items on this page.",
-                          "error",
-                        );
-                        return;
-                      }
-
                       setEditingId(null);
 
                       setProgTag({
@@ -899,7 +896,6 @@ const ProgramTagging = () => {
 
                       setOpenFormDialog(true);
                     }}
-                    disabled={!canCreate}
                     sx={{
                       backgroundColor: "#1976d2", // ✅ Blue
                       color: "#fff",
@@ -912,14 +908,11 @@ const ProgramTagging = () => {
                       "&:hover": {
                         backgroundColor: "#1565c0", // darker blue hover
                       },
-                      "&.Mui-disabled": {
-                        backgroundColor: "#C9C9C9",
-                        color: "#666666",
-                      },
                     }}
                   >
                     + Insert Program Tag
-                  </Button>
+                    </Button>
+                  )}
                 </Box>
               </TableRow>
             </TableHead>
@@ -1153,7 +1146,6 @@ const ProgramTagging = () => {
                     >
                       #
                     </th>
-
                     <th
                       style={{
                         ...styles.th,
@@ -1202,7 +1194,6 @@ const ProgramTagging = () => {
                     >
                       Semester
                     </th>
-
                     <th
                       style={{
                         ...styles.th,
@@ -1263,18 +1254,20 @@ const ProgramTagging = () => {
                     >
                       NSTP Fee
                     </th>
-                    <th
-                      style={{
-                        ...styles.th,
-                        backgroundColor: "#f5f5f5",
-                        border: `1px solid ${borderColor}`,
-                        color: "black",
-                        textAlign: "center",
-                        fontSize: "13px",
-                      }}
-                    >
+                    {showActionColumn && (
+                      <th
+                        style={{
+                          ...styles.th,
+                          backgroundColor: "#f5f5f5",
+                          border: `1px solid ${borderColor}`,
+                          color: "black",
+                          textAlign: "center",
+                          fontSize: "13px",
+                        }}
+                      >
                       Actions
-                    </th>
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
@@ -1398,7 +1391,8 @@ const ProgramTagging = () => {
                         ₱ {Number(program.amount || 0).toLocaleString()}
                       </td> */}
 
-                      <td
+                      {showActionColumn && (
+                        <td
                         style={{
                           ...styles.td,
                           whiteSpace: "nowrap",
@@ -1413,17 +1407,9 @@ const ProgramTagging = () => {
                             alignItems: "center",
                           }}
                         >
-                          <button
-                            disabled={!canEdit}
+                          {canEdit && (
+                            <button
                             onClick={() => {
-                              if (!canEdit) {
-                                showSnackbar(
-                                  "You do not have permission to edit this item.",
-                                  "error",
-                                );
-                                return;
-                              }
-
                               handleEdit(program);
                               setOpenFormDialog(true);
                             }}
@@ -1432,30 +1418,22 @@ const ProgramTagging = () => {
                               color: "white",
                               border: "none",
                               borderRadius: "5px",
-                              cursor: canEdit ? "pointer" : "not-allowed",
+                              cursor: "pointer",
                               width: "100px",
                               height: "40px",
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
                               gap: "5px",
-                              opacity: canEdit ? 1 : 0.6,
                             }}
                           >
                             <EditIcon fontSize="small" /> Edit
-                          </button>
+                            </button>
+                          )}
 
-                          <button
-                            disabled={!canDelete}
+                          {canDelete && (
+                            <button
                             onClick={() => {
-                              if (!canDelete) {
-                                showSnackbar(
-                                  "You do not have permission to delete this item.",
-                                  "error",
-                                );
-                                return;
-                              }
-
                               setDeleteId(program.program_tagging_id);
                               setProgramToDelete(program);
                               setOpenDeleteDialog(true);
@@ -1466,19 +1444,20 @@ const ProgramTagging = () => {
                               border: "none",
                               borderRadius: "5px",
                               height: "40px",
-                              cursor: canDelete ? "pointer" : "not-allowed",
+                              cursor: "pointer",
                               width: "100px",
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
                               gap: "5px",
-                              opacity: canDelete ? 1 : 0.6,
                             }}
                           >
                             <DeleteIcon fontSize="small" /> Delete
-                          </button>
+                            </button>
+                          )}
                         </div>
-                      </td>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>

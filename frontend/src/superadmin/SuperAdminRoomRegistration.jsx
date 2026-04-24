@@ -444,6 +444,9 @@ const RoomRegistration = () => {
     return <Unauthorized />;
   }
 
+  const showCreateActions = canCreate;
+  const showActionColumn = canEdit || canDelete;
+
   return (
     <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
       {/* Header */}
@@ -510,6 +513,7 @@ const RoomRegistration = () => {
                     </Typography>
 
                     {/* RIGHT SIDE BUTTON */}
+                    {showCreateActions && (
                     <Button
                       variant="contained"
                       onClick={() => {
@@ -545,6 +549,7 @@ const RoomRegistration = () => {
                     >
                       + Add Room
                     </Button>
+                    )}
                   </Box>
 
                 </TableCell>
@@ -793,7 +798,9 @@ const RoomRegistration = () => {
                   <TableCell sx={{ border: `1px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "black" }}>Branch</TableCell>
                   <TableCell sx={{ border: `1px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "black" }}>Aircon</TableCell>
 
-                  <TableCell sx={{ border: `1px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "black" }}>Actions</TableCell>
+                  {showActionColumn && (
+                    <TableCell sx={{ border: `1px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "black" }}>Actions</TableCell>
+                  )}
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -829,72 +836,65 @@ const RoomRegistration = () => {
                       {AIRCON_OPTIONS.find((a) => a.value === Number(room.is_airconditioned))?.label || "N/A"}
                     </TableCell>
 
-                    <TableCell
-                      sx={{
-                        border: `1px solid ${borderColor}`,
-                        textAlign: "center",
-
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        gap: "10px", // space between buttons
-                      }}
-                    >
-                      <Button
-                        variant="contained"
-                        size="small"
-                        disabled={!canEdit}
+                    {showActionColumn && (
+                      <TableCell
                         sx={{
-                          backgroundColor: "green",
-                          color: "white",
-                          borderRadius: "5px",
-                          padding: "8px 14px",
-                          width: "100px",
+                          border: `1px solid ${borderColor}`,
+                          textAlign: "center",
                           display: "flex",
-                          alignItems: "center",
                           justifyContent: "center",
-                          gap: "5px",
-                          opacity: canEdit ? 1 : 0.5,
-                          cursor: canEdit ? "pointer" : "not-allowed",
-                        }}
-                        onClick={() => handleEditRoom(room)}
-                      >
-                        <EditIcon fontSize="small" /> Edit
-                      </Button>
-
-                      <Button
-                        variant="contained"
-                        size="small"
-                        disabled={!canDelete}
-                        sx={{
-                          backgroundColor: "#9E0000",
-                          color: "white",
-                          borderRadius: "5px",
-                          padding: "8px 14px",
-                          width: "100px",
-                          display: "flex",
                           alignItems: "center",
-                          justifyContent: "center",
-                          gap: "5px",
-                          opacity: canDelete ? 1 : 0.5,
-                          cursor: canDelete ? "pointer" : "not-allowed",
-                        }}
-                        onClick={() => {
-                          if (!canDelete) {
-                            setSnack({
-                              open: true,
-                              message: "You do not have permission to delete this item",
-                              severity: "error",
-                            });
-                            return;
-                          }
-                          setRoomToDelete(room);
-                          setOpenDeleteDialog(true);
+                          gap: "10px",
                         }}
                       >
-                        <DeleteIcon fontSize="small" /> Delete
-                      </Button>
-                    </TableCell>
+                        {canEdit && (
+                          <Button
+                            variant="contained"
+                            size="small"
+                            sx={{
+                              backgroundColor: "green",
+                              color: "white",
+                              borderRadius: "5px",
+                              padding: "8px 14px",
+                              width: "100px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: "5px",
+                              cursor: "pointer",
+                            }}
+                            onClick={() => handleEditRoom(room)}
+                          >
+                            <EditIcon fontSize="small" /> Edit
+                          </Button>
+                        )}
+
+                        {canDelete && (
+                          <Button
+                            variant="contained"
+                            size="small"
+                            sx={{
+                              backgroundColor: "#9E0000",
+                              color: "white",
+                              borderRadius: "5px",
+                              padding: "8px 14px",
+                              width: "100px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: "5px",
+                              cursor: "pointer",
+                            }}
+                            onClick={() => {
+                              setRoomToDelete(room);
+                              setOpenDeleteDialog(true);
+                            }}
+                          >
+                            <DeleteIcon fontSize="small" /> Delete
+                          </Button>
+                        )}
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
@@ -1146,33 +1146,35 @@ const RoomRegistration = () => {
             Cancel
           </Button>
 
-          <Button
-            variant="contained"
-            sx={{
-              px: 4,
-              fontWeight: 600,
-              textTransform: "none"
-            }}
-            onClick={() => {
-              if (editingRoom) {
-                if (!canEdit) {
-                  setSnack({
-                    open: true,
-                    message: "You do not have permission to edit this item",
-                    severity: "error",
-                  });
-                  return;
+          {(showCreateActions || (editingRoom && canEdit)) && (
+            <Button
+              variant="contained"
+              sx={{
+                px: 4,
+                fontWeight: 600,
+                textTransform: "none"
+              }}
+              onClick={() => {
+                if (editingRoom) {
+                  if (!canEdit) {
+                    setSnack({
+                      open: true,
+                      message: "You do not have permission to edit this item",
+                      severity: "error",
+                    });
+                    return;
+                  }
+                  setOpenUpdateDialog(true);
+                } else {
+                  handleAddRoom();
+                  setOpenFormDialog(false);
                 }
-                setOpenUpdateDialog(true);
-              } else {
-                handleAddRoom();
-                setOpenFormDialog(false);
-              }
-            }}
-          >
-            <SaveIcon fontSize="small" /> Save
+              }}
+            >
+              <SaveIcon fontSize="small" /> Save
 
-          </Button>
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
 

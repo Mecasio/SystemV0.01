@@ -375,6 +375,9 @@ export default function DepartmentCurriculumPanel() {
     );
   }
 
+  const showCreateActions = canCreate;
+  const showActionColumn = canEdit || canDelete;
+
   return (
     <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
       <Box
@@ -484,17 +487,16 @@ export default function DepartmentCurriculumPanel() {
           </Grid>
 
           <Grid item>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={handleAddMapping}
-              disabled={!selectedDept || !selectedCurr || adding || !canCreate}
-              sx={{
-                opacity: canCreate ? 1 : 0.5,
-              }}
-            >
-              {adding ? <CircularProgress size={18} /> : "Add"}
-            </Button>
+            {showCreateActions && (
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleAddMapping}
+                disabled={!selectedDept || !selectedCurr || adding}
+              >
+                {adding ? <CircularProgress size={18} /> : "Add"}
+              </Button>
+            )}
           </Grid>
         </Grid>
       </Paper>
@@ -519,7 +521,9 @@ export default function DepartmentCurriculumPanel() {
                   <TableCell sx={{ color: "#fff", border: `1px solid ${borderColor}`, textAlign: "center", }}>ID</TableCell>
                   <TableCell sx={{ color: "#fff", border: `1px solid ${borderColor}`, textAlign: "center", }}>Department</TableCell>
                   <TableCell sx={{ color: "#fff", border: `1px solid ${borderColor}`, textAlign: "center", }}>Program Code / Description</TableCell>
-                  <TableCell sx={{ color: "#fff", border: `1px solid ${borderColor}`, textAlign: "center", }}>Action</TableCell>
+                  {showActionColumn && (
+                    <TableCell sx={{ color: "#fff", border: `1px solid ${borderColor}`, textAlign: "center", }}>Action</TableCell>
+                  )}
                 </TableRow>
               </TableHead>
 
@@ -549,62 +553,64 @@ export default function DepartmentCurriculumPanel() {
                       </TableCell>
 
                       {/* Actions */}
-                      <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center", width: "250px" }}>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            gap: 1
-                          }}
-                        >
-
-                          <Button
-                            variant="contained"
-                            size="small"
+                      {showActionColumn && (
+                        <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center", width: "250px" }}>
+                          <Box
                             sx={{
-                              backgroundColor: "green",
-                              color: "white",
-                              borderRadius: "5px",
-                              padding: "8px",
-                              width: "100px",
                               display: "flex",
+                              flexDirection: "column",
                               alignItems: "center",
-                              justifyContent: "center",
-                              gap: "5px",
-                              opacity: canEdit ? 1 : 0.5,
-                              cursor: canEdit ? "pointer" : "not-allowed",
+                              gap: 1
                             }}
-                            disabled={!canEdit}
-                            onClick={() => openEditDialog(m)}
                           >
-                            <EditIcon fontSize="small" /> Edit
-                          </Button>
 
-                          <Button
-                            variant="contained"
-                            size="small"
-                            sx={{
-                              backgroundColor: "#9E0000",
-                              color: "white",
-                              borderRadius: "5px",
-                              padding: "8px",
-                              width: "100px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              gap: "5px",
-                              opacity: canDelete ? 1 : 0.5,
-                              cursor: canDelete ? "pointer" : "not-allowed",
-                            }}
-                            disabled={!canDelete}
-                            onClick={() => openDeleteDialog(m.dprtmnt_curriculum_id)}
-                          >
-                            <DeleteIcon fontSize="small" /> Delete
-                          </Button>
+                            {canEdit && (
+                              <Button
+                                variant="contained"
+                                size="small"
+                                sx={{
+                                  backgroundColor: "green",
+                                  color: "white",
+                                  borderRadius: "5px",
+                                  padding: "8px",
+                                  width: "100px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  gap: "5px",
+                                  cursor: "pointer",
+                                }}
+                                onClick={() => openEditDialog(m)}
+                              >
+                                <EditIcon fontSize="small" /> Edit
+                              </Button>
+                            )}
 
-                        </Box>
-                      </TableCell>
+                            {canDelete && (
+                              <Button
+                                variant="contained"
+                                size="small"
+                                sx={{
+                                  backgroundColor: "#9E0000",
+                                  color: "white",
+                                  borderRadius: "5px",
+                                  padding: "8px",
+                                  width: "100px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  gap: "5px",
+                                  cursor: "pointer",
+                                }}
+                                onClick={() => openDeleteDialog(m.dprtmnt_curriculum_id)}
+                              >
+                                <DeleteIcon fontSize="small" /> Delete
+                              </Button>
+                            )}
+
+                          </Box>
+                        </TableCell>
+                      )}
 
 
                     </TableRow>

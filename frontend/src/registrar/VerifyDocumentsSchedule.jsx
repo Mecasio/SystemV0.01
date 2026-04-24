@@ -529,6 +529,9 @@ const VerifyDocumentsSchedule = () => {
         );
     }
 
+    const showCreateActions = canCreate;
+    const showActionColumn = canEdit || canDelete;
+
     return (
         <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
             {/* ===== PAGE HEADER ===== */}
@@ -649,6 +652,7 @@ const VerifyDocumentsSchedule = () => {
                                 </TableCell>
 
 
+                                {showCreateActions && (
                                 <Button
                                     variant="contained"
                                     onClick={() => setOpenFormDialog(true)}
@@ -668,6 +672,7 @@ const VerifyDocumentsSchedule = () => {
                                 >
                                     + Add Schedule
                                 </Button>
+                                )}
                             </Box>
                         </TableRow>
 
@@ -974,7 +979,7 @@ const VerifyDocumentsSchedule = () => {
                                 "End",
                                 "Evaluator",
                                 "Room Slot",
-                                "Actions",
+                                ...(showActionColumn ? ["Actions"] : []),
                             ].map((header) => (
                                 <TableCell
                                     key={header}
@@ -1026,6 +1031,7 @@ const VerifyDocumentsSchedule = () => {
                                 <TableCell align="center" sx={cellStyle}>
                                     {s.room_quota}
                                 </TableCell>
+                                {showActionColumn && (
                                 <TableCell align="center" sx={cellStyle}>
                                     <Box
                                         sx={{
@@ -1036,6 +1042,7 @@ const VerifyDocumentsSchedule = () => {
                                             flexWrap: "nowrap",  // prevents wrapping
                                         }}
                                     >
+                                        {canEdit && (
                                         <Button
                                             size="small"
                                             variant="contained"
@@ -1055,7 +1062,9 @@ const VerifyDocumentsSchedule = () => {
                                             <EditIcon fontSize="small" />
                                             Edit
                                         </Button>
+                                        )}
 
+                                        {canDelete && (
                                         <Button
                                             size="small"
                                             variant="contained"
@@ -1078,8 +1087,10 @@ const VerifyDocumentsSchedule = () => {
                                             <DeleteIcon fontSize="small" />
                                             Delete
                                         </Button>
+                                        )}
                                     </Box>
                                 </TableCell>
+                                )}
                             </TableRow>
                         ))}
                     </TableBody>
@@ -1613,6 +1624,7 @@ const VerifyDocumentsSchedule = () => {
                         Cancel
                     </Button>
 
+                    {(showCreateActions || (editingSchedule && canEdit)) && (
                     <Button
                         variant="contained"
                         sx={{ px: 4, fontWeight: 600 }}
@@ -1627,6 +1639,7 @@ const VerifyDocumentsSchedule = () => {
                     >
                         <SaveIcon fontSize="small" /> Save
                     </Button>
+                    )}
                 </DialogActions>
             </Dialog>
 

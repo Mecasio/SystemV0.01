@@ -664,6 +664,9 @@ const TOSF = () => {
     return <Unauthorized />;
   }
 
+  const showCreateActions = canCreate;
+  const showActionColumn = canEdit || canDelete;
+
 
   return (
     <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
@@ -734,20 +737,22 @@ const TOSF = () => {
           </Box>
 
           <Box sx={{ mt: 2, textAlign: "right" }}>
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={editingId ? !canEdit : !canCreate}
-              sx={{
-                opacity: editingId ? (canEdit ? 1 : 0.5) : (canCreate ? 1 : 0.5),
-              }}
-            >
-              {editingId ? "Update Fee" : (
-                <>
-                  <SaveIcon fontSize="small" /> Save
-                </>
-              )}
-            </Button>
+            {(showCreateActions || (editingId && canEdit)) && (
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={editingId ? !canEdit : !canCreate}
+                sx={{
+                  opacity: editingId ? (canEdit ? 1 : 0.5) : (canCreate ? 1 : 0.5),
+                }}
+              >
+                {editingId ? "Update Fee" : (
+                  <>
+                    <SaveIcon fontSize="small" /> Save
+                  </>
+                )}
+              </Button>
+            )}
 
             {editingId && (
               <Button
@@ -836,9 +841,11 @@ const TOSF = () => {
               <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
                 Laboratory Fee
               </TableCell>
-              <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
-                Actions
-              </TableCell>
+              {showActionColumn && (
+                <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
+                  Actions
+                </TableCell>
+              )}
 
             </TableRow>
 
@@ -898,55 +905,57 @@ const TOSF = () => {
 
 
                 {/* ACTIONS SIDE BY SIDE */}
-                <TableCell
-                  style={{
-                    border: `1px solid ${borderColor}`,
-                    textAlign: "center",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  <Button
-                    onClick={() => handleEdit(item)}
-                    size="small"
-                    disabled={!canEdit}
-                    sx={{
-                      backgroundColor: "green",
-                      color: "white",
-                      borderRadius: "5px",
-                      padding: "8px 14px",
-                      width: "100px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "5px",
-                      opacity: canEdit ? 1 : 0.5,
-                      cursor: canEdit ? "pointer" : "not-allowed",
+                {showActionColumn && (
+                  <TableCell
+                    style={{
+                      border: `1px solid ${borderColor}`,
+                      textAlign: "center",
+                      whiteSpace: "nowrap",
                     }}
                   >
-                    <EditIcon fontSize="small" /> Edit
-                  </Button>
+                    {canEdit && (
+                      <Button
+                        onClick={() => handleEdit(item)}
+                        size="small"
+                        sx={{
+                          backgroundColor: "green",
+                          color: "white",
+                          borderRadius: "5px",
+                          padding: "8px 14px",
+                          width: "100px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "5px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <EditIcon fontSize="small" /> Edit
+                      </Button>
+                    )}
 
-                  <Button
-                    onClick={() => handleDeleteDialog(item.tosf_id)}
-                    size="small"
-                    disabled={!canDelete}
-                    sx={{
-                      backgroundColor: "#9E0000",
-                      color: "white",
-                      borderRadius: "5px",
-                      padding: "8px 14px",
-                      width: "100px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "5px",
-                      opacity: canDelete ? 1 : 0.5,
-                      cursor: canDelete ? "pointer" : "not-allowed",
-                    }}
-                  >
-                    <DeleteIcon fontSize="small" /> Delete
-                  </Button>
-                </TableCell>
+                    {canDelete && (
+                      <Button
+                        onClick={() => handleDeleteDialog(item.tosf_id)}
+                        size="small"
+                        sx={{
+                          backgroundColor: "#9E0000",
+                          color: "white",
+                          borderRadius: "5px",
+                          padding: "8px 14px",
+                          width: "100px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "5px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <DeleteIcon fontSize="small" /> Delete
+                      </Button>
+                    )}
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>
@@ -1004,17 +1013,18 @@ const TOSF = () => {
             </Grid>
 
             <Box sx={{ mt: 2, textAlign: "right" }}>
-              <Button
-                type="submit"
-                variant="contained"
-        
-              >
-                {editingScholarshipId ? "Update Scholarship Type" : (
-                  <>
-                    <SaveIcon fontSize="small" /> Save
-                  </>
-                )}
-              </Button>
+              {(showCreateActions || (editingScholarshipId && canEdit)) && (
+                <Button
+                  type="submit"
+                  variant="contained"
+                >
+                  {editingScholarshipId ? "Update Scholarship Type" : (
+                    <>
+                      <SaveIcon fontSize="small" /> Save
+                    </>
+                  )}
+                </Button>
+              )}
 
               {editingScholarshipId && (
                 <Button
@@ -1066,9 +1076,11 @@ const TOSF = () => {
                 <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
                   Created At
                 </TableCell>
-                <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
-                  Actions
-                </TableCell>
+                {showActionColumn && (
+                  <TableCell style={{ border: `1px solid ${borderColor}`, color: "white", textAlign: "center", fontWeight: "bold" }}>
+                    Actions
+                  </TableCell>
+                )}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -1176,54 +1188,56 @@ const TOSF = () => {
                       ? new Date(Number(item.created_at) * 1000).toLocaleString()
                       : "-"}
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      border: `1px solid ${borderColor}`,
-                      textAlign: "center",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    <Button
-                      onClick={() => handleScholarshipEdit(item)}
-                      size="small"
-                      disabled={!canEdit}
+                  {showActionColumn && (
+                    <TableCell
                       sx={{
-                        backgroundColor: "green",
-                        color: "white",
-                        borderRadius: "5px",
-                        padding: "8px 14px",
-                        width: "100px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: "5px",
-                        opacity: canEdit ? 1 : 0.5,
-                        cursor: canEdit ? "pointer" : "not-allowed",
+                        border: `1px solid ${borderColor}`,
+                        textAlign: "center",
+                        whiteSpace: "nowrap",
                       }}
                     >
-                      <EditIcon fontSize="small" /> Edit
-                    </Button>
-                    <Button
-                      onClick={() => handleScholarshipDelete(item.id)}
-                      size="small"
-                      disabled={!canDelete}
-                      sx={{
-                        backgroundColor: "#9E0000",
-                        color: "white",
-                        borderRadius: "5px",
-                        padding: "8px 14px",
-                        width: "100px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: "5px",
-                        opacity: canDelete ? 1 : 0.5,
-                        cursor: canDelete ? "pointer" : "not-allowed",
-                      }}
-                    >
-                      <DeleteIcon fontSize="small" /> Delete
-                    </Button>
-                  </TableCell>
+                      {canEdit && (
+                        <Button
+                          onClick={() => handleScholarshipEdit(item)}
+                          size="small"
+                          sx={{
+                            backgroundColor: "green",
+                            color: "white",
+                            borderRadius: "5px",
+                            padding: "8px 14px",
+                            width: "100px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "5px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <EditIcon fontSize="small" /> Edit
+                        </Button>
+                      )}
+                      {canDelete && (
+                        <Button
+                          onClick={() => handleScholarshipDelete(item.id)}
+                          size="small"
+                          sx={{
+                            backgroundColor: "#9E0000",
+                            color: "white",
+                            borderRadius: "5px",
+                            padding: "8px 14px",
+                            width: "100px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "5px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <DeleteIcon fontSize="small" /> Delete
+                        </Button>
+                      )}
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>

@@ -392,6 +392,8 @@ const RequirementsForm = () => {
     startIndex,
     endIndex
   );
+  const showCreateActions = canCreate;
+  const showActionColumn = canEdit || canDelete;
 
   useEffect(() => {
     setCurrentPage(1);
@@ -619,6 +621,7 @@ const RequirementsForm = () => {
                       Last
                     </Button>
 
+                    {showCreateActions && (
                     <Button
                       variant="contained"
                       onClick={handleOpenAddDialog}
@@ -640,6 +643,7 @@ const RequirementsForm = () => {
                     >
                       + Add Requirements
                     </Button>
+                    )}
 
                   </Box>
                 </Box>
@@ -670,7 +674,9 @@ const RequirementsForm = () => {
               <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>Original Documents</TableCell>
               <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>Xerox Copies</TableCell>
               <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>Optional</TableCell>
-              <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>Actions</TableCell>
+              {showActionColumn && (
+                <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>Actions</TableCell>
+              )}
 
 
             </TableRow>
@@ -721,7 +727,8 @@ const RequirementsForm = () => {
                 </TableCell>
 
                 {/* ACTIONS */}
-                <TableCell
+                {showActionColumn && (
+                  <TableCell
                   sx={{
                     border: `1px solid ${borderColor}`,
                     textAlign: "center",
@@ -730,10 +737,10 @@ const RequirementsForm = () => {
                     justifyContent: "center"
                   }}
                 >
-                  <Button
+                  {canEdit && (
+                    <Button
                     variant="contained"
                     size="small"
-                    disabled={!canEdit}
                     style={{
                       backgroundColor: "green",
                       color: "white",
@@ -741,25 +748,24 @@ const RequirementsForm = () => {
                       borderRadius: "5px",
                       padding: "8px 14px",
 
-                      cursor: canEdit ? "pointer" : "not-allowed",
+                      cursor: "pointer",
                       width: "100px",
                       height: "40px",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       gap: "5px",
-                      opacity: canEdit ? 1 : 0.5,
-
                     }}
                     onClick={() => handleOpenEditDialog(req)}
                   >
                     <EditIcon fontSize="small" /> Edit
-                  </Button>
+                    </Button>
+                  )}
 
-                  <Button
+                  {canDelete && (
+                    <Button
                     variant="contained"
                     size="small"
-                    disabled={!canDelete}
                     style={{
 
                       backgroundColor: "#9E0000",
@@ -767,31 +773,24 @@ const RequirementsForm = () => {
                       border: "none",
                       borderRadius: "5px",
                       padding: "8px 14px",
-                      cursor: canDelete ? "pointer" : "not-allowed",
+                      cursor: "pointer",
                       width: "100px",
                       height: "40px",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       gap: "5px",
-                      opacity: canDelete ? 1 : 0.5,
                     }}
                     onClick={() => {
-                      if (!canDelete) {
-                        setSnack({
-                          open: true,
-                          message: "You do not have permission to delete this item.",
-                          severity: "error",
-                        });
-                        return;
-                      }
                       setRequirementToDelete(req);
                       setOpenDeleteDialog(true);
                     }}
                   >
                     <DeleteIcon fontSize="small" /> Delete
-                  </Button>
+                    </Button>
+                  )}
                 </TableCell>
+                )}
 
               </TableRow>
             ))}

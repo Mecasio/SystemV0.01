@@ -483,6 +483,9 @@ const AssignQualifyingInterviewExam = () => {
         );
     }
 
+    const showCreateActions = canCreate;
+    const showActionColumn = canEdit || canDelete;
+
 
     return (
         <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
@@ -610,6 +613,7 @@ const AssignQualifyingInterviewExam = () => {
                                 </TableCell>
 
 
+                                {showCreateActions && (
                                 <Button
                                     variant="contained"
                                     onClick={() => {
@@ -632,6 +636,7 @@ const AssignQualifyingInterviewExam = () => {
                                 >
                                     + Add Schedule
                                 </Button>
+                                )}
                             </Box>
                         </TableRow>
                     </TableHead>
@@ -846,7 +851,7 @@ const AssignQualifyingInterviewExam = () => {
                                 {[
                                     "#", "Branch", "Date", "Building", "Room",
                                     "Start", "End", "Interviewer",
-                                    "Room Slot", "Actions"
+                                    "Room Slot", ...(showActionColumn ? ["Actions"] : [])
                                 ].map(h => (
                                     <TableCell
                                         key={h}
@@ -875,6 +880,7 @@ const AssignQualifyingInterviewExam = () => {
                                     <TableCell align="center" sx={cellStyle}>{formatTime(s.end_time)}</TableCell>
                                     <TableCell align="center" sx={cellStyle}>{s.interviewer}</TableCell>
                                     <TableCell align="center" sx={cellStyle}>{s.room_quota}</TableCell>
+                                    {showActionColumn && (
                                     <TableCell align="center" sx={cellStyle}>
                                         <Box
                                             sx={{
@@ -885,6 +891,7 @@ const AssignQualifyingInterviewExam = () => {
                                                 flexWrap: "nowrap",
                                             }}
                                         >
+                                            {canEdit && (
                                             <Button
                                                 size="small"
                                                 variant="contained"
@@ -903,7 +910,9 @@ const AssignQualifyingInterviewExam = () => {
                                             >
                                                 <EditIcon fontSize="small" /> Edit
                                             </Button>
+                                            )}
 
+                                            {canDelete && (
                                             <Button
                                                 size="small"
                                                 variant="contained"
@@ -923,8 +932,10 @@ const AssignQualifyingInterviewExam = () => {
 
                                                 <DeleteIcon fontSize="small" /> Delete
                                             </Button>
+                                            )}
                                         </Box>
                                     </TableCell>
+                                    )}
                                 </TableRow>
                             ))}
                         </TableBody>
@@ -1389,6 +1400,7 @@ const AssignQualifyingInterviewExam = () => {
                         Cancel
                     </Button>
 
+                    {(showCreateActions || (editingSchedule && canEdit)) && (
                     <Button
                         variant="contained"
                         sx={{
@@ -1400,6 +1412,7 @@ const AssignQualifyingInterviewExam = () => {
                     >
                         <SaveIcon fontSize="small" /> Save
                     </Button>
+                    )}
                 </DialogActions>
             </Dialog>
 

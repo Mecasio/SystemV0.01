@@ -118,6 +118,43 @@ router.post("/semesters", async (req, res) => {
   }
 });
 
+router.put("/semesters/:id", async (req, res) => {
+  const { semester_description, semester_code } = req.body;
+  const { id } = req.params;
+
+  if (!semester_description || !semester_code) {
+    return res.status(400).json({ error: "missing fields is required" });
+  }
+
+  const query = `
+    UPDATE semester_table
+    SET semester_description = ?, semester_code = ?
+    WHERE semester_id = ?
+  `;
+
+  try {
+    const [result] = await db3.query(query, [
+      semester_description,
+      semester_code,
+      id,
+    ]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Semester not found" });
+    }
+
+    res.status(200).json({
+      message: "Semester updated successfully",
+      semester_id: Number(id),
+      semester_description,
+      semester_code,
+    });
+  } catch (err) {
+    console.error("Update semester error:", err);
+    res.status(500).json({ error: "Update failed", details: err.message });
+  }
+});
+
 router.get("/get_semester", async (req, res) => {
   const query = "SELECT * FROM semester_table";
 
@@ -127,6 +164,26 @@ router.get("/get_semester", async (req, res) => {
   } catch (err) {
     console.error("Query error:", err);
     res.status(500).json({ error: "Query failed", details: err.message });
+  }
+});
+
+router.delete("/semesters/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const [result] = await db3.query(
+      "DELETE FROM semester_table WHERE semester_id = ?",
+      [id],
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Semester not found" });
+    }
+
+    res.status(200).json({ message: "Semester deleted successfully" });
+  } catch (err) {
+    console.error("Delete semester error:", err);
+    res.status(500).json({ error: "Delete failed", details: err.message });
   }
 });
 
@@ -190,7 +247,7 @@ router.post("/school_years", CanCreate, async (req, res) => {
   }
 });
 
-router.put("/school_years/:id", CanEdit, async (req, res) => {
+router.put("/school_years/:id", async (req, res) => {
   const { id } = req.params;
   const { activator } = req.body;
 
@@ -239,6 +296,55 @@ router.put("/school_years/:id", CanEdit, async (req, res) => {
 
       return res.status(200).json({ message: "School year deactivated" });
     }
+  } catch (err) {
+    console.error("Error:", err);
+    res
+      .status(500)
+      .json({ error: "Failed to update school year", details: err.message });
+  }
+});
+
+router.put("/edit_school_years/:id", CanEdit, async (req, res) => {
+  const { id } = req.params;
+  const { year_id, semester_id } = req.body;
+
+  if (!year_id || !semester_id) {
+    return res.status(400).json({ error: "Missing fields" });
+  }
+
+  try {
+    const [currentRows] = await db3.query(
+      "SELECT * FROM active_school_year_table WHERE id = ? LIMIT 1",
+      [id],
+    );
+
+    if (currentRows.length === 0) {
+      return res.status(404).json({ error: "School year not found" });
+    }
+
+    const [existing] = await db3.query(
+      `
+        SELECT id
+        FROM active_school_year_table
+        WHERE year_id = ? AND semester_id = ? AND id != ?
+      `,
+      [year_id, semester_id, id],
+    );
+
+    if (existing.length > 0) {
+      return res.status(400).json({ error: "This school year already exists" });
+    }
+
+    await db3.query(
+      `
+        UPDATE active_school_year_table
+        SET year_id = ?, semester_id = ?
+        WHERE id = ?
+      `,
+      [year_id, semester_id, id],
+    );
+
+    res.status(200).json({ message: "School year updated successfully" });
   } catch (err) {
     console.error("Error:", err);
     res

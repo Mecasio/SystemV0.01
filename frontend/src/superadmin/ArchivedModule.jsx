@@ -333,6 +333,8 @@ const ArchivedModule = () => {
     );
   }
 
+  const showActionColumn = canEdit || canDelete;
+
   return (
     <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -565,16 +567,18 @@ const ArchivedModule = () => {
               <TableCell sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: "#F5F5F5", color: "black", textAlign: "center" }}>
                 Application Date
               </TableCell>
-              <TableCell sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: "#F5F5F5", color: "black", textAlign: "center" }}>
-                Actions
-              </TableCell>
+              {showActionColumn && (
+                <TableCell sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: "#F5F5F5", color: "black", textAlign: "center" }}>
+                  Actions
+                </TableCell>
+              )}
             </TableRow>
           </TableHead>
 
           <TableBody>
             {filteredAccounts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} sx={{ textAlign: "center", py: 4 }}>
+                <TableCell colSpan={showActionColumn ? 7 : 6} sx={{ textAlign: "center", py: 4 }}>
                   No archived accounts found.
                 </TableCell>
               </TableRow>
@@ -630,55 +634,53 @@ const ArchivedModule = () => {
                   }}>
                     {formatDate(account.created_at)}
                   </TableCell>
-                  <TableCell sx={{
-                    textAlign: "center",
-                    border: `1px solid ${borderColor}`,
-                    fontSize: "12px",
-                    py: 0.5,
-                  }} >
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "center",
-                        gap: 1,
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      <Button
-                        size="small"
-                        variant="contained"
-                        startIcon={<RestoreIcon />}
-                        disabled={!canEdit}
-                        onClick={() => openDialog("restore", account)}
+                  {showActionColumn && (
+                    <TableCell sx={{
+                      textAlign: "center",
+                      border: `1px solid ${borderColor}`,
+                      fontSize: "12px",
+                      py: 0.5,
+                    }} >
+                      <Box
                         sx={{
-                          backgroundColor: "#2e7d32",
-                          "&:hover": { backgroundColor: "#1b5e20" },
-                          "&.Mui-disabled": {
-                            backgroundColor: "#C9C9C9",
-                            color: "#666666",
-                          },
+                          display: "flex",
+                          justifyContent: "center",
+                          gap: 1,
+                          flexWrap: "wrap",
                         }}
                       >
-                        Restore
-                      </Button>
+                        {canEdit && (
+                          <Button
+                            size="small"
+                            variant="contained"
+                            startIcon={<RestoreIcon />}
+                            onClick={() => openDialog("restore", account)}
+                            sx={{
+                              backgroundColor: "#2e7d32",
+                              "&:hover": { backgroundColor: "#1b5e20" },
+                            }}
+                          >
+                            Restore
+                          </Button>
+                        )}
 
-                      <Button
-                        size="small"
-                        variant="contained"
-                        color="error"
-                        startIcon={<DeleteIcon />}
-
-                        sx={{
-                          backgroundColor: "#9E0000",
-
-                        }}
-                        disabled={!canDelete}
-                        onClick={() => openDialog("delete", account)}
-                      >
-                        Delete
-                      </Button>
-                    </Box>
-                  </TableCell>
+                        {canDelete && (
+                          <Button
+                            size="small"
+                            variant="contained"
+                            color="error"
+                            startIcon={<DeleteIcon />}
+                            sx={{
+                              backgroundColor: "#9E0000",
+                            }}
+                            onClick={() => openDialog("delete", account)}
+                          >
+                            Delete
+                          </Button>
+                        )}
+                      </Box>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             )}

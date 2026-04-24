@@ -465,6 +465,9 @@ const AssignEntranceExam = () => {
     );
   }
 
+  const showCreateActions = canCreate;
+  const showActionColumn = canEdit || canDelete;
+
   return (
     <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
       {/* ===== PAGE HEADER WITH SEARCH ===== */}
@@ -584,6 +587,7 @@ const AssignEntranceExam = () => {
                 </TableCell>
 
 
+                {showCreateActions && (
                 <Button
                   variant="contained"
                   onClick={() => {
@@ -606,6 +610,7 @@ const AssignEntranceExam = () => {
                 >
                   + Add Schedule
                 </Button>
+                )}
               </Box>
             </TableRow>
           </TableHead>
@@ -911,7 +916,7 @@ const AssignEntranceExam = () => {
                   "End",
                   "Proctor",
                   "Room Slot",
-                  "Actions",
+                  ...(showActionColumn ? ["Actions"] : []),
                 ].map((header) => (
                   <TableCell
                     key={header}
@@ -940,6 +945,7 @@ const AssignEntranceExam = () => {
                   <TableCell align="center" sx={cellStyle}>{formatTime(s.end_time)}</TableCell>
                   <TableCell align="center" sx={cellStyle} >{s.proctor}</TableCell>
                   <TableCell align="center" sx={cellStyle}>{s.room_quota}</TableCell>
+                  {showActionColumn && (
                   <TableCell align="center" sx={cellStyle}>
                     <Box
                       sx={{
@@ -950,6 +956,7 @@ const AssignEntranceExam = () => {
                         flexWrap: "nowrap",
                       }}
                     >
+                      {canEdit && (
                       <Button
                         size="small"
                         variant="contained"
@@ -968,7 +975,9 @@ const AssignEntranceExam = () => {
                       >
                         <EditIcon fontSize="small" /> Edit
                       </Button>
+                      )}
 
+                      {canDelete && (
                       <Button
                         size="small"
                         variant="contained"
@@ -990,8 +999,10 @@ const AssignEntranceExam = () => {
                       >
                         <DeleteIcon fontSize="small" /> Delete
                       </Button>
+                      )}
                     </Box>
                   </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
@@ -1494,6 +1505,7 @@ const AssignEntranceExam = () => {
             Cancel
           </Button>
 
+          {(showCreateActions || (editingSchedule && canEdit)) && (
           <Button
             variant="contained"
             sx={{
@@ -1512,6 +1524,7 @@ const AssignEntranceExam = () => {
           >
             <SaveIcon fontSize="small" /> Save
           </Button>
+          )}
         </DialogActions>
       </Dialog>
     </Box>

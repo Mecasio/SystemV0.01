@@ -393,6 +393,9 @@ const ProgramPanel = () => {
     return <Unauthorized />;
   }
 
+  const showCreateActions = canCreate;
+  const showActionColumn = canEdit || canDelete;
+
   // ✅ Styles now INSIDE the component
   const styles = {
     container: {
@@ -527,20 +530,22 @@ const ProgramPanel = () => {
             onChange={handleProgramImport}
             style={{ display: "none" }}
           />
-          <Button
-            variant="contained"
-            onClick={() => importInputRef.current?.click()}
-            disabled={importingXlsx || !canCreate}
-            sx={{
-              height: 40,
-              textTransform: "none",
-              fontWeight: "bold",
-              minWidth: 170,
-            }}
-          >
-            <FaFileExcel style={{ marginRight: 8 }} />
-            {importingXlsx ? "Importing..." : "Import Program"}
-          </Button>
+          {showCreateActions && (
+            <Button
+              variant="contained"
+              onClick={() => importInputRef.current?.click()}
+              disabled={importingXlsx}
+              sx={{
+                height: 40,
+                textTransform: "none",
+                fontWeight: "bold",
+                minWidth: 170,
+              }}
+            >
+              <FaFileExcel style={{ marginRight: 8 }} />
+              {importingXlsx ? "Importing..." : "Import Program"}
+            </Button>
+          )}
           <Button
             onClick={() => {
               window.location.href = `${API_BASE_URL}/program_panel_template`;
@@ -743,45 +748,37 @@ const ProgramPanel = () => {
                       >
                         Last
                       </Button>
-                      <Button
-                        variant="contained"
-                        sx={{
-                          backgroundColor: "#1976d2",
-                          color: "#fff",
-                          fontWeight: "bold",
-                          borderRadius: "8px",
-                          width: "250px",
-                          textTransform: "none",
-                          px: 2,
-                          mr: "15px",
-                          "&:hover": {
-                            backgroundColor: "#1565c0",
-                          },
-                        }}
-                        disabled={!canCreate}
-                        onClick={() => {
-                          if (!canCreate) {
-                            setSnackbar({
-                              open: true,
-                              message:
-                                "You do not have permission to create items on this page",
-                              severity: "error",
+                      {showCreateActions && (
+                        <Button
+                          variant="contained"
+                          sx={{
+                            backgroundColor: "#1976d2",
+                            color: "#fff",
+                            fontWeight: "bold",
+                            borderRadius: "8px",
+                            width: "250px",
+                            textTransform: "none",
+                            px: 2,
+                            mr: "15px",
+                            "&:hover": {
+                              backgroundColor: "#1565c0",
+                            },
+                          }}
+                          onClick={() => {
+                            setProgram({
+                              name: "",
+                              code: "",
+                              major: "",
+                              components: "",
+                              academic_program: "",
                             });
-                            return;
-                          }
-                          setProgram({
-                            name: "",
-                            code: "",
-                            major: "",
-                            components: "",
-                            academic_program: "",
-                          });
-                          setEditMode(false);
-                          setOpenProgramDialog(true);
-                        }}
-                      >
-                        + Add Program
-                      </Button>
+                            setEditMode(false);
+                            setOpenProgramDialog(true);
+                          }}
+                        >
+                          + Add Program
+                        </Button>
+                      )}
                     </Box>
                   </Box>
                 </TableCell>
@@ -806,9 +803,11 @@ const ProgramPanel = () => {
               <th style={{ ...styles.th, backgroundColor: "#f5f5f5" }}>
                 Academic Program
               </th>
-              <th style={{ ...styles.th, backgroundColor: "#f5f5f5" }}>
-                Actions
-              </th>
+              {showActionColumn && (
+                <th style={{ ...styles.th, backgroundColor: "#f5f5f5" }}>
+                  Actions
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -828,49 +827,43 @@ const ProgramPanel = () => {
                         ? "Techvoc"
                         : "—"}
                 </td>
-                <td style={{ ...styles.td, textAlign: "center" }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "center",
-                      gap: "8px",
-                    }}
-                  >
-                    <button
-                      onClick={() => handleEdit(prog)}
+                {showActionColumn && (
+                  <td style={{ ...styles.td, textAlign: "center" }}>
+                    <div
                       style={{
-                        ...styles.editButton,
-                        opacity: canEdit ? 1 : 0.5,
-                        cursor: canEdit ? "pointer" : "not-allowed",
+                        display: "flex",
+                        justifyContent: "center",
+                        gap: "8px",
                       }}
-                      disabled={!canEdit}
                     >
-                      <EditIcon fontSize="small" /> Edit
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (!canDelete) {
-                          setSnackbar({
-                            open: true,
-                            message: "You do not have permission to delete this item",
-                            severity: "error",
-                          });
-                          return;
-                        }
-                        setProgramToDelete(prog);
-                        setOpenDeleteDialog(true);
-                      }}
-                      style={{
-                        ...styles.deleteButton,
-                        opacity: canDelete ? 1 : 0.5,
-                        cursor: canDelete ? "pointer" : "not-allowed",
-                      }}
-                      disabled={!canDelete}
-                    >
-                      <DeleteIcon fontSize="small" /> Delete
-                    </button>
-                  </div>
-                </td>
+                      {canEdit && (
+                        <button
+                          onClick={() => handleEdit(prog)}
+                          style={{
+                            ...styles.editButton,
+                            cursor: "pointer",
+                          }}
+                        >
+                          <EditIcon fontSize="small" /> Edit
+                        </button>
+                      )}
+                      {canDelete && (
+                        <button
+                          onClick={() => {
+                            setProgramToDelete(prog);
+                            setOpenDeleteDialog(true);
+                          }}
+                          style={{
+                            ...styles.deleteButton,
+                            cursor: "pointer",
+                          }}
+                        >
+                          <DeleteIcon fontSize="small" /> Delete
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

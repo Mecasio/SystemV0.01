@@ -504,6 +504,9 @@ const CoursePanel = () => {
     return <Unauthorized />;
   }
 
+  const showCreateActions = canCreate;
+  const showActionColumn = canEdit || canDelete;
+
   const styles = {
     section: {
       padding: 16,
@@ -595,21 +598,23 @@ const CoursePanel = () => {
             onChange={handleCourseImport}
             style={{ display: "none" }}
           />
-          <Button
-            variant="contained"
-            onClick={() => importInputRef.current?.click()}
-            disabled={importingXlsx || !canCreate}
-            sx={{
-              height: 40,
-              mb: 2,
-              textTransform: "none",
-              fontWeight: "bold",
-              minWidth: 165,
-            }}
-          >
-            <FaFileExcel style={{ marginRight: 8 }} />
-            {importingXlsx ? "Importing..." : "Import Course"}
-          </Button>
+          {showCreateActions && (
+            <Button
+              variant="contained"
+              onClick={() => importInputRef.current?.click()}
+              disabled={importingXlsx}
+              sx={{
+                height: 40,
+                mb: 2,
+                textTransform: "none",
+                fontWeight: "bold",
+                minWidth: 165,
+              }}
+            >
+              <FaFileExcel style={{ marginRight: 8 }} />
+              {importingXlsx ? "Importing..." : "Import Course"}
+            </Button>
+          )}
           <Button
             onClick={() => {
               window.location.href = `${API_BASE_URL}/course_panel_template`;
@@ -806,46 +811,43 @@ const CoursePanel = () => {
                     >
                       Last
                     </Button>
-                    <Button
-                      variant="contained"
-                      disabled={!canCreate}
-                      onClick={() => {
-                        if (!canCreate) {
-                          showSnack("You do not have permission to create items on this page", "error");
-                          return;
-                        }
-                        setEditMode(false);
-                        setCourse({
-                          course_code: "",
-                          course_description: "",
-                          course_unit: "",
-                          lec_unit: "",
-                          lab_unit: "",
-                          prereq: "",
-                          corequisite: "",
-                          is_included: 1,
-                          include_summa: 1,
-                          include_magna: 1,
-                          include_cum: 1,
-                        });
-                        setOpenCourseDialog(true);
-                      }}
-                      sx={{
-                        backgroundColor: "#1976d2",
-                        color: "#fff",
-                        fontWeight: "bold",
-                        borderRadius: "8px",
-                        width: "250px",
-                        textTransform: "none",
-                        px: 2,
-                        mr: "15px",
-                        "&:hover": {
-                          backgroundColor: "#1565c0",
-                        },
-                      }}
-                    >
-                      + Add Course
-                    </Button>
+                    {showCreateActions && (
+                      <Button
+                        variant="contained"
+                        onClick={() => {
+                          setEditMode(false);
+                          setCourse({
+                            course_code: "",
+                            course_description: "",
+                            course_unit: "",
+                            lec_unit: "",
+                            lab_unit: "",
+                            prereq: "",
+                            corequisite: "",
+                            is_included: 1,
+                            include_summa: 1,
+                            include_magna: 1,
+                            include_cum: 1,
+                          });
+                          setOpenCourseDialog(true);
+                        }}
+                        sx={{
+                          backgroundColor: "#1976d2",
+                          color: "#fff",
+                          fontWeight: "bold",
+                          borderRadius: "8px",
+                          width: "250px",
+                          textTransform: "none",
+                          px: 2,
+                          mr: "15px",
+                          "&:hover": {
+                            backgroundColor: "#1565c0",
+                          },
+                        }}
+                      >
+                        + Add Course
+                      </Button>
+                    )}
                   </Box>
                 </Box>
               </TableCell>
@@ -873,7 +875,7 @@ const CoursePanel = () => {
                 "Summa",
                 "Magna",
                 "Cum Laude",
-                "Actions",
+                ...(showActionColumn ? ["Actions"] : []),
               ].map((header) => (
                 <th
                   key={header}
@@ -937,65 +939,63 @@ const CoursePanel = () => {
                     {Number(c.include_cum) === 1 ? "YES" : "NO"}
                   </td>
 
-                  <td style={styles.tableCell}>
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: 8,
-                        justifyContent: "center",
-                      }}
-                    >
-                      <button
-                        onClick={() => handleEdit(c)}
-                        disabled={!canEdit}
+                  {showActionColumn && (
+                    <td style={styles.tableCell}>
+                      <div
                         style={{
-                          backgroundColor: "green",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "5px",
-                          padding: "8px 14px",
-                          cursor: canEdit ? "pointer" : "not-allowed",
-                          width: "100px",
-                          height: "40px",
                           display: "flex",
-                          alignItems: "center",
+                          gap: 8,
                           justifyContent: "center",
-                          gap: "5px",
-                          opacity: canEdit ? 1 : 0.5,
                         }}
                       >
-                        <EditIcon fontSize="small" /> Edit
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (!canDelete) {
-                            showSnack("You do not have permission to delete this item", "error");
-                            return;
-                          }
-                          setCourseToDelete(c);
-                          setOpenDeleteDialog(true);
-                        }}
-                        disabled={!canDelete}
-                        style={{
-                          backgroundColor: "#9E0000",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "5px",
-                          padding: "8px 14px",
-                          cursor: canDelete ? "pointer" : "not-allowed",
-                          width: "100px",
-                          height: "40px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: "5px",
-                          opacity: canDelete ? 1 : 0.5,
-                        }}
-                      >
-                        <DeleteIcon fontSize="small" /> Delete
-                      </button>
-                    </div>
-                  </td>
+                        {canEdit && (
+                          <button
+                            onClick={() => handleEdit(c)}
+                            style={{
+                              backgroundColor: "green",
+                              color: "white",
+                              border: "none",
+                              borderRadius: "5px",
+                              padding: "8px 14px",
+                              cursor: "pointer",
+                              width: "100px",
+                              height: "40px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: "5px",
+                            }}
+                          >
+                            <EditIcon fontSize="small" /> Edit
+                          </button>
+                        )}
+                        {canDelete && (
+                          <button
+                            onClick={() => {
+                              setCourseToDelete(c);
+                              setOpenDeleteDialog(true);
+                            }}
+                            style={{
+                              backgroundColor: "#9E0000",
+                              color: "white",
+                              border: "none",
+                              borderRadius: "5px",
+                              padding: "8px 14px",
+                              cursor: "pointer",
+                              width: "100px",
+                              height: "40px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: "5px",
+                            }}
+                          >
+                            <DeleteIcon fontSize="small" /> Delete
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  )}
                 </tr>
               );
             })}

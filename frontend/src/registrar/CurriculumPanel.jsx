@@ -559,6 +559,9 @@ const CurriculumPanel = () => {
     "& svg": { color: "white" },
   };
 
+  const showCreateActions = canCreate;
+  const showActionColumn = canEdit || canDelete;
+
   if (loading || hasAccess === null) {
     return <LoadingOverlay open={loading} message="Loading..." />;
   }
@@ -635,20 +638,22 @@ const CurriculumPanel = () => {
             onChange={handleCurriculumImport}
             style={{ display: "none" }}
           />
-          <Button
-            variant="contained"
-            onClick={() => importInputRef.current?.click()}
-            disabled={importingXlsx || !canCreate}
-            sx={{
-              height: 40,
-              textTransform: "none",
-              fontWeight: "bold",
-              minWidth: 185,
-            }}
-          >
-            <FaFileExcel style={{ marginRight: 8 }} />
-            {importingXlsx ? "Importing..." : "Import Curriculum"}
-          </Button>
+          {showCreateActions && (
+            <Button
+              variant="contained"
+              onClick={() => importInputRef.current?.click()}
+              disabled={importingXlsx}
+              sx={{
+                height: 40,
+                textTransform: "none",
+                fontWeight: "bold",
+                minWidth: 185,
+              }}
+            >
+              <FaFileExcel style={{ marginRight: 8 }} />
+              {importingXlsx ? "Importing..." : "Import Curriculum"}
+            </Button>
+          )}
           <Button
             onClick={() => {
               window.location.href = `${API_BASE_URL}/curriculum_panel_template`;
@@ -680,7 +685,7 @@ const CurriculumPanel = () => {
           >
             <TableRow>
               <TableCell
-                colSpan={5}
+                colSpan={showActionColumn ? 5 : 4}
                 sx={{
                   border: `1px solid ${borderColor}`,
                   py: 0.5,
@@ -772,37 +777,29 @@ const CurriculumPanel = () => {
                     >
                       Last
                     </Button>
-                    <Button
-                      variant="contained"
-                      disabled={!canCreate}
-                      sx={{
-                        backgroundColor: "#1976d2",
-                        color: "#fff",
-                        fontWeight: "bold",
-                        borderRadius: "8px",
-                        width: "250px",
-                        textTransform: "none",
-                        px: 2,
-                        mr: "15px",
-                        "&:hover": {
-                          backgroundColor: "#1565c0",
-                        },
-                      }}
-                      onClick={() => {
-                        if (!canCreate) {
-                          setSnackbar({
-                            open: true,
-                            message:
-                              "You do not have permission to create items on this page",
-                            severity: "error",
-                          });
-                          return;
-                        }
-                        setOpenCurriculumDialog(true);
-                      }}
-                    >
-                      + Add Curriculum
-                    </Button>
+                    {showCreateActions && (
+                      <Button
+                        variant="contained"
+                        sx={{
+                          backgroundColor: "#1976d2",
+                          color: "#fff",
+                          fontWeight: "bold",
+                          borderRadius: "8px",
+                          width: "250px",
+                          textTransform: "none",
+                          px: 2,
+                          mr: "15px",
+                          "&:hover": {
+                            backgroundColor: "#1565c0",
+                          },
+                        }}
+                        onClick={() => {
+                          setOpenCurriculumDialog(true);
+                        }}
+                      >
+                        + Add Curriculum
+                      </Button>
+                    )}
                   </Box>
                 </Box>
               </TableCell>
@@ -852,16 +849,18 @@ const CurriculumPanel = () => {
               >
                 Active
               </TableCell>
-              <TableCell
-                sx={{
-                  border: `1px solid ${borderColor}`,
-                  textAlign: "center",
-                  color: "black",
-                }}
-                align="center"
-              >
-                Actions
-              </TableCell>
+              {showActionColumn && (
+                <TableCell
+                  sx={{
+                    border: `1px solid ${borderColor}`,
+                    textAlign: "center",
+                    color: "black",
+                  }}
+                  align="center"
+                >
+                  Actions
+                </TableCell>
+              )}
             </TableRow>
           </TableHead>
 
@@ -909,53 +908,53 @@ const CurriculumPanel = () => {
                     color="success"
                   />
                 </TableCell>
-                <TableCell
-                  sx={{ border: `1px solid ${borderColor}` }}
-                  align="center"
-                >
-                  <Button
-                    variant="contained"
-                    startIcon={<EditIcon />}
-                    onClick={() => handleEdit(item)}
-                    disabled={!canEdit}
-                    sx={{
-                      backgroundColor: "green",
-                      width: "100px",
-                      height: "40px",
-                      marginRight: "15px",
-                      borderRadius: "5px",
-                      textTransform: "none",
-                      opacity: canEdit ? 1 : 0.5,
-                      cursor: canEdit ? "pointer" : "not-allowed",
-                      "&:hover": {
-                        backgroundColor: canEdit ? "darkgreen" : "green",
-                      },
-                    }}
+                {showActionColumn && (
+                  <TableCell
+                    sx={{ border: `1px solid ${borderColor}` }}
+                    align="center"
                   >
-                    Edit
-                  </Button>
+                    {canEdit && (
+                      <Button
+                        variant="contained"
+                        startIcon={<EditIcon />}
+                        onClick={() => handleEdit(item)}
+                        sx={{
+                          backgroundColor: "green",
+                          width: "100px",
+                          height: "40px",
+                          marginRight: canDelete ? "15px" : 0,
+                          borderRadius: "5px",
+                          textTransform: "none",
+                          "&:hover": {
+                            backgroundColor: "darkgreen",
+                          },
+                        }}
+                      >
+                        Edit
+                      </Button>
+                    )}
 
-                  <Button
-                    variant="contained"
-                    startIcon={<DeleteIcon />}
-                    onClick={() => confirmDelete(item)}
-                    disabled={!canDelete}
-                    sx={{
-                      backgroundColor: "#9E0000",
-                      width: "100px",
-                      height: "40px",
-                      borderRadius: "5px",
-                      textTransform: "none",
-                      opacity: canDelete ? 1 : 0.5,
-                      cursor: canDelete ? "pointer" : "not-allowed",
-                      "&:hover": {
-                        backgroundColor: canDelete ? "#7A0000" : "#9E0000",
-                      },
-                    }}
-                  >
-                    Delete
-                  </Button>
-                </TableCell>
+                    {canDelete && (
+                      <Button
+                        variant="contained"
+                        startIcon={<DeleteIcon />}
+                        onClick={() => confirmDelete(item)}
+                        sx={{
+                          backgroundColor: "#9E0000",
+                          width: "100px",
+                          height: "40px",
+                          borderRadius: "5px",
+                          textTransform: "none",
+                          "&:hover": {
+                            backgroundColor: "#7A0000",
+                          },
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    )}
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>
@@ -969,7 +968,7 @@ const CurriculumPanel = () => {
           >
             <TableRow>
               <TableCell
-                colSpan={5}
+                colSpan={showActionColumn ? 5 : 4}
                 sx={{
                   border: `1px solid ${borderColor}`,
                   py: 0.5,

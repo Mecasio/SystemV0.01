@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useContext } from "react";
 import { SettingsContext } from "../App";
-import axios from 'axios';
+import axios from "axios";
 import {
   Box,
-  Paper,
   TextField,
   Button,
   Typography,
@@ -15,127 +14,118 @@ import {
   TableContainer,
   Snackbar,
   Alert,
-  FormControl,
-  Select,
   Dialog,
-  MenuItem,
   DialogTitle,
   DialogContent,
   DialogActions,
-} from '@mui/material';
+  Select,
+  MenuItem,
+} from "@mui/material";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
-import SearchIcon from "@mui/icons-material/Search";
-import SaveIcon from '@mui/icons-material/Save';
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import SearchIcon from "@mui/icons-material/Search";
+
+const actionBtnSx = (bg) => ({
+  textTransform: "none",
+  fontSize: "0.72rem",
+  fontWeight: 600,
+  color: "#fff",
+  backgroundColor: bg,
+  borderRadius: "4px",
+  px: 1.2,
+  py: 0.35,
+  minWidth: "auto",
+  boxShadow: "none",
+  "&:hover": { backgroundColor: bg, opacity: 0.85, boxShadow: "none" },
+});
 
 const SectionPanel = () => {
   const settings = useContext(SettingsContext);
 
-  const [titleColor, setTitleColor] = useState("#000000");
-  const [subtitleColor, setSubtitleColor] = useState("#555555");
-  const [borderColor, setBorderColor] = useState("#000000");
+  const [titleColor, setTitleColor] = useState("#000");
+  const [mainButtonColor, setMainButtonColor] = useState("#1976d2");
 
-  const [userID, setUserID] = useState("");
-  const [userRole, setUserRole] = useState("");
   const [employeeID, setEmployeeID] = useState("");
   const [hasAccess, setHasAccess] = useState(null);
   const [canCreate, setCanCreate] = useState(false);
   const [canEdit, setCanEdit] = useState(false);
   const [canDelete, setCanDelete] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
-  const pageId = 57;
-  const permissionHeaders = {
-    headers: {
-      "x-employee-id": employeeID,
-      "x-page-id": pageId,
-    },
-  };
-
-  const [description, setDescription] = useState('');
+  const [description, setDescription] = useState("");
   const [sections, setSections] = useState([]);
   const [editId, setEditId] = useState(null);
 
-  const [openFormDialog, setOpenFormDialog] = useState(false);
+  const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [sectionToDelete, setSectionToDelete] = useState(null);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 20;
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const handleEdit = (section) => {
-    if (!canEdit) {
-      setSnackbar({ open: true, message: "You do not have permission to edit this item", severity: "error" });
-      return;
-    }
-
-    setEditId(section.id);
-    setDescription(section.description);
-    setOpenFormDialog(true);
-  };
-
-  const [sectionSearchQuery, setSectionSearchQuery] = useState("");
-
-  const filteredSections = sections.filter((section) =>
-    section.description.toLowerCase().includes(sectionSearchQuery.toLowerCase())
-  );
-
-  // Snackbar state
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "success",
   });
 
+  const pageId = 57;
+  const permissionHeaders = {
+    headers: { "x-employee-id": employeeID, "x-page-id": pageId },
+  };
+
   useEffect(() => {
     if (!settings) return;
     if (settings.title_color) setTitleColor(settings.title_color);
-    if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
-    if (settings.border_color) setBorderColor(settings.border_color);
+    if (settings.main_button_color)
+      setMainButtonColor(settings.main_button_color);
   }, [settings]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("email");
     const storedRole = localStorage.getItem("role");
     const storedID = localStorage.getItem("person_id");
-    const storedEmployeeID = localStorage.getItem("employee_id");
-
+    const storedEmpID = localStorage.getItem("employee_id");
     if (storedUser && storedRole && storedID) {
-      setUserID(storedID);
-      setUserRole(storedRole);
-      setEmployeeID(storedEmployeeID);
-
-      if (storedRole === "registrar") {
-        checkAccess(storedEmployeeID);
-      } else {
-        window.location.href = "/login";
-      }
+      setEmployeeID(storedEmpID);
+      if (storedRole === "registrar") checkAccess(storedEmpID);
+      else window.location.href = "/login";
     } else {
       window.location.href = "/login";
     }
   }, []);
 
-  const checkAccess = async (employeeID) => {
+  useEffect(() => {
+    fetchSections();
+  }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  const checkAccess = async (empID) => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`);
-      if (response.data?.page_privilege === 1) {
+      const res = await axios.get(
+        `${API_BASE_URL}/api/page_access/${empID}/${pageId}`,
+      );
+      if (res.data?.page_privilege === 1) {
         setHasAccess(true);
-        setCanCreate(Number(response.data?.can_create) === 1);
-        setCanEdit(Number(response.data?.can_edit) === 1);
-        setCanDelete(Number(response.data?.can_delete) === 1);
+        setCanCreate(Number(res.data?.can_create) === 1);
+        setCanEdit(Number(res.data?.can_edit) === 1);
+        setCanDelete(Number(res.data?.can_delete) === 1);
       } else {
         setHasAccess(false);
-        setCanCreate(false);
-        setCanEdit(false);
-        setCanDelete(false);
       }
-    } catch (err) {
-      console.error("Error checking access:", err);
+    } catch {
       setHasAccess(false);
-      setCanCreate(false);
-      setCanEdit(false);
-      setCanDelete(false);
-      setSnackbar({ open: true, message: "Failed to check access", severity: "error" });
+      toast("Failed to check access", "error");
     } finally {
       setLoading(false);
     }
@@ -143,688 +133,691 @@ const SectionPanel = () => {
 
   const fetchSections = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/section_table`);
-      setSections(response.data);
-    } catch (err) {
-      console.log(err);
-      setSnackbar({ open: true, message: "Failed to fetch sections", severity: "error" });
+      const res = await axios.get(`${API_BASE_URL}/section_table`);
+      setSections(res.data);
+    } catch {
+      toast("Failed to fetch sections", "error");
     }
   };
 
-  useEffect(() => {
-    fetchSections();
-  }, []);
-
-  const handleSubmit = async (event) => {
-    event?.preventDefault?.();
-
+  const handleAdd = async () => {
     if (!description.trim()) {
-      setSnackbar({ open: true, message: "Description required", severity: "warning" });
+      toast("Description required", "warning");
       return;
     }
-
-    if (editId && !canEdit) {
-      setSnackbar({ open: true, message: "You do not have permission to edit this item", severity: "error" });
+    if (!canCreate) {
+      toast("No permission to create", "error");
       return;
     }
-
-    if (!editId && !canCreate) {
-      setSnackbar({ open: true, message: "You do not have permission to create items on this page", severity: "error" });
-      return;
-    }
-
     try {
-      if (editId) {
-        // UPDATE
-        await axios.put(`${API_BASE_URL}/section_table/${editId}`, { description }, permissionHeaders);
-        setSnackbar({ open: true, message: "Section updated!", severity: "success" });
-      } else {
-        // INSERT
-        await axios.post(`${API_BASE_URL}/section_table`, { description }, permissionHeaders);
-        setSnackbar({ open: true, message: "Section added!", severity: "success" });
-      }
+      await axios.post(
+        `${API_BASE_URL}/section_table`,
+        { description },
+        permissionHeaders,
+      );
+      toast("Section added!", "success");
+      setDescription("");
+      fetchSections();
+    } catch (err) {
+      toast(err.response?.data?.error || "Error", "error");
+    }
+  };
 
+  const handleEditSubmit = async () => {
+    if (!description.trim()) {
+      toast("Description required", "warning");
+      return;
+    }
+    if (!canEdit) {
+      toast("No permission to edit", "error");
+      return;
+    }
+    try {
+      await axios.put(
+        `${API_BASE_URL}/section_table/${editId}`,
+        { description },
+        permissionHeaders,
+      );
+      toast("Section updated!", "success");
       setDescription("");
       setEditId(null);
-      setOpenFormDialog(false);
+      setOpenEditDialog(false);
       fetchSections();
     } catch (err) {
-      const msg = err.response?.data?.error || "Error";
-      setSnackbar({ open: true, message: msg, severity: "error" });
+      toast(err.response?.data?.error || "Error", "error");
     }
   };
 
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const [sectionToDelete, setSectionToDelete] = useState(null);
-
-
   const handleConfirmDelete = async () => {
-    if (!sectionToDelete) return;
-
-    if (!canDelete) {
-      setSnackbar({ open: true, message: "You do not have permission to delete this item", severity: "error" });
+    if (!sectionToDelete || !canDelete) {
+      toast("No permission to delete", "error");
       setOpenDeleteDialog(false);
-      setSectionToDelete(null);
       return;
     }
-
     try {
-      await axios.delete(`${API_BASE_URL}/section_table/${sectionToDelete.id}`, permissionHeaders);
-      setSnackbar({ open: true, message: "Section deleted!", severity: "success" });
+      await axios.delete(
+        `${API_BASE_URL}/section_table/${sectionToDelete.id}`,
+        permissionHeaders,
+      );
+      toast("Section deleted!", "success");
       fetchSections();
-    } catch (err) {
-      setSnackbar({ open: true, message: "Delete failed!", severity: "error" });
+    } catch {
+      toast("Delete failed!", "error");
     } finally {
       setOpenDeleteDialog(false);
       setSectionToDelete(null);
     }
   };
 
+  const toast = (message, severity) =>
+    setSnackbar({ open: true, message, severity });
 
+  const filteredSections = sections.filter((section) =>
+    [section.description, section.id?.toString()]
+      .join(" ")
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase()),
+  );
 
-  const handleCloseSnackbar = () => {
-    setSnackbar(prev => ({ ...prev, open: false }));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredSections.length / rowsPerPage),
+  );
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const paginated = filteredSections.slice(startIndex, startIndex + rowsPerPage);
+
+  const showActionColumn = canEdit || canDelete;
+
+  const C = {
+    headerBg: `${mainButtonColor}`,
+    headerText: "#fff",
+    subHeaderBg: "#f5f5f5",
+    subHeaderText: "#333",
+    rowOdd: "#fff",
+    rowEven: "#fafafa",
+    rowHover: "#f0e8e8",
+    border: "#ddd",
+    editBtn: "#2e7d32",
+    deleteBtn: "#9E0000",
+    addBtn: `${mainButtonColor}`,
+    textDark: "#222",
+    textMuted: `${mainButtonColor}`,
   };
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 20;
+  const thSx = (_label) => ({
+    fontWeight: 700,
+    fontSize: "0.72rem",
+    textTransform: "uppercase",
+    letterSpacing: "0.05em",
+    color: "#444",
+    backgroundColor: "#efefef",
+    borderBottom: "2px solid #ddd",
+    borderRight: "1px solid #e0e0e0",
+    py: 1,
+    px: 1.5,
+    whiteSpace: "nowrap",
+  });
 
-  const totalPages = Math.ceil(filteredSections.length / rowsPerPage);
+  const tdSx = {
+    fontSize: "0.8rem",
+    color: "#333",
+    borderBottom: "1px solid #ebebeb",
+    borderRight: "1px solid #ebebeb",
+    py: 0.85,
+    px: 1.5,
+  };
 
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
+  const pagBtnSx = {
+    textTransform: "none",
+    fontSize: "0.72rem",
+    fontWeight: 600,
+    color: "white",
+    borderColor: "#ccc",
+    borderRadius: "3px",
+    minWidth: 48,
+    height: 28,
+    px: 1,
+    py: 0,
+    boxShadow: "none",
+    "&:hover": {
+      backgroundColor: "#f0e8e8",
+      borderColor: C.headerBg,
+      color: C.headerBg,
+    },
+    "&.Mui-disabled": { opacity: 0.5, color: "white", borderColor: "white" },
+  };
 
-  const paginatedSections = filteredSections.slice(startIndex, endIndex);
+  const pageDropdownSx = {
+    fontSize: "0.75rem",
+    color: "white",
+    height: 28,
+    ".MuiOutlinedInput-notchedOutline": { borderColor: "#ccc" },
+    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#fff" },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#fff" },
+    ".MuiSelect-icon": { color: "white" },
+    ".MuiSelect-select": { py: 0, px: 1 },
+    backgroundColor: "rgba(255,255,255,0.1)",
+    borderRadius: "3px",
+    minWidth: 90,
+  };
 
-  if (loading || hasAccess === null) return <LoadingOverlay open={loading} message="Loading..." />;
+  const InlineEntryForm = ({
+    description,
+    setDescription,
+    onSubmit,
+    canCreate,
+  }) => (
+    <Box
+      sx={{
+        backgroundColor: "#fff",
+        border: `1px solid ${C.border}`,
+        borderTop: "none",
+        px: 2,
+        py: 1.5,
+        display: "flex",
+        alignItems: "center",
+        gap: 1.5,
+        flexWrap: "wrap",
+      }}
+    >
+      <Box sx={{ display: "flex", flexDirection: "column", gap: "-0.9rem" }}>
+        <Typography
+          sx={{
+            fontSize: "0.85rem",
+            fontWeight: 700,
+            color: "#555",
+            textTransform: "uppercase",
+            letterSpacing: "-0.05em",
+          }}
+        >
+          New Entry
+        </Typography>
+        <Typography sx={{ fontSize: "0.85rem", color: "#aaa" }}>
+          Section Description
+        </Typography>
+      </Box>
+
+      <TextField
+        size="small"
+        placeholder="Enter section description"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && canCreate && onSubmit()}
+        sx={{
+          width: 320,
+          "& .MuiOutlinedInput-root": {
+            borderRadius: "4px",
+            fontSize: "0.8rem",
+            height: 32,
+            "& fieldset": { borderColor: "#ccc" },
+            "&:hover fieldset": { borderColor: "#999" },
+            "&.Mui-focused fieldset": { borderColor: C.headerBg },
+          },
+        }}
+      />
+
+      <Button
+        variant="contained"
+        size="small"
+        startIcon={
+          <AddCircleOutlineIcon sx={{ fontSize: "14px !important" }} />
+        }
+        onClick={onSubmit}
+        disabled={!canCreate}
+        sx={{
+          ...actionBtnSx(C.addBtn),
+          px: 2,
+          py: 0.65,
+          fontSize: "0.75rem",
+          border: `1px solid ${C.addBtn}`,
+        }}
+      >
+        Add Entry
+      </Button>
+    </Box>
+  );
+
+  if (loading || hasAccess === null)
+    return <LoadingOverlay open={loading} message="Loading..." />;
   if (!hasAccess) return <Unauthorized />;
 
   return (
-    <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', mb: 2 }}>
-        <Typography variant="h4" sx={{ fontWeight: 'bold', color: titleColor, fontSize: '36px' }}>
-          SECTION PANEL FORM
-        </Typography>
-
-        <TextField
-          variant="outlined"
-          placeholder="Search Section Description..."
-          size="small"
-          value={sectionSearchQuery}
-          onChange={(e) => {
-            setSectionSearchQuery(e.target.value);
-            setCurrentPage(1);
-          }}
+    <Box
+      sx={{
+        height: "calc(100vh - 150px)",
+        overflowY: "auto",
+        backgroundColor: "transparent",
+        mt: 1,
+        p: 2,
+      }}
+    >
+      {/* ── PAGE TITLE ── */}
+      <Box sx={{ mb: 1 }}>
+        <Box
           sx={{
-            width: 450,
-            backgroundColor: "#fff",
-            borderRadius: 1,
-            mb: 2,
-            mt: 1,
-            "& .MuiOutlinedInput-root": {
-              borderRadius: "10px",
-            },
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
           }}
-          InputProps={{
-            startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
-          }}
-        />
+        >
+          <Typography
+            variant="h4"
+            sx={{ fontWeight: "bold", color: titleColor, fontSize: "36px" }}
+          >
+            SECTION PANEL FORM
+          </Typography>
+          <TextField
+            variant="outlined"
+            placeholder="Search section"
+            size="small"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            sx={{
+              width: 320,
+              backgroundColor: "#fff",
+              borderRadius: 1,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "10px",
+              },
+            }}
+            InputProps={{
+              startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
+            }}
+          />
+        </Box>
+        <hr style={{ border: "1px solid #ccc", marginTop: 14 }} />
       </Box>
-      <hr style={{ border: "1px solid #ccc", width: "100%" }} />
-      <br />
 
+      {/* ── SECTION CARD ── */}
+      <Box
+        sx={{
+          border: `1px solid ${C.border}`,
+          borderRadius: "4px",
+          overflow: "hidden",
+          mt: 2,
+        }}
+      >
+        {/* Collapsible header */}
+        <Box
+          onClick={() => setCollapsed((p) => !p)}
+          sx={{
+            backgroundColor: C.headerBg,
+            color: C.headerText,
+            px: 2,
+            py: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            cursor: "pointer",
+            userSelect: "none",
+          }}
+        >
+          <Box>
+            <Typography sx={{ fontSize: "0.9rem", opacity: 0.9, mt: 0.2 }}>
+              Manage sections and their description settings
+            </Typography>
+          </Box>
+        </Box>
 
+        <>
+          {/* Inline add-entry form */}
+          <InlineEntryForm
+            description={description}
+            setDescription={setDescription}
+            onSubmit={handleAdd}
+            canCreate={canCreate}
+          />
 
+          {/* ── FIRST PAGINATION BAR (with dropdown) ── */}
+          {totalPages >= 1 && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                px: 2,
+                py: 1,
+                backgroundColor: C.headerBg,
+                borderTop: `1px solid ${C.border}`,
+              }}
+            >
+              <Typography
+                sx={{ fontSize: "0.75rem", color: "white", opacity: 0.9 }}
+              >
+                Total Number of Section: {filteredSections.length}
+              </Typography>
+              <Box sx={{ display: "flex", gap: 0.5, alignItems: "center" }}>
+                {["First", "Prev"].map((lbl) => (
+                  <Button
+                    key={lbl}
+                    size="small"
+                    variant="outlined"
+                    disabled={currentPage === 1}
+                    onClick={() =>
+                      setCurrentPage(
+                        lbl === "First" ? 1 : (p) => Math.max(p - 1, 1),
+                      )
+                    }
+                    sx={pagBtnSx}
+                  >
+                    {lbl}
+                  </Button>
+                ))}
 
-      <br />
+                {/* ── PAGE DROPDOWN ── */}
+                <Select
+                  size="small"
+                  value={currentPage}
+                  onChange={(e) => setCurrentPage(Number(e.target.value))}
+                  sx={pageDropdownSx}
+                  MenuProps={{ PaperProps: { sx: { maxHeight: 200 } } }}
+                >
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (page) => (
+                      <MenuItem
+                        key={page}
+                        value={page}
+                        sx={{ fontSize: "0.75rem" }}
+                      >
+                        Page {page}
+                      </MenuItem>
+                    ),
+                  )}
+                </Select>
+                <Typography
+                  sx={{
+                    fontSize: "0.75rem",
+                    color: "white",
+                    lineHeight: "28px",
+                  }}
+                >
+                  out of Page {totalPages}
+                </Typography>
 
-      <TableContainer component={Paper} sx={{ width: '100%', }}>
-        <Table size="small">
-          <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
-            <TableRow>
-              <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
-                <Box display="flex" justifyContent="space-between" alignItems="center">
-                  {/* Left: Total Count */}
-                  <Typography fontSize="14px" fontWeight="bold" color="white">
-                    Total Sections: {filteredSections.length}
-                  </Typography>
+                {["Next", "Last"].map((lbl) => (
+                  <Button
+                    key={lbl}
+                    size="small"
+                    variant="outlined"
+                    disabled={currentPage === totalPages}
+                    onClick={() =>
+                      setCurrentPage(
+                        lbl === "Last"
+                          ? totalPages
+                          : (p) => Math.min(p + 1, totalPages),
+                      )
+                    }
+                    sx={pagBtnSx}
+                  >
+                    {lbl}
+                  </Button>
+                ))}
+              </Box>
+            </Box>
+          )}
 
-                  {/* Right: Pagination Controls */}
-                  <Box display="flex" alignItems="center" gap={1}>
-                    {/* First & Prev */}
-                    <Button
-                      onClick={() => setCurrentPage(1)}
-                      disabled={currentPage === 1}
-                      variant="outlined"
-                      size="small"
+          {/* ── TABLE ── */}
+          <TableContainer>
+            <Table size="small" sx={{ tableLayout: "fixed" }}>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: C.subHeaderBg }}>
+                  <TableCell sx={thSx("#")} width={60} align="center">
+                    #
+                  </TableCell>
+                  <TableCell sx={thSx("Section Description")}>
+                    Section Description
+                  </TableCell>
+                  {showActionColumn && (
+                    <TableCell sx={thSx("Actions")} width={160} align="center">
+                      Actions
+                    </TableCell>
+                  )}
+                </TableRow>
+              </TableHead>
+
+              <TableBody>
+                {paginated.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={showActionColumn ? 3 : 2}
                       sx={{
-                        minWidth: 80,
-                        color: "white",
-                        borderColor: "white",
-                        backgroundColor: "transparent",
-                        '&:hover': {
-                          borderColor: 'white',
-                          backgroundColor: 'rgba(255,255,255,0.1)',
-                        },
-                        '&.Mui-disabled': {
-                          color: "white",
-                          borderColor: "white",
-                          backgroundColor: "transparent",
-                          opacity: 1,
-                        }
+                        textAlign: "center",
+                        py: 5,
+                        color: "#aaa",
+                        fontSize: "0.8rem",
                       }}
                     >
-                      First
-                    </Button>
-
-                    <Button
-                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                      disabled={currentPage === 1}
-                      variant="outlined"
-                      size="small"
+                      No sections found.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  paginated.map((section, i) => (
+                    <TableRow
+                      key={section.id}
                       sx={{
-                        minWidth: 80,
-                        color: "white",
-                        borderColor: "white",
-                        backgroundColor: "transparent",
-                        '&:hover': {
-                          borderColor: 'white',
-                          backgroundColor: 'rgba(255,255,255,0.1)',
-                        },
-                        '&.Mui-disabled': {
-                          color: "white",
-                          borderColor: "white",
-                          backgroundColor: "transparent",
-                          opacity: 1,
-                        }
+                        backgroundColor: i % 2 === 0 ? C.rowOdd : C.rowEven,
+                        "&:hover": { backgroundColor: C.rowHover },
+                        transition: "background 0.1s",
                       }}
                     >
-                      Prev
-                    </Button>
-
-
-                    {/* Page Dropdown */}
-                    <FormControl size="small" sx={{ minWidth: 80 }}>
-                      <Select
-                        value={currentPage}
-                        onChange={(e) => setCurrentPage(Number(e.target.value))}
-                        displayEmpty
+                      <TableCell sx={tdSx} align="center">
+                        {startIndex + i + 1}
+                      </TableCell>
+                      <TableCell
                         sx={{
-                          fontSize: '12px',
-                          height: 36,
-                          color: 'white',
-                          border: '1px solid white',
-                          backgroundColor: 'transparent',
-                          '.MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'white',
-                          },
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'white',
-                          },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'white',
-                          },
-                          '& svg': {
-                            color: 'white', // dropdown arrow icon color
-                          }
-                        }}
-                        MenuProps={{
-                          PaperProps: {
-                            sx: {
-                              maxHeight: 200,
-                              backgroundColor: '#fff', // dropdown background
-                            }
-                          }
+                          ...tdSx,
+                          color: C.textMuted,
+                          fontWeight: 500,
+                          opacity: 0.8,
                         }}
                       >
-                        {Array.from({ length: totalPages }, (_, i) => (
-                          <MenuItem key={i + 1} value={i + 1}>
-                            Page {i + 1}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+                        {section.description}
+                      </TableCell>
+                      {showActionColumn && (
+                        <TableCell sx={tdSx} align="center">
+                          <Box
+                            sx={{
+                              display: "flex",
+                              gap: 0.75,
+                              justifyContent: "center",
+                            }}
+                          >
+                            {canEdit && (
+                              <Button
+                                size="small"
+                                startIcon={
+                                  <EditIcon
+                                    sx={{ fontSize: "12px !important" }}
+                                  />
+                                }
+                                onClick={() => {
+                                  setEditId(section.id);
+                                  setDescription(section.description);
+                                  setOpenEditDialog(true);
+                                }}
+                                sx={actionBtnSx(C.editBtn)}
+                              >
+                                Edit
+                              </Button>
+                            )}
+                            {canDelete && (
+                              <Button
+                                size="small"
+                                startIcon={
+                                  <DeleteIcon
+                                    sx={{ fontSize: "12px !important" }}
+                                  />
+                                }
+                                onClick={() => {
+                                  setSectionToDelete(section);
+                                  setOpenDeleteDialog(true);
+                                }}
+                                sx={actionBtnSx(C.deleteBtn)}
+                              >
+                                Delete
+                              </Button>
+                            )}
+                          </Box>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
 
-                    <Typography fontSize="11px" color="white">
-                      of {totalPages} page{totalPages > 1 ? 's' : ''}
-                    </Typography>
+          {/* ── SECOND PAGINATION BAR (plain typography) ── */}
+          {totalPages >= 1 && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                px: 2,
+                py: 1,
+                backgroundColor: C.headerBg,
+                borderTop: `1px solid ${C.border}`,
+              }}
+            >
+              <Typography sx={{ fontSize: "0.75rem", color: "white" }}>
+                Showing {filteredSections.length === 0 ? 0 : startIndex + 1}–
+                {Math.min(startIndex + rowsPerPage, filteredSections.length)} of{" "}
+                {filteredSections.length}
+              </Typography>
+              <Box sx={{ display: "flex", gap: 0.5 }}>
+                {["First", "Prev"].map((lbl) => (
+                  <Button
+                    key={lbl}
+                    size="small"
+                    variant="outlined"
+                    disabled={currentPage === 1}
+                    onClick={() =>
+                      setCurrentPage(
+                        lbl === "First" ? 1 : (p) => Math.max(p - 1, 1),
+                      )
+                    }
+                    sx={pagBtnSx}
+                  >
+                    {lbl}
+                  </Button>
+                ))}
+                <Typography
+                  sx={{
+                    fontSize: "0.75rem",
+                    color: "white",
+                    lineHeight: "28px",
+                    px: 1,
+                  }}
+                >
+                  Page {currentPage} / {totalPages}
+                </Typography>
+                {["Next", "Last"].map((lbl) => (
+                  <Button
+                    key={lbl}
+                    size="small"
+                    variant="outlined"
+                    disabled={currentPage === totalPages}
+                    onClick={() =>
+                      setCurrentPage(
+                        lbl === "Last"
+                          ? totalPages
+                          : (p) => Math.min(p + 1, totalPages),
+                      )
+                    }
+                    sx={pagBtnSx}
+                  >
+                    {lbl}
+                  </Button>
+                ))}
+              </Box>
+            </Box>
+          )}
+        </>
+      </Box>
 
-
-                    {/* Next & Last */}
-                    <Button
-                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                      disabled={currentPage === totalPages}
-                      variant="outlined"
-                      size="small"
-                      sx={{
-                        minWidth: 80,
-                        color: "white",
-                        borderColor: "white",
-                        backgroundColor: "transparent",
-                        '&:hover': {
-                          borderColor: 'white',
-                          backgroundColor: 'rgba(255,255,255,0.1)',
-                        },
-                        '&.Mui-disabled': {
-                          color: "white",
-                          borderColor: "white",
-                          backgroundColor: "transparent",
-                          opacity: 1,
-                        }
-                      }}
-                    >
-                      Next
-                    </Button>
-
-                    <Button
-                      onClick={() => setCurrentPage(totalPages)}
-                      disabled={currentPage === totalPages}
-                      variant="outlined"
-                      size="small"
-                      sx={{
-                        minWidth: 80,
-                        color: "white",
-                        borderColor: "white",
-                        backgroundColor: "transparent",
-                        '&:hover': {
-                          borderColor: 'white',
-                          backgroundColor: 'rgba(255,255,255,0.1)',
-                        },
-                        '&.Mui-disabled': {
-                          color: "white",
-                          borderColor: "white",
-                          backgroundColor: "transparent",
-                          opacity: 1,
-                        }
-                      }}
-                    >
-                      Last
-                    </Button>
-
-                    <Button
-                      variant="contained"
-                      disabled={!canCreate}
-                      onClick={() => {
-                        if (!canCreate) {
-                          setSnackbar({ open: true, message: "You do not have permission to create items on this page", severity: "error" });
-                          return;
-                        }
-                        setEditId(null);
-                        setDescription("");
-                        setOpenFormDialog(true);
-                      }}
-                      sx={{
-                        backgroundColor: "#1976d2", // ✅ Blue
-                        color: "#fff",
-                        opacity: canCreate ? 1 : 0.5,
-                        fontWeight: "bold",
-                        borderRadius: "8px",
-                        width: "250px",
-                        textTransform: "none",
-                        px: 2,
-                        mr: "15px",
-                        '&:hover': {
-                          backgroundColor: "#1565c0" // darker blue hover
-                        }
-                      }}
-                    >
-                      + Add Section
-                    </Button>
-                  </Box>
-                </Box>
-              </TableCell>
-            </TableRow>
-          </TableHead>
-        </Table>
-      </TableContainer>
-
-
-
-
-
-
-
-
-
-      <TableContainer sx={{ overflowY: 'auto' }}>
-        <Table>
-          <TableHead style={{ backgroundColor: settings?.header_color || "#1976d2", }}>
-            <TableRow>
-              <TableCell sx={{ fontWeight: "bold", textAlign: "center", border: `1px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "#000" }}>ID</TableCell>
-              <TableCell sx={{ fontWeight: "bold", textAlign: "center", border: `1px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "#000" }}>Section Description</TableCell>
-              <TableCell sx={{ fontWeight: "bold", textAlign: "center", border: `1px solid ${borderColor}`, backgroundColor: "#f5f5f5", color: "#000" }}>Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {paginatedSections.map((section, index) => (
-
-              <TableRow key={section.id}>
-                <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>{startIndex + index + 1}</TableCell>
-                <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>{section.description}</TableCell>
-
-                <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
-                  <Box sx={{ display: "flex", gap: 1, justifyContent: "center" }}>
-                    <Button
-                      variant="contained"
-                      size="small"
-                      disabled={!canEdit}
-                      sx={{
-                        backgroundColor: "green",
-                        color: "white",
-                        borderRadius: "5px",
-                        padding: "8px 14px",
-                        width: "100px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: "5px",
-                        opacity: canEdit ? 1 : 0.5,
-                        cursor: canEdit ? "pointer" : "not-allowed",
-                      }}
-
-                      onClick={() => handleEdit(section)}
-                    >
-                      <EditIcon fontSize="small" /> Edit
-                    </Button>
-
-                    <Button
-                      variant="contained"
-                      size="small"
-                      disabled={!canDelete}
-                      sx={{
-                        backgroundColor: "#9E0000",
-                        color: "white",
-                        borderRadius: "5px",
-                        padding: "8px 14px",
-                        width: "100px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: "5px",
-                        opacity: canDelete ? 1 : 0.5,
-                        cursor: canDelete ? "pointer" : "not-allowed",
-                      }}
-                      onClick={() => {
-                        if (!canDelete) {
-                          setSnackbar({ open: true, message: "You do not have permission to delete this item", severity: "error" });
-                          return;
-                        }
-                        setSectionToDelete(section);
-                        setOpenDeleteDialog(true);
-                      }}
-                    >
-                      <DeleteIcon fontSize="small" /> Delete
-                    </Button>
-                  </Box>
-                </TableCell>
-
-
-
-              </TableRow>
-            ))}
-          </TableBody>
-
-        </Table>
-      </TableContainer>
-
-      <TableContainer component={Paper} sx={{ width: '100%', }}>
-        <Table size="small">
-          <TableHead sx={{ backgroundColor: '#6D2323', color: "white" }}>
-            <TableRow>
-              <TableCell colSpan={10} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
-                <Box display="flex" justifyContent="space-between" alignItems="center">
-                  {/* Left: Total Count */}
-                  <Typography fontSize="14px" fontWeight="bold" color="white">
-                    Total Sections: {filteredSections.length}
-                  </Typography>
-
-                  {/* Right: Pagination Controls */}
-                  <Box display="flex" alignItems="center" gap={1}>
-                    {/* First & Prev */}
-                    <Button
-                      onClick={() => setCurrentPage(1)}
-                      disabled={currentPage === 1}
-                      variant="outlined"
-                      size="small"
-                      sx={{
-                        minWidth: 80,
-                        color: "white",
-                        borderColor: "white",
-                        backgroundColor: "transparent",
-                        '&:hover': {
-                          borderColor: 'white',
-                          backgroundColor: 'rgba(255,255,255,0.1)',
-                        },
-                        '&.Mui-disabled': {
-                          color: "white",
-                          borderColor: "white",
-                          backgroundColor: "transparent",
-                          opacity: 1,
-                        }
-                      }}
-                    >
-                      First
-                    </Button>
-
-                    <Button
-                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                      disabled={currentPage === 1}
-                      variant="outlined"
-                      size="small"
-                      sx={{
-                        minWidth: 80,
-                        color: "white",
-                        borderColor: "white",
-                        backgroundColor: "transparent",
-                        '&:hover': {
-                          borderColor: 'white',
-                          backgroundColor: 'rgba(255,255,255,0.1)',
-                        },
-                        '&.Mui-disabled': {
-                          color: "white",
-                          borderColor: "white",
-                          backgroundColor: "transparent",
-                          opacity: 1,
-                        }
-                      }}
-                    >
-                      Prev
-                    </Button>
-
-
-                    {/* Page Dropdown */}
-                    <FormControl size="small" sx={{ minWidth: 80 }}>
-                      <Select
-                        value={currentPage}
-                        onChange={(e) => setCurrentPage(Number(e.target.value))}
-                        displayEmpty
-                        sx={{
-                          fontSize: '12px',
-                          height: 36,
-                          color: 'white',
-                          border: '1px solid white',
-                          backgroundColor: 'transparent',
-                          '.MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'white',
-                          },
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'white',
-                          },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'white',
-                          },
-                          '& svg': {
-                            color: 'white', // dropdown arrow icon color
-                          }
-                        }}
-                        MenuProps={{
-                          PaperProps: {
-                            sx: {
-                              maxHeight: 200,
-                              backgroundColor: '#fff', // dropdown background
-                            }
-                          }
-                        }}
-                      >
-                        {Array.from({ length: totalPages }, (_, i) => (
-                          <MenuItem key={i + 1} value={i + 1}>
-                            Page {i + 1}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-
-                    <Typography fontSize="11px" color="white">
-                      of {totalPages} page{totalPages > 1 ? 's' : ''}
-                    </Typography>
-
-
-                    {/* Next & Last */}
-                    <Button
-                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                      disabled={currentPage === totalPages}
-                      variant="outlined"
-                      size="small"
-                      sx={{
-                        minWidth: 80,
-                        color: "white",
-                        borderColor: "white",
-                        backgroundColor: "transparent",
-                        '&:hover': {
-                          borderColor: 'white',
-                          backgroundColor: 'rgba(255,255,255,0.1)',
-                        },
-                        '&.Mui-disabled': {
-                          color: "white",
-                          borderColor: "white",
-                          backgroundColor: "transparent",
-                          opacity: 1,
-                        }
-                      }}
-                    >
-                      Next
-                    </Button>
-
-                    <Button
-                      onClick={() => setCurrentPage(totalPages)}
-                      disabled={currentPage === totalPages}
-                      variant="outlined"
-                      size="small"
-                      sx={{
-                        minWidth: 80,
-                        color: "white",
-                        borderColor: "white",
-                        backgroundColor: "transparent",
-                        '&:hover': {
-                          borderColor: 'white',
-                          backgroundColor: 'rgba(255,255,255,0.1)',
-                        },
-                        '&.Mui-disabled': {
-                          color: "white",
-                          borderColor: "white",
-                          backgroundColor: "transparent",
-                          opacity: 1,
-                        }
-                      }}
-                    >
-                      Last
-                    </Button>
-                  </Box>
-                </Box>
-              </TableCell>
-            </TableRow>
-          </TableHead>
-        </Table>
-      </TableContainer>
-
+      {/* ── EDIT DIALOG ── */}
       <Dialog
-        open={openFormDialog}
+        open={openEditDialog}
         onClose={() => {
-          setOpenFormDialog(false);
+          setOpenEditDialog(false);
           setEditId(null);
           setDescription("");
         }}
         maxWidth="xs"
         fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 3,
-            overflow: "hidden",
-            boxShadow: 6
-          }
-        }}
+        PaperProps={{ sx: { borderRadius: 2, overflow: "hidden" } }}
       >
-        {/* HEADER */}
         <DialogTitle
           sx={{
-            background: settings?.header_color || "#1976d2",
+            background: C.headerBg,
             color: "#fff",
             fontWeight: 700,
-            fontSize: "1.1rem",
-            py: 2
+            fontSize: "1rem",
+            py: 1.5,
           }}
         >
-          {editId ? "Edit Section" : "Create Section"}
+          Edit Section Description
         </DialogTitle>
-
-        {/* CONTENT */}
         <DialogContent sx={{ p: 3 }}>
-          <Typography fontWeight="bold" mb={1} mt={1}>
-            Section Description
-          </Typography>
-
           <TextField
             fullWidth
-            placeholder="Enter section description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            size="small"
             autoFocus
+            placeholder="Enter section"
+            value={description}
+            variant="outlined"
+            label="Description"
+            InputLabelProps={{
+              shrink: true,
+            }}
+            onChange={(e) => setDescription(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleEditSubmit()}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "4px",
+                fontSize: "1rem",
+                "&.Mui-focused fieldset": { borderColor: C.headerBg },
+              },
+              "& .MuiInputLabel-root.Mui-focused": {
+                color: C.headerBg,
+              },
+
+              mt: "1.5rem",
+            }}
           />
         </DialogContent>
-
-        {/* ACTIONS */}
-        <DialogActions
-          sx={{
-            px: 3,
-            py: 2,
-            borderTop: "1px solid #e0e0e0"
-          }}
-        >
+        <DialogActions sx={{ px: 3, py: 1.5, borderTop: "1px solid #eee" }}>
           <Button
             onClick={() => {
-              setOpenFormDialog(false);
+              setOpenEditDialog(false);
               setEditId(null);
               setDescription("");
             }}
             color="error"
             variant="outlined"
-
-
-            sx={{
-              textTransform: "none",
-              fontWeight: 600
-            }}
+            size="small"
+            sx={{ textTransform: "none", fontWeight: 600, borderRadius: "4px" }}
           >
             Cancel
           </Button>
-
           <Button
             variant="contained"
-
+            size="small"
+            onClick={handleEditSubmit}
             sx={{
-              px: 4,
-              fontWeight: 600,
-              textTransform: "none"
+              ...actionBtnSx(C.headerBg),
+              px: 2.5,
+              py: 0.65,
+              fontSize: "0.8rem",
             }}
-            onClick={handleSubmit}
           >
-            <SaveIcon fontSize="small" /> Save
-
+            Save
           </Button>
         </DialogActions>
       </Dialog>
 
-
+      {/* ── DELETE DIALOG ── */}
       <Dialog
         open={openDeleteDialog}
         onClose={() => {
@@ -833,86 +826,67 @@ const SectionPanel = () => {
         }}
         maxWidth="xs"
         fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 3,
-            overflow: "hidden",
-            boxShadow: 6
-          }
-        }}
+        PaperProps={{ sx: { borderRadius: 2, overflow: "hidden" } }}
       >
-        {/* HEADER */}
         <DialogTitle
           sx={{
             background: "#B22222",
             color: "#fff",
             fontWeight: 700,
-            fontSize: "1.1rem",
-            py: 2
+            fontSize: "1rem",
+            py: 1.5,
           }}
         >
           Confirm Delete
         </DialogTitle>
-
-        {/* CONTENT */}
         <DialogContent sx={{ p: 3 }}>
-          <Typography>
-            Are you sure you want to delete the section:
-          </Typography>
-
-          <Typography mt={2} fontWeight="bold">
-            {sectionToDelete?.description}
+          <Typography sx={{ fontSize: "0.9rem", marginTop: "1.5rem" }}>
+            Are you sure you want to delete section{" "}
+            <strong>{sectionToDelete?.description}</strong>?
           </Typography>
         </DialogContent>
-
-        {/* ACTIONS */}
-        <DialogActions
-          sx={{
-            px: 3,
-            py: 2,
-            borderTop: "1px solid #e0e0e0"
-          }}
-        >
+        <DialogActions sx={{ px: 3, py: 1.5, borderTop: "1px solid #eee" }}>
           <Button
-       color="error"
-            variant="outlined"
-            sx={{
-              textTransform: "none",
-              fontWeight: 600
-            }}
             onClick={() => {
               setOpenDeleteDialog(false);
               setSectionToDelete(null);
             }}
+            color="error"
+            variant="outlined"
+            size="small"
+            sx={{ textTransform: "none", fontWeight: 600, borderRadius: "4px" }}
           >
             Cancel
           </Button>
-
           <Button
             variant="contained"
             color="error"
-            sx={{
-              px: 4,
-              fontWeight: 600,
-              textTransform: "none"
-            }}
+            size="small"
             onClick={handleConfirmDelete}
+            sx={{
+              ...actionBtnSx(C.deleteBtn),
+              px: 2.5,
+              py: 0.65,
+              fontSize: "0.8rem",
+            }}
           >
             Yes, Delete
           </Button>
         </DialogActions>
       </Dialog>
 
-
-
-      {/* Snackbar */}
+      {/* ── SNACKBAR ── */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
+        onClose={() => setSnackbar((p) => ({ ...p, open: false }))}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: "100%" }}>
+        <Alert
+          onClose={() => setSnackbar((p) => ({ ...p, open: false }))}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
           {snackbar.message}
         </Alert>
       </Snackbar>

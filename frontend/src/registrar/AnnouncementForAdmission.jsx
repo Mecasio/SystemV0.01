@@ -392,6 +392,9 @@ const AnnouncementPanel = () => {
     if (loading || hasAccess === null) return <LoadingOverlay open={loading} message="Loading..." />;
     if (!hasAccess) return <Unauthorized />;
 
+    const showCreateActions = canCreate;
+    const showActionColumn = canEdit || canDelete;
+
     return (
         <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>  {/* Header */}
             <Typography
@@ -569,6 +572,7 @@ const AnnouncementPanel = () => {
                                         >
                                             Last
                                         </Button>
+                                        {showCreateActions && (
                                         <Button
                                             variant="contained"
                                             disabled={!canCreate}
@@ -605,6 +609,7 @@ const AnnouncementPanel = () => {
                                             
                                             + Create Announcement
                                         </Button>
+                                        )}
 
                                     </Box>
                                 </Box>
@@ -689,6 +694,7 @@ const AnnouncementPanel = () => {
                                 >
                                     Target Role
                                 </th>
+                                {showActionColumn && (
                                 <th
                                     style={{
                                         border: `1px solid ${borderColor}`,
@@ -700,6 +706,7 @@ const AnnouncementPanel = () => {
                                 >
                                     Actions
                                 </th>
+                                )}
                             </tr>
                         </thead>
                         <tbody>
@@ -751,6 +758,7 @@ const AnnouncementPanel = () => {
                                     </td>
 
                                     {/* Actions Cell */}
+                                    {showActionColumn && (
                                     <td
                                         style={{
                                             border: `1px solid ${borderColor}`,
@@ -760,10 +768,10 @@ const AnnouncementPanel = () => {
                                         }}
                                     >
                                         <Box sx={{ display: "flex", justifyContent: "center", gap: "8px" }}>
+                                            {canEdit && (
                                             <Button
                                                 variant="contained"
                                                 size="small"
-                                                disabled={!canEdit}
                                                 sx={{
                                                     backgroundColor: "green",
                                                     color: "white",
@@ -774,8 +782,7 @@ const AnnouncementPanel = () => {
                                                     alignItems: "center",
                                                     justifyContent: "center",
                                                     gap: "5px",
-                                                    opacity: canEdit ? 1 : 0.5,
-                                                    cursor: canEdit ? "pointer" : "not-allowed",
+                                                    cursor: "pointer",
                                                 }}
 
                                                 onClick={() => {
@@ -786,10 +793,11 @@ const AnnouncementPanel = () => {
 
                                                 <EditIcon fontSize="small" /> Edit
                                             </Button>
+                                            )}
+                                            {canDelete && (
                                             <Button
                                                 variant="contained"
                                                 size="small"
-                                                disabled={!canDelete}
                                                 sx={{
                                                     backgroundColor: "#9E0000",
                                                     color: "white",
@@ -800,14 +808,9 @@ const AnnouncementPanel = () => {
                                                     alignItems: "center",
                                                     justifyContent: "center",
                                                     gap: "5px",
-                                                    opacity: canDelete ? 1 : 0.5,
-                                                    cursor: canDelete ? "pointer" : "not-allowed",
+                                                    cursor: "pointer",
                                                 }}
                                                 onClick={() => {
-                                                    if (!canDelete) {
-                                                        setSnackbar({ open: true, message: "You do not have permission to delete this item", severity: "error" });
-                                                        return;
-                                                    }
                                                     setAnnouncementToDelete(a);
                                                     setOpenDeleteDialog(true);
                                                 }}
@@ -815,8 +818,10 @@ const AnnouncementPanel = () => {
 
                                                 <DeleteIcon fontSize="small" /> Delete
                                             </Button>
+                                            )}
                                         </Box>
                                     </td>
+                                    )}
                                 </tr>
                             ))}
                         </tbody>

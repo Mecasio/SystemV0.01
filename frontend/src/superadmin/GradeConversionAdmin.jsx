@@ -521,6 +521,9 @@ const GradeConversionAdmin = () => {
         return <LoadingOverlay open={loading} message="Loading..." />;
     if (!hasAccess) return <Unauthorized />;
 
+    const showCreateActions = canCreate;
+    const showActionColumn = canEdit || canDelete;
+
     // ─────────────────────────────────────────────────────────────────────────
     return (
         <Box
@@ -622,13 +625,15 @@ const GradeConversionAdmin = () => {
                             borderColor={resolvedBorder}
                             width={170}
                         />
-                        <SaveButton
-                            isEdit={!!form.id}
-                            onClick={handleSave}
-                            headerColor={resolvedHeader}
-                            borderColor={resolvedBorder}
-                            disabled={form.id ? !canEdit : !canCreate}
-                        />
+                        {showCreateActions || (form.id && canEdit) ? (
+                            <SaveButton
+                                isEdit={!!form.id}
+                                onClick={handleSave}
+                                headerColor={resolvedHeader}
+                                borderColor={resolvedBorder}
+                                disabled={form.id ? !canEdit : !canCreate}
+                            />
+                        ) : null}
                     </Stack>
                 </Box>
 
@@ -639,7 +644,7 @@ const GradeConversionAdmin = () => {
                     <Table size="small">
                         <TableHead>
                             <TableRow>
-                                {["Min Score", "Max Score", "Equivalent Grade", "Descriptive Rating", "Actions"].map((h) => (
+                                {["Min Score", "Max Score", "Equivalent Grade", "Descriptive Rating", ...(showActionColumn ? ["Actions"] : [])].map((h) => (
                                     <ThCell key={h} headerColor={resolvedHeader} borderColor={resolvedBorder}>
                                         {h}
                                     </ThCell>
@@ -685,24 +690,28 @@ const GradeConversionAdmin = () => {
                                             color={resolvedHeader}
                                         />
                                     </TdCell>
-                                    <TdCell borderColor={resolvedBorder}>
-                                        <Stack direction="row" spacing={1} justifyContent="center">
-                                            <ActionButton
-                                                label="Edit"
-                                                icon={<EditIcon sx={{ fontSize: "14px" }} />}
-                                                onClick={() => handleEdit(row)}
-                                                color="green"
-                                                disabled={!canEdit}
-                                            />
-                                            <ActionButton
-                                                label="Delete"
-                                                icon={<DeleteIcon sx={{ fontSize: "14px" }} />}
-                                                onClick={() => handleDelete(row.id)}
-                                                color="red"
-                                                disabled={!canDelete}
-                                            />
-                                        </Stack>
-                                    </TdCell>
+                                    {showActionColumn && (
+                                        <TdCell borderColor={resolvedBorder}>
+                                            <Stack direction="row" spacing={1} justifyContent="center">
+                                                {canEdit && (
+                                                    <ActionButton
+                                                        label="Edit"
+                                                        icon={<EditIcon sx={{ fontSize: "14px" }} />}
+                                                        onClick={() => handleEdit(row)}
+                                                        color="green"
+                                                    />
+                                                )}
+                                                {canDelete && (
+                                                    <ActionButton
+                                                        label="Delete"
+                                                        icon={<DeleteIcon sx={{ fontSize: "14px" }} />}
+                                                        onClick={() => handleDelete(row.id)}
+                                                        color="red"
+                                                    />
+                                                )}
+                                            </Stack>
+                                        </TdCell>
+                                    )}
                                 </TableRow>
                             ))}
                         </TableBody>
@@ -783,13 +792,15 @@ const GradeConversionAdmin = () => {
                             <MenuItem value={1}>Semester</MenuItem>
                             <MenuItem value={2}>Graduation</MenuItem>
                         </LabeledField>
-                        <SaveButton
-                            isEdit={!!honorForm.id}
-                            onClick={handleSaveHonor}
-                            headerColor={resolvedHeader}
-                            borderColor={resolvedBorder}
-                            disabled={honorForm.id ? !canEdit : !canCreate}
-                        />
+                        {showCreateActions || (honorForm.id && canEdit) ? (
+                            <SaveButton
+                                isEdit={!!honorForm.id}
+                                onClick={handleSaveHonor}
+                                headerColor={resolvedHeader}
+                                borderColor={resolvedBorder}
+                                disabled={honorForm.id ? !canEdit : !canCreate}
+                            />
+                        ) : null}
                     </Stack>
                 </Box>
 
@@ -800,7 +811,7 @@ const GradeConversionAdmin = () => {
                     <Table size="small">
                         <TableHead>
                             <TableRow>
-                                {["Title", "Max Grade", "Min Grade", "Type", "Actions"].map((h) => (
+                                {["Title", "Max Grade", "Min Grade", "Type", ...(showActionColumn ? ["Actions"] : [])].map((h) => (
                                     <ThCell key={h} headerColor={resolvedHeader} borderColor={resolvedBorder}>
                                         {h}
                                     </ThCell>
@@ -865,30 +876,30 @@ const GradeConversionAdmin = () => {
                                             }
                                         />
                                     </TdCell>
-                                    <TdCell borderColor={resolvedBorder}>
-                                        <Stack direction="row" spacing={1} justifyContent="center">
-                                            <ActionButton
-                                                label="Edit"
-                                                icon={<EditIcon sx={{ fontSize: "14px" }} />}
-                                                onClick={() => {
-                                                    if (!canEdit) {
-                                                        setSnack({ open: true, message: "You do not have permission to edit this item", severity: "error" });
-                                                        return;
-                                                    }
-                                                    setHonorForm(row);
-                                                }}
-                                                color="green"
-                                                disabled={!canEdit}
-                                            />
-                                            <ActionButton
-                                                label="Delete"
-                                                icon={<DeleteIcon sx={{ fontSize: "14px" }} />}
-                                                onClick={() => handleDeleteHonor(row.id)}
-                                                color="red"
-                                                disabled={!canDelete}
-                                            />
-                                        </Stack>
-                                    </TdCell>
+                                    {showActionColumn && (
+                                        <TdCell borderColor={resolvedBorder}>
+                                            <Stack direction="row" spacing={1} justifyContent="center">
+                                                {canEdit && (
+                                                    <ActionButton
+                                                        label="Edit"
+                                                        icon={<EditIcon sx={{ fontSize: "14px" }} />}
+                                                        onClick={() => {
+                                                            setHonorForm(row);
+                                                        }}
+                                                        color="green"
+                                                    />
+                                                )}
+                                                {canDelete && (
+                                                    <ActionButton
+                                                        label="Delete"
+                                                        icon={<DeleteIcon sx={{ fontSize: "14px" }} />}
+                                                        onClick={() => handleDeleteHonor(row.id)}
+                                                        color="red"
+                                                    />
+                                                )}
+                                            </Stack>
+                                        </TdCell>
+                                    )}
                                 </TableRow>
                             ))}
                         </TableBody>

@@ -312,6 +312,9 @@ const DepartmentRegistration = () => {
     );
   }
 
+  const showCreateActions = canCreate;
+  const showActionArea = canEdit || canDelete;
+
   return (
     <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
       <Box
@@ -353,44 +356,25 @@ const DepartmentRegistration = () => {
           mb: 3,
         }}
       >
-        <Box>
-
-
-          <Typography
-            variant="body1"
-            sx={{ color: subtitleColor }}
+        {showCreateActions && (
+          <Button
+            variant="contained"
+            sx={{
+              textTransform: "none",
+              fontWeight: 600,
+              px: 3,
+              borderRadius: 2,
+              "&:hover": { opacity: 0.9 },
+            }}
+            onClick={() => {
+              setEditMode(false);
+              setDepartment({ dep_name: "", dep_code: "" });
+              setOpenModal(true);
+            }}
           >
-            Create and manage academic departments
-          </Typography>
-        </Box>
-
-        <Button
-          variant="contained"
-          disabled={!canCreate}
-          sx={{
-            opacity: canCreate ? 1 : 0.5,
-            textTransform: "none",
-            fontWeight: 600,
-            px: 3,
-            borderRadius: 2,
-            "&:hover": { opacity: 0.9 },
-          }}
-          onClick={() => {
-            if (!canCreate) {
-              setSnack({
-                open: true,
-                message: "You do not have permission to create items on this page",
-                severity: "error",
-              });
-              return;
-            }
-            setEditMode(false);
-            setDepartment({ dep_name: "", dep_code: "" });
-            setOpenModal(true);
-          }}
-        >
-          + Add Department
-        </Button>
+            + Add Department
+          </Button>
+        )}
       </Box>
       <br />
       <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
@@ -446,53 +430,55 @@ const DepartmentRegistration = () => {
                     </Typography>
                   </Box>
 
-                  <Box mt={2} display="flex" justifyContent="flex-end" gap={1}>
-                    <Button
-                      variant="contained"
-                      size="small"
-                      sx={{
-                        backgroundColor: "green",
-                        color: "white",
-                        borderRadius: "5px",
-                        padding: "8px 14px",
-                        width: "100px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: "5px",
-                        opacity: canEdit ? 1 : 0.5,
-                        cursor: canEdit ? "pointer" : "not-allowed",
-                      }}
-                      disabled={!canEdit}
-                      onClick={() => handleEdit(department)}
-                    >
-                      <EditIcon fontSize="small" /> Edit
-                    </Button>
+                  {showActionArea && (
+                    <Box mt={2} display="flex" justifyContent="flex-end" gap={1}>
+                      {canEdit && (
+                        <Button
+                          variant="contained"
+                          size="small"
+                          sx={{
+                            backgroundColor: "green",
+                            color: "white",
+                            borderRadius: "5px",
+                            padding: "8px 14px",
+                            width: "100px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "5px",
+                            cursor: "pointer",
+                          }}
+                          onClick={() => handleEdit(department)}
+                        >
+                          <EditIcon fontSize="small" /> Edit
+                        </Button>
+                      )}
 
-                    <Button
-                      variant="contained"
-                      size="small"
-                      sx={{
-                        backgroundColor: "#9E0000",
-                        color: "white",
-                        borderRadius: "5px",
-                        padding: "8px 14px",
-                        width: "100px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: "5px",
-                        opacity: canDelete ? 1 : 0.5,
-                        cursor: canDelete ? "pointer" : "not-allowed",
-                      }}
-                      disabled={!canDelete}
-                      onClick={() =>
-                        handleDelete(department.dprtmnt_id)
-                      }
-                    >
-                      <DeleteIcon fontSize="small" /> Delete
-                    </Button>
-                  </Box>
+                      {canDelete && (
+                        <Button
+                          variant="contained"
+                          size="small"
+                          sx={{
+                            backgroundColor: "#9E0000",
+                            color: "white",
+                            borderRadius: "5px",
+                            padding: "8px 14px",
+                            width: "100px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "5px",
+                            cursor: "pointer",
+                          }}
+                          onClick={() =>
+                            handleDelete(department.dprtmnt_id)
+                          }
+                        >
+                          <DeleteIcon fontSize="small" /> Delete
+                        </Button>
+                      )}
+                    </Box>
+                  )}
                 </CardContent>
               </Card>
             </Grid>
