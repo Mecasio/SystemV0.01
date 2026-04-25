@@ -432,8 +432,16 @@ const AssignEntranceExam = () => {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
+
     });
   };
+
+  const canCreate = true;
+  const canEdit = true;
+  const canDelete = true;
+
+  const showCreateActions = canCreate;
+  const showActionColumn = canEdit || canDelete;
 
   const cellStyle = {
     border: `1px solid ${borderColor}`,
@@ -464,9 +472,6 @@ const AssignEntranceExam = () => {
       <Unauthorized />
     );
   }
-
-  const showCreateActions = canCreate;
-  const showActionColumn = canEdit || canDelete;
 
   return (
     <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
@@ -588,28 +593,28 @@ const AssignEntranceExam = () => {
 
 
                 {showCreateActions && (
-                <Button
-                  variant="contained"
-                  onClick={() => {
-                    setEditingSchedule(null);
-                    setOpenFormDialog(true);
-                  }}
-                  sx={{
-                    backgroundColor: "#1976d2", // ✅ Blue
-                    color: "#fff",
-                    fontWeight: "bold",
-                    borderRadius: "8px",
-                    width: "250px",
-                    textTransform: "none",
-                    px: 2,
-                    mr: "15px",
-                    '&:hover': {
-                      backgroundColor: "#1565c0" // darker blue hover
-                    }
-                  }}
-                >
-                  + Add Schedule
-                </Button>
+                  <Button
+                    variant="contained"
+                    onClick={() => {
+                      setEditingSchedule(null);
+                      setOpenFormDialog(true);
+                    }}
+                    sx={{
+                      backgroundColor: "#1976d2", // ✅ Blue
+                      color: "#fff",
+                      fontWeight: "bold",
+                      borderRadius: "8px",
+                      width: "250px",
+                      textTransform: "none",
+                      px: 2,
+                      mr: "15px",
+                      '&:hover': {
+                        backgroundColor: "#1565c0" // darker blue hover
+                      }
+                    }}
+                  >
+                    + Add Schedule
+                  </Button>
                 )}
               </Box>
             </TableRow>
@@ -946,62 +951,62 @@ const AssignEntranceExam = () => {
                   <TableCell align="center" sx={cellStyle} >{s.proctor}</TableCell>
                   <TableCell align="center" sx={cellStyle}>{s.room_quota}</TableCell>
                   {showActionColumn && (
-                  <TableCell align="center" sx={cellStyle}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        gap: 1,
-                        flexWrap: "nowrap",
-                      }}
-                    >
-                      {canEdit && (
-                      <Button
-                        size="small"
-                        variant="contained"
+                    <TableCell align="center" sx={cellStyle}>
+                      <Box
                         sx={{
-                          backgroundColor: "green",
-                          color: "white",
-                          borderRadius: "5px",
-                          width: "100px",
-                          height: "40px",
                           display: "flex",
-                          alignItems: "center",
                           justifyContent: "center",
-                          gap: "5px",
+                          alignItems: "center",
+                          gap: 1,
+                          flexWrap: "nowrap",
                         }}
-                        onClick={() => handleEdit(s)}
                       >
-                        <EditIcon fontSize="small" /> Edit
-                      </Button>
-                      )}
+                        {canEdit && (
+                          <Button
+                            size="small"
+                            variant="contained"
+                            sx={{
+                              backgroundColor: "green",
+                              color: "white",
+                              borderRadius: "5px",
+                              width: "100px",
+                              height: "40px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: "5px",
+                            }}
+                            onClick={() => handleEdit(s)}
+                          >
+                            <EditIcon fontSize="small" /> Edit
+                          </Button>
+                        )}
 
-                      {canDelete && (
-                      <Button
-                        size="small"
-                        variant="contained"
-                        sx={{
-                          backgroundColor: "#9E0000",
-                          color: "white",
-                          borderRadius: "5px",
-                          width: "100px",
-                          height: "40px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: "5px",
-                        }}
-                        onClick={() => {
-                          setScheduleToDelete(s);
-                          setOpenDeleteDialog(true);
-                        }}
-                      >
-                        <DeleteIcon fontSize="small" /> Delete
-                      </Button>
-                      )}
-                    </Box>
-                  </TableCell>
+                        {canDelete && (
+                          <Button
+                            size="small"
+                            variant="contained"
+                            sx={{
+                              backgroundColor: "#9E0000",
+                              color: "white",
+                              borderRadius: "5px",
+                              width: "100px",
+                              height: "40px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: "5px",
+                            }}
+                            onClick={() => {
+                              setScheduleToDelete(s);
+                              setOpenDeleteDialog(true);
+                            }}
+                          >
+                            <DeleteIcon fontSize="small" /> Delete
+                          </Button>
+                        )}
+                      </Box>
+                    </TableCell>
                   )}
                 </TableRow>
               ))}
@@ -1506,24 +1511,24 @@ const AssignEntranceExam = () => {
           </Button>
 
           {(showCreateActions || (editingSchedule && canEdit)) && (
-          <Button
-            variant="contained"
-            sx={{
-              px: 4,
-              fontWeight: 600,
-              textTransform: "none"
-            }}
-            onClick={() => {
-              if (editingSchedule) {
-                setOpenUpdateDialog(true);
-              } else {
-                handleSaveSchedule();
-                setOpenFormDialog(false);
-              }
-            }}
-          >
-            <SaveIcon fontSize="small" /> Save
-          </Button>
+            <Button
+              variant="contained"
+              sx={{
+                px: 4,
+                fontWeight: 600,
+                textTransform: "none"
+              }}
+              onClick={() => {
+                if (editingSchedule) {
+                  setOpenUpdateDialog(true);
+                } else {
+                  handleSaveSchedule();
+                  setOpenFormDialog(false);
+                }
+              }}
+            >
+              <SaveIcon fontSize="small" /> Save
+            </Button>
           )}
         </DialogActions>
       </Dialog>

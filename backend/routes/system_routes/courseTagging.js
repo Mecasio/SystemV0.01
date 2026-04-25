@@ -330,6 +330,93 @@ router.post("/add-to-enrolled-courses/:userId/:currId/", async (req, res) => {
   }
 });
 
+router.post("/add-student-courses/:userId", async (req, res) => {
+  const { subject_id, active_school_year_id, curriculum_id } = req.body;
+  const { userId } = req.params;
+
+  console.log("PARAMETER: ", subject_id, active_school_year_id, curriculum_id);
+
+  try {
+    let activeSchoolYearId = active_school_year_id;
+
+    if (!activeSchoolYearId) {
+      const [activeYearRows] = await db3.query(
+        "SELECT id FROM active_school_year_table WHERE astatus = 1 LIMIT 1"
+      );
+
+      if (activeYearRows.length === 0) {
+        return res.status(404).json({ message: "No active school year found" });
+      }
+
+      activeSchoolYearId = activeYearRows[0].id;
+    }
+
+    if (!subject_id || !userId || !curriculum_id) {
+      return res.status(400).json({ message: "Missing required course data" });
+    }
+
+    const [selectExistingRows] = await db3.query(`
+        SELECT student_number FROM enrolled_subject WHERE course_id = ? AND student_number = ? AND active_school_year_id = ? AND curriculum_id = ?
+      `, [subject_id, userId, activeSchoolYearId, curriculum_id])
+
+    if (selectExistingRows.length > 0) {
+      return res.status(400).json({ message: "Record already existed" });
+    }
+
+    const sql =
+      "INSERT INTO enrolled_subject (course_id, student_number, active_school_year_id, curriculum_id, department_section_id) VALUES (?, ?, ?, ?, ?)";
+    
+    await db3.query(sql, [
+      subject_id,
+      userId,
+      activeSchoolYearId,
+      curriculum_id,
+      null,
+    ]);
+
+    res.json({ message: "Course enrolled successfully" });
+  } catch (err) {
+    return res.status(500).json(err);
+  }
+});
+
+router.put("/courses/dropped/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const sql = "UPDATE enrolled_subject SET en_remarks = 4 WHERE id = ?";
+    await db3.query(sql, [id]);
+
+    res.json({
+      message: "Course and related evaluations removed successfully",
+    });
+  } catch (err) {
+    console.error("Error deleting subject:", err);
+    return res.status(500).json({ error: "Database error" });
+  }
+});
+
+router.put("/courses/change/:id", async (req, res) => {
+  const { id } = req.params;
+  const { course_id } = req.body;
+
+  if (!course_id) {
+    return res.status(400).json({ error: "course_id is required" });
+  }
+
+  try {
+    const sql = "UPDATE enrolled_subject SET course_id = ? WHERE id = ?";
+    await db3.query(sql, [course_id, id]);
+
+    res.json({
+      message: "Course changed successfully",
+    });
+  } catch (err) {
+    console.error("Error changing subject:", err);
+    return res.status(500).json({ error: "Database error" });
+  }
+});
+
 // Delete a single selected subject + its evaluations
 router.delete("/courses/delete/:id", async (req, res) => {
   const { id } = req.params;

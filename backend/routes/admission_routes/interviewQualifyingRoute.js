@@ -99,6 +99,86 @@ const isDifferent = (oldVal, newVal) => {
 // 🚀 SAVE INTERVIEW (FINAL SAFE VERSION)
 // =====================================================
 
+// Assign Max Slots
+router.put("/api/interview_applicants/assign-max", async (req, res) => {
+  try {
+    const { dprtmnt_id, schoolYear, semester } = req.body;
+
+    if (!dprtmnt_id || !schoolYear || !semester) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // Get top applicants for that dept, year, sem
+    const [topApplicants] = await db.query(
+      `SELECT ea.applicant_id
+       FROM exam_applicants ea
+       WHERE ea.dprtmnt_id = ? AND ea.school_year = ? AND ea.semester = ?
+       ORDER BY ea.total_score DESC, ea.exam_date ASC`,
+      [dprtmnt_id, schoolYear, semester],
+    );
+
+    if (!topApplicants.length) {
+      return res.json({ success: false, message: "No applicants found" });
+    }
+
+    // Insert/update into interview_applicants with action = 1
+    for (const applicant of topApplicants) {
+      await db.query(
+        `INSERT INTO interview_applicants (applicant_id, action, email_sent)
+         VALUES (?, 1, 0)
+         ON DUPLICATE KEY UPDATE action = 1`,
+        [applicant.applicant_id],
+      );
+    }
+
+    res.json({ success: true, count: topApplicants.length });
+  } catch (err) {
+    console.error("Error in assign-max:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Assign Custom Slots
+router.put("/api/interview_applicants/assign-custom", async (req, res) => {
+  try {
+    const { dprtmnt_id, schoolYear, semester, count } = req.body;
+
+    if (!dprtmnt_id || !schoolYear || !semester || !count) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // Get top N applicants
+    const [topApplicants] = await db.query(
+      `SELECT ea.applicant_id
+       FROM exam_applicants ea
+       WHERE ea.dprtmnt_id = ? AND ea.school_year = ? AND ea.semester = ?
+       ORDER BY ea.total_score DESC, ea.exam_date ASC
+       LIMIT ?`,
+      [dprtmnt_id, schoolYear, semester, Number(count)],
+    );
+
+    if (!topApplicants.length) {
+      return res.json({ success: false, message: "No applicants found" });
+    }
+
+    // Insert/update into interview_applicants with action = 1
+    for (const applicant of topApplicants) {
+      await db.query(
+        `INSERT INTO interview_applicants (applicant_id, action, email_sent)
+         VALUES (?, 1, 0)
+         ON DUPLICATE KEY UPDATE action = 1`,
+        [applicant.applicant_id],
+      );
+    }
+
+    res.json({ success: true, count: topApplicants.length });
+  } catch (err) {
+    console.error("Error in assign-custom:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+
 router.post(
   "/api/interview/save",
   verifyToken,

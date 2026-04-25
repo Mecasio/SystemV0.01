@@ -454,7 +454,7 @@ const Register = () => {
   const dialogStyles = {
     title: { textAlign: "center", fontWeight: "bold", fontSize: "18px" },
     contentText: { fontSize: "16px", textAlign: "justify", mt: 1 },
-    contentTextCenter: { fontSize: "16px", textAlign: "center", mt: 2, fontWeight: "bold" },
+    contentTextCenter: { fontSize: "16px", textAlign: "center", mt: 2, },
     actions: { justifyContent: "center", pb: 2 },
     button: { fontWeight: "bold", textTransform: "none", minWidth: "220px" }
   };
@@ -536,6 +536,8 @@ const Register = () => {
             </div>
 
             <div className="Body">
+
+
 
               <div className="TextField">
                 <label>Campus</label>
@@ -861,7 +863,7 @@ const Register = () => {
                     This field is required
                   </span>
                 )}
-                <span style={{ fontSize: "14px", color: "red", mt: 1 }}>
+                <span style={{ fontSize: "14px", color: "red", mt: 2}}>
                   Note: Each email can only be used once. Use a valid and unused Gmail account.
                 </span>
               </div>
@@ -1372,27 +1374,16 @@ const Register = () => {
             </Typography>
 
             {selectedBranch?.start_date && selectedBranch?.end_date && (
-              <Typography sx={dialogStyles.contentTextCenter}>
-                Registration Hours:
-                <br />
-                <strong style={{ fontSize: "32px", }}>
-                  {new Date(selectedBranch.start_date)
-                    .toLocaleTimeString("en-US", {
-                      hour: "numeric",
-                      minute: "2-digit",
-                      hour12: true,
-                      timeZone: "Asia/Manila"
-                    })}
-                  {" to "}
-                  {new Date(selectedBranch.end_date)
-                    .toLocaleTimeString("en-US", {
-                      hour: "numeric",
-                      minute: "2-digit",
-                      hour12: true,
-                      timeZone: "Asia/Manila"
-                    })}
-                </strong>
-              </Typography>
+              <Box sx={{ textAlign: "center", mt: 2.5, p: 2, background: "#f8fafc", borderRadius: "12px", border: "1.5px solid #e2e8f0" }}>
+                <Typography sx={{ fontSize: "12px", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700, mb: 0.5 }}>
+                  Registration Hours
+                </Typography>
+                <Typography sx={{ fontSize: "28px", fontWeight: 700, color: "#1a1a2e", fontFamily: "'DM Sans', sans-serif" }}>
+                  {new Date(selectedBranch.start_date).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: "Asia/Manila" })}
+                  {" – "}
+                  {new Date(selectedBranch.end_date).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: "Asia/Manila" })}
+                </Typography>
+              </Box>
             )}
 
             <Typography sx={dialogStyles.contentTextCenter}>

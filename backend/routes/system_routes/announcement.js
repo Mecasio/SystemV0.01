@@ -1,5 +1,6 @@
 const express = require("express");
 const path = require("path");
+const multer = require("multer");
 const fs = require("fs");
 const { db, db3 } = require("../database/database");
 const { announcementUpload } = require("../../middleware/uploads");
@@ -8,6 +9,20 @@ const {
   CanDelete,
   CanEdit,
 } = require("../../middleware/pagePermissions");
+
+const uploadDir = path.join(__dirname, "../../uploads/announcement");
+fs.mkdirSync(uploadDir, { recursive: true });
+
+const announcementStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `temp_${Date.now()}${path.extname(file.originalname)}`);
+  },
+});
+
+
 
 const router = express.Router();
 
@@ -213,8 +228,12 @@ router.delete("/announcements/:id", CanDelete, async (req, res) => {
 router.get("/announcements/student", async (req, res) => {
   try {
     const [rows] = await db.execute(
-      "SELECT * FROM announcements WHERE target_role = 'student' AND expires_at > NOW() ORDER BY created_at DESC",
+      `SELECT * FROM announcements 
+       WHERE target_role = 'student'
+       AND (expires_at > NOW() OR expires_at IS NULL)
+       ORDER BY created_at DESC`
     );
+
     res.json(rows);
   } catch (err) {
     console.error("Error fetching student announcements:", err);
@@ -225,11 +244,15 @@ router.get("/announcements/student", async (req, res) => {
 router.get("/announcements/faculty", async (req, res) => {
   try {
     const [rows] = await db.execute(
-      "SELECT * FROM announcements WHERE target_role = 'faculty' AND expires_at > NOW() ORDER BY created_at DESC",
+      `SELECT * FROM announcements 
+       WHERE target_role = 'faculty'
+       AND (expires_at > NOW() OR expires_at IS NULL)
+       ORDER BY created_at DESC`
     );
+
     res.json(rows);
   } catch (err) {
-    console.error("Error fetching student announcements:", err);
+    console.error("Error fetching faculty announcements:", err);
     res.status(500).json({ error: "Database error" });
   }
 });

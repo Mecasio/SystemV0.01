@@ -267,4 +267,55 @@ router.post("/api/page_access/revoke-all", async (req, res) => {
   }
 });
 
+
+
+router.get("/api/registrars", async (req, res) => {
+  try {
+    const sql = `
+      SELECT
+        ua.id,
+        ua.employee_id,
+        ua.profile_picture,
+        ua.first_name,
+        ua.middle_name,
+        ua.last_name,
+        ua.email,
+        ua.access_level,
+        at.access_description,
+        ua.role,
+        ua.status,
+        d.dprtmnt_name,
+        d.dprtmnt_code
+      FROM user_accounts ua
+      LEFT JOIN access_table at ON ua.access_level = at.access_id
+      LEFT JOIN dprtmnt_table d ON ua.dprtmnt_id = d.dprtmnt_id
+      WHERE ua.role IN ('registrar', 'admission', 'enrollment', 'clinic', 'superadmin')
+      ORDER BY ua.id DESC;
+    `;
+
+    const [results] = await db3.query(sql);
+    res.json(results);
+  } catch (error) {
+    console.error(" Server error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+
+router.put("/update_registrar_status/:id", async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  try {
+    await db3.query("UPDATE user_accounts SET status=? WHERE id=?", [
+      Number(status),
+      id,
+    ]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update status" });
+  }
+});
+
 module.exports = router;

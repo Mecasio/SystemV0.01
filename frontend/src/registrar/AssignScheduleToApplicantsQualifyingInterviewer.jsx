@@ -725,6 +725,7 @@ const AssignScheduleToApplicantsInterviewer = () => {
   useEffect(() => {
     fetchRequirements();
   }, []);
+
   const filterRequirementsForApplicant = (applicant, list = requirements) => {
     if (!Array.isArray(list)) return [];
 
@@ -740,45 +741,114 @@ const AssignScheduleToApplicantsInterviewer = () => {
     });
   };
 
-  const buildRequirementsText = (applicant, list = requirements) => {
-    const filteredRequirements = filterRequirementsForApplicant(
-      applicant,
-      list,
-    );
+  const [selectedCopies, setSelectedCopies] = useState({});
 
-    if (!filteredRequirements || filteredRequirements.length === 0) {
-      return "• No requirements listed at this time.";
-    }
+  const firstApplicantNumber = Array.from(selectedApplicants)[0];
 
-    const grouped = filteredRequirements.reduce((acc, req) => {
-      const category = req.category || "Other";
-      if (!acc[category]) acc[category] = [];
-      acc[category].push(req);
-      return acc;
-    }, {});
+  const selectedApplicantData = persons.find(
+    p => p.applicant_number === firstApplicantNumber
+  );
+
+  const handleSelect = (reqId, type) => {
+    setSelectedCopies(prev => {
+      const updated = {
+        ...prev,
+        [reqId]: type
+      };
+
+      const firstApplicantNumber = Array.from(selectedApplicants)[0];
+
+      const applicant = persons.find(
+        p => p.applicant_number === firstApplicantNumber
+      );
+
+      if (!applicant) return prev;
+
+      const reqText = buildRequirementsText(applicant, requirements, updated);
+
+      const today = new Date();
+      const validUntil = new Date(today);
+      validUntil.setDate(today.getDate() + 7);
+
+      const formattedValidUntil = validUntil.toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      });
+
+      const sched = getSelectedScheduleData(); // or however you fetch it
+
+      const newMessage = buildFullMessage(applicant, reqText, sched);
+      setEmailMessage(newMessage);
+
+      return updated;
+    });
+  };
+
+  const buildFullMessage = (applicant, reqText, sched) => {
+    if (!sched) return "No schedule available.";
+
+    const formatTime = (time) => {
+      if (!time) return "N/A";
+      const d = new Date(`1970-01-01T${time}`);
+      return isNaN(d)
+        ? "N/A"
+        : d.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        });
+    };
+
+    const formattedDate = sched.day_description
+      ? new Date(sched.day_description).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+      : "N/A";
+
+    return `
+Dear ${applicant?.last_name || ""}, ${applicant?.first_name || ""} ${applicant?.middle_name || ""}
+
+You are scheduled for an interview on:
+
+📅 Date: ${formattedDate}
+🏢 Building: ${sched?.building_description || "N/A"}
+🏫 Room: ${sched?.room_description || "N/A"}
+🕒 Time: ${formatTime(sched?.start_time)} - ${formatTime(sched?.end_time)}
+
+Please bring the following requirements:
+
+📄 REQUIRED DOCUMENTS:
+${reqText}
+
+1. Your Enrollment Officer will provide you with the Admission Form Process, including the required signatories.
+
+Reminder:
+Please provide your Enrollment Officer with photocopies of all your submitted online documents.
+
+Thank you and good luck!
+`.trim();
+  };
+
+
+  const buildRequirementsText = (applicant, list = requirements, copies = selectedCopies) => {
+    const filtered = filterRequirementsForApplicant(applicant, list);
 
     let text = "";
 
-    Object.entries(grouped).forEach(([category, items]) => {
-      text += `\n${category} Requirements:\n`;
+    filtered.forEach((req) => {
+      const selected = copies[req.id];
 
-      items.forEach((req) => {
-        let notes = [];
-
-        // ✅ ONLY Xerox (removed original)
-        if (req.xerox_copies > 0) {
-          notes.push(
-            `${req.xerox_copies} Xerox copy${req.xerox_copies > 1 ? "s" : ""}`,
-          );
-        }
-
-        let extra = notes.length > 0 ? ` (${notes.join(" + ")})` : "";
-
-        text += `• ${req.description}${extra}\n`;
-      });
+      text += `• ${req.description}`;
+      if (selected) {
+        text += ` (${selected.toUpperCase()})`;
+      }
+      text += `\n`;
     });
 
-    return text.trim();
+    return text;
   };
 
   const handleSendEmails = () => {
@@ -856,28 +926,8 @@ const AssignScheduleToApplicantsInterviewer = () => {
 
     const reqText = buildRequirementsText(first, requirements);
 
-    setEmailMessage(
-      `Dear ${first.last_name || ""}, ${first.first_name || ""} ${first.middle_name || ""},
-
-You are scheduled for an interview on:
-
-📅 Date: ${formattedDate}
-🏢 Building: ${sched.building_description}
-🏫 Room: ${sched.room_description}
-🕒 Time: ${formattedStart} - ${formattedEnd}
-
-Please bring the following requirements:
-
-📄 REQUIRED DOCUMENTS:
-${reqText}
-
-1. Your Enrollment Officer will provide you with the Admission Form Process, including the required signatories.
-
-Reminder:
-Please provide your Enrollment Officer with photocopies of all your submitted online documents.
-
-Thank you and good luck!`,
-    );
+    const message = buildFullMessage(first, reqText, sched);
+    setEmailMessage(message);
 
     // OPEN the dialog
     setConfirmOpen(true);
@@ -906,6 +956,7 @@ Thank you and good luck!`,
     const sched = schedules.find(
       (s) => String(s.schedule_id) === String(targetScheduleId),
     );
+
     if (!sched) {
       setSnack({
         open: true,
@@ -915,61 +966,19 @@ Thank you and good luck!`,
       return;
     }
 
-    const formattedStart = new Date(
-      `1970-01-01T${sched.start_time}`,
-    ).toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
-
-    const formattedEnd = new Date(
-      `1970-01-01T${sched.end_time}`,
-    ).toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
-
-    const formattedDate = new Date(sched.day_description).toLocaleDateString(
-      "en-US",
-      {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      },
-    );
-
     const reqText = buildRequirementsText(applicant, requirements);
 
     setSelectedSchedule(targetScheduleId);
     setSelectedApplicants(new Set([applicant.applicant_number]));
 
-    setEmailMessage(
-      `Dear ${applicant.last_name || ""}, ${applicant.first_name || ""} ${applicant.middle_name || ""},
+    // ✅ FIXED LINE
+    const message = buildFullMessage(applicant, reqText, sched);
 
-You are scheduled for an interview on:
-
-📅 Date: ${formattedDate}
-🏢 Building: ${sched.building_description}
-🏫 Room: ${sched.room_description}
-🕒 Time: ${formattedStart} - ${formattedEnd}
-
-Please bring the following requirements:
-
-📄 REQUIRED DOCUMENTS:
-${reqText}
-
-1. Your Enrollment Officer will provide you with the Admission Form Process, including the required signatories.
-
-Reminder:
-Please provide your Enrollment Officer with photocopies of all your submitted online documents.
-
-Thank you and good luck!`,
-    );
+    setEmailMessage(message);
 
     setConfirmOpen(true);
   };
+
 
   const confirmSendEmails = () => {
     setConfirmOpen(false);
@@ -1018,6 +1027,8 @@ Thank you and good luck!`,
   const [emailSubject, setEmailSubject] = useState(
     "Qualifying / Interview Examination Schedule",
   );
+
+
   const [emailMessage, setEmailMessage] = useState("");
   const [schedules, setSchedules] = useState([]);
 
@@ -2460,6 +2471,80 @@ Thank you and good luck!`,
             sx={{ mb: 3 }}
           />
 
+          <div
+            style={{
+              border: "1px solid #ddd",
+              borderRadius: "8px",
+              padding: "16px",
+              minHeight: "200px",
+              backgroundColor: "#fafafa"
+            }}
+          >
+            <p style={{ fontWeight: "bold", marginBottom: "12px" }}>
+              📄 REQUIRED DOCUMENTS:
+            </p>
+
+            {filterRequirementsForApplicant(
+              selectedApplicantData,
+              requirements
+            ).map((req) => {
+              const selected = selectedCopies[req.id];
+
+              return (
+                <div
+                  key={req.id}
+                  style={{
+                    border: "1px solid #eee",
+                    borderRadius: "6px",
+                    padding: "10px",
+                    marginBottom: "10px",
+                    backgroundColor: selected ? "#fff8f0" : "white"
+                  }}
+                >
+                  {/* Description */}
+                  <div style={{ marginBottom: "8px" }}>
+                    <span style={{ fontWeight: 500 }}>
+                      • {req.description}
+                    </span>
+
+                    {selected && (
+                      <span
+                        style={{
+                          marginLeft: "10px",
+                          color: "#800000",
+                          fontWeight: "bold"
+                        }}
+                      >
+                        ({selected.toUpperCase()})
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Buttons */}
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <Button
+                      size="small"
+                      variant={selected === "xerox" ? "contained" : "outlined"}
+                      color="warning"
+                      onClick={() => handleSelect(req.id, "xerox")}
+                    >
+                      📄 Xerox
+                    </Button>
+
+                    <Button
+                      size="small"
+                      variant={selected === "original" ? "contained" : "outlined"}
+                      color="success"
+                      onClick={() => handleSelect(req.id, "original")}
+                    >
+                      📑 Original
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
           {/* Message */}
           <TextField
             label="Message"
@@ -2472,6 +2557,7 @@ Thank you and good luck!`,
             sx={{
               fontFamily: "monospace",
               whiteSpace: "pre-wrap",
+              mt: 2
             }}
           />
 

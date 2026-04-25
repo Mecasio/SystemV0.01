@@ -713,8 +713,12 @@ const RegisterRegistrar = () => {
 
                     <TableBody>
                         {registrars.length > 0 ? (
-                            registrars.map((r) => (
-                                <TableRow key={r.id}>
+                            registrars.map((r, i) => (
+                                <TableRow key={r.id}
+
+                                    sx={{
+                                        backgroundColor: i % 2 === 0 ? "#ffffff" : "lightgray",
+                                    }}>
                                     <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{r.employee_id}</TableCell>
 
                                     <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
@@ -1026,7 +1030,7 @@ const RegisterRegistrar = () => {
                     <Button
                         onClick={handleCloseDialog}
                         color="error"
-            variant="outlined"
+                        variant="outlined"
                         sx={{ textTransform: "none", fontWeight: 600 }}
                     >
                         Cancel
@@ -1037,7 +1041,7 @@ const RegisterRegistrar = () => {
                         sx={{ px: 4, fontWeight: 600, textTransform: "none" }}
                         onClick={handleSubmit}
                     >
-            
+
                         <SaveIcon fontSize="small" /> Save
                     </Button>
                 </DialogActions>

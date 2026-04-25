@@ -1129,6 +1129,58 @@ router.get("/student_enrollment", async (req, res) => {
   }
 });
 
+router.get("/student-info-for-enrollment/:student_number", async (req, res) => {
+  const { student_number } = req.params;
+
+  try {
+    const [rows] = await db3.query(
+      `
+        SELECT
+          es.id,
+          cct.curriculum_id,
+          sy.id as active_school_year_id, 
+          pgt.program_description, 
+          yrt_cur.year_description, 
+          yrt_sy.year_description AS current_year, 
+          smt.semester_description,
+          snt.student_number,
+          IFNULL(es.final_grade, "-") as final_grade,
+          es.grades_status,
+          IFNULL(es.en_remarks, 0) as en_remarks,
+          ylt.year_level_description, 
+          cst.course_id,
+		      cst.course_code,
+          cst.course_description,
+          cst.course_unit,
+          es.remarks,
+          sst.id AS student_status_id
+        FROM enrolled_subject es
+          INNER JOIN student_numbering_table snt ON es.student_number = snt.student_number
+          INNER JOIN student_status_table sst ON snt.student_number = sst.student_number
+            AND es.active_school_year_id = sst.active_school_year_id
+          INNER JOIN curriculum_table cct ON es.curriculum_id = cct.curriculum_id
+          INNER JOIN program_table pgt ON cct.program_id = pgt.program_id
+          INNER JOIN active_school_year_table sy ON es.active_school_year_id = sy.id
+          INNER JOIN year_table yrt_cur ON cct.year_id = yrt_cur.year_id
+          INNER JOIN year_table yrt_sy ON sy.year_id = yrt_sy.year_id
+          INNER JOIN year_level_table ylt ON sst.year_level_id = ylt.year_level_id 
+          INNER JOIN semester_table smt ON sy.semester_id = smt.semester_id
+          INNER JOIN course_table cst ON es.course_id = cst.course_id
+          WHERE es.student_number = ? AND en_remarks = 0
+      `, [student_number]
+    )
+
+    if (rows.length === 0) {
+      return res.status(400).json({ error: "student record is not found" });
+    }
+
+    res.json(rows)
+  } catch (err) {
+    console.error("Failed to get student record:", err);
+    res.status(500).send("Failed to get student record.");
+  }
+})
+
 router.get("/student_enrollment/:student_number", async (req, res) => {
   const { student_number } = req.params;
 
@@ -1150,18 +1202,24 @@ router.get("/student_enrollment/:student_number", async (req, res) => {
           pt.emailAddress,
           pt.cellphoneNumber,
           pt.campus,
+          dt.dprtmnt_id,
           dt.dprtmnt_code,
           dt.dprtmnt_name,
+          cct.curriculum_id,
           pgt.program_code,
           pgt.program_description,
+          sst.year_level_id,
           ylt.year_level_description,
+          sy.id AS active_school_year_id,
           smt.semester_description,
           st.description AS section_description,
           CONCAT(yt.year_description, '-', yt.year_description + 1) AS current_academic_year
         FROM student_numbering_table snt  
         LEFT JOIN enrolled_subject es ON snt.student_number = es.student_number
         LEFT JOIN person_table pt ON snt.person_id = pt.person_id
-        LEFT JOIN student_status_table sst ON snt.student_number = sst.student_number
+        LEFT JOIN student_status_table sst
+          ON snt.student_number = sst.student_number
+          AND sst.active_school_year_id = es.active_school_year_id
         LEFT JOIN dprtmnt_curriculum_table dct ON pt.program = dct.curriculum_id
         LEFT JOIN curriculum_table cct ON dct.curriculum_id = cct.curriculum_id
         LEFT JOIN dprtmnt_table dt ON dct.dprtmnt_id = dt.dprtmnt_id
@@ -1172,7 +1230,13 @@ router.get("/student_enrollment/:student_number", async (req, res) => {
         LEFT JOIN active_school_year_table sy ON es.active_school_year_id = sy.id
         LEFT JOIN semester_table smt ON sy.semester_id = smt.semester_id
         LEFT JOIN year_table yt ON sy.year_id = yt.year_id
-        WHERE snt.student_number = ? GROUP BY ylt.year_level_description, smt.semester_description, current_academic_year
+        WHERE snt.student_number = ?
+        ORDER BY
+          yt.year_description DESC,
+          sy.semester_id DESC,
+          sst.year_level_id DESC,
+          es.id DESC
+        LIMIT 1
       `,
       [student_number]
     );
@@ -1505,6 +1569,8 @@ router.delete("/api/student-upload/:uploadId", async (req, res) => {
     });
   }
 });
+
+
 
 
 module.exports = router;

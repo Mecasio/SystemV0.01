@@ -13,6 +13,8 @@ const {
   getGradeConversions,
   getStoredNumericGrade,
 } = require("./utils/gradeConversion");
+const nodemailer = require("nodemailer");
+const { error } = require("console");
 
 require("dotenv").config();
 const app = express();
@@ -57,7 +59,7 @@ const allowedOrigins = [
   "http://192.168.50.55:5173",
   "http://192.168.50.211:5173",
   "http://136.239.248.62:5173",
-  "http://192.168.0.180:5173",
+  "http://192.168.50.47:5173",
   "http://192.168.1.9:5173",
 ];
 
@@ -82,6 +84,7 @@ const signatureDir = path.join(__dirname, "uploads", "signature");
 const authRoute = require("./routes/auth_routes/authRoutes");
 const applicantFormRoute = require("./routes/applicant_routes/applicantFormRoute");
 const examPermit = require("./routes/applicant_routes/examPermitRoute");
+const requirementsUploaderRoute = require("./routes/applicant_routes/requirementsUploaderRoute");
 const studentRoute = require("./routes/student_routes/studentRoute");
 const adminRoute = require("./routes/admin_routes/registrarRoute");
 const signature = require("./routes/admin_routes/signature");
@@ -154,6 +157,7 @@ app.use("/api/", accessRoutes);
 app.use("/", signature);
 app.use("/form/", applicantFormRoute);
 app.use("/exampermit/", examPermit);
+app.use("/", requirementsUploaderRoute);
 app.use("/", studentRoute);
 app.use("/admin/", adminRoute);
 app.use("/faculty/", facultyRoute);
@@ -206,17 +210,6 @@ if (!fs.existsSync(uploadPath)) {
 if (!fs.existsSync(signatureDir))
   fs.mkdirSync(signatureDir, { recursive: true });
 
-const signatureStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "uploads", "signature"));
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `signature_${Date.now()}${ext}`);
-  },
-});
-
-const uploadSignature = multer({ storage: signatureStorage });
 
 // Multer setup
 const storage = multer.diskStorage({
@@ -252,75 +245,6 @@ const storage = multer.diskStorage({
 });
 
 // ---------------- PROFILE UPLOAD (Registrar) ----------------
-const profileStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, "uploads");
-    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-    cb(null, uploadDir);
-  },
-  filename: async (req, file, cb) => {
-    const { id } = req.params;
-
-    try {
-      //  Get registrar info
-      const [rows] = await db3.query(
-        "SELECT employee_id, role, profile_picture FROM user_accounts WHERE id = ?",
-        [id],
-      );
-
-      if (!rows.length) return cb(new Error("Registrar not found"));
-
-      const registrar = rows[0];
-      const ext = path.extname(file.originalname).toLowerCase();
-
-      //  Get Philippine year
-      const philTime = new Date().toLocaleString("en-US", {
-        timeZone: "Asia/Manila",
-      });
-      const year = new Date(philTime).getFullYear();
-
-      //  Construct filename based on employee_id + year
-      const employeeID = registrar.employee_id || "unknown";
-      const filename = `${employeeID}_profile_image_${year}${ext}`;
-
-      cb(null, filename);
-    } catch (err) {
-      console.error(" Error generating filename:", err);
-      cb(err);
-    }
-  },
-});
-
-const profileUpload = multer({
-  storage: multer.diskStorage({
-    destination: (req, file, cb) => {
-      const uploadDir = path.join(__dirname, "uploads");
-      if (!fs.existsSync(uploadDir))
-        fs.mkdirSync(uploadDir, { recursive: true });
-      cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-      cb(null, "temp_" + Date.now() + path.extname(file.originalname));
-    },
-  }),
-});
-
-const announcementStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = path.join(__dirname, "uploads", "announcement");
-
-    //  CREATE FOLDER IF NOT EXISTS
-    fs.mkdirSync(dir, { recursive: true });
-
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `temp_${Date.now()}${path.extname(file.originalname)}`);
-  },
-});
-
-const announcementUpload = multer({ storage: announcementStorage });
-
 // Ito
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -343,24 +267,23 @@ const upload = multer({
   }
 });
 
-app.use((err, req, res, next) => {
-  if (err.code === "LIMIT_FILE_SIZE") {
-    return res.status(400).json({
-      error: "File exceeds 4MB limit"
-    });
-  }
 
-  if (err.message === "Only JPG, JPEG, PNG, PDF allowed") {
-    return res.status(400).json({
-      error: err.message
-    });
-  }
-
-  next(err);
+const profileUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const uploadDir = path.join(__dirname, "uploads");
+      if (!fs.existsSync(uploadDir))
+        fs.mkdirSync(uploadDir, { recursive: true });
+      cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+      cb(null, "temp_" + Date.now() + path.extname(file.originalname));
+    },
+  }),
 });
 
-const nodemailer = require("nodemailer");
-const { error } = require("console");
+
+
 
 // Middleware to check if user can access a step
 const checkStepAccess = (requiredStep) => {
@@ -452,91 +375,6 @@ const db3 = mysql.createPool({
 const ipAddress = getDbHost();
 // ----------------- REGISTER -----------------
 
-app.get("/api/registrars", async (req, res) => {
-  try {
-    const sql = `
-      SELECT
-        ua.id,
-        ua.employee_id,
-        ua.profile_picture,
-        ua.first_name,
-        ua.middle_name,
-        ua.last_name,
-        ua.email,
-        ua.access_level,
-        at.access_description,
-        ua.role,
-        ua.status,
-        d.dprtmnt_name,
-        d.dprtmnt_code
-      FROM user_accounts ua
-      LEFT JOIN access_table at ON ua.access_level = at.access_id
-      LEFT JOIN dprtmnt_table d ON ua.dprtmnt_id = d.dprtmnt_id
-      WHERE ua.role IN ('registrar', 'admission', 'enrollment', 'clinic', 'superadmin')
-      ORDER BY ua.id DESC;
-    `;
-
-    const [results] = await db3.query(sql);
-    res.json(results);
-  } catch (error) {
-    console.error(" Server error:", error);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
-app.post(
-  "/update_registrar/:id",
-  profileUpload.single("profile_picture"),
-  async (req, res) => {
-    const { id } = req.params;
-
-    try {
-      const [existing] = await db3.query(
-        "SELECT * FROM user_accounts WHERE id = ?",
-        [id],
-      );
-      if (existing.length === 0) {
-        return res.status(404).json({ message: "Registrar not found" });
-      }
-
-      let finalFilename = existing[0].profile_picture;
-
-      if (req.file) {
-        finalFilename = req.file.filename;
-      }
-
-      await db3.query(`UPDATE user_accounts SET profile_picture=? WHERE id=?`, [
-        finalFilename,
-        id,
-      ]);
-
-      res.json({
-        success: true,
-        message: "Profile picture updated",
-        filename: finalFilename,
-      });
-    } catch (error) {
-      console.error(" Error updating registrar:", error);
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  },
-);
-
-app.put("/update_registrar_status/:id", async (req, res) => {
-  const { id } = req.params;
-  const { status } = req.body;
-
-  try {
-    await db3.query("UPDATE user_accounts SET status=? WHERE id=?", [
-      Number(status),
-      id,
-    ]);
-    res.json({ success: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to update status" });
-  }
-});
 
 app.get("/api/employee/:employee_id", async (req, res) => {
   try {
@@ -557,127 +395,6 @@ app.get("/api/employee/:employee_id", async (req, res) => {
   } catch (err) {
     console.error("Error fetching employee access:", err);
     res.status(500).json({ success: false, message: "Server error" });
-  }
-});
-
-
-//  Unified Save or Update for Qualifying / Interview Scores (with duplicate-safe notifications)
-app.post("/api/interview/save", async (req, res) => {
-  try {
-    const {
-      applicant_number,
-      qualifying_exam_score,
-      qualifying_interview_score,
-      user_person_id,
-    } = req.body;
-
-    // Find person_id
-    const [rows] = await db.query(
-      "SELECT person_id FROM applicant_numbering_table WHERE applicant_number = ?",
-      [applicant_number],
-    );
-    if (rows.length === 0)
-      return res.status(400).json({ error: "Applicant number not found" });
-    const personId = rows[0].person_id;
-
-    // Fetch old results
-    const [oldRows] = await db.query(
-      "SELECT qualifying_result, interview_result, exam_result FROM person_status_table WHERE person_id = ?",
-      [personId],
-    );
-    const oldData = oldRows[0] || null;
-
-    // Compute new scores
-    const qExam = Number(qualifying_exam_score) || 0;
-    const qInterview = Number(qualifying_interview_score) || 0;
-    const totalAve = (qExam + qInterview) / 2;
-
-    // Upsert
-    await db.query(
-      `INSERT INTO person_status_table (person_id, qualifying_result, interview_result, exam_result)
-       VALUES (?, ?, ?, ?)
-       ON DUPLICATE KEY UPDATE
-         qualifying_result = VALUES(qualifying_result),
-         interview_result = VALUES(interview_result),
-         exam_result = VALUES(exam_result)`,
-      [personId, qExam, qInterview, totalAve],
-    );
-
-    // Get actor info
-    let actorEmail = "earistmis@gmail.com";
-    let actorName = "SYSTEM";
-    if (user_person_id) {
-      const [actorRows] = await db3.query(
-        `SELECT email, role, employee_id, last_name, first_name, middle_name
-         FROM user_accounts WHERE person_id = ? LIMIT 1`,
-        [user_person_id],
-      );
-      if (actorRows.length > 0) {
-        const u = actorRows[0];
-        const role = u.role?.toUpperCase() || "UNKNOWN";
-        const empId = u.employee_id || "";
-        actorEmail = u.email || "earistmis@gmail.com";
-        actorName =
-          `${role} (${empId}) - ${u.last_name}, ${u.first_name} ${u.middle_name}`.trim();
-      }
-    }
-
-    // Detect changes
-    if (
-      oldData &&
-      (oldData.qualifying_result != qExam ||
-        oldData.interview_result != qInterview)
-    ) {
-      const oldExam = oldData.qualifying_result ?? 0;
-      const oldInterview = oldData.interview_result ?? 0;
-      const oldFinal =
-        oldData.exam_result ?? ((oldExam + oldInterview) / 2).toFixed(2);
-      const newFinal = totalAve.toFixed(2);
-
-      // Build message text showing both scores
-      const message = `“ Qualifying Exam: ${oldExam} †’ ${qExam} | Interview: ${oldInterview} †’ ${qInterview} | Final Rating: ${oldFinal} †’ ${newFinal} for Applicant #${applicant_number}`;
-
-      // One single notification per applicant per day
-      await db.query(
-        `INSERT INTO notifications (type, message, applicant_number, actor_email, actor_name, timestamp)
-         SELECT ?, ?, ?, ?, ?, NOW()
-         FROM DUAL
-         WHERE NOT EXISTS (
-           SELECT 1 FROM notifications
-           WHERE applicant_number = ?
-             AND message = ?
-             AND DATE(timestamp) = CURDATE()
-         )`,
-        [
-          "update",
-          message,
-          applicant_number,
-          actorEmail,
-          actorName,
-          applicant_number,
-          message,
-        ],
-      );
-
-      io.emit("notification", {
-        type: "update",
-        message,
-        applicant_number,
-        actor_email: actorEmail,
-        actor_name: actorName,
-        timestamp: new Date().toISOString(),
-      });
-    }
-
-    res.json({
-      success: true,
-      message: "Qualifying/Interview results saved successfully!",
-    });
-  } catch (err) {
-    console.error("Error saving qualifying/interview results:", err);
-    res
-      .status(500)
-      .json({ error: "Failed to save qualifying/interview results" });
   }
 });
 
@@ -710,6 +427,8 @@ app.get("/admitted_users", async (req, res) => {
     res.status(500).send({ message: "INTERNAL SERVER ERROR!!" });
   }
 });
+
+
 // Get applicant_number by person_id
 app.get("/api/applicant_number/:person_id", async (req, res) => {
   const { person_id } = req.params;
@@ -733,107 +452,6 @@ app.get("/api/applicant_number/:person_id", async (req, res) => {
   }
 });
 
-const getShortLabel = async (desc) => {
-  try {
-    const [rows] = await db
-      .promise()
-      .query(
-        "SELECT short_label FROM requirements_table WHERE LOWER(description) LIKE CONCAT('%', LOWER(?), '%') LIMIT 1",
-        [desc],
-      );
-
-    if (rows.length > 0) {
-      return rows[0].short_label; //  return short_label directly from DB
-    } else {
-      return "Unknown"; // no match found
-    }
-  } catch (error) {
-    console.error("Error fetching short_label:", error);
-    return "Unknown";
-  }
-};
-
-app.post("/upload", upload.single("file"), async (req, res) => {
-  const { requirements_id, person_id } = req.body;
-
-  if (!req.file || !person_id || !requirements_id) {
-    return res
-      .status(400)
-      .json({ message: "Missing file, person_id, or requirements_id" });
-  }
-
-  try {
-    //  Fetch description & short_label in one query
-    const [rows] = await db.query(
-      "SELECT description, short_label FROM requirements_table WHERE id = ?",
-      [requirements_id],
-    );
-
-    if (!rows.length)
-      return res.status(404).json({ message: "Requirement not found" });
-
-    //  Use short_label directly from DB
-    const shortLabel = await getShortLabel(rows[0].description);
-
-    const year = new Date().getFullYear();
-    const ext = path.extname(req.file.originalname).toLowerCase();
-
-    //  Fetch applicant number
-    const [appRows] = await db.query(
-      "SELECT applicant_number FROM applicant_numbering_table WHERE person_id = ?",
-      [person_id],
-    );
-
-    if (!appRows.length) {
-      return res.status(404).json({
-        message: `Applicant number not found for person_id ${person_id}`,
-      });
-    }
-
-    const applicant_number = appRows[0].applicant_number;
-
-    //  Construct final filename using short_label from DB
-    const filename = `${applicant_number}_${shortLabel}_${year}${ext}`;
-    const finalPath = path.join(__dirname, "uploads", filename);
-
-    //  Remove existing file if exists
-    const [existingFiles] = await db.query(
-      `SELECT upload_id, file_path FROM requirement_uploads
-       WHERE person_id = ? AND requirements_id = ? AND file_path LIKE ?`,
-      [person_id, requirements_id, `%${shortLabel}_${year}%`],
-    );
-
-    for (const file of existingFiles) {
-      const fullFilePath = path.join(__dirname, "uploads", file.file_path);
-      try {
-        await fs.promises.unlink(fullFilePath);
-      } catch (err) {
-        console.warn("File delete warning:", err.message);
-      }
-      await db.query("DELETE FROM requirement_uploads WHERE upload_id = ?", [
-        file.upload_id,
-      ]);
-    }
-
-    //  Write file to disk
-    await fs.promises.writeFile(finalPath, req.file.buffer);
-
-    const filePath = `${filename}`;
-    const originalName = req.file.originalname;
-
-    await db.query(
-      "INSERT INTO requirement_uploads (requirements_id, person_id, file_path, original_name) VALUES (?, ?, ?, ?)",
-      [requirements_id, person_id, filePath, originalName],
-    );
-
-    res.status(201).json({ message: "Upload successful", filename });
-  } catch (err) {
-    console.error("Upload error:", err);
-    res.status(500).json({ message: "Upload failed", error: err.message });
-  }
-});
-
-//  Upload Route
 
 // “ Helper function to fetch actor info
 async function getActorInfo(user_person_id) {
@@ -2152,85 +1770,6 @@ app.get("/api-applicant-scoring", async (req, res) => {
   }
 });
 
-// Assign Max Slots
-app.put("/api/interview_applicants/assign-max", async (req, res) => {
-  try {
-    const { dprtmnt_id, schoolYear, semester } = req.body;
-
-    if (!dprtmnt_id || !schoolYear || !semester) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-
-    // Get top applicants for that dept, year, sem
-    const [topApplicants] = await db.query(
-      `SELECT ea.applicant_id
-       FROM exam_applicants ea
-       WHERE ea.dprtmnt_id = ? AND ea.school_year = ? AND ea.semester = ?
-       ORDER BY ea.total_score DESC, ea.exam_date ASC`,
-      [dprtmnt_id, schoolYear, semester],
-    );
-
-    if (!topApplicants.length) {
-      return res.json({ success: false, message: "No applicants found" });
-    }
-
-    // Insert/update into interview_applicants with action = 1
-    for (const applicant of topApplicants) {
-      await db.query(
-        `INSERT INTO interview_applicants (applicant_id, action, email_sent)
-         VALUES (?, 1, 0)
-         ON DUPLICATE KEY UPDATE action = 1`,
-        [applicant.applicant_id],
-      );
-    }
-
-    res.json({ success: true, count: topApplicants.length });
-  } catch (err) {
-    console.error("Error in assign-max:", err);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
-// Assign Custom Slots
-app.put("/api/interview_applicants/assign-custom", async (req, res) => {
-  try {
-    const { dprtmnt_id, schoolYear, semester, count } = req.body;
-
-    if (!dprtmnt_id || !schoolYear || !semester || !count) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-
-    // Get top N applicants
-    const [topApplicants] = await db.query(
-      `SELECT ea.applicant_id
-       FROM exam_applicants ea
-       WHERE ea.dprtmnt_id = ? AND ea.school_year = ? AND ea.semester = ?
-       ORDER BY ea.total_score DESC, ea.exam_date ASC
-       LIMIT ?`,
-      [dprtmnt_id, schoolYear, semester, Number(count)],
-    );
-
-    if (!topApplicants.length) {
-      return res.json({ success: false, message: "No applicants found" });
-    }
-
-    // Insert/update into interview_applicants with action = 1
-    for (const applicant of topApplicants) {
-      await db.query(
-        `INSERT INTO interview_applicants (applicant_id, action, email_sent)
-         VALUES (?, 1, 0)
-         ON DUPLICATE KEY UPDATE action = 1`,
-        [applicant.applicant_id],
-      );
-    }
-
-    res.json({ success: true, count: topApplicants.length });
-  } catch (err) {
-    console.error("Error in assign-custom:", err);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
 app.get("/api/applicants-with-number", async (req, res) => {
   try {
     const [rows] = await db.execute(`
@@ -3168,6 +2707,8 @@ registerSocketHandlers({
   upload,
   baseDir: __dirname,
 });
+
+
 app.post("/api/generate-cor-pdf", async (req, res) => {
   let browser;
 

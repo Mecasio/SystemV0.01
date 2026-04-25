@@ -27,6 +27,11 @@ import {
   TextField,
   Typography,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { SettingsContext } from "../App";
@@ -63,9 +68,8 @@ const REASONS = [
 
 const SUBJECT_HEADERS_FULL = [
   "",
-  "Subject Code",
+  "Course Code",
   "Description",
-  "Adjustment",
   "Credited Units",
   "Schedule",
   "Enrolled By",
@@ -73,6 +77,9 @@ const SUBJECT_HEADERS_FULL = [
   "Adjusted By",
 ];
 const SUBJECT_HEADERS_NO_RADIO = SUBJECT_HEADERS_FULL.slice(1);
+const COURSE_LIST_HEIGHT = 420;
+const COURSE_ROW_HEIGHT = 48;
+const COURSE_LIST_OVERSCAN = 6;
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 const getInitials = (name = "") =>
@@ -222,7 +229,6 @@ const InListTable = ({ subjects, selectedSubject, onSelect, color }) => (
                   {s.code}
                 </TableCell>
                 <TableCell sx={bCell}>{s.description}</TableCell>
-                <TableCell sx={bCell}>{s.adjustment || "—"}</TableCell>
                 <TableCell align="center" sx={{ ...bCell, fontWeight: 700 }}>
                   {s.creditedUnits}
                 </TableCell>
@@ -241,7 +247,7 @@ const InListTable = ({ subjects, selectedSubject, onSelect, color }) => (
                 align="center"
                 sx={{ py: 3, color: "text.secondary", fontStyle: "italic" }}
               >
-                No subjects
+                No Courses 
               </TableCell>
             </TableRow>
           )}
@@ -291,7 +297,43 @@ const StudentEnrollment = () => {
   const [form137, setForm137] = useState(false);
   const [transcriptRec, setTranscriptRec] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState(null);
-  const [addChecked, setAddChecked] = useState(false);
+  const [pendingDeleteSubject, setPendingDeleteSubject] = useState(null);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isDeletingCourse, setIsDeletingCourse] = useState(false);
+  const [pendingDropSubject, setPendingDropSubject] = useState(null);
+  const [isDropConfirmOpen, setIsDropConfirmOpen] = useState(false);
+  const [isDroppingCourse, setIsDroppingCourse] = useState(false);
+  const [courseList, setCourseList] = useState([]);
+  const [isCourseListOpen, setIsCourseListOpen] = useState(false);
+  const [isLoadingCourseList, setIsLoadingCourseList] = useState(false);
+  const [courseListScrollTop, setCourseListScrollTop] = useState(0);
+  const [courseListSearch, setCourseListSearch] = useState("");
+  const [showAllChangeSubjects, setShowAllChangeSubjects] = useState(false);
+  const [changePrograms, setChangePrograms] = useState([]);
+  const [selectedChangeDepartment, setSelectedChangeDepartment] = useState("");
+  const [selectedChangeCurriculum, setSelectedChangeCurriculum] = useState("");
+  const [selectedChangeYearLevel, setSelectedChangeYearLevel] = useState("");
+  const [pendingChangeSubject, setPendingChangeSubject] = useState(null);
+  const [selectedChangeCourse, setSelectedChangeCourse] = useState(null);
+  const [lastChangedCourse, setLastChangedCourse] = useState(null);
+  const [isChangeConfirmOpen, setIsChangeConfirmOpen] = useState(false);
+  const [isChangingCourse, setIsChangingCourse] = useState(false);
+  const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
+  const [addCourseSearch, setAddCourseSearch] = useState("");
+  const [addCourseScrollTop, setAddCourseScrollTop] = useState(0);
+  const [isAddingCourse, setIsAddingCourse] = useState(false);
+  const [departments, setDepartments] = useState([]);
+  const [addPrograms, setAddPrograms] = useState([]);
+  const [taggedCourseList, setTaggedCourseList] = useState([]);
+  const [showAllAddSubjects, setShowAllAddSubjects] = useState(false);
+  const [yearLevelList, setYearLevelList] = useState([]);
+  const [selectedAddDepartment, setSelectedAddDepartment] = useState("");
+  const [selectedAddCurriculum, setSelectedAddCurriculum] = useState("");
+  const [selectedAddYearLevel, setSelectedAddYearLevel] = useState("");
+  const [isAddConfirmOpen, setIsAddConfirmOpen] = useState(false);
+  const [pendingAddCourse, setPendingAddCourse] = useState(null);
+  const [addConfirmMessage, setAddConfirmMessage] = useState("");
+  const [, setAddChecked] = useState(false);
   const [globalSearch, setGlobalSearch] = useState("");
   const [allStudents, setAllStudents] = useState([]);
   const [studentData, setStudentData] = useState([]);
@@ -303,14 +345,14 @@ const StudentEnrollment = () => {
 
   const [titleColor, setTitleColor] = useState("#7f1d1d");
   const [mainButtonColor, setMainButtonColor] = useState("#7f1d1d");
-  const [subtitleColor, setSubtitleColor] = useState("#555555");
-  const [borderColor, setBorderColor] = useState("#e2e8f0");
-  const [subButtonColor, setSubButtonColor] = useState("#ffffff");
-  const [stepperColor, setStepperColor] = useState("#7f1d1d");
-  const [fetchedLogo, setFetchedLogo] = useState(null);
-  const [companyName, setCompanyName] = useState("");
-  const [shortTerm, setShortTerm] = useState("");
-  const [campusAddress, setCampusAddress] = useState("");
+  const [, setSubtitleColor] = useState("#555555");
+  const [, setBorderColor] = useState("#e2e8f0");
+  const [, setSubButtonColor] = useState("#ffffff");
+  const [, setStepperColor] = useState("#7f1d1d");
+  const [, setFetchedLogo] = useState(null);
+  const [, setCompanyName] = useState("");
+  const [, setShortTerm] = useState("");
+  const [, setCampusAddress] = useState("");
   const [branches, setBranches] = useState([]);
 
   useEffect(() => {
@@ -381,7 +423,7 @@ const StudentEnrollment = () => {
 
     try {
       const res = await axios.get(
-        `${API_BASE_URL}/student-info/${student_number}`,
+        `${API_BASE_URL}/student-info-for-enrollment/${student_number}`,
       );
 
       const normalizedCourses = Array.isArray(res.data)
@@ -390,7 +432,6 @@ const StudentEnrollment = () => {
             code: course.course_code,
             description: course.course_description,
             creditedUnits: course.course_unit,
-            adjustment: course.remarks || "",
             schedule:
               course.current_year && course.semester_description
                 ? `${course.current_year}-${Number(course.current_year) + 1} ${course.semester_description}`
@@ -481,6 +522,505 @@ const StudentEnrollment = () => {
 
   const s = studentData[0] || {};
   const displaySubjects = useMemo(() => studentCourses, [studentCourses]);
+  const studentCurriculumId = displaySubjects[0]?.curriculum_id || s.curriculum_id || "";
+  const studentActiveSchoolYearId =
+    displaySubjects[0]?.active_school_year_id || s.active_school_year_id || "";
+  const studentDepartmentId = s.dprtmnt_id || "";
+  const studentYearLevelId = s.year_level_id || "";
+  const studentCurriculumLabel = useMemo(() => {
+    const taggedCurriculum = taggedCourseList.find(
+      (course) => Number(course.curriculum_id) === Number(studentCurriculumId),
+    );
+    const programCode = taggedCurriculum?.program_code || s.program_code;
+    const programDescription =
+      taggedCurriculum?.curriculum_description || s.program_description;
+
+    if (programCode && programDescription) {
+      return `${programCode} - ${programDescription}`;
+    }
+
+    return programDescription || programCode || "Student Current Curriculum";
+  }, [s.program_code, s.program_description, studentCurriculumId, taggedCourseList]);
+  const pendingDeleteCourse = useMemo(
+    () => displaySubjects.find((subject) => subject.code === pendingDeleteSubject),
+    [displaySubjects, pendingDeleteSubject],
+  );
+  const pendingDropCourse = useMemo(
+    () => displaySubjects.find((subject) => subject.code === pendingDropSubject),
+    [displaySubjects, pendingDropSubject],
+  );
+  const pendingChangeCourse = useMemo(
+    () => displaySubjects.find((subject) => subject.code === pendingChangeSubject),
+    [displaySubjects, pendingChangeSubject],
+  );
+  const changeCourseSource = useMemo(() => {
+    if (showAllChangeSubjects) return courseList;
+
+    return taggedCourseList.filter((course) => {
+      const matchesCurriculum =
+        !selectedChangeCurriculum ||
+        Number(course.curriculum_id) === Number(selectedChangeCurriculum);
+      const matchesYearLevel =
+        !selectedChangeYearLevel ||
+        Number(course.year_level_id) === Number(selectedChangeYearLevel);
+
+      return matchesCurriculum && matchesYearLevel;
+    });
+  }, [
+    courseList,
+    selectedChangeCurriculum,
+    selectedChangeYearLevel,
+    showAllChangeSubjects,
+    taggedCourseList,
+  ]);
+
+  const filteredCourseList = useMemo(() => {
+    const query = courseListSearch.trim().toLowerCase();
+
+    if (!query) return changeCourseSource;
+
+    return changeCourseSource.filter((course) =>
+      [
+        course.course_id,
+        course.course_code,
+        course.course_description,
+        course.course_unit,
+        course.prereq,
+        course.corequisite,
+      ]
+        .filter((value) => value !== null && value !== undefined)
+        .some((value) => String(value).toLowerCase().includes(query)),
+    );
+  }, [changeCourseSource, courseListSearch]);
+  const addCourseSource = useMemo(() => {
+    if (showAllAddSubjects) return courseList;
+
+    return taggedCourseList.filter((course) => {
+      const matchesCurriculum =
+        !selectedAddCurriculum ||
+        Number(course.curriculum_id) === Number(selectedAddCurriculum);
+      const matchesYearLevel =
+        !selectedAddYearLevel ||
+        Number(course.year_level_id) === Number(selectedAddYearLevel);
+
+      return matchesCurriculum && matchesYearLevel;
+    });
+  }, [
+    courseList,
+    selectedAddCurriculum,
+    selectedAddYearLevel,
+    showAllAddSubjects,
+    taggedCourseList,
+  ]);
+
+  const filteredAddCourseList = useMemo(() => {
+    const query = addCourseSearch.trim().toLowerCase();
+
+    if (!query) return addCourseSource;
+
+    return addCourseSource.filter((course) =>
+      [
+        course.course_id,
+        course.course_code,
+        course.course_description,
+        course.course_unit,
+        course.prereq,
+        course.corequisite,
+      ]
+        .filter((value) => value !== null && value !== undefined)
+        .some((value) => String(value).toLowerCase().includes(query)),
+    );
+  }, [addCourseSearch, addCourseSource]);
+
+  const virtualCourseRows = useMemo(() => {
+    const startIndex = Math.max(
+      0,
+      Math.floor(courseListScrollTop / COURSE_ROW_HEIGHT) - COURSE_LIST_OVERSCAN,
+    );
+    const visibleCount =
+      Math.ceil(COURSE_LIST_HEIGHT / COURSE_ROW_HEIGHT) + COURSE_LIST_OVERSCAN * 2;
+    const endIndex = Math.min(filteredCourseList.length, startIndex + visibleCount);
+
+    return {
+      rows: filteredCourseList.slice(startIndex, endIndex),
+      topSpacer: startIndex * COURSE_ROW_HEIGHT,
+      bottomSpacer: Math.max(
+        0,
+        (filteredCourseList.length - endIndex) * COURSE_ROW_HEIGHT,
+      ),
+    };
+  }, [filteredCourseList, courseListScrollTop]);
+  const virtualAddCourseRows = useMemo(() => {
+    const startIndex = Math.max(
+      0,
+      Math.floor(addCourseScrollTop / COURSE_ROW_HEIGHT) - COURSE_LIST_OVERSCAN,
+    );
+    const visibleCount =
+      Math.ceil(COURSE_LIST_HEIGHT / COURSE_ROW_HEIGHT) + COURSE_LIST_OVERSCAN * 2;
+    const endIndex = Math.min(filteredAddCourseList.length, startIndex + visibleCount);
+
+    return {
+      rows: filteredAddCourseList.slice(startIndex, endIndex),
+      topSpacer: startIndex * COURSE_ROW_HEIGHT,
+      bottomSpacer: Math.max(
+        0,
+        (filteredAddCourseList.length - endIndex) * COURSE_ROW_HEIGHT,
+      ),
+    };
+  }, [addCourseScrollTop, filteredAddCourseList]);
+  const changeFromCourses = useMemo(() => {
+    if (selectedSubject) {
+      return displaySubjects.filter((subject) => subject.code === selectedSubject);
+    }
+
+    return lastChangedCourse?.from ? [lastChangedCourse.from] : [];
+  }, [displaySubjects, lastChangedCourse, selectedSubject]);
+  const changeToCourses = useMemo(
+    () => (lastChangedCourse?.to ? [lastChangedCourse.to] : []),
+    [lastChangedCourse],
+  );
+  const isEnrolledCourse = (courseId) =>
+    displaySubjects.some((course) => Number(course.course_id) === Number(courseId));
+
+  const fetchCourseList = async () => {
+    try {
+      setIsLoadingCourseList(true);
+      const res = await axios.get(`${API_BASE_URL}/course_list`);
+      setCourseList(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("Error fetching course list:", err);
+      setCourseList([]);
+      setSearchStatus("Failed to load course list");
+    } finally {
+      setIsLoadingCourseList(false);
+    }
+  };
+
+  const fetchAddCourseFilters = async () => {
+    try {
+      const [departmentRes, yearLevelRes, taggedCourseRes] = await Promise.all([
+        axios.get(`${API_BASE_URL}/get_department`),
+        axios.get(`${API_BASE_URL}/get_year_level`),
+        axios.get(`${API_BASE_URL}/program_tagging_list`),
+      ]);
+
+      setDepartments(Array.isArray(departmentRes.data) ? departmentRes.data : []);
+      setYearLevelList(Array.isArray(yearLevelRes.data) ? yearLevelRes.data : []);
+      setTaggedCourseList(
+        Array.isArray(taggedCourseRes.data) ? taggedCourseRes.data : [],
+      );
+    } catch (err) {
+      console.error("Error loading add course filters:", err);
+      setSearchStatus("Failed to load add course filters");
+    }
+  };
+
+  const fetchAddPrograms = async (departmentId) => {
+    if (!departmentId) {
+      setAddPrograms([]);
+      return;
+    }
+
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/applied_program/${departmentId}`);
+      setAddPrograms(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("Error loading curriculum list:", err);
+      setAddPrograms([]);
+      setSearchStatus("Failed to load curriculum list");
+    }
+  };
+
+  const handleOpenAddCourse = async () => {
+    setIsAddCourseOpen(true);
+    setAddCourseSearch("");
+    setAddCourseScrollTop(0);
+    setShowAllAddSubjects(false);
+    setSelectedAddDepartment(studentDepartmentId || "");
+    setSelectedAddCurriculum(studentCurriculumId || "");
+    setSelectedAddYearLevel(studentYearLevelId || "");
+
+    if (!courseList.length) {
+      await fetchCourseList();
+    }
+
+    if (!departments.length || !yearLevelList.length || !taggedCourseList.length) {
+      await fetchAddCourseFilters();
+    }
+
+    if (studentDepartmentId) {
+      await fetchAddPrograms(studentDepartmentId);
+    }
+  };
+
+  const fetchChangePrograms = async (departmentId) => {
+    if (!departmentId) {
+      setChangePrograms([]);
+      return;
+    }
+
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/applied_program/${departmentId}`);
+      setChangePrograms(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("Error loading replacement curriculum list:", err);
+      setChangePrograms([]);
+      setSearchStatus("Failed to load replacement curriculum list");
+    }
+  };
+
+  const handleCloseAddCourse = () => {
+    setIsAddCourseOpen(false);
+    setAddCourseSearch("");
+    setAddCourseScrollTop(0);
+    setShowAllAddSubjects(false);
+    setIsAddConfirmOpen(false);
+    setPendingAddCourse(null);
+    setAddConfirmMessage("");
+  };
+
+  const handleAddDepartmentChange = async (departmentId) => {
+    setSelectedAddDepartment(departmentId);
+    setSelectedAddCurriculum("");
+    await fetchAddPrograms(departmentId);
+  };
+
+  const handleAddNewCourse = async (course) => {
+    if (!selectedStudentNumber || !selectedAddCurriculum || !course?.course_id) {
+      setSearchStatus("Select student, department, curriculum, and course first");
+      return;
+    }
+
+    try {
+      setIsAddingCourse(true);
+      await axios.post(
+        `${API_BASE_URL}/add-student-courses/${selectedStudentNumber}`,
+        {
+          subject_id: course.course_id,
+          active_school_year_id: studentActiveSchoolYearId,
+          curriculum_id: selectedAddCurriculum,
+        },
+      );
+      await fetchStudentCourses(selectedStudentNumber);
+      setIsAddCourseOpen(false);
+      setAddCourseSearch("");
+      setAddCourseScrollTop(0);
+      setSearchStatus("Course added successfully");
+    } catch (err) {
+      console.error("Error adding selected course:", err);
+      setSearchStatus("Failed to add selected course");
+    } finally {
+      setIsAddingCourse(false);
+    }
+  };
+
+  const handleAddCourseClick = async (course) => {
+    if (isEnrolledCourse(course.course_id)) return;
+
+    if (!selectedStudentNumber || !selectedAddCurriculum || !course?.course_id) {
+      setSearchStatus("Select student, department, curriculum, and course first");
+      return;
+    }
+
+    if (course.prereq) {
+      let message = `The subject ${course.course_code} has prerequisite subject(s).`;
+
+      try {
+        const { data } = await axios.post(`${API_BASE_URL}/api/check-prerequisite`, {
+          student_number: selectedStudentNumber,
+          course_id: course.course_id,
+          semester_id: course.semester_id,
+          curriculum_id: selectedAddCurriculum,
+        });
+
+        message += data.allowed
+          ? "\n\nThe student meets the prerequisite qualification.\n\nDo you want to continue enrolling this subject?"
+          : "\n\nThe student does NOT meet the prerequisite qualification or has not yet passed the prerequisite.\n\nDo you still want to attempt to enroll this subject?";
+      } catch (err) {
+        console.error("Error checking prerequisite:", err);
+        message +=
+          "\n\nUnable to verify prerequisite qualification right now.\n\nDo you still want to attempt to enroll this subject?";
+      }
+
+      setPendingAddCourse(course);
+      setAddConfirmMessage(message);
+      setIsAddConfirmOpen(true);
+      return;
+    }
+
+    await handleAddNewCourse(course);
+  };
+
+  const handleCancelAddConfirm = () => {
+    setIsAddConfirmOpen(false);
+    setPendingAddCourse(null);
+    setAddConfirmMessage("");
+  };
+
+  const handleProceedAddConfirm = async () => {
+    if (!pendingAddCourse) return;
+    await handleAddNewCourse(pendingAddCourse);
+    handleCancelAddConfirm();
+  };
+
+  const handleChangeCourseSelect = async (courseCode) => {
+    setSelectedSubject(courseCode);
+    setPendingChangeSubject(courseCode);
+    setSelectedChangeCourse(null);
+    setLastChangedCourse(null);
+    setCourseListScrollTop(0);
+    setCourseListSearch("");
+    setShowAllChangeSubjects(false);
+    setSelectedChangeDepartment(studentDepartmentId || "");
+    setSelectedChangeCurriculum(studentCurriculumId || "");
+    setSelectedChangeYearLevel(studentYearLevelId || "");
+    setIsCourseListOpen(true);
+
+    if (!courseList.length) {
+      await fetchCourseList();
+    }
+
+    if (!departments.length || !yearLevelList.length || !taggedCourseList.length) {
+      await fetchAddCourseFilters();
+    }
+
+    if (studentDepartmentId) {
+      await fetchChangePrograms(studentDepartmentId);
+    }
+  };
+
+  const handleCloseCourseList = () => {
+    setIsCourseListOpen(false);
+    setSelectedSubject(null);
+    setPendingChangeSubject(null);
+    setSelectedChangeCourse(null);
+    setIsChangeConfirmOpen(false);
+    setCourseListScrollTop(0);
+    setCourseListSearch("");
+    setShowAllChangeSubjects(false);
+  };
+
+  const handleChangeDepartmentChange = async (departmentId) => {
+    setSelectedChangeDepartment(departmentId);
+    setSelectedChangeCurriculum("");
+    await fetchChangePrograms(departmentId);
+  };
+
+  const handleOpenChangeConfirm = (course) => {
+    setSelectedChangeCourse(course);
+    setIsChangeConfirmOpen(true);
+  };
+
+  const handleCancelChangeCourse = () => {
+    setIsChangeConfirmOpen(false);
+    setSelectedChangeCourse(null);
+  };
+
+  const handleConfirmChangeCourse = async () => {
+    if (!pendingChangeCourse?.id || !selectedChangeCourse?.course_id) return;
+
+    try {
+      setIsChangingCourse(true);
+      await axios.put(`${API_BASE_URL}/courses/change/${pendingChangeCourse.id}`, {
+        course_id: selectedChangeCourse.course_id,
+      });
+      setLastChangedCourse({
+        from: pendingChangeCourse,
+        to: {
+          code: selectedChangeCourse.course_code,
+          description: selectedChangeCourse.course_description,
+          creditedUnits: selectedChangeCourse.course_unit,
+          schedule: "",
+          enrolledBy: "",
+          registeredBy: "",
+          adjustedBy: "",
+        },
+      });
+      setSelectedSubject(null);
+      setPendingChangeSubject(null);
+      setSelectedChangeCourse(null);
+      setIsChangeConfirmOpen(false);
+      setIsCourseListOpen(false);
+
+      if (selectedStudentNumber) {
+        await fetchStudentCourses(selectedStudentNumber);
+      }
+    } catch (err) {
+      console.error("Error changing selected course:", err);
+      setSearchStatus("Failed to change selected course");
+    } finally {
+      setIsChangingCourse(false);
+    }
+  };
+
+  const handleDeleteCourseSelect = (courseCode) => {
+    setPendingDeleteSubject(courseCode);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const handleCancelDeleteCourse = () => {
+    setIsDeleteConfirmOpen(false);
+    setPendingDeleteSubject(null);
+  };
+
+  const handleConfirmDeleteCourse = async () => {
+    if (!pendingDeleteCourse?.id) return;
+
+    try {
+      setIsDeletingCourse(true);
+      await axios.delete(`${API_BASE_URL}/courses/delete/${pendingDeleteCourse.id}`);
+      setStudentCourses((courses) =>
+        courses.filter((course) => course.id !== pendingDeleteCourse.id),
+      );
+      setSelectedSubject(null);
+      setIsDeleteConfirmOpen(false);
+      setPendingDeleteSubject(null);
+
+      if (selectedStudentNumber) {
+        await fetchStudentCourses(selectedStudentNumber);
+      }
+    } catch (err) {
+      console.error("Error deleting selected course:", err);
+      setSearchStatus("Failed to delete selected course");
+    } finally {
+      setIsDeletingCourse(false);
+    }
+  };
+
+  const handleDropCourseSelect = (courseCode) => {
+    setPendingDropSubject(courseCode);
+    setIsDropConfirmOpen(true);
+  };
+
+  const handleCancelDropCourse = () => {
+    setIsDropConfirmOpen(false);
+    setPendingDropSubject(null);
+  };
+
+  const handleConfirmDropCourse = async () => {
+    if (!pendingDropCourse?.id) return;
+
+    try {
+      setIsDroppingCourse(true);
+      await axios.put(`${API_BASE_URL}/courses/dropped/${pendingDropCourse.id}`);
+      setStudentCourses((courses) =>
+        courses.filter((course) => course.id !== pendingDropCourse.id),
+      );
+      setSelectedSubject(null);
+      setIsDropConfirmOpen(false);
+      setPendingDropSubject(null);
+
+      if (selectedStudentNumber) {
+        await fetchStudentCourses(selectedStudentNumber);
+      }
+    } catch (err) {
+      console.error("Error dropping selected course:", err);
+      setSearchStatus("Failed to drop selected course");
+    } finally {
+      setIsDroppingCourse(false);
+    }
+  };
+
   const fullName = s.first_name
     ? `${s.first_name} ${s.middle_name ? s.middle_name.charAt(0).toUpperCase() + ". " : ""}${s.last_name}`
     : "Student Name";
@@ -530,8 +1070,768 @@ const StudentEnrollment = () => {
             mb: 2,
           }}
         >
-          SLOT MONITORING
+          STUDENT ENROLLMENT
         </Typography>
+
+        <Dialog
+          open={isDeleteConfirmOpen}
+          onClose={handleCancelDeleteCourse}
+          maxWidth="xs"
+          fullWidth
+          PaperProps={{ sx: { borderRadius: 2 } }}
+        >
+          <DialogTitle sx={{ fontSize: 18, fontWeight: 700 }}>
+            Delete selected course?
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText sx={{ fontSize: 14 }}>
+              Do you want to delete the selected course
+              {pendingDeleteCourse
+                ? ` ${pendingDeleteCourse.code} - ${pendingDeleteCourse.description}`
+                : ""}
+              ?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2 }}>
+            <Button
+              onClick={handleCancelDeleteCourse}
+              variant="outlined"
+              disabled={isDeletingCourse}
+              sx={{
+                textTransform: "none",
+                borderColor: "#e2e8f0",
+                color: "text.secondary",
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmDeleteCourse}
+              variant="contained"
+              disabled={isDeletingCourse}
+              sx={{
+                textTransform: "none",
+                bgcolor: mainButtonColor,
+                "&:hover": { bgcolor: alpha(mainButtonColor, 0.85) },
+              }}
+            >
+              {isDeletingCourse ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={isDropConfirmOpen}
+          onClose={handleCancelDropCourse}
+          maxWidth="xs"
+          fullWidth
+          PaperProps={{ sx: { borderRadius: 2 } }}
+        >
+          <DialogTitle sx={{ fontSize: 18, fontWeight: 700 }}>
+            Drop selected course?
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText sx={{ fontSize: 14 }}>
+              Do you want to drop the selected course
+              {pendingDropCourse
+                ? ` ${pendingDropCourse.code} - ${pendingDropCourse.description}`
+                : ""}
+              ?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2 }}>
+            <Button
+              onClick={handleCancelDropCourse}
+              variant="outlined"
+              disabled={isDroppingCourse}
+              sx={{
+                textTransform: "none",
+                borderColor: "#e2e8f0",
+                color: "text.secondary",
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmDropCourse}
+              variant="contained"
+              disabled={isDroppingCourse}
+              sx={{
+                textTransform: "none",
+                bgcolor: mainButtonColor,
+                "&:hover": { bgcolor: alpha(mainButtonColor, 0.85) },
+              }}
+            >
+              {isDroppingCourse ? "Dropping..." : "Drop"}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={isCourseListOpen}
+          onClose={handleCloseCourseList}
+          maxWidth="lg"
+          fullWidth
+          PaperProps={{ sx: { borderRadius: 2 } }}
+        >
+          <DialogTitle
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 2,
+              flexWrap: "wrap",
+            }}
+          >
+            <Typography sx={{ fontSize: 18, fontWeight: 700 }}>
+              Select replacement course
+            </Typography>
+            <Box sx={{display: "flex", alignItems: "center", gap: "0.8rem"}}>
+              <TextField
+                size="small"
+                value={courseListSearch}
+                onChange={(event) => {
+                  setCourseListSearch(event.target.value);
+                  setCourseListScrollTop(0);
+                }}
+                placeholder="Search courses"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon sx={{ fontSize: 18, color: "text.secondary" }} />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ width: { xs: "100%", sm: 320 } }}
+              />
+              <Button
+                variant={showAllChangeSubjects ? "outlined" : "contained"}
+                size="small"
+                onClick={() => {
+                  setShowAllChangeSubjects((current) => !current);
+                  setCourseListScrollTop(0);
+                }}
+                sx={{
+                  textTransform: "none",
+                  fontWeight: 600,
+                  bgcolor: showAllChangeSubjects ? "#fff" : mainButtonColor,
+                  color: showAllChangeSubjects ? mainButtonColor : "#fff",
+                  borderColor: mainButtonColor,
+                  "&:hover": {
+                    bgcolor: showAllChangeSubjects
+                      ? alpha(mainButtonColor, 0.06)
+                      : alpha(mainButtonColor, 0.85),
+                    borderColor: mainButtonColor,
+                  },
+                }}
+              >
+                {showAllChangeSubjects ? "View Tagged Subject" : "View All Subject"}
+              </Button>
+            </Box>
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText sx={{ fontSize: 14, mb: 1.5 }}>
+              Choose a course to replace
+              {pendingChangeCourse
+                ? ` ${pendingChangeCourse.code} - ${pendingChangeCourse.description}`
+                : " the selected course"}
+              .
+            </DialogContentText>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  md: "repeat(3, minmax(0, 1fr))",
+                },
+                gap: 1.5,
+                mb: 1.5,
+              }}
+            >
+              <FormControl fullWidth size="small">
+                <InputLabel>Department</InputLabel>
+                <Select
+                  value={selectedChangeDepartment}
+                  label="Department"
+                  onChange={(event) =>
+                    handleChangeDepartmentChange(event.target.value)
+                  }
+                >
+                  <MenuItem value="">Select Department</MenuItem>
+                  {departments.map((department) => (
+                    <MenuItem
+                      key={department.dprtmnt_id}
+                      value={department.dprtmnt_id}
+                    >
+                      {department.dprtmnt_name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl fullWidth size="small">
+                <InputLabel>Curriculum</InputLabel>
+                <Select
+                  value={selectedChangeCurriculum}
+                  label="Curriculum"
+                  onChange={(event) =>
+                    setSelectedChangeCurriculum(event.target.value)
+                  }
+                >
+                  {studentCurriculumId && (
+                    <MenuItem value={studentCurriculumId}>
+                      {studentCurriculumLabel}
+                    </MenuItem>
+                  )}
+                  <MenuItem value="">Select Curriculum</MenuItem>
+                  {changePrograms.map((program) => (
+                    <MenuItem
+                      key={program.curriculum_id}
+                      value={program.curriculum_id}
+                    >
+                      ({program.program_code}-{program.year_description}){" "}
+                      {program.program_description} {program.program_major}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl fullWidth size="small">
+                <InputLabel>Year Level</InputLabel>
+                <Select
+                  value={selectedChangeYearLevel}
+                  label="Year Level"
+                  onChange={(event) =>
+                    setSelectedChangeYearLevel(event.target.value)
+                  }
+                >
+                  <MenuItem value="">Select Year Level</MenuItem>
+                  {yearLevelList.map((year) => (
+                    <MenuItem
+                      key={year.year_level_id}
+                      value={year.year_level_id}
+                    >
+                      {year.year_level_description}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+            <TableContainer
+              component={Paper}
+              variant="outlined"
+              onScroll={(event) => setCourseListScrollTop(event.currentTarget.scrollTop)}
+              sx={{ height: COURSE_LIST_HEIGHT, borderRadius: 1, overflowY: "auto" }}
+            >
+              <Table size="small" stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    {[
+                      "Course ID",
+                      "Course Code",
+                      "Description",
+                      "Course Unit",
+                      "Prereq",
+                      "Corequisite",
+                      "Action",
+                    ].map((header) => (
+                      <TableCell key={header} sx={hCell(mainButtonColor)}>
+                        {header}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {isLoadingCourseList ? (
+                    <TableRow>
+                      <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
+                        <CircularProgress size={22} sx={{ color: mainButtonColor }} />
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredCourseList.length > 0 ? (
+                    <>
+                      {virtualCourseRows.topSpacer > 0 && (
+                        <TableRow>
+                          <TableCell
+                            colSpan={7}
+                            sx={{ height: virtualCourseRows.topSpacer, p: 0, border: 0 }}
+                          />
+                        </TableRow>
+                      )}
+                      {virtualCourseRows.rows.map((course, index) => (
+                      <TableRow
+                        key={course.course_id}
+                        hover
+                        sx={{ height: COURSE_ROW_HEIGHT }}
+                      >
+                        <TableCell sx={bCell}>{index + 1}</TableCell>
+                        <TableCell
+                          sx={{ ...bCell, fontWeight: 700, color: mainButtonColor }}
+                        >
+                          {course.course_code}
+                        </TableCell>
+                        <TableCell sx={bCell}>{course.course_description}</TableCell>
+                        <TableCell align="center" sx={bCell}>
+                          {course.course_unit}
+                        </TableCell>
+                        <TableCell sx={bCell}>{course.prereq || "—"}</TableCell>
+                        <TableCell sx={bCell}>{course.corequisite || "—"}</TableCell>
+                        <TableCell sx={bCell}>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            onClick={() => handleOpenChangeConfirm(course)}
+                            disabled={course.course_id === pendingChangeCourse?.course_id}
+                            sx={{
+                              textTransform: "none",
+                              bgcolor: mainButtonColor,
+                              "&:hover": { bgcolor: alpha(mainButtonColor, 0.85) },
+                            }}
+                          >
+                            Change
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                      ))}
+                      {virtualCourseRows.bottomSpacer > 0 && (
+                        <TableRow>
+                          <TableCell
+                            colSpan={7}
+                            sx={{
+                              height: virtualCourseRows.bottomSpacer,
+                              p: 0,
+                              border: 0,
+                            }}
+                          />
+                        </TableRow>
+                      )}
+                    </>
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={7}
+                        align="center"
+                        sx={{ py: 3, color: "text.secondary", fontStyle: "italic" }}
+                      >
+                        {showAllChangeSubjects
+                          ? "No matching courses found"
+                          : "No tagged subjects found for this curriculum"}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2 }}>
+            <Button
+              onClick={handleCloseCourseList}
+              variant="outlined"
+              sx={{
+                textTransform: "none",
+                borderColor: "#e2e8f0",
+                color: "text.secondary",
+              }}
+            >
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={isChangeConfirmOpen}
+          onClose={handleCancelChangeCourse}
+          maxWidth="xs"
+          fullWidth
+          PaperProps={{ sx: { borderRadius: 2 } }}
+        >
+          <DialogTitle sx={{ fontSize: 18, fontWeight: 700 }}>
+            Change selected course?
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText sx={{ fontSize: 14 }}>
+              Do you want to change
+              {pendingChangeCourse
+                ? ` ${pendingChangeCourse.code} - ${pendingChangeCourse.description}`
+                : " the selected course"}{" "}
+              into
+              {selectedChangeCourse
+                ? ` ${selectedChangeCourse.course_code} - ${selectedChangeCourse.course_description}`
+                : " this course"}
+              ?
+            </DialogContentText>
+            {selectedChangeCourse?.prereq && (
+              <Box
+                sx={{
+                  mt: 2,
+                  p: 1.5,
+                  borderRadius: 1,
+                  bgcolor: "#fffbeb",
+                  border: "1px solid #fcd34d",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: "#92400e",
+                    mb: 0.5,
+                  }}
+                >
+                  Prerequisite warning
+                </Typography>
+                <Typography sx={{ fontSize: 13, color: "#92400e" }}>
+                  The course you want to change to has prerequisite subject(s):{" "}
+                  <strong>{selectedChangeCourse.prereq}</strong>
+                </Typography>
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2 }}>
+            <Button
+              onClick={handleCancelChangeCourse}
+              variant="outlined"
+              disabled={isChangingCourse}
+              sx={{
+                textTransform: "none",
+                borderColor: "#e2e8f0",
+                color: "text.secondary",
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmChangeCourse}
+              variant="contained"
+              disabled={isChangingCourse}
+              sx={{
+                textTransform: "none",
+                bgcolor: mainButtonColor,
+                "&:hover": { bgcolor: alpha(mainButtonColor, 0.85) },
+              }}
+            >
+              {isChangingCourse ? "Changing..." : "Change"}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={isAddCourseOpen}
+          onClose={handleCloseAddCourse}
+          maxWidth="lg"
+          fullWidth
+          PaperProps={{ sx: { borderRadius: 2 } }}
+        >
+          <DialogTitle
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 2,
+              flexWrap: "wrap",
+            }}
+          >
+            <Typography sx={{ fontSize: 18, fontWeight: 700 }}>
+              Add new course
+            </Typography>
+            <Box sx={{display: "flex", alignItems: "center", gap: "0.8rem"}}>
+              <TextField
+                size="small"
+                value={addCourseSearch}
+                onChange={(event) => {
+                  setAddCourseSearch(event.target.value);
+                  setAddCourseScrollTop(0);
+                }}
+                placeholder="Search courses"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon sx={{ fontSize: 18, color: "text.secondary" }} />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ width: { xs: "100%", sm: 320 } }}
+              />
+              <Button
+                variant={showAllAddSubjects ? "outlined" : "contained"}
+                size="small"
+                onClick={() => {
+                  setShowAllAddSubjects((current) => !current);
+                  setAddCourseScrollTop(0);
+                }}
+                sx={{
+                  textTransform: "none",
+                  fontWeight: 600,
+                  bgcolor: showAllAddSubjects ? "#fff" : mainButtonColor,
+                  color: showAllAddSubjects ? mainButtonColor : "#fff",
+                  borderColor: mainButtonColor,
+                  "&:hover": {
+                    bgcolor: showAllAddSubjects
+                      ? alpha(mainButtonColor, 0.06)
+                      : alpha(mainButtonColor, 0.85),
+                    borderColor: mainButtonColor,
+                  },
+                }}
+              >
+                {showAllAddSubjects ? "View Tagged Subject" : "View All Subject"}
+              </Button>
+            </Box>
+          </DialogTitle>
+          <DialogContent>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  md: "repeat(3, minmax(0, 1fr))",
+                },
+                gap: 1.5,
+                mb: 1.5,
+              }}
+            >
+              <FormControl fullWidth size="small">
+                <InputLabel>Department</InputLabel>
+                <Select
+                  value={selectedAddDepartment}
+                  label="Department"
+                  onChange={(event) => handleAddDepartmentChange(event.target.value)}
+                >
+                  <MenuItem value="">Select Department</MenuItem>
+                  {departments.map((department) => (
+                    <MenuItem
+                      key={department.dprtmnt_id}
+                      value={department.dprtmnt_id}
+                    >
+                      {department.dprtmnt_name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl fullWidth size="small">
+                <InputLabel>Curriculum</InputLabel>
+                <Select
+                  value={selectedAddCurriculum}
+                  label="Curriculum"
+                  onChange={(event) => setSelectedAddCurriculum(event.target.value)}
+                >
+                  {studentCurriculumId && (
+                    <MenuItem value={studentCurriculumId}>
+                      {studentCurriculumLabel}
+                    </MenuItem>
+                  )}
+                  <MenuItem value="">Select Curriculum</MenuItem>
+                  {addPrograms.map((program) => (
+                    <MenuItem
+                      key={program.curriculum_id}
+                      value={program.curriculum_id}
+                    >
+                      ({program.program_code}-{program.year_description}){" "}
+                      {program.program_description} {program.program_major}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl fullWidth size="small">
+                <InputLabel>Year Level</InputLabel>
+                <Select
+                  value={selectedAddYearLevel}
+                  label="Year Level"
+                  onChange={(event) => setSelectedAddYearLevel(event.target.value)}
+                >
+                  <MenuItem value="">Select Year Level</MenuItem>
+                  {yearLevelList.map((year) => (
+                    <MenuItem
+                      key={year.year_level_id}
+                      value={year.year_level_id}
+                    >
+                      {year.year_level_description}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+            <TableContainer
+              component={Paper}
+              variant="outlined"
+              onScroll={(event) => setAddCourseScrollTop(event.currentTarget.scrollTop)}
+              sx={{ height: COURSE_LIST_HEIGHT, borderRadius: 1, overflowY: "auto" }}
+            >
+              <Table size="small" stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    {[
+                      "Course ID",
+                      "Course Code",
+                      "Description",
+                      "Course Unit",
+                      "Prereq",
+                      "Corequisite",
+                      "Action",
+                    ].map((header) => (
+                      <TableCell key={header} sx={hCell(mainButtonColor)}>
+                        {header}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {isLoadingCourseList ? (
+                    <TableRow>
+                      <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
+                        <CircularProgress size={22} sx={{ color: mainButtonColor }} />
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredAddCourseList.length > 0 ? (
+                    <>
+                      {virtualAddCourseRows.topSpacer > 0 && (
+                        <TableRow>
+                          <TableCell
+                            colSpan={7}
+                            sx={{
+                              height: virtualAddCourseRows.topSpacer,
+                              p: 0,
+                              border: 0,
+                            }}
+                          />
+                        </TableRow>
+                      )}
+                      {virtualAddCourseRows.rows.map((course) => (
+                        <TableRow
+                          key={course.course_id}
+                          hover
+                          sx={{ height: COURSE_ROW_HEIGHT }}
+                        >
+                          <TableCell sx={bCell}>{course.course_id}</TableCell>
+                          <TableCell
+                            sx={{
+                              ...bCell,
+                              fontWeight: 700,
+                              color: mainButtonColor,
+                            }}
+                          >
+                            {course.course_code}
+                          </TableCell>
+                          <TableCell sx={bCell}>
+                            {course.course_description}
+                          </TableCell>
+                          <TableCell align="center" sx={bCell}>
+                            {course.course_unit}
+                          </TableCell>
+                          <TableCell sx={bCell}>{course.prereq || "—"}</TableCell>
+                          <TableCell sx={bCell}>
+                            {course.corequisite || "—"}
+                          </TableCell>
+                          <TableCell sx={bCell}>
+                            {isEnrolledCourse(course.course_id) ? (
+                              <Typography
+                                sx={{ fontSize: 12, color: "text.secondary" }}
+                              >
+                                Enrolled
+                              </Typography>
+                            ) : (
+                              <Button
+                                size="small"
+                                variant="contained"
+                                onClick={() => handleAddCourseClick(course)}
+                                disabled={isAddingCourse || !selectedAddCurriculum}
+                                sx={{
+                                  textTransform: "none",
+                                  bgcolor: mainButtonColor,
+                                  "&:hover": {
+                                    bgcolor: alpha(mainButtonColor, 0.85),
+                                  },
+                                }}
+                              >
+                                {isAddingCourse ? "Adding..." : "Enroll"}
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {virtualAddCourseRows.bottomSpacer > 0 && (
+                        <TableRow>
+                          <TableCell
+                            colSpan={7}
+                            sx={{
+                              height: virtualAddCourseRows.bottomSpacer,
+                              p: 0,
+                              border: 0,
+                            }}
+                          />
+                        </TableRow>
+                      )}
+                    </>
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={7}
+                        align="center"
+                        sx={{ py: 3, color: "text.secondary", fontStyle: "italic" }}
+                      >
+                        No matching courses found
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2 }}>
+            <Button
+              onClick={handleCloseAddCourse}
+              variant="outlined"
+              disabled={isAddingCourse}
+              sx={{
+                textTransform: "none",
+                borderColor: "#e2e8f0",
+                color: "text.secondary",
+              }}
+            >
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={isAddConfirmOpen}
+          onClose={handleCancelAddConfirm}
+          maxWidth="xs"
+          fullWidth
+          PaperProps={{ sx: { borderRadius: 2 } }}
+        >
+          <DialogTitle sx={{ fontSize: 18, fontWeight: 700 }}>
+            Confirm Enrollment
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText sx={{ fontSize: 14, whiteSpace: "pre-line" }}>
+              {addConfirmMessage}
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2 }}>
+            <Button
+              onClick={handleCancelAddConfirm}
+              variant="outlined"
+              disabled={isAddingCourse}
+              sx={{
+                textTransform: "none",
+                borderColor: "#e2e8f0",
+                color: "text.secondary",
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleProceedAddConfirm}
+              variant="contained"
+              disabled={isAddingCourse}
+              sx={{
+                textTransform: "none",
+                bgcolor: mainButtonColor,
+                "&:hover": { bgcolor: alpha(mainButtonColor, 0.85) },
+              }}
+            >
+              Continue
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         <Box
           sx={{
@@ -951,6 +2251,18 @@ const StudentEnrollment = () => {
             onChange={(_, v) => {
               setTab(v);
               setSelectedSubject(null);
+              setPendingDeleteSubject(null);
+              setIsDeleteConfirmOpen(false);
+              setPendingDropSubject(null);
+              setIsDropConfirmOpen(false);
+              setPendingChangeSubject(null);
+              setSelectedChangeCourse(null);
+              setLastChangedCourse(null);
+              setIsCourseListOpen(false);
+              setIsChangeConfirmOpen(false);
+              setShowAllChangeSubjects(false);
+              setIsAddCourseOpen(false);
+              setIsAddConfirmOpen(false);
               setAddChecked(false);
             }}
             sx={{
@@ -994,7 +2306,7 @@ const StudentEnrollment = () => {
             />
           </Tabs>
 
-          <Box sx={{ pr: 1.5 }}>
+          <Box sx={{ pr: 1.5, display: "flex", alignItems: "center", gap: 1 }}>
             <Button
               variant="contained"
               size="small"
@@ -1022,6 +2334,32 @@ const StudentEnrollment = () => {
             >
               {selectedReason || "Withdraw Enrollment"}
             </Button>
+            {tab === 1 && (
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={
+                  <AddCircleOutlineIcon sx={{ fontSize: "14px !important" }} />
+                }
+                onClick={handleOpenAddCourse}
+                sx={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  textTransform: "none",
+                  px: 1.75,
+                  bgcolor: mainButtonColor,
+                  color: "#fff",
+                  borderRadius: 2,
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                  "&:hover": {
+                    bgcolor: alpha(mainButtonColor, 0.85),
+                    boxShadow: "none",
+                  },
+                }}
+              >
+                Add New Course
+              </Button>
+            )}
             <Menu
               anchorEl={reasonAnchor}
               open={Boolean(reasonAnchor)}
@@ -1080,7 +2418,7 @@ const StudentEnrollment = () => {
             <InListTable
               subjects={displaySubjects}
               selectedSubject={selectedSubject}
-              onSelect={setSelectedSubject}
+              onSelect={handleChangeCourseSelect}
               color={mainButtonColor}
             />
 
@@ -1098,10 +2436,8 @@ const StudentEnrollment = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {selectedSubject ? (
-                      displaySubjects
-                        .filter((s) => s.code === selectedSubject)
-                        .map((s) => (
+                    {changeFromCourses.length > 0 ? (
+                      changeFromCourses.map((s) => (
                           <TableRow key={s.code}>
                             <TableCell
                               sx={{
@@ -1113,9 +2449,6 @@ const StudentEnrollment = () => {
                               {s.code}
                             </TableCell>
                             <TableCell sx={bCell}>{s.description}</TableCell>
-                            <TableCell sx={bCell}>
-                              {s.adjustment || "—"}
-                            </TableCell>
                             <TableCell
                               align="center"
                               sx={{ ...bCell, fontWeight: 700 }}
@@ -1137,7 +2470,7 @@ const StudentEnrollment = () => {
                               {s.adjustedBy || "—"}
                             </TableCell>
                           </TableRow>
-                        ))
+                      ))
                     ) : (
                       <TableRow>
                         <TableCell
@@ -1149,7 +2482,7 @@ const StudentEnrollment = () => {
                             fontStyle: "italic",
                           }}
                         >
-                          Select a subject from In List above
+                          Select a course from In List above
                         </TableCell>
                       </TableRow>
                     )}
@@ -1172,19 +2505,48 @@ const StudentEnrollment = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    <TableRow>
-                      <TableCell
-                        colSpan={8}
-                        align="center"
-                        sx={{
-                          py: 3,
-                          color: "text.secondary",
-                          fontStyle: "italic",
-                        }}
-                      >
-                        No replacement selected
-                      </TableCell>
-                    </TableRow>
+                    {changeToCourses.length > 0 ? (
+                      changeToCourses.map((s) => (
+                        <TableRow key={s.code}>
+                          <TableCell
+                            sx={{
+                              ...bCell,
+                              fontWeight: 700,
+                              color: "#166534",
+                            }}
+                          >
+                            {s.code}
+                          </TableCell>
+                          <TableCell sx={bCell}>{s.description}</TableCell>
+                          <TableCell
+                            align="center"
+                            sx={{ ...bCell, fontWeight: 700 }}
+                          >
+                            {s.creditedUnits}
+                          </TableCell>
+                          <TableCell sx={{ ...bCell, color: "text.secondary" }}>
+                            {s.schedule || "â€”"}
+                          </TableCell>
+                          <TableCell sx={bCell}>{s.enrolledBy || "â€”"}</TableCell>
+                          <TableCell sx={bCell}>{s.registeredBy || "â€”"}</TableCell>
+                          <TableCell sx={bCell}>{s.adjustedBy || "â€”"}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell
+                          colSpan={8}
+                          align="center"
+                          sx={{
+                            py: 3,
+                            color: "text.secondary",
+                            fontStyle: "italic",
+                          }}
+                        >
+                          No replacement selected
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </TableContainer>
@@ -1230,9 +2592,6 @@ const StudentEnrollment = () => {
                               {s.code}
                             </TableCell>
                             <TableCell sx={bCell}>{s.description}</TableCell>
-                            <TableCell sx={bCell}>
-                              {s.adjustment || "—"}
-                            </TableCell>
                             <TableCell
                               align="center"
                               sx={{ ...bCell, fontWeight: 700 }}
@@ -1266,7 +2625,7 @@ const StudentEnrollment = () => {
                             fontStyle: "italic",
                           }}
                         >
-                          Select a subject from In List above
+                          Select a course from In List above
                         </TableCell>
                       </TableRow>
                     )}
@@ -1298,7 +2657,7 @@ const StudentEnrollment = () => {
                           fontStyle: "italic",
                         }}
                       >
-                        No subject selected to add
+                        No course selected to add
                       </TableCell>
                     </TableRow>
                   </TableBody>
@@ -1312,123 +2671,19 @@ const StudentEnrollment = () => {
             <InListTable
               subjects={displaySubjects}
               selectedSubject={selectedSubject}
-              onSelect={setSelectedSubject}
+              onSelect={handleDropCourseSelect}
               color={mainButtonColor}
             />
           </Box>
         )}
         {tab === 3 && (
-          <Box sx={{ p: 2, display: "flex", flexDirection: "column", gap: 2 }}>
+          <Box sx={{ p: 2 }}>
             <InListTable
               subjects={displaySubjects}
               selectedSubject={selectedSubject}
-              onSelect={setSelectedSubject}
+              onSelect={handleDeleteCourseSelect}
               color={mainButtonColor}
             />
-
-            <SectionCard label="From" accentColor="#991b1b" headerBg="#fef2f2">
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      {SUBJECT_HEADERS_NO_RADIO.map((h) => (
-                        <TableCell key={h} sx={hCell("#991b1b")}>
-                          {h}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {selectedSubject ? (
-                      displaySubjects
-                        .filter((s) => s.code === selectedSubject)
-                        .map((s) => (
-                          <TableRow key={s.code}>
-                            <TableCell
-                              sx={{
-                                ...bCell,
-                                fontWeight: 700,
-                                color: "#991b1b",
-                              }}
-                            >
-                              {s.code}
-                            </TableCell>
-                            <TableCell sx={bCell}>{s.description}</TableCell>
-                            <TableCell sx={bCell}>
-                              {s.adjustment || "—"}
-                            </TableCell>
-                            <TableCell
-                              align="center"
-                              sx={{ ...bCell, fontWeight: 700 }}
-                            >
-                              {s.creditedUnits}
-                            </TableCell>
-                            <TableCell
-                              sx={{ ...bCell, color: "text.secondary" }}
-                            >
-                              {s.schedule}
-                            </TableCell>
-                            <TableCell sx={bCell}>
-                              {s.enrolledBy || "—"}
-                            </TableCell>
-                            <TableCell sx={bCell}>
-                              {s.registeredBy || "—"}
-                            </TableCell>
-                            <TableCell sx={bCell}>
-                              {s.adjustedBy || "—"}
-                            </TableCell>
-                          </TableRow>
-                        ))
-                    ) : (
-                      <TableRow>
-                        <TableCell
-                          colSpan={8}
-                          align="center"
-                          sx={{
-                            py: 3,
-                            color: "text.secondary",
-                            fontStyle: "italic",
-                          }}
-                        >
-                          Select a subject from In List above
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </SectionCard>
-
-            <SectionCard label="To" accentColor="#991b1b" headerBg="#fef2f2">
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      {SUBJECT_HEADERS_NO_RADIO.map((h) => (
-                        <TableCell key={h} sx={hCell("#991b1b")}>
-                          {h}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell
-                        colSpan={8}
-                        align="center"
-                        sx={{
-                          py: 3,
-                          color: "text.secondary",
-                          fontStyle: "italic",
-                        }}
-                      >
-                        No destination subject for delete action
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </SectionCard>
           </Box>
         )}
 

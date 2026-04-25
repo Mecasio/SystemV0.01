@@ -21,8 +21,38 @@ const normalizeRequirementPayload = (body = {}) => {
     requires_original: body.requires_original ? 1 : 0,
     is_optional: body.is_optional ? 1 : 0,
     applicant_type: String(body.applicant_type ?? 0),
+
+    // ✅ NEW FIELD
+    selected_copy_type: body.selected_copy_type ?? null
   };
 };
+
+router.get("/select-copy", async (req, res) => {
+  const { type, req_id, applicant } = req.query;
+
+  if (!["xerox", "original"].includes(type)) {
+    return res.status(400).send("Invalid selection");
+  }
+
+  try {
+    await db.execute(
+      `
+      INSERT INTO requirement_submissions 
+      (applicant_number, requirement_id, copy_type)
+      VALUES (?, ?, ?)
+      `,
+      [applicant, req_id, type]
+    );
+
+    res.send(`
+      <h2>✅ Submission Recorded</h2>
+      <p>You selected: <strong>${type.toUpperCase()}</strong></p>
+    `);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Failed to save selection");
+  }
+});
 
 router.post("/requirements", CanCreate, async (req, res) => {
   const payload = normalizeRequirementPayload(req.body);

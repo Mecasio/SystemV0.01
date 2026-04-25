@@ -453,6 +453,13 @@ const AssignQualifyingInterviewExam = () => {
         )
     ).sort();
 
+    const canCreate = true;
+    const canEdit = true;
+    const canDelete = true;
+
+    const showCreateActions = canCreate;
+    const showActionColumn = canEdit || canDelete;
+
     const cellStyle = {
         border: `1px solid ${borderColor}`,
         padding: "6px",
@@ -483,8 +490,6 @@ const AssignQualifyingInterviewExam = () => {
         );
     }
 
-    const showCreateActions = canCreate;
-    const showActionColumn = canEdit || canDelete;
 
 
     return (
@@ -614,28 +619,28 @@ const AssignQualifyingInterviewExam = () => {
 
 
                                 {showCreateActions && (
-                                <Button
-                                    variant="contained"
-                                    onClick={() => {
-                                        setEditingSchedule(null);
-                                        setOpenFormDialog(true);
-                                    }}
-                                    sx={{
-                                        backgroundColor: "#1976d2", // ✅ Blue
-                                        color: "#fff",
-                                        fontWeight: "bold",
-                                        borderRadius: "8px",
-                                        width: "250px",
-                                        textTransform: "none",
-                                        px: 2,
-                                        mr: "15px",
-                                        '&:hover': {
-                                            backgroundColor: "#1565c0" // darker blue hover
-                                        }
-                                    }}
-                                >
-                                    + Add Schedule
-                                </Button>
+                                    <Button
+                                        variant="contained"
+                                        onClick={() => {
+                                            setEditingSchedule(null);
+                                            setOpenFormDialog(true);
+                                        }}
+                                        sx={{
+                                            backgroundColor: "#1976d2", // ✅ Blue
+                                            color: "#fff",
+                                            fontWeight: "bold",
+                                            borderRadius: "8px",
+                                            width: "250px",
+                                            textTransform: "none",
+                                            px: 2,
+                                            mr: "15px",
+                                            '&:hover': {
+                                                backgroundColor: "#1565c0" // darker blue hover
+                                            }
+                                        }}
+                                    >
+                                        + Add Schedule
+                                    </Button>
                                 )}
                             </Box>
                         </TableRow>
@@ -881,60 +886,60 @@ const AssignQualifyingInterviewExam = () => {
                                     <TableCell align="center" sx={cellStyle}>{s.interviewer}</TableCell>
                                     <TableCell align="center" sx={cellStyle}>{s.room_quota}</TableCell>
                                     {showActionColumn && (
-                                    <TableCell align="center" sx={cellStyle}>
-                                        <Box
-                                            sx={{
-                                                display: "flex",
-                                                justifyContent: "center",
-                                                alignItems: "center",
-                                                gap: 1,
-                                                flexWrap: "nowrap",
-                                            }}
-                                        >
-                                            {canEdit && (
-                                            <Button
-                                                size="small"
-                                                variant="contained"
+                                        <TableCell align="center" sx={cellStyle}>
+                                            <Box
                                                 sx={{
-                                                    backgroundColor: "green",
-                                                    color: "white",
-                                                    borderRadius: "5px",
-                                                    width: "100px",
-                                                    height: "40px",
                                                     display: "flex",
-                                                    alignItems: "center",
                                                     justifyContent: "center",
-                                                    gap: "5px",
-                                                }}
-                                                onClick={() => handleEdit(s)}
-                                            >
-                                                <EditIcon fontSize="small" /> Edit
-                                            </Button>
-                                            )}
-
-                                            {canDelete && (
-                                            <Button
-                                                size="small"
-                                                variant="contained"
-                                                sx={{
-                                                    backgroundColor: "#9E0000",
-                                                    color: "white",
-                                                    borderRadius: "5px",
-                                                    width: "100px",
-                                                    height: "40px",
-                                                    display: "flex",
                                                     alignItems: "center",
-                                                    justifyContent: "center",
-                                                    gap: "5px",
+                                                    gap: 1,
+                                                    flexWrap: "nowrap",
                                                 }}
-                                                onClick={() => handleDelete(s)}
                                             >
+                                                {canEdit && (
+                                                    <Button
+                                                        size="small"
+                                                        variant="contained"
+                                                        sx={{
+                                                            backgroundColor: "green",
+                                                            color: "white",
+                                                            borderRadius: "5px",
+                                                            width: "100px",
+                                                            height: "40px",
+                                                            display: "flex",
+                                                            alignItems: "center",
+                                                            justifyContent: "center",
+                                                            gap: "5px",
+                                                        }}
+                                                        onClick={() => handleEdit(s)}
+                                                    >
+                                                        <EditIcon fontSize="small" /> Edit
+                                                    </Button>
+                                                )}
 
-                                                <DeleteIcon fontSize="small" /> Delete
-                                            </Button>
-                                            )}
-                                        </Box>
-                                    </TableCell>
+                                                {canDelete && (
+                                                    <Button
+                                                        size="small"
+                                                        variant="contained"
+                                                        sx={{
+                                                            backgroundColor: "#9E0000",
+                                                            color: "white",
+                                                            borderRadius: "5px",
+                                                            width: "100px",
+                                                            height: "40px",
+                                                            display: "flex",
+                                                            alignItems: "center",
+                                                            justifyContent: "center",
+                                                            gap: "5px",
+                                                        }}
+                                                        onClick={() => handleDelete(s)}
+                                                    >
+
+                                                        <DeleteIcon fontSize="small" /> Delete
+                                                    </Button>
+                                                )}
+                                            </Box>
+                                        </TableCell>
                                     )}
                                 </TableRow>
                             ))}
@@ -1401,17 +1406,17 @@ const AssignQualifyingInterviewExam = () => {
                     </Button>
 
                     {(showCreateActions || (editingSchedule && canEdit)) && (
-                    <Button
-                        variant="contained"
-                        sx={{
-                            px: 4,
-                            fontWeight: 600,
-                            textTransform: "none"
-                        }}
-                        onClick={handleSaveSchedule}
-                    >
-                        <SaveIcon fontSize="small" /> Save
-                    </Button>
+                        <Button
+                            variant="contained"
+                            sx={{
+                                px: 4,
+                                fontWeight: 600,
+                                textTransform: "none"
+                            }}
+                            onClick={handleSaveSchedule}
+                        >
+                            <SaveIcon fontSize="small" /> Save
+                        </Button>
                     )}
                 </DialogActions>
             </Dialog>

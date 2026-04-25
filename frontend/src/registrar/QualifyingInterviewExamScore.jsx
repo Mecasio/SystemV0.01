@@ -1508,38 +1508,81 @@ const QualifyingExamScore = () => {
     });
   };
 
-  const buildRequirementsText = (applicant, list = requirements) => {
-    const filteredRequirements = filterRequirementsForApplicant(applicant, list);
+  const [selectedCopies, setSelectedCopies] = useState({});
 
-    if (!Array.isArray(filteredRequirements) || filteredRequirements.length === 0) {
-      return "• No requirements listed at this time.";
-    }
+  const handleSelect = (reqId, type) => {
+    setSelectedCopies(prev => {
+      const updated = {
+        ...prev,
+        [reqId]: type
+      };
+
+      const applicant = persons.find(
+        p => p.applicant_number === selectedApplicant
+      );
+
+      const reqText = buildRequirementsText(applicant, requirements, updated);
+
+      const today = new Date();
+      const validUntil = new Date(today);
+      validUntil.setDate(today.getDate() + 7);
+
+      const formattedValidUntil = validUntil.toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      });
+
+      const newMessage = buildFullMessage(applicant, reqText, formattedValidUntil);
+      setEmailMessage(newMessage);
+
+      setEmailMessage(newMessage);
+
+      return updated;
+    });
+  };
+
+  const buildFullMessage = (applicant, reqText, formattedValidUntil) => {
+    return `
+Dear ${applicant?.last_name || ""}, ${applicant?.first_name || ""} ${applicant?.middle_name || ""}
+
+Congratulations on passing the Interview/Qualifying Exam!
+
+Please follow the steps below to complete your Admission process:
+
+📄 REQUIRED DOCUMENTS:
+${reqText}
+
+1. Proceed to the Clinic for your Medical Examination.  
+   - Bring and present your Admission Form Process so they can verify if you're eligible to take the Medical Examination.
+
+2. After completing your Medical Examination, proceed to the Registrar’s Office to submit your Original Documents within 7 days.  
+   - Submissions are accepted only during working hours, Monday to Friday, from 8:00 AM to 5:00 PM.
+
+3. Please note that failure to comply within 7 days may result in your slot being given to another applicant.
+
+You have until ${formattedValidUntil} to complete the admission process.
+
+Thank you, best regards
+`.trim();
+  };
+
+  const buildRequirementsText = (applicant, list = requirements, copies = selectedCopies) => {
+    const filtered = filterRequirementsForApplicant(applicant, list);
 
     let text = "";
 
-    filteredRequirements.forEach((req) => {
-      let notes = [];
+    filtered.forEach((req) => {
+      const selected = copies[req.id];
 
-      // ✅ PRIORITY: Original overrides Xerox
-      if (req.requires_original) {
-        notes.push("Original");
-      } else if ((req.xerox_copies || 0) > 0) {
-        notes.push(
-          `${req.xerox_copies} Xerox copy${req.xerox_copies > 1 ? "s" : ""
-          }`
-        );
+      text += `• ${req.description}`;
+      if (selected) {
+        text += ` (${selected.toUpperCase()})`;
       }
-
-      if (req.is_optional) {
-        notes.push("Optional");
-      }
-
-      const extra = notes.length > 0 ? ` (${notes.join(" + ")})` : "";
-
-      text += `• ${req.description}${extra}\n`;
+      text += `\n`;
     });
 
-    return text.trim();
+    return text;
   };
 
   const handleOpenDialog = (applicant = null) => {
@@ -1560,13 +1603,14 @@ const QualifyingExamScore = () => {
     const companyName = settings?.company_name || "Student Information System";
 
     const defaultMessage = `
-Dear ${applicant?.first_name || "Applicant"} ${applicant?.last_name || ""},
+Dear ${applicant?.last_name || ""}, ${applicant?.first_name || ""} ${applicant?.middle_name || ""}
 
 Congratulations on passing the Interview/Qualifying Exam!
 
 Please follow the steps below to complete your Admission process:
 
-
+📄 REQUIRED DOCUMENTS:
+${reqText}
 
 1. Proceed to the Clinic for your Medical Examination.  
    - Bring and present your Admission Form Process so they can verify if you're eligible to take the Medical Examination.
@@ -1581,8 +1625,10 @@ You have until ${formattedValidUntil} to complete the admission process.
 Thank you, best regards
 `.trim();
 
+
     setSelectedApplicant(applicant?.applicant_number || null);
-    setEmailMessage(defaultMessage);
+    const message = buildFullMessage(applicant, reqText, formattedValidUntil);
+    setEmailMessage(message);
     setConfirmOpen(true);
   };
 
@@ -1604,7 +1650,7 @@ Thank you, best regards
     const companyName = settings?.company_name || "Student Information System";
 
     const defaultMessage = `
-Dear ${applicant?.first_name || "Applicant"} ${applicant?.last_name || ""},
+Dear ${applicant?.last_name || ""}, ${applicant?.first_name || ""} ${applicant?.middle_name || ""}
 
 Congratulations on passing the Interview/Qualifying Exam!
 
@@ -1627,7 +1673,8 @@ Thank you, best regards
 `.trim();
 
     setSelectedApplicant(applicant?.applicant_number || null);
-    setEmailMessage(defaultMessage);
+    const message = buildFullMessage(applicant, reqText, formattedValidUntil);
+    setEmailMessage(message);
     setSingleConfirmOpen(true);
   };
 
@@ -2938,12 +2985,12 @@ Thank you, best regards
                 const finalRating = Number(person.final_rating) || 0; // ✅ use backend value
 
                 return (
-                   <TableRow
-                                                   key={person.person_id}
-                                                   sx={{
-                                                       backgroundColor: index % 2 === 0 ? "#ffffff" : "lightgray", // white / light gray
-                                                   }}
-                                               >
+                  <TableRow
+                    key={person.person_id}
+                    sx={{
+                      backgroundColor: index % 2 === 0 ? "#ffffff" : "lightgray", // white / light gray
+                    }}
+                  >
                     {/* # */}
                     <TableCell
                       sx={{
@@ -3417,7 +3464,7 @@ Thank you, best regards
         fullWidth
       >
         <DialogTitle sx={{ bgcolor: "#800000", color: "white" }}>
-          ✉️ Edit & Send Email
+          ✉️ Message
         </DialogTitle>
 
         <DialogContent dividers sx={{ p: 3 }}>
@@ -3439,6 +3486,82 @@ Thank you, best regards
             sx={{ mb: 3 }}
           />
 
+          <div
+            style={{
+              border: "1px solid #ddd",
+              borderRadius: "8px",
+              padding: "16px",
+              minHeight: "200px",
+              backgroundColor: "#fafafa"
+            }}
+          >
+            <p style={{ fontWeight: "bold", marginBottom: "12px" }}>
+              📄 REQUIRED DOCUMENTS:
+            </p>
+
+            {filterRequirementsForApplicant(
+              persons.find(p => p.applicant_number === selectedApplicant),
+              requirements
+            ).map((req) => {
+              const selected = selectedCopies[req.id];
+
+              return (
+                <div
+                  key={req.id}
+                  style={{
+                    border: "1px solid #eee",
+                    borderRadius: "6px",
+                    padding: "10px",
+                    marginBottom: "10px",
+                    backgroundColor: selected ? "#fff8f0" : "white"
+                  }}
+                >
+                  {/* Description */}
+                  <div style={{ marginBottom: "8px" }}>
+                    <span style={{ fontWeight: 500 }}>
+                      • {req.description}
+                    </span>
+
+                    {selected && (
+                      <span
+                        style={{
+                          marginLeft: "10px",
+                          color: "#800000",
+                          fontWeight: "bold"
+                        }}
+                      >
+                        ({selected.toUpperCase()})
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Buttons */}
+                  <div>
+                    <Button
+                      size="small"
+                      variant={selected === "xerox" ? "contained" : "outlined"}
+                      color="warning"
+                      onClick={() => handleSelect(req.id, "xerox")}
+                      sx={{ mr: 1 }}
+                    >
+                      Xerox
+                    </Button>
+
+                    <Button
+                      size="small"
+                      variant={selected === "original" ? "contained" : "outlined"}
+                      color="success"
+                      onClick={() => handleSelect(req.id, "original")}
+                    >
+                      Original
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+
           {/* Message */}
           <TextField
             label="Message"
@@ -3451,8 +3574,10 @@ Thank you, best regards
             sx={{
               fontFamily: "monospace",
               whiteSpace: "pre-wrap",
+              mt: 2
             }}
           />
+
         </DialogContent>
 
         <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
@@ -3482,7 +3607,7 @@ Thank you, best regards
         fullWidth
       >
         <DialogTitle sx={{ bgcolor: "#800000", color: "white" }}>
-          ✉️ Edit & Send Email
+          ✉️ Message
         </DialogTitle>
 
         <DialogContent dividers sx={{ p: 3 }}>
@@ -3504,6 +3629,81 @@ Thank you, best regards
             sx={{ mb: 3 }}
           />
 
+          <div
+            style={{
+              border: "1px solid #ddd",
+              borderRadius: "8px",
+              padding: "16px",
+              minHeight: "200px",
+              backgroundColor: "#fafafa"
+            }}
+          >
+            <p style={{ fontWeight: "bold", marginBottom: "12px" }}>
+              📄 REQUIRED DOCUMENTS:
+            </p>
+
+            {filterRequirementsForApplicant(
+              persons.find(p => p.applicant_number === selectedApplicant),
+              requirements
+            ).map((req) => {
+              const selected = selectedCopies[req.id];
+
+              return (
+                <div
+                  key={req.id}
+                  style={{
+                    border: "1px solid #eee",
+                    borderRadius: "6px",
+                    padding: "10px",
+                    marginBottom: "10px",
+                    backgroundColor: selected ? "#fff8f0" : "white"
+                  }}
+                >
+                  {/* Description */}
+                  <div style={{ marginBottom: "8px" }}>
+                    <span style={{ fontWeight: 500 }}>
+                      • {req.description}
+                    </span>
+
+                    {selected && (
+                      <span
+                        style={{
+                          marginLeft: "10px",
+                          color: "#800000",
+                          fontWeight: "bold"
+                        }}
+                      >
+                        ({selected.toUpperCase()})
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Buttons */}
+                  <div>
+                    <Button
+                      size="small"
+                      variant={selected === "xerox" ? "contained" : "outlined"}
+                      color="warning"
+                      onClick={() => handleSelect(req.id, "xerox")}
+                      sx={{ mr: 1 }}
+                    >
+                      Xerox
+                    </Button>
+
+                    <Button
+                      size="small"
+                      variant={selected === "original" ? "contained" : "outlined"}
+                      color="success"
+                      onClick={() => handleSelect(req.id, "original")}
+                    >
+                      Original
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
           {/* Message */}
           <TextField
             label="Message"
@@ -3516,8 +3716,12 @@ Thank you, best regards
             sx={{
               fontFamily: "monospace",
               whiteSpace: "pre-wrap",
+              mt: 2
+
             }}
           />
+
+
         </DialogContent>
 
         <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>

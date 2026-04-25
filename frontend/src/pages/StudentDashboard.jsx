@@ -26,6 +26,12 @@ import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
 import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import API_BASE_URL from "../apiConfig";
+import { motion, AnimatePresence } from "framer-motion";
+import ZoomInIcon from "@mui/icons-material/ZoomIn";
+import ZoomOutIcon from "@mui/icons-material/ZoomOut";
+import CloseIcon from "@mui/icons-material/Close";
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
 const StudentDashboard = ({ profileImage, setProfileImage }) => {
   const settings = useContext(SettingsContext);
@@ -347,6 +353,33 @@ const StudentDashboard = ({ profileImage, setProfileImage }) => {
 
     fetchAnnouncements();
   }, []);
+
+  // Lightbox state — add near your other useState declarations
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [lightboxZoom, setLightboxZoom] = useState(1);
+
+
+  // Lightbox helpers
+  const openLightbox = (index) => { setLightboxIndex(index); setLightboxZoom(1); setLightboxOpen(true); };
+  const closeLightbox = () => { setLightboxOpen(false); setLightboxZoom(1); };
+  const lightboxNext = () => { setLightboxIndex(prev => (prev + 1) % announcements.length); setLightboxZoom(1); };
+  const lightboxPrev = () => { setLightboxIndex(prev => (prev - 1 + announcements.length) % announcements.length); setLightboxZoom(1); };
+  const zoomIn = () => setLightboxZoom(prev => Math.min(prev + 0.5, 3));
+  const zoomOut = () => setLightboxZoom(prev => Math.max(prev - 0.5, 1));
+
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    const handleKey = (e) => {
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowRight") lightboxNext();
+      if (e.key === "ArrowLeft") lightboxPrev();
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [lightboxOpen, lightboxIndex, announcements.length]);
+
+
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
@@ -886,95 +919,33 @@ const StudentDashboard = ({ profileImage, setProfileImage }) => {
                             {a.content}
                           </Typography>
 
+                          {/* ── Thumbnail only — NO lightbox here ── */}
                           {a.file_path && (
-                            <>
+                            <div
+                              style={{ position: "relative", cursor: "pointer" }}
+                              onClick={() => openLightbox(announcements.indexOf(a))}
+                            >
                               <img
-                                src={`${API_BASE_URL}/uploads/Announcement/${a.file_path}`}
+                                src={`${API_BASE_URL}/uploads/announcement/${a.file_path}`}
                                 alt={a.title}
                                 style={{
-                                  width: "100%",
-                                  maxHeight: "120px",
-                                  objectFit: "cover",
-                                  borderRadius: "6px",
+                                  width: "100%", maxHeight: "171px",
+                                  objectFit: "cover", borderRadius: "6px",
                                   marginBottom: "6px",
-                                  cursor: "pointer",
                                 }}
-                                onClick={() => setOpenImage(`${API_BASE_URL}/uploads/Announcement/${a.file_path}`)}
                               />
-
-                              <Dialog
-                                open={Boolean(openImage)}
-                                onClose={() => setOpenImage(null)}
-                                fullScreen
-                                PaperProps={{
-                                  style: {
-                                    backgroundColor: "transparent",
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                    position: "relative",
-                                    boxShadow: "none",
-                                    cursor: "pointer",
-                                  },
-                                }}
-                              >
-                                <Box
-                                  onClick={() => setOpenImage(null)}
-                                  sx={{
-                                    position: "absolute",
-                                    top: 0,
-                                    left: 0,
-                                    width: "100%",
-                                    height: "100%",
-                                    zIndex: 1,
-                                  }}
-                                />
-
-                                <IconButton
-                                  onClick={() => setOpenImage(null)}
-                                  sx={{
-                                    position: "absolute",
-                                    top: 20,
-                                    left: 20,
-                                    backgroundColor: "white",
-                                    width: 70,
-                                    height: 70,
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                    zIndex: 2,
-                                    "&:hover": { backgroundColor: "#f5f5f5" },
-                                  }}
-
-                                >
-                                  <KeyboardBackspaceIcon sx={{ fontSize: 50, color: "black" }} />
-                                </IconButton>
-
-                                <Box
-                                  onClick={(e) => e.stopPropagation()}
-                                  sx={{
-                                    position: "relative",
-                                    zIndex: 2,
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                    maxWidth: "100%",
-                                    maxHeight: "100%",
-                                  }}
-                                >
-                                  <img
-                                    src={openImage}
-                                    alt="Preview"
-                                    style={{
-                                      maxWidth: "100%",
-                                      maxHeight: "90%",
-                                      objectFit: "contain",
-                                    }}
-                                  />
-                                </Box>
-                              </Dialog>
-                            </>
+                              <div style={{
+                                position: "absolute", top: 8, right: 8,
+                                background: "rgba(0,0,0,0.5)", borderRadius: "50%",
+                                padding: "5px", display: "flex",
+                                alignItems: "center", justifyContent: "center",
+                              }}>
+                                <ZoomInIcon sx={{ color: "#fff", fontSize: 18 }} />
+                              </div>
+                            </div>
                           )}
+
+
 
                           <Typography variant="caption" color="text.secondary">
                             Expires: {new Date(a.expires_at).toLocaleDateString("en-US")}
@@ -988,6 +959,131 @@ const StudentDashboard = ({ profileImage, setProfileImage }) => {
             </Grid>
           </Grid>
         </Grid>
+
+        <AnimatePresence>
+          {lightboxOpen && announcements[lightboxIndex] && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              onClick={closeLightbox}
+              style={{
+                position: "fixed", inset: 0, zIndex: 9999,
+                background: "rgba(0,0,0,0.88)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}
+            >
+              <div
+                onClick={e => e.stopPropagation()}
+                style={{ position: "relative", maxWidth: "90vw", maxHeight: "90vh" }}
+              >
+                {/* Top controls */}
+                <div
+                  style={{
+                    position: "absolute",
+                    top: -52,
+                    left: -410,   // 👈 changed from right → left
+                    display: "flex",
+                    gap: "8px",
+                    alignItems: "center",
+                  }}
+                >
+                  <IconButton
+                    onClick={closeLightbox}
+                    sx={{
+                      background: "rgba(255,255,255,0.15)",
+                      color: "#fff",
+                      width: 75,           // ✅ size
+                      height: 75,          // ✅ size
+                      "&:hover": { background: "rgba(220,50,50,0.75)" },
+                    }}
+                  >
+                    <CloseIcon sx={{ fontSize: 28 }} /> {/* ✅ bigger icon */}
+                  </IconButton>
+                </div>
+
+
+                {/* Image */}
+                <div style={{
+                  overflow: "auto", maxWidth: "85vw", maxHeight: "80vh",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  borderRadius: "12px",
+                }}>
+                  <AnimatePresence mode="wait">
+                    <motion.img
+                      key={announcements[lightboxIndex].id}
+                      src={`${API_BASE_URL}/uploads/Announcement/${announcements[lightboxIndex].file_path}`}
+                      alt={announcements[lightboxIndex].title}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      style={{
+                        transform: `scale(${lightboxZoom})`,
+                        transformOrigin: "center center",
+                        transition: "transform 0.25s ease",
+                        maxWidth: "85vw", maxHeight: "80vh",
+                        objectFit: "contain", display: "block",
+                        borderRadius: "12px", userSelect: "none",
+                      }}
+                      draggable={false}
+                    />
+                  </AnimatePresence>
+                </div>
+
+                {/* Caption */}
+                <div style={{ marginTop: "12px", color: "#fff", textAlign: "center" }}>
+                  <h3 style={{ margin: 0 }}>{announcements[lightboxIndex].title}</h3>
+                  <p style={{ marginTop: "4px", fontSize: "0.85rem", color: "rgba(255,255,255,0.65)" }}>
+                    {announcements[lightboxIndex].content}
+                  </p>
+                  <p style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.35)", marginTop: "4px" }}>
+                    {lightboxIndex + 1} / {announcements.length}
+                  </p>
+                </div>
+              </div>
+
+              {/* Left arrow */}
+              <IconButton
+                onClick={e => { e.stopPropagation(); lightboxPrev(); }}
+                sx={{
+                  position: "fixed",
+                  left: 400,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 10000,
+                  width: 75,           // ✅ size
+                  height: 75,          // ✅ size
+                  background: "rgba(255,255,255,0.15)",
+                  color: "#fff",
+                  "&:hover": { background: "rgba(255,255,255,0.3)" },
+                }}
+              >
+                <ArrowBackIosNewIcon sx={{ fontSize: 28 }} /> {/* ✅ bigger icon */}
+              </IconButton>
+
+              {/* Right arrow */}
+              <IconButton
+                onClick={e => { e.stopPropagation(); lightboxNext(); }}
+                sx={{
+                  position: "fixed",
+                  right: 400,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 10000,
+                  width: 75,           // ✅ size
+                  height: 75,          // ✅ size
+                  background: "rgba(255,255,255,0.15)",
+                  color: "#fff",
+                  "&:hover": { background: "rgba(255,255,255,0.3)" },
+                }}
+              >
+                <ArrowForwardIosIcon sx={{ fontSize: 28 }} /> {/* ✅ bigger icon */}
+              </IconButton>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <Grid container spacing={5} sx={{ mt: "-20px" }}>
           {/* Certificate of Registration */}

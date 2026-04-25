@@ -2032,7 +2032,7 @@ const Dashboard1 = (props) => {
               {/* Weight Field */}
               <Box display="flex" flexDirection="column" flex="0 0 26%">
                 <Box display="flex" alignItems="center" gap={1}>
-                  <Typography fontWeight="medium" minWidth="75px">
+                  <Typography fontWeight="medium" minWidth="85px">
                     Weight:<span style={{ color: "red" }}> *</span>
                   </Typography>
                   <TextField

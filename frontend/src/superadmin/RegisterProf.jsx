@@ -930,7 +930,7 @@ const RegisterProf = () => {
                         textTransform: "none",
                         fontWeight: "bold",
                         width: "350px",
-                        
+
                       }}
                     >
                       Add Professor
@@ -1035,7 +1035,9 @@ const RegisterProf = () => {
             backgroundColor: settings?.header_color || "#1976d2",
 
           }}>
-            <TableRow>
+            <TableRow
+
+            >
               <TableCell
                 sx={{
                   color: "white",
@@ -1125,8 +1127,12 @@ const RegisterProf = () => {
           <TableBody>
 
 
-            {currentProfessors.map((prof) => (
-              <TableRow key={prof.prof_id}>
+            {currentProfessors.map((prof, i) => (
+              <TableRow key={prof.prof_id}
+
+                sx={{
+                  backgroundColor: i % 2 === 0 ? "#ffffff" : "lightgray",
+                }}>
                 <TableCell sx={{ border: `1px solid ${borderColor}`, border: `1px solid ${borderColor}`, }}>{prof.employee_id || ""}</TableCell>
                 <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                   <Avatar
@@ -1372,7 +1378,7 @@ const RegisterProf = () => {
         >
           <Button
             onClick={handleCloseDialog}
-        color="error"
+            color="error"
             variant="outlined"
           >
             Cancel

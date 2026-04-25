@@ -132,13 +132,8 @@ const RequirementUploader = () => {
     }
   };
 
-  useEffect(() => {
-    const completed = localStorage.getItem("requirementsCompleted");
 
-    if (completed === "1") {
-      setOpenModal(true); // 🎉 show success modal ONLY on revisit
-    }
-  }, []);
+
 
   const handleUpload = async (key, file) => {
     if (!file) return;
@@ -174,7 +169,7 @@ const RequirementUploader = () => {
     formData.append("person_id", personId);
 
     try {
-      await axios.post(`${API_BASE_URL}/form//api/upload`, formData, {
+      await axios.post(`${API_BASE_URL}/api/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -207,7 +202,7 @@ const RequirementUploader = () => {
 
   const handleDelete = async (uploadId) => {
     try {
-      await axios.delete(`${API_BASE_URL}/form/uploads/${uploadId}`, {
+      await axios.delete(`${API_BASE_URL}/uploads/${uploadId}`, {
         headers: { "x-person-id": userID },
       });
 
@@ -489,7 +484,12 @@ const RequirementUploader = () => {
         <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
           <Button
             variant="contained"
-            onClick={() => setOpenModal(false)}
+            onClick={() => {
+              setOpenModal(false);
+
+              window.location.href = "/applicant_dashboard";
+            }}
+
             sx={{
               fontWeight: "bold",
               textTransform: "none",
@@ -595,23 +595,21 @@ const RequirementUploader = () => {
             variant="contained"
             color="success"
             onClick={() => {
-              // ✅ VALIDATION CHECK
+              // ✅ VALIDATION
               if (!isFormValid()) {
-                return; // STOP submission
+                return;
               }
 
+              // Close review modal
               setOpenConfirmModal(false);
 
+              // Mark completed
               localStorage.setItem("requirementsCompleted", "1");
 
-              setSnack({
-                open: true,
-                severity: "success",
-                message: "Requirements submitted successfully.",
-              });
-
-              window.location.href = "/applicant_dashboard";
+              // Show Congratulations dialog
+              setOpenModal(true);
             }}
+
           >
             Submit Requirements
           </Button>

@@ -492,6 +492,13 @@ const VerifyDocumentsSchedule = () => {
         });
     };
 
+    const canCreate = true;
+    const canEdit = true;
+    const canDelete = true;
+
+    const showCreateActions = canCreate;
+    const showActionColumn = canEdit || canDelete;
+
     // 🔒 Disable right-click
     // document.addEventListener('contextmenu', (e) => e.preventDefault());
 
@@ -529,8 +536,6 @@ const VerifyDocumentsSchedule = () => {
         );
     }
 
-    const showCreateActions = canCreate;
-    const showActionColumn = canEdit || canDelete;
 
     return (
         <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
@@ -653,25 +658,25 @@ const VerifyDocumentsSchedule = () => {
 
 
                                 {showCreateActions && (
-                                <Button
-                                    variant="contained"
-                                    onClick={() => setOpenFormDialog(true)}
-                                    sx={{
-                                        backgroundColor: "#1976d2", // ✅ Blue
-                                        color: "#fff",
-                                        fontWeight: "bold",
-                                        borderRadius: "8px",
-                                        width: "250px",
-                                        textTransform: "none",
-                                        px: 2,
-                                        mr: "15px",
-                                        '&:hover': {
-                                            backgroundColor: "#1565c0" // darker blue hover
-                                        }
-                                    }}
-                                >
-                                    + Add Schedule
-                                </Button>
+                                    <Button
+                                        variant="contained"
+                                        onClick={() => setOpenFormDialog(true)}
+                                        sx={{
+                                            backgroundColor: "#1976d2", // ✅ Blue
+                                            color: "#fff",
+                                            fontWeight: "bold",
+                                            borderRadius: "8px",
+                                            width: "250px",
+                                            textTransform: "none",
+                                            px: 2,
+                                            mr: "15px",
+                                            '&:hover': {
+                                                backgroundColor: "#1565c0" // darker blue hover
+                                            }
+                                        }}
+                                    >
+                                        + Add Schedule
+                                    </Button>
                                 )}
                             </Box>
                         </TableRow>
@@ -1032,64 +1037,64 @@ const VerifyDocumentsSchedule = () => {
                                     {s.room_quota}
                                 </TableCell>
                                 {showActionColumn && (
-                                <TableCell align="center" sx={cellStyle}>
-                                    <Box
-                                        sx={{
-                                            display: "flex",
-                                            justifyContent: "center",
-                                            alignItems: "center",
-                                            gap: 1,              // spacing between buttons
-                                            flexWrap: "nowrap",  // prevents wrapping
-                                        }}
-                                    >
-                                        {canEdit && (
-                                        <Button
-                                            size="small"
-                                            variant="contained"
+                                    <TableCell align="center" sx={cellStyle}>
+                                        <Box
                                             sx={{
-                                                backgroundColor: "green",
-                                                color: "white",
-                                                borderRadius: "5px",
-                                                width: "100px",
-                                                height: "40px",
                                                 display: "flex",
-                                                alignItems: "center",
                                                 justifyContent: "center",
-                                                gap: "5px",
+                                                alignItems: "center",
+                                                gap: 1,              // spacing between buttons
+                                                flexWrap: "nowrap",  // prevents wrapping
                                             }}
-                                            onClick={() => handleEdit(s)}
                                         >
-                                            <EditIcon fontSize="small" />
-                                            Edit
-                                        </Button>
-                                        )}
+                                            {canEdit && (
+                                                <Button
+                                                    size="small"
+                                                    variant="contained"
+                                                    sx={{
+                                                        backgroundColor: "green",
+                                                        color: "white",
+                                                        borderRadius: "5px",
+                                                        width: "100px",
+                                                        height: "40px",
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        justifyContent: "center",
+                                                        gap: "5px",
+                                                    }}
+                                                    onClick={() => handleEdit(s)}
+                                                >
+                                                    <EditIcon fontSize="small" />
+                                                    Edit
+                                                </Button>
+                                            )}
 
-                                        {canDelete && (
-                                        <Button
-                                            size="small"
-                                            variant="contained"
-                                            sx={{
-                                                backgroundColor: "#9E0000",
-                                                color: "white",
-                                                borderRadius: "5px",
-                                                width: "100px",
-                                                height: "40px",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                gap: "5px",
-                                            }}
-                                            onClick={() => {
-                                                setScheduleToDelete(s);
-                                                setOpenDeleteDialog(true);
-                                            }}
-                                        >
-                                            <DeleteIcon fontSize="small" />
-                                            Delete
-                                        </Button>
-                                        )}
-                                    </Box>
-                                </TableCell>
+                                            {canDelete && (
+                                                <Button
+                                                    size="small"
+                                                    variant="contained"
+                                                    sx={{
+                                                        backgroundColor: "#9E0000",
+                                                        color: "white",
+                                                        borderRadius: "5px",
+                                                        width: "100px",
+                                                        height: "40px",
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        justifyContent: "center",
+                                                        gap: "5px",
+                                                    }}
+                                                    onClick={() => {
+                                                        setScheduleToDelete(s);
+                                                        setOpenDeleteDialog(true);
+                                                    }}
+                                                >
+                                                    <DeleteIcon fontSize="small" />
+                                                    Delete
+                                                </Button>
+                                            )}
+                                        </Box>
+                                    </TableCell>
                                 )}
                             </TableRow>
                         ))}
@@ -1625,20 +1630,20 @@ const VerifyDocumentsSchedule = () => {
                     </Button>
 
                     {(showCreateActions || (editingSchedule && canEdit)) && (
-                    <Button
-                        variant="contained"
-                        sx={{ px: 4, fontWeight: 600 }}
-                        onClick={(e) => {
-                            if (editingSchedule) {
-                                setOpenUpdateDialog(true);
-                            } else {
-                                handleSaveSchedule(e);
-                                setOpenFormDialog(false);
-                            }
-                        }}
-                    >
-                        <SaveIcon fontSize="small" /> Save
-                    </Button>
+                        <Button
+                            variant="contained"
+                            sx={{ px: 4, fontWeight: 600 }}
+                            onClick={(e) => {
+                                if (editingSchedule) {
+                                    setOpenUpdateDialog(true);
+                                } else {
+                                    handleSaveSchedule(e);
+                                    setOpenFormDialog(false);
+                                }
+                            }}
+                        >
+                            <SaveIcon fontSize="small" /> Save
+                        </Button>
                     )}
                 </DialogActions>
             </Dialog>
