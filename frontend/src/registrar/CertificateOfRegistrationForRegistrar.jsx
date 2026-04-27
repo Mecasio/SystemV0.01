@@ -533,28 +533,36 @@ const CertificateOfRegistration = forwardRef(
           setYearLevelDescription(yearLevelDescription);
           setYearLevelId(yearLevel);
           setYearDescription(yearDesc);
-          setData([
-            {
-              student_number: studentNum,
-              first_name,
-              middle_name,
-              last_name,
-              major: major || "",
-              year_level_description: yearLevelDescription,
-              year_description: yearDesc,
-              curriculum_id: active_curriculum,
-            },
-          ]);
+          const fullData = {
+            ...(tagged.corData || {}),
+            student_number: studentNum,
+            first_name,
+            middle_name,
+            last_name,
+            extension: tagged.extension || tagged.corData?.extension || "",
+            major: major || "",
+            year_level_description: yearLevelDescription,
+            year_description: yearDesc,
+            curriculum_id: active_curriculum,
+            program: active_curriculum || tagged.program || tagged.corData?.program || "",
+            departmentName: dprtmnt_name || tagged.corData?.departmentName || "",
+            dprtmnt_name: dprtmnt_name || tagged.corData?.dprtmnt_name || "",
+            college: dprtmnt_name || tagged.corData?.college || "",
+            age: tagged.age ?? tagged.corData?.age ?? "",
+            gender: tagged.gender ?? tagged.corData?.gender ?? "",
+            email: tagged.email ?? tagged.corData?.email ?? tagged.emailAddress ?? "",
+            emailAddress:
+              tagged.emailAddress ?? tagged.email ?? tagged.corData?.emailAddress ?? "",
+          };
 
-          const fullData = tagged.corData || {};
-          setData((prev) => [{ ...(prev[0] || {}), ...fullData }]);
+          setData([fullData]);
 
-          setGender(fullData.gender || null);
-          setAge(fullData.age || null);
+          setGender(fullData.gender ?? null);
+          setAge(fullData.age ?? null);
           console.log(age);
           console.log(major);
           console.log("person.program:", data[0]?.program);
-          setEmail(fullData.email || null);
+          setEmail(fullData.email || fullData.emailAddress || null);
           setProgram(active_curriculum);
         } catch (error) {
           console.error("Student search failed:", error);
@@ -737,7 +745,7 @@ const CertificateOfRegistration = forwardRef(
       const totalCombined = totalCourseUnits + totalLabUnits;
       const middleInitial = data[0]?.middle_name?.[0] || "";
       const campusName = data[0]?.campus === 1 ? "Manila" : "Cavite";
-      const gender = data[0]?.gender === 1 ? "Female" : "Male";
+      const gender = String(data[0]?.gender) === "1" ? "Female" : "Male";
       const baseTotalSum = totalLecFees + totalLabFees;
       const totalSum = isFirstYear
         ? baseTotalSum - tosf[0]?.nstp_fees
@@ -1674,11 +1682,11 @@ const CertificateOfRegistration = forwardRef(
                         <input
                           type="text"
                           value={
-                            data[0]?.gender === 0
+                            String(data[0]?.gender) === "0"
                               ? "Male"
-                              : data[0]?.gender === 1
+                              : String(data[0]?.gender) === "1"
                                 ? "Female"
-                                : ""
+                                : data[0]?.gender || ""
                           }
                           readOnly
                           style={{
@@ -1756,7 +1764,13 @@ const CertificateOfRegistration = forwardRef(
                       <td colSpan={9} style={{ fontSize: "40%" }}>
                         <input
                           type="text"
-                          value={`${year_desc || ""}-${year_desc + 1 || ""}`}
+                          value={(() => {
+                            const curriculumYear =
+                              data[0]?.year_description ?? year_desc;
+                            return curriculumYear
+                              ? `${curriculumYear}-${Number(curriculumYear) + 1}`
+                              : "";
+                          })()}
                           readOnly
                           style={{
                             fontFamily: "Arial",

@@ -201,6 +201,7 @@ router.get("/verified-for-verify-schedule", async (req, res) => {
         p.middle_name,
         p.extension,
         p.emailAddress,
+        p.campus,
         p.program,
         p.created_at,
         a.applicant_number,

@@ -488,6 +488,21 @@ const ApplicationProcessAdmin = () => {
     const [selectedProgramFilter, setSelectedProgramFilter] = useState("");
     const [department, setDepartment] = useState([]);
     const [allCurriculums, setAllCurriculums] = useState([]);
+    const filteredDepartments = department.filter((dep) =>
+        allCurriculums.some(
+            (curriculum) =>
+                String(curriculum.dprtmnt_id) === String(dep.dprtmnt_id) &&
+                (!person.campus || String(curriculum.components) === String(person.campus))
+        )
+    );
+
+    const filteredCurriculumOptions = allCurriculums.filter(
+        (curriculum) =>
+            (!person.campus || String(curriculum.components) === String(person.campus)) &&
+            (!selectedDepartmentFilter ||
+                String(curriculum.dprtmnt_id) === String(selectedDepartmentFilter))
+    );
+
     const [schoolYears, setSchoolYears] = useState([]);
     const [semesters, setSchoolSemester] = useState([]);
     const [selectedSchoolYear, setSelectedSchoolYear] = useState("");
@@ -547,7 +562,7 @@ const ApplicationProcessAdmin = () => {
 
             /* 🏫 CAMPUS */
             const matchesCampus =
-                !person.campus || personData.campus === person.campus;
+                !person.campus || String(personData.campus) === String(person.campus);
 
             /* 📄 DOCUMENT STATUS */
             const applicantStatus = getApplicantStatus(personData); // use your derived status
@@ -572,11 +587,11 @@ const ApplicationProcessAdmin = () => {
 
             const matchesProgram =
                 selectedProgramFilter === "" ||
-                programInfo?.program_code === selectedProgramFilter;
+                String(personData.program) === String(selectedProgramFilter);
 
             const matchesDepartment =
                 selectedDepartmentFilter === "" ||
-                programInfo?.dprtmnt_name === selectedDepartmentFilter;
+                String(programInfo?.dprtmnt_id) === String(selectedDepartmentFilter);
 
             /* 📅 YEAR (safe date parsing) */
             const appliedDate = parseDateOnlyLocal(personData.created_at);
@@ -825,16 +840,22 @@ const ApplicationProcessAdmin = () => {
         });
     }, []);
 
-    const handleDepartmentChange = (selectedDept) => {
-        setSelectedDepartmentFilter(selectedDept);
-        if (!selectedDept) {
-            setCurriculumOptions(allCurriculums);
-        } else {
-            setCurriculumOptions(
-                allCurriculums.filter((opt) => opt.dprtmnt_name === selectedDept),
-            );
-        }
+    const handleCampusChange = (branchId) => {
+        setPerson((prev) => ({ ...prev, campus: branchId }));
+        setSelectedDepartmentFilter("");
         setSelectedProgramFilter("");
+        setCurrentPage(1);
+    };
+
+    const handleDepartmentChange = (departmentId) => {
+        setSelectedDepartmentFilter(departmentId);
+        setSelectedProgramFilter("");
+        setCurrentPage(1);
+    };
+
+    const handleProgramFilterChange = (curriculumId) => {
+        setSelectedProgramFilter(curriculumId);
+        setCurrentPage(1);
     };
 
     const [applicants, setApplicants] = useState([]);
@@ -1297,17 +1318,14 @@ const ApplicationProcessAdmin = () => {
                                 id="campus-select"
                                 name="campus"
                                 value={person.campus ?? ""}
-                                onChange={(e) => {
-                                    setPerson((prev) => ({ ...prev, campus: e.target.value }));
-                                    setCurrentPage(1);
-                                }}
+                                onChange={(e) => handleCampusChange(e.target.value)}
                             >
                                 <MenuItem value="">
                                     <em>All Campuses</em>
                                 </MenuItem>
 
                                 {branches.map((branch) => (
-                                    <MenuItem key={branch.id} value={branch.id}>
+                                    <MenuItem key={branch.id} value={String(branch.id)}>
                                         {branch.branch}
                                     </MenuItem>
                                 ))}
@@ -1729,15 +1747,12 @@ const ApplicationProcessAdmin = () => {
                             <FormControl size="small" sx={{ width: "400px" }}>
                                 <Select
                                     value={selectedDepartmentFilter}
-                                    onChange={(e) => {
-                                        const selectedDept = e.target.value;
-                                        setSelectedDepartmentFilter(selectedDept);
-                                        handleDepartmentChange(selectedDept);
-                                    }}
+                                    onChange={(e) => handleDepartmentChange(e.target.value)}
                                     displayEmpty
                                 >
-                                    {department.map((dep) => (
-                                        <MenuItem key={dep.dprtmnt_id} value={dep.dprtmnt_name}>
+                                    <MenuItem value="">All Departments</MenuItem>
+                                    {filteredDepartments.map((dep) => (
+                                        <MenuItem key={dep.dprtmnt_id} value={String(dep.dprtmnt_id)}>
                                             {dep.dprtmnt_name} ({dep.dprtmnt_code})
                                         </MenuItem>
                                     ))}
@@ -1752,14 +1767,14 @@ const ApplicationProcessAdmin = () => {
                             <FormControl size="small" sx={{ width: "350px" }}>
                                 <Select
                                     value={selectedProgramFilter}
-                                    onChange={(e) => setSelectedProgramFilter(e.target.value)}
+                                    onChange={(e) => handleProgramFilterChange(e.target.value)}
                                     displayEmpty
                                 >
                                     <MenuItem value="">All Programs</MenuItem>
-                                    {curriculumOptions.map((prog) => (
+                                    {filteredCurriculumOptions.map((prog) => (
                                         <MenuItem
                                             key={prog.curriculum_id}
-                                            value={prog.program_code}
+                                            value={String(prog.curriculum_id)}
                                         >
                                             {prog.program_code} - {prog.program_description}
                                         </MenuItem>

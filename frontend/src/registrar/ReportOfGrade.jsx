@@ -327,12 +327,13 @@ const ReportOfGrade = () => {
 
     const fetchGradeConversionDic = async () => {
         try{
-            const res = await axios.get(`${API_BASE_URL}/grade-conversion`);
+            const res = await axios.get(`${API_BASE_URL}/admin/grade-conversion`);
             setGradeConversions(res.data);
 
             console.log("Fetching Successfully");
-        }catch(err){
-            console.log("Error Fetching Data", err);
+        }catch(err){ 
+            setGradeConversions([]);
+            console.log("Error Fetching Data", fallbackErr);
         }
     };
 
@@ -362,17 +363,21 @@ const ReportOfGrade = () => {
                 : numericGrade.toFixed(2);
         }
 
-        const matchedConversion = gradeConversion.find((row) => {
+        const findMatchingConversion = (score) => gradeConversion.find((row) => {
             const minScore = Number(row.min_score);
             const maxScore = Number(row.max_score);
 
             return (
                 Number.isFinite(minScore) &&
                 Number.isFinite(maxScore) &&
-                numericGrade >= minScore &&
-                numericGrade <= maxScore
+                score >= minScore &&
+                score <= maxScore
             );
         });
+
+        const matchedConversion =
+            findMatchingConversion(numericGrade) ||
+            findMatchingConversion(Math.round(numericGrade));
 
         if (!matchedConversion?.equivalent_grade) {
             return grade;
@@ -382,6 +387,31 @@ const ReportOfGrade = () => {
         return Number.isNaN(equivalentGrade)
         ? matchedConversion.equivalent_grade
         : equivalentGrade.toFixed(2);
+    };
+
+    const getConvertedFinalGrade = (subject) => {
+        if (subject?.numeric_grade !== null && subject?.numeric_grade !== undefined && subject?.numeric_grade !== "") {
+            return handleGradeConversion(subject.numeric_grade);
+        }
+
+        return handleGradeConversion(subject?.final_grade);
+    };
+
+    const getConvertedFinalGradeNumber = (subject) => {
+        const convertedGrade = getConvertedFinalGrade(subject);
+        const numericGrade = Number(convertedGrade);
+        return Number.isFinite(numericGrade) && numericGrade > 0 ? numericGrade : null;
+    };
+
+    const getGradePointAverage = (subjects) => {
+        const convertedGrades = subjects
+            .map(getConvertedFinalGradeNumber)
+            .filter((grade) => grade !== null);
+
+        if (convertedGrades.length === 0) return "";
+
+        const total = convertedGrades.reduce((sum, grade) => sum + grade, 0);
+        return (total / convertedGrades.length).toFixed(2);
     };
 
     const filteredStudents = studentDetails
@@ -952,7 +982,7 @@ const ReportOfGrade = () => {
                                                     <span style={{ margin: "0", padding: "0", fontSize: "14px" }}>{p.program_code} {p.section}</span>
                                                 </td>
                                                 <td>
-                                                    <span style={{ margin: "0", padding: "0", display: "flex", justifyContent: "center", width: "6rem" }}>{handleGradeConversion(p.final_grade)}</span>
+                                                    <span style={{ margin: "0", padding: "0", display: "flex", justifyContent: "center", width: "6rem" }}>{getConvertedFinalGrade(p)}</span>
                                                 </td>
                                                 <td>
                                                     <span style={{ margin: "0", padding: "0", display: "flex", justifyContent: "center", width: "6rem" }}></span>
@@ -1021,9 +1051,7 @@ const ReportOfGrade = () => {
                                 <Box style={{ display: "flex", justifyContent: "end" }}>
                                     <Typography style={{ width: "45rem", display: "flex", justifyContent: "end", fontSize: "0.9rem" }}>Grade Point Average:</Typography>
                                     <Typography style={{ padding: "0rem 0.5rem", display: "flex", justifyContent: "end", fontSize: "0.9rem", width: "3rem" }}>
-                                        {(
-                                            filteredStudents.reduce((total, subj) => total + (Number(subj.final_grade) || 0), 0) / 8
-                                        ).toFixed(2)}
+                                        {getGradePointAverage(filteredStudents)}
                                     </Typography>
                                 </Box>
                             </Box>

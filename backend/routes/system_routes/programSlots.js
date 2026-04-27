@@ -302,6 +302,7 @@ router.post("/program-slots", async (req, res) => {
         [max_slots, curriculum_id, activeSchoolYearId],
       );
 
+      memoryCache.clear();
       return res.json({ message: "Program slots updated" });
     }
 
@@ -315,6 +316,7 @@ router.post("/program-slots", async (req, res) => {
       [curriculum_id, max_slots, activeSchoolYearId],
     );
 
+    memoryCache.clear();
     res.json({ message: "Program slots created" });
   } catch (err) {
     console.error("Error saving program slots:", err);
@@ -396,6 +398,7 @@ router.post("/program-slots/department", async (req, res) => {
     }
 
     await connection.commit();
+    memoryCache.clear();
     res.json({ message: "Program slots updated for department" });
   } catch (err) {
     await connection.rollback();
@@ -476,6 +479,7 @@ router.post("/program-slots/all", async (req, res) => {
     }
 
     await connection.commit();
+    memoryCache.clear();
     res.json({ message: "Program slots updated for all programs" });
   } catch (err) {
     await connection.rollback();

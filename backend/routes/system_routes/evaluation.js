@@ -101,6 +101,19 @@ router.put("/update_category/:id", async (req, res) => {
   }
 });
 
+// DELETE CATEGORY
+router.delete("/delete_category/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await db3.query(`DELETE FROM question_category_table WHERE id = ?`, [id]);
+    res.status(200).send({ message: "Category successfully deleted" });
+  } catch (err) {
+    console.error("Database / Server Error:", err);
+    res.status(500).send({ message: "Database / Server Error", error: err });
+  }
+});
+
 //11/29/2025 UPDATE
 router.get("/get_questions", async (req, res) => {
   try {
@@ -147,6 +160,24 @@ router.put("/update_question/:id", async (req, res) => {
       id,
     ]);
     res.status(200).send({ message: "Question successfully updated" });
+  } catch (err) {
+    console.error("Database / Server Error:", err);
+    res.status(500).send({ message: "Database / Server Error", error: err });
+  }
+});
+
+// DELETE QUESTION
+router.delete("/delete_question/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // First delete from evaluation_table (foreign key constraint)
+    await db3.query(`DELETE FROM evaluation_table WHERE question_id = ?`, [id]);
+    
+    // Then delete from question_table
+    await db3.query(`DELETE FROM question_table WHERE id = ?`, [id]);
+    
+    res.status(200).send({ message: "Question successfully deleted" });
   } catch (err) {
     console.error("Database / Server Error:", err);
     res.status(500).send({ message: "Database / Server Error", error: err });
@@ -247,7 +278,7 @@ router.get("/api/faculty_evaluation", async (req, res) => {
 
     res.json(rows);
   } catch (err) {
-    console.error("âŒ Error fetching evaluation:", err);
+    console.error("⚠️ Error fetching evaluation:", err);
     res.status(500).json({ message: "Database error" });
   }
 });

@@ -353,6 +353,20 @@ const AssignScheduleToApplicantsInterviewer = () => {
     schedules.find((s) => Number(s.schedule_id) === Number(selectedSchedule));
 
   // ⬇️ Always use the interview schedules source with occupancy counts
+  const handleScheduleChange = (scheduleId) => {
+    setSelectedSchedule(scheduleId);
+
+    const schedule = schedules.find(
+      (s) => Number(s.schedule_id) === Number(scheduleId),
+    );
+    const branchId = schedule?.branch ? String(schedule.branch) : "";
+
+    setSelectedCampusFilter(branchId);
+    setSelectedDepartmentFilter(String(adminData.dprtmnt_id ?? ""));
+    setSelectedProgramFilter("");
+    setCurrentPage(1);
+  };
+
   const fetchSchedulesWithCount = async () => {
     try {
       const res = await axios.get(
@@ -489,7 +503,7 @@ const AssignScheduleToApplicantsInterviewer = () => {
     }
 
     // ✅ Filter all unassigned applicants first
-    const filteredPersons = currentPersons.filter((a) => a.schedule_id == null);
+    const filteredPersons = sortedPersons.filter((a) => a.schedule_id == null);
 
     if (filteredPersons.length === 0) {
       setSnack({
@@ -521,7 +535,7 @@ const AssignScheduleToApplicantsInterviewer = () => {
         fetchAllApplicants();
         setSchedules((prev) =>
           prev.map((s) =>
-            s.schedule_id == selectedSchedule
+            Number(s.schedule_id) === Number(selectedSchedule)
               ? {
                 ...s,
                 current_occupancy:
@@ -654,7 +668,7 @@ const AssignScheduleToApplicantsInterviewer = () => {
         // Update schedule occupancy
         setSchedules((prev) =>
           prev.map((s) =>
-            s.schedule_id === selectedSchedule
+            Number(s.schedule_id) === Number(selectedSchedule)
               ? {
                 ...s,
                 current_occupancy: currentCount + (res.assigned?.length || 0),
@@ -693,7 +707,7 @@ const AssignScheduleToApplicantsInterviewer = () => {
       fetchAllApplicants();
       setSchedules((prev) =>
         prev.map((s) =>
-          s.schedule_id === selectedSchedule
+          Number(s.schedule_id) === Number(selectedSchedule)
             ? { ...s, current_occupancy: 0 }
             : s,
         ),
@@ -863,7 +877,7 @@ Thank you and good luck!
 
     // 👉 Get ALL applicants currently assigned to the selected schedule
     const assignedApplicants = persons.filter(
-      (a) => a.schedule_id === selectedSchedule,
+      (a) => Number(a.schedule_id) === Number(selectedSchedule),
     );
 
     if (assignedApplicants.length === 0) {
@@ -1066,14 +1080,60 @@ Thank you and good luck!
   const [endDate, setEndDate] = useState("");
 
   const [selectedCampusFilter, setSelectedCampusFilter] = useState("");
+  const userDepartmentId = String(adminData.dprtmnt_id ?? "");
+  const activeDepartmentFilter = selectedDepartmentFilter || userDepartmentId;
+  const userDepartments = department.filter(
+    (dep) => String(dep.dprtmnt_id) === userDepartmentId,
+  );
+
+  const filteredDepartments = userDepartments.filter((dep) =>
+    allCurriculums.some(
+      (curriculum) =>
+        String(curriculum.dprtmnt_id) === String(dep.dprtmnt_id) &&
+        (!selectedCampusFilter ||
+          String(curriculum.components) === String(selectedCampusFilter)),
+    ),
+  );
+  const selectableDepartments =
+    filteredDepartments.length > 0 ? filteredDepartments : userDepartments;
+
+  const filteredCurriculumOptions = allCurriculums.filter(
+    (curriculum) =>
+      (!selectedCampusFilter ||
+        String(curriculum.components) === String(selectedCampusFilter)) &&
+      (!activeDepartmentFilter ||
+        String(curriculum.dprtmnt_id) === String(activeDepartmentFilter)),
+  );
+
+  const handleCampusFilterChange = (branchId) => {
+    setSelectedCampusFilter(branchId);
+    setSelectedSchedule("");
+    setSelectedDepartmentFilter(userDepartmentId);
+    setSelectedProgramFilter("");
+    setCurrentPage(1);
+  };
+
+  const handleDepartmentChange = (departmentId) => {
+    setSelectedDepartmentFilter(userDepartmentId || departmentId);
+    setSelectedProgramFilter("");
+    setCurrentPage(1);
+  };
+
+  const handleProgramFilterChange = (curriculumId) => {
+    setSelectedProgramFilter(curriculumId);
+    setCurrentPage(1);
+  };
 
   // ✅ Step 1: Filtering
   const filteredPersons = persons.filter((personData) => {
     const finalRating = Number(personData.final_rating) || 0;
 
     /* 🏫 CAMPUS */
+    const personCampus = String(personData.campus ?? "").trim();
+    const selectedCampusId = String(selectedCampusFilter ?? "").trim();
+
     const matchesCampus =
-      selectedCampusFilter === "" || personData.campus === selectedCampusFilter;
+      selectedCampusFilter === "" || personCampus === selectedCampusId;
 
     // ✅ Score range filter
     const matchesScore =
@@ -1103,12 +1163,12 @@ Thank you and good luck!
       .includes(query);
 
     const matchesDepartment =
-      selectedDepartmentFilter === "" ||
-      programInfo?.dprtmnt_name === selectedDepartmentFilter;
+      activeDepartmentFilter === "" ||
+      String(programInfo?.dprtmnt_id) === String(activeDepartmentFilter);
 
     const matchesProgramFilter =
       selectedProgramFilter === "" ||
-      programInfo?.program_code === selectedProgramFilter;
+      String(personData.program) === String(selectedProgramFilter);
 
     const applicantAppliedYear = new Date(personData.created_at).getFullYear();
     const schoolYear = schoolYears.find(
@@ -1223,38 +1283,20 @@ Thank you and good luck!
 
   useEffect(() => {
     if (!adminData.dprtmnt_id) return;
+
     const fetchDepartments = async () => {
       try {
         const response = await axios.get(
           `${API_BASE_URL}/api/departments/${adminData.dprtmnt_id}`,
         ); // ✅ Update if needed
         setDepartment(response.data);
+        setSelectedDepartmentFilter(String(adminData.dprtmnt_id));
       } catch (error) {
         console.error("Error fetching departments:", error);
       }
     };
     fetchDepartments();
   }, [adminData.dprtmnt_id]);
-
-  const handleDepartmentChange = (selectedDept) => {
-    setSelectedDepartmentFilter(selectedDept);
-    if (!selectedDept) {
-      setCurriculumOptions(allCurriculums);
-    } else {
-      setCurriculumOptions(
-        allCurriculums.filter((opt) => opt.dprtmnt_name === selectedDept),
-      );
-    }
-    setSelectedProgramFilter("");
-  };
-
-  useEffect(() => {
-    if (department.length > 0 && !selectedDepartmentFilter) {
-      const firstDept = department[0].dprtmnt_name;
-      setSelectedDepartmentFilter(firstDept);
-      handleDepartmentChange(firstDept);
-    }
-  }, [department, selectedDepartmentFilter]);
 
   const maxButtonsToShow = 5;
   let startPage = Math.max(1, currentPage - Math.floor(maxButtonsToShow / 2));
@@ -1274,6 +1316,11 @@ Thank you and good luck!
       setCurrentPage(totalPages || 1);
     }
   }, [filteredPersons.length, totalPages]);
+
+  const getBranchLabel = (branchId) => {
+    const branch = branches.find((item) => String(item.id) === String(branchId));
+    return branch?.branch || branchId || "N/A";
+  };
 
   // Put this at the very bottom before the return
   if (loading || hasAccess === null) {
@@ -1438,7 +1485,7 @@ Thank you and good luck!
                 select
                 fullWidth
                 value={selectedSchedule}
-                onChange={(e) => setSelectedSchedule(e.target.value)}
+                onChange={(e) => handleScheduleChange(e.target.value)}
                 variant="outlined"
                 sx={{
                   border: `1px solid ${borderColor}`,
@@ -1448,29 +1495,40 @@ Thank you and good luck!
                 }}
               >
                 <MenuItem value="">-- Select Schedule --</MenuItem>
-                {schedules.map((s) => (
-                  <MenuItem key={s.schedule_id} value={s.schedule_id}>
-                    {s.branch} : {s.interviewer} - {s.day_description} |{" "}
-                    {s.building_description} | {s.room_description} |
-                    {new Date(`1970-01-01T${s.start_time}`).toLocaleTimeString(
-                      "en-US",
-                      {
-                        hour: "numeric",
-                        minute: "2-digit",
-                        hour12: true,
-                      },
-                    )}{" "}
-                    -{" "}
-                    {new Date(`1970-01-01T${s.end_time}`).toLocaleTimeString(
-                      "en-US",
-                      {
-                        hour: "numeric",
-                        minute: "2-digit",
-                        hour12: true,
-                      },
-                    )}
-                  </MenuItem>
-                ))}
+                {[...schedules]
+                  .filter(
+                    (s) =>
+                      !selectedCampusFilter ||
+                      String(s.branch) === String(selectedCampusFilter),
+                  )
+                  .filter(
+                    (s) => Number(s.current_occupancy) < Number(s.room_quota),
+                  )
+                  .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                  .map((s) => (
+                    <MenuItem key={s.schedule_id} value={s.schedule_id}>
+                      {getBranchLabel(s.branch)} : {s.interviewer} -{" "}
+                      {s.day_description} | {s.building_description} |{" "}
+                      {s.room_description} |
+                      {new Date(`1970-01-01T${s.start_time}`).toLocaleTimeString(
+                        "en-US",
+                        {
+                          hour: "numeric",
+                          minute: "2-digit",
+                          hour12: true,
+                        },
+                      )}{" "}
+                      -{" "}
+                      {new Date(`1970-01-01T${s.end_time}`).toLocaleTimeString(
+                        "en-US",
+                        {
+                          hour: "numeric",
+                          minute: "2-digit",
+                          hour12: true,
+                        },
+                      )}
+                    </MenuItem>
+                  ))}
               </TextField>
             </Grid>
 
@@ -1667,16 +1725,14 @@ Thank you and good luck!
                 id="campus-select"
                 name="campus"
                 value={selectedCampusFilter}
-                onChange={(e) => {
-                  setSelectedCampusFilter(e.target.value);
-                }}
+                onChange={(e) => handleCampusFilterChange(e.target.value)}
               >
                 <MenuItem value="">
                   <em>All Campuses</em>
                 </MenuItem>
 
                 {branches.map((branch) => (
-                  <MenuItem key={branch.id} value={branch.id}>
+                  <MenuItem key={branch.id} value={String(branch.id)}>
                     {branch.branch}
                   </MenuItem>
                 ))}
@@ -1689,16 +1745,12 @@ Thank you and good luck!
             </Typography>
             <FormControl size="small" sx={{ width: "250px" }}>
               <Select
-                value={selectedDepartmentFilter}
-                onChange={(e) => {
-                  const selectedDept = e.target.value;
-                  setSelectedDepartmentFilter(selectedDept);
-                  handleDepartmentChange(selectedDept);
-                }}
+                value={selectedDepartmentFilter || userDepartmentId}
+                onChange={(e) => handleDepartmentChange(e.target.value)}
                 displayEmpty
               >
-                {department.map((dep) => (
-                  <MenuItem key={dep.dprtmnt_id} value={dep.dprtmnt_name}>
+                {selectableDepartments.map((dep) => (
+                  <MenuItem key={dep.dprtmnt_id} value={String(dep.dprtmnt_id)}>
                     {dep.dprtmnt_name} ({dep.dprtmnt_code})
                   </MenuItem>
                 ))}
@@ -1714,12 +1766,15 @@ Thank you and good luck!
             <FormControl size="small" sx={{ width: "250px" }}>
               <Select
                 value={selectedProgramFilter}
-                onChange={(e) => setSelectedProgramFilter(e.target.value)}
+                onChange={(e) => handleProgramFilterChange(e.target.value)}
                 displayEmpty
               >
                 <MenuItem value="">All Programs</MenuItem>
-                {curriculumOptions.map((prog) => (
-                  <MenuItem key={prog.curriculum_id} value={prog.program_code}>
+                {filteredCurriculumOptions.map((prog) => (
+                  <MenuItem
+                    key={prog.curriculum_id}
+                    value={String(prog.curriculum_id)}
+                  >
                     {prog.program_code} - {prog.program_description}
                   </MenuItem>
                 ))}
@@ -2143,7 +2198,7 @@ Thank you and good luck!
                         fontSize: "12px",
                       }}
                     >
-                      {curriculumOptions.find(
+                      {allCurriculums.find(
                         (item) =>
                           item.curriculum_id?.toString() ===
                           person.program?.toString(),
@@ -2456,7 +2511,11 @@ Thank you and good luck!
           {/* Sender */}
           <TextField
             label="Sender"
-            value={department[0]?.dprtmnt_name}
+            value={
+              department.find(
+                (dep) => String(dep.dprtmnt_id) === String(adminData.dprtmnt_id),
+              )?.dprtmnt_name || ""
+            }
             fullWidth
             InputProps={{ readOnly: true }}
             sx={{ mb: 3 }}

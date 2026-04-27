@@ -256,8 +256,9 @@ const CORExportingModule = () => {
   useEffect(() => {
     setViewClicked(false);
     setVisibleData([]);
+    setBatchByStudentNumber({});
     setCurrentPage(1);
-  }, [campusFilter, yearId, semesterId, selectedProgram, paymentType]);
+  }, [campusFilter, yearId, semesterId, selectedYearLevel, selectedProgram, paymentType]);
 
   const fetchDepartments = async () => {
     try {
@@ -305,12 +306,37 @@ const CORExportingModule = () => {
     fetchPrograms(selectedId);
   };
 
-  const handleViewRecord = async () => {
-    const studentNumbers = filteredData.map(
+  const loadBatchStudentTagging = async (students) => {
+    const studentNumbers = students.map(
       (student) => student.student_number,
     );
+    const activeSchoolYearId = students[0]?.active_school_year_id || "";
 
     if (studentNumbers.length === 0) {
+      setBatchByStudentNumber({});
+      return {};
+    }
+
+    console.log("studentNumbers sent:", studentNumbers);
+
+    const res = await axios.post(
+      `${API_BASE_URL}/student-tagging-batch`,
+      { studentNumbers, selectedYearLevel, activeSchoolYearId },
+      { headers: { "Content-Type": "application/json" } },
+    );
+
+    const studentsWithPreload = res.data?.students || [];
+    const byNumber = studentsWithPreload.reduce((acc, student) => {
+      acc[student.student_number] = student;
+      return acc;
+    }, {});
+
+    setBatchByStudentNumber(byNumber);
+    return byNumber;
+  };
+
+  const handleViewRecord = async () => {
+    if (filteredData.length === 0) {
       setBatchByStudentNumber({});
       setVisibleData([]);
       setViewClicked(true);
@@ -319,23 +345,7 @@ const CORExportingModule = () => {
 
     try {
       console.log("filteredData length:", filteredData.length);
-      console.log(
-        "studentNumbers sent:",
-        filteredData.map((s) => s.student_number),
-      );
-
-      const res = await axios.post(
-        `${API_BASE_URL}/student-tagging-batch`,
-        { studentNumbers },
-        { headers: { "Content-Type": "application/json" } },
-      );
-
-      const students = res.data?.students || [];
-      const byNumber = students.reduce((acc, student) => {
-        acc[student.student_number] = student;
-        return acc;
-      }, {});
-
+      const byNumber = await loadBatchStudentTagging(filteredData);
       setBatchByStudentNumber(byNumber);
       setVisibleData(filteredData);
       setViewClicked(true);
@@ -460,6 +470,8 @@ const CORExportingModule = () => {
     const originalPage = currentPage;
 
     try {
+      await loadBatchStudentTagging(listToExport);
+
       if (!visibleData.length) {
         setVisibleData(listToExport);
         setViewClicked(true);

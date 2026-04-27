@@ -422,6 +422,18 @@ const AssignScheduleToApplicants = () => {
   const getSelectedScheduleData = () =>
     schedules.find((s) => Number(s.schedule_id) === Number(selectedSchedule));
 
+  const handleScheduleChange = (scheduleId) => {
+    setSelectedSchedule(scheduleId);
+
+    const schedule = schedules.find((s) => Number(s.schedule_id) === Number(scheduleId));
+    const branchId = schedule?.branch ? String(schedule.branch) : "";
+
+    setSelectedCampusFilter(branchId);
+    setSelectedDepartmentFilter("");
+    setSelectedProgramFilter("");
+    setCurrentPage(1);
+  };
+
 
   // ✅ Always use the schedule source with occupancy counts
   const fetchSchedulesWithCount = async () => {
@@ -533,7 +545,7 @@ const AssignScheduleToApplicants = () => {
     }
 
     // take as many unassigned as we can up to availableSlots
-    const unassigned = persons
+    const unassigned = sortedPersons
       .filter(a => a.schedule_id == null)
       .slice(0, availableSlots)
       .map(a => a.applicant_number);
@@ -555,7 +567,7 @@ const AssignScheduleToApplicants = () => {
         fetchAllApplicants();
         setSchedules(prev =>
           prev.map(s =>
-            s.schedule_id === selectedSchedule
+            Number(s.schedule_id) === Number(selectedSchedule)
               ? { ...s, current_occupancy: currentCount + (res.assigned?.length || 0) }
               : s
           )
@@ -643,7 +655,7 @@ const AssignScheduleToApplicants = () => {
         fetchAllApplicants();
         setSchedules(prev =>
           prev.map(s =>
-            s.schedule_id === selectedSchedule
+            Number(s.schedule_id) === Number(selectedSchedule)
               ? { ...s, current_occupancy: currentCount + (res.assigned?.length || 0) }
               : s
           )
@@ -668,7 +680,7 @@ const AssignScheduleToApplicants = () => {
       fetchAllApplicants();
       setSchedules(prev =>
         prev.map(s =>
-          s.schedule_id === selectedSchedule
+          Number(s.schedule_id) === Number(selectedSchedule)
             ? { ...s, current_occupancy: 0 }
             : s
         )
@@ -861,6 +873,41 @@ Admission Office`;
   const [department, setDepartment] = useState([]);
 
   const [selectedCampusFilter, setSelectedCampusFilter] = useState("");
+  const filteredDepartments = department.filter((dep) =>
+    allCurriculums.some(
+      (curriculum) =>
+        String(curriculum.dprtmnt_id) === String(dep.dprtmnt_id) &&
+        (!selectedCampusFilter ||
+          String(curriculum.components) === String(selectedCampusFilter))
+    )
+  );
+
+  const filteredCurriculumOptions = allCurriculums.filter(
+    (curriculum) =>
+      (!selectedCampusFilter ||
+        String(curriculum.components) === String(selectedCampusFilter)) &&
+      (!selectedDepartmentFilter ||
+        String(curriculum.dprtmnt_id) === String(selectedDepartmentFilter))
+  );
+
+  const handleCampusFilterChange = (branchId) => {
+    setSelectedCampusFilter(branchId);
+    setSelectedSchedule("");
+    setSelectedDepartmentFilter("");
+    setSelectedProgramFilter("");
+    setCurrentPage(1);
+  };
+
+  const handleDepartmentChange = (departmentId) => {
+    setSelectedDepartmentFilter(departmentId);
+    setSelectedProgramFilter("");
+    setCurrentPage(1);
+  };
+
+  const handleProgramFilterChange = (curriculumId) => {
+    setSelectedProgramFilter(curriculumId);
+    setCurrentPage(1);
+  };
 
   // ✅ Step 1: Filtering
   const filteredPersons = persons.filter((personData) => {
@@ -868,9 +915,12 @@ Admission Office`;
     const fullName = `${personData.first_name ?? ""} ${personData.middle_name ?? ""} ${personData.last_name ?? ""}`.toLowerCase();
 
     /* 🏫 CAMPUS */
+    const personCampus = String(personData.campus ?? "").trim();
+    const selectedCampusId = String(selectedCampusFilter ?? "").trim();
+
     const matchesCampus =
       selectedCampusFilter === "" ||
-      personData.campus === selectedCampusFilter;
+      personCampus === selectedCampusId;
 
 
 
@@ -884,10 +934,12 @@ Admission Office`;
     const matchesProgramQuery = programInfo?.program_code?.toLowerCase().includes(query);
 
     const matchesDepartment =
-      selectedDepartmentFilter === "" || programInfo?.dprtmnt_name === selectedDepartmentFilter;
+      selectedDepartmentFilter === "" ||
+      String(programInfo?.dprtmnt_id) === String(selectedDepartmentFilter);
 
     const matchesProgramFilter =
-      selectedProgramFilter === "" || programInfo?.program_code === selectedProgramFilter;
+      selectedProgramFilter === "" ||
+      String(personData.program) === String(selectedProgramFilter);
 
     const applicantAppliedYear = new Date(personData.created_at).getFullYear();
     const schoolYear = schoolYears.find((sy) => sy.year_id === selectedSchoolYear);
@@ -983,6 +1035,11 @@ Admission Office`;
       setCurrentPage(totalPages || 1);
     }
   }, [filteredPersons.length, totalPages]);
+
+  const getBranchLabel = (branchId) => {
+    const branch = branches.find((item) => String(item.id) === String(branchId));
+    return branch?.branch || branchId || "N/A";
+  };
 
   // // 🔒 Disable right-click
   // document.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -1149,7 +1206,7 @@ Admission Office`;
                 select
                 fullWidth
                 value={selectedSchedule}
-                onChange={(e) => setSelectedSchedule(e.target.value)}
+                onChange={(e) => handleScheduleChange(e.target.value)}
                 variant="outlined"
                 sx={{
                   border: `1px solid ${borderColor}`,
@@ -1161,6 +1218,10 @@ Admission Office`;
                 <MenuItem value="">-- Select Schedule --</MenuItem>
 
                 {[...schedules]
+                  .filter(s =>
+                    !selectedCampusFilter ||
+                    String(s.branch) === String(selectedCampusFilter)
+                  )
                   // ✅ REMOVE FULL ROOMS HERE
                   .filter(s => Number(s.current_occupancy) < Number(s.room_quota))
                   .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
@@ -1169,7 +1230,7 @@ Admission Office`;
                       key={s.schedule_id}
                       value={s.schedule_id}
                     >
-                      {s.branch} : {s.proctor} - {s.day_description} | {s.building_description} | {s.room_description} |{" "}
+                      {getBranchLabel(s.branch)} : {s.proctor} - {s.day_description} | {s.building_description} | {s.room_description} |{" "}
                       {new Date(`1970-01-01T${s.start_time}`).toLocaleTimeString("en-US", {
                         hour: "numeric",
                         minute: "2-digit",
@@ -1397,14 +1458,12 @@ Admission Office`;
                 id="campus-select"
                 name="campus"
                 value={selectedCampusFilter}
-                onChange={(e) => {
-                  setSelectedCampusFilter(e.target.value);
-                }}
+                onChange={(e) => handleCampusFilterChange(e.target.value)}
               >
                 <MenuItem value=""><em>All Campuses</em></MenuItem>
 
                 {branches.map((branch) => (
-                  <MenuItem key={branch.id} value={branch.id}>
+                  <MenuItem key={branch.id} value={String(branch.id)}>
                     {branch.branch}
                   </MenuItem>
                 ))}
@@ -1416,16 +1475,12 @@ Admission Office`;
             <FormControl size="small" sx={{ width: "250px" }}>
               <Select
                 value={selectedDepartmentFilter}
-                onChange={(e) => {
-                  const selectedDept = e.target.value;
-                  setSelectedDepartmentFilter(selectedDept);
-                  handleDepartmentChange(selectedDept);
-                }}
+                onChange={(e) => handleDepartmentChange(e.target.value)}
                 displayEmpty
               >
                 <MenuItem value="">All Departments</MenuItem>
-                {department.map((dep) => (
-                  <MenuItem key={dep.dprtmnt_id} value={dep.dprtmnt_name}>
+                {filteredDepartments.map((dep) => (
+                  <MenuItem key={dep.dprtmnt_id} value={String(dep.dprtmnt_id)}>
                     {dep.dprtmnt_name} ({dep.dprtmnt_code})
                   </MenuItem>
                 ))}
@@ -1439,12 +1494,12 @@ Admission Office`;
             <FormControl size="small" sx={{ width: "250px" }}>
               <Select
                 value={selectedProgramFilter}
-                onChange={(e) => setSelectedProgramFilter(e.target.value)}
+                onChange={(e) => handleProgramFilterChange(e.target.value)}
                 displayEmpty
               >
                 <MenuItem value="">All Programs</MenuItem>
-                {curriculumOptions.map((prog) => (
-                  <MenuItem key={prog.curriculum_id} value={prog.program_code}>
+                {filteredCurriculumOptions.map((prog) => (
+                  <MenuItem key={prog.curriculum_id} value={String(prog.curriculum_id)}>
                     {prog.program_code} - {prog.program_description}
                   </MenuItem>
                 ))}
@@ -1748,7 +1803,7 @@ Admission Office`;
 
                     {/* Program */}
                     <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}`, fontSize: "12px" }}>
-                      {curriculumOptions.find(
+                      {allCurriculums.find(
                         (item) => item.curriculum_id?.toString() === person.program?.toString()
                       )?.program_code ?? "N/A"}
                     </TableCell>
@@ -1820,7 +1875,7 @@ Admission Office`;
                               }
 
                               const sched = schedules.find(
-                                (s) => s.schedule_id === selectedSchedule
+                                (s) => Number(s.schedule_id) === Number(selectedSchedule)
                               );
 
                               if (!sched) {

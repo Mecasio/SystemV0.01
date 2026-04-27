@@ -312,7 +312,7 @@ const VerifyDocumentsSchedule = () => {
         const scheduleMonth = new Date(s.schedule_date).getMonth() + 1;
 
         const matchesCampus =
-            !selectedCampusFilter || s.branch === selectedCampusFilter;
+            !selectedCampusFilter || String(s.branch) === String(selectedCampusFilter);
 
         const matchesMonth =
             !selectedMonth || scheduleMonth === Number(selectedMonth);
@@ -490,6 +490,11 @@ const VerifyDocumentsSchedule = () => {
             minute: "2-digit",
             hour12: true,
         });
+    };
+
+    const getBranchLabel = (branchId) => {
+        const branch = branches.find((item) => Number(item.id) === Number(branchId));
+        return branch?.branch || branchId || "N/A";
     };
 
     const canCreate = true;
@@ -728,7 +733,7 @@ const VerifyDocumentsSchedule = () => {
                                     <em>All Campus</em>
                                 </MenuItem>
                                 {branches.map((b) => (
-                                    <MenuItem key={b.id} value={b.branch}>
+                                    <MenuItem key={b.id} value={b.id}>
                                         {b.branch}
                                     </MenuItem>
                                 ))}
@@ -1013,7 +1018,7 @@ const VerifyDocumentsSchedule = () => {
                             >
                                 <TableCell align="center" sx={cellStyle}>{index + 1}</TableCell>
                                 <TableCell align="center" sx={cellStyle}>
-                                    {s.branch}
+                                    {getBranchLabel(s.branch)}
                                 </TableCell>
                                 <TableCell align="center" sx={cellStyle}>
                                     {formatDate(s.schedule_date)}
@@ -1460,7 +1465,7 @@ const VerifyDocumentsSchedule = () => {
                                 onChange={(e) => setSelectedBranch(e.target.value)}
                             >
                                 {branches.map((b) => (
-                                    <MenuItem key={b.id} value={b.branch}>
+                                    <MenuItem key={b.id} value={b.id}>
                                         {b.branch}
                                     </MenuItem>
                                 ))}

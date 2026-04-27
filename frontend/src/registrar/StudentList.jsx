@@ -308,39 +308,55 @@ const StudentList = () => {
         setCampusAddress(settings.address || "");
     }, [settings, branches, person?.campus]);
 
-    // ⬇️ Add this inside Student List component, before useEffect
-    // fetchStudents will request the backend `/api/all-students` endpoint and store result in `persons`
     const fetchStudents = async () => {
+        if (!selectedDepartmentFilter) {
+            setPersons([]);
+            return;
+        }
+
         try {
             setLoading(true);
-            const res = await fetch(`${API_BASE_URL}/api/all-students`);
-            const data = await res.json();
+            const listRes = await fetch(
+                `${API_BASE_URL}/list_of_students?departmentId=${encodeURIComponent(selectedDepartmentFilter)}`
+            );
 
-            // Merge documents by student_number + year_id + semester_id
-            const mergedData = data.reduce((acc, doc) => {
-                const existing = acc.find(
-                    (p) =>
-                        String(p.student_number) === String(doc.student_number) &&
-                        String(p.year_id ?? "") === String(doc.year_id ?? "") &&
-                        String(p.semester_id ?? "") === String(doc.semester_id ?? "")
-                );
-                if (existing) {
-                    existing.documents.push({ id: doc.requirements_id, description: doc.description });
-                    // Keep the first non-empty academic values seen across duplicate rows
-                    existing.year_id = existing.year_id ?? doc.year_id;
-                    existing.semester_id = existing.semester_id ?? doc.semester_id;
-                    existing.year_description = existing.year_description ?? doc.year_description;
-                    existing.semester_description = existing.semester_description ?? doc.semester_description;
-                    existing.year_level_id = existing.year_level_id ?? doc.year_level_id;
-                    existing.year_level_description = existing.year_level_description ?? doc.year_level_description;
-                } else {
-                    acc.push({
-                        ...doc,
-                        documents: [{ id: doc.requirements_id, description: doc.description }],
-                    });
+            if (!listRes.ok) {
+                throw new Error("Failed to fetch student numbers");
+            }
+
+            const studentList = await listRes.json();
+            const fetchStudentData = async ({ student_number, active_school_year_id }) => {
+                try {
+                    const dataRes = await fetch(
+                        `${API_BASE_URL}/api/list_of_students/data/${encodeURIComponent(student_number)}/${encodeURIComponent(active_school_year_id)}`
+                    );
+
+                    if (dataRes.status === 404) return null;
+                    if (!dataRes.ok) {
+                        throw new Error(`Failed to fetch data for student ${student_number}`);
+                    }
+
+                    return dataRes.json();
+                } catch (err) {
+                    console.error(`Failed to fetch data for student ${student_number}:`, err);
+                    return null;
                 }
-                return acc;
-            }, []);
+            };
+
+            const studentDataResponses = [];
+            const batchSize = 10;
+            for (let i = 0; i < studentList.length; i += batchSize) {
+                const batch = studentList.slice(i, i + batchSize);
+                const batchResults = await Promise.all(batch.map(fetchStudentData));
+                studentDataResponses.push(...batchResults);
+            }
+
+            const mergedData = studentDataResponses
+                .filter(Boolean)
+                .map((student) => ({
+                    ...student,
+                    documents: [],
+                }));
 
             mergedData.sort((a, b) => {
                 const yearA = Number(a.year_id ?? Number.MAX_SAFE_INTEGER);
@@ -365,11 +381,6 @@ const StudentList = () => {
 
     // confirm states for actions removed (medical-specific toggle was removed)
 
-    useEffect(() => {
-        // Load the students on mount
-        fetchStudents();
-    }, []);
-
     const [curriculumOptions, setCurriculumOptions] = useState([]);
     const [selectedApplicantStatus, setSelectedApplicantStatus] = useState("");
     const [sortBy, setSortBy] = useState("name");
@@ -383,6 +394,16 @@ const StudentList = () => {
     const [semesters, setSchoolSemester] = useState([]);
     const [selectedSchoolYear, setSelectedSchoolYear] = useState("");
     const [selectedSchoolSemester, setSelectedSchoolSemester] = useState('');
+
+    useEffect(() => {
+        fetchStudents();
+    }, [selectedDepartmentFilter]);
+
+    useEffect(() => {
+        if (adminData?.dprtmnt_id) {
+            handleDepartmentChange(adminData.dprtmnt_id);
+        }
+    }, [adminData, allCurriculums]);
 
     useEffect(() => {
         axios
@@ -425,9 +446,43 @@ const StudentList = () => {
         setPreviewDialogOpen(true);
     };
 
-    const handleViewDocuments = () => {
-        setPreviewDialogOpen(false);
-        setViewDialogOpen(true);
+    const handleViewDocuments = async () => {
+        if (!selectedPerson?.person_id) {
+            setPreviewDialogOpen(false);
+            setViewDialogOpen(true);
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const res = await fetch(
+                `${API_BASE_URL}/api/list_of_students/documents/${encodeURIComponent(selectedPerson.person_id)}`
+            );
+
+            if (!res.ok) {
+                throw new Error("Failed to fetch student documents");
+            }
+
+            const documents = await res.json();
+            setSelectedPerson((prev) => ({
+                ...prev,
+                documents: documents.map((doc) => ({
+                    id: doc.requirements_id,
+                    description: doc.description,
+                })),
+            }));
+            setPreviewDialogOpen(false);
+            setViewDialogOpen(true);
+        } catch (err) {
+            console.error("Error fetching student documents:", err);
+            setSnack({
+                open: true,
+                message: "Failed to fetch student documents",
+                severity: "error",
+            });
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleCloseDialog = () => {
@@ -447,7 +502,6 @@ const StudentList = () => {
             ${personData.student_number}
             ${personData.program_description}
             ${personData.dprtmnt_code}
-            ${personData.description}
             `.toLowerCase();
             const matchesSearch = fullText.includes(searchQuery.toLowerCase());
 
@@ -456,16 +510,16 @@ const StudentList = () => {
                 !person.campus || personData.campus === person.campus
 
             const programInfo = allCurriculums.find(
-                (opt) => opt.curriculum_id?.toString() === (personData.program_id ?? personData.curriculum_id)?.toString()
+                (opt) => opt.curriculum_id?.toString() === personData.curriculum_id?.toString()
             );
 
             const matchesProgram = selectedProgramFilter === "" ||
-                (programInfo?.program_id === selectedProgramFilter) ||
-                (personData.program_id === selectedProgramFilter);
+                String(programInfo?.program_id ?? "") === String(selectedProgramFilter) ||
+                String(personData.program_id ?? "") === String(selectedProgramFilter);
 
             const matchesDepartment =
                 selectedDepartmentFilter === "" ||
-                programInfo?.dprtmnt_id === selectedDepartmentFilter;
+                String(programInfo?.dprtmnt_id ?? personData.dprtmnt_id) === String(selectedDepartmentFilter);
 
             const matchesSchoolYear =
                 selectedSchoolYear === "" ||
@@ -788,13 +842,14 @@ const StudentList = () => {
                          <td style="width:40%">${person.last_name}, ${person.first_name} ${person.middle_name || ""} ${person.extension || ""}</td>
                          <td style="width:15%">${person.program_code || ""}</td>                 
                          <td style="width:10%">${person.generalAverage1 || ""}</td>
-                         <td style="width:10%">${new Date(
-                        person.created_at.split("T")[0],
-                    ).toLocaleDateString("en-PH", {
-                        year: "numeric",
-                        month: "short",
-                        day: "2-digit",
-                    })}</td>
+                         <td style="width:10%">${person.created_at
+                            ? new Date(person.created_at.split("T")[0]).toLocaleDateString("en-PH", {
+                                year: "numeric",
+                                month: "short",
+                                day: "2-digit",
+                            })
+                            : ""
+                        }</td>
                     
                        </tr>
                      `,
@@ -1470,11 +1525,16 @@ const StudentList = () => {
                 <DialogTitle>STUDENT DOCUMENTS</DialogTitle>
                 <DialogContent sx={{ height: 400 }}>
                     <Grid container spacing={2}>
-                        {selectedPerson?.documents.map((doc, idx) => (
+                        {(selectedPerson?.documents ?? []).map((doc) => (
                             <Grid item xs={6} key={doc.id}>
                                 <Checkbox checked readOnly /> {doc.description}
                             </Grid>
                         ))}
+                        {(selectedPerson?.documents ?? []).length === 0 && (
+                            <Grid item xs={12}>
+                                <Typography color="text.secondary">No documents found.</Typography>
+                            </Grid>
+                        )}
                     </Grid>
                 </DialogContent>
                 <DialogActions>
@@ -1482,15 +1542,20 @@ const StudentList = () => {
                 </DialogActions>
             </Dialog>
 
-            {/* <Snackbar
+            <Snackbar
                 open={snack.open}
-                onClose={handleSnackClose}
-                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                autoHideDuration={4000}
+                onClose={() => setSnack((prev) => ({ ...prev, open: false }))}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             >
-                <Alert onClose={handleSnackClose} severity={snack.severity} sx={{ width: '100%' }}>
+                <Alert
+                    onClose={() => setSnack((prev) => ({ ...prev, open: false }))}
+                    severity={snack.severity}
+                    sx={{ width: '100%' }}
+                >
                     {snack.message}
                 </Alert>
-            </Snackbar> */}
+            </Snackbar>
 
         </Box>
     );

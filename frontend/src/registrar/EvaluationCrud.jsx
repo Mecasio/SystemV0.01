@@ -330,6 +330,34 @@ const EvaluationCRUD = () => {
         setCategoryDialogOpen(true);
     };
 
+    const handleDeleteCategory = async (categoryId) => {
+        if (window.confirm("Are you sure you want to delete this category?")) {
+            try {
+                await axios.delete(`${API_BASE_URL}/delete_category/${categoryId}`);
+                setSnackbarMessage("Category deleted successfully");
+                setOpenSnackbar(true);
+                fetchCategories();
+            } catch (err) {
+                console.error("Error deleting category:", err);
+                alert("Failed to delete category");
+            }
+        }
+    };
+
+    const handleDeleteQuestion = async (questionId) => {
+        if (window.confirm("Are you sure you want to delete this question?")) {
+            try {
+                await axios.delete(`${API_BASE_URL}/delete_question/${questionId}`);
+                setSnackbarMessage("Question deleted successfully");
+                setOpenSnackbar(true);
+                fetchQuestions();
+            } catch (err) {
+                console.error("Error deleting question:", err);
+                alert("Failed to delete question");
+            }
+        }
+    };
+
     // 🔒 Disable right-click
     document.addEventListener('contextmenu', (e) => e.preventDefault());
 
@@ -661,23 +689,44 @@ const EvaluationCRUD = () => {
                                     <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}`, }}>{cat.title}</TableCell>
                                     <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}`, }}>{cat.description}</TableCell>
                                     <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}`, }}>
-                                        <Button
-                                            variant="contained"
-                                            sx={{
-                                                backgroundColor: "green",
-                                                color: "white",
-                                                borderRadius: "5px",
-                                                padding: "8px 14px",
-                                                width: "100px",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                gap: "5px",
-                                            }}
-                                            onClick={() => handleEditCategory(cat)}
-                                        >
-                                            <EditIcon fontSize="small" /> Edit
-                                        </Button>
+                                        <Box sx={{ display: "flex", gap: 1, justifyContent: "center" }}>
+                                            <Button
+                                                variant="contained"
+                                                sx={{
+                                                    backgroundColor: "green",
+                                                    color: "white",
+                                                    borderRadius: "5px",
+                                                    padding: "8px 14px",
+                                                    minWidth: "100px",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                    gap: "5px",
+                                                    "&:hover": { backgroundColor: "#006400" },
+                                                }}
+                                                onClick={() => handleEditCategory(cat)}
+                                            >
+                                                <EditIcon fontSize="small" /> Edit
+                                            </Button>
+                                            <Button
+                                                variant="contained"
+                                                sx={{
+                                                    backgroundColor: "red",
+                                                    color: "white",
+                                                    borderRadius: "5px",
+                                                    padding: "8px 14px",
+                                                    minWidth: "100px",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                    gap: "5px",
+                                                    "&:hover": { backgroundColor: "#8B0000" },
+                                                }}
+                                                onClick={() => handleDeleteCategory(cat.id)}
+                                            >
+                                                <DeleteIcon fontSize="small" /> Delete
+                                            </Button>
+                                        </Box>
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -722,23 +771,49 @@ const EvaluationCRUD = () => {
                                     <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{q.fourth_choice}</TableCell>
                                     <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{q.fifth_choice}</TableCell>
                                     <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
-                                        <Button sx={{
-                                            backgroundColor: "green",
-                                            color: "white",
-                                            borderRadius: "5px",
-                                            padding: "8px 14px",
-                                            width: "100px",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            gap: "5px",
-                                        }} onClick={() => handleEdit(q)}>  <EditIcon fontSize="small" /> Edit</Button>
+                                        <Box sx={{ display: "flex", gap: 1, justifyContent: "center", flexWrap: "wrap" }}>
+                                            <Button 
+                                                sx={{
+                                                    backgroundColor: "green",
+                                                    color: "white",
+                                                    borderRadius: "5px",
+                                                    padding: "8px 14px",
+                                                    minWidth: "100px",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                    gap: "5px",
+                                                    "&:hover": { backgroundColor: "#006400" },
+                                                }} 
+                                                onClick={() => handleEdit(q)}
+                                            >
+                                                <EditIcon fontSize="small" /> Edit
+                                            </Button>
+                                            <Button
+                                                variant="contained"
+                                                sx={{
+                                                    backgroundColor: "red",
+                                                    color: "white",
+                                                    borderRadius: "5px",
+                                                    padding: "8px 14px",
+                                                    minWidth: "100px",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                    gap: "5px",
+                                                    "&:hover": { backgroundColor: "#8B0000" },
+                                                }}
+                                                onClick={() => handleDeleteQuestion(q.question_id)}
+                                            >
+                                                <DeleteIcon fontSize="small" /> Delete
+                                            </Button>
+                                        </Box>
                                     </TableCell>
                                 </TableRow>
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={7} align="center">No questions found</TableCell>
+                                <TableCell colSpan={10} align="center">No questions found</TableCell>
                             </TableRow>
                         )}
                     </TableBody>

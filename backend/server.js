@@ -1378,6 +1378,157 @@ app.get("/api/all-students", async (req, res) => {
   }
 });
 
+app.get("/list_of_students", async (req, res) => {
+  const { departmentId, dprtmnt_id } = req.query;
+  const selectedDepartmentId = departmentId || dprtmnt_id;
+
+  if (!selectedDepartmentId) {
+    return res.status(400).json({ message: "Department ID is required" });
+  }
+
+  try {
+    const [rows] = await db3.query(
+      `
+      SELECT
+        es.student_number,
+        es.active_school_year_id
+      FROM enrolled_subject es
+      INNER JOIN dprtmnt_curriculum_table dct
+        ON es.curriculum_id = dct.curriculum_id
+      INNER JOIN dprtmnt_table dpt
+        ON dct.dprtmnt_id = dpt.dprtmnt_id
+      WHERE dpt.dprtmnt_id = ?
+      GROUP BY es.student_number, es.active_school_year_id
+      ORDER BY es.active_school_year_id ASC
+      `,
+      [selectedDepartmentId],
+    );
+
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error("Error fetching student numbers by department:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+app.get("/api/list_of_students/data/:studentNumber/:activeSchoolYearId", async (req, res) => {
+  const { studentNumber, activeSchoolYearId } = req.params;
+
+  if (!studentNumber || !activeSchoolYearId) {
+    return res
+      .status(400)
+      .json({ message: "Student number and active school year ID are required" });
+  }
+
+  try {
+    const [rows] = await db3.query(
+      `
+      SELECT
+        pt.person_id,
+        pt.campus,
+        pt.first_name,
+        pt.middle_name,
+        pt.last_name,
+        pt.extension,
+        pt.birthOfDate,
+        pt.gender,
+        snt.student_number,
+        es.active_school_year_id,
+        asyt.year_id,
+        asyt.semester_id,
+        yt.year_description,
+        smt.semester_description,
+        ct.curriculum_id,
+        pgt.program_id,
+        pgt.program_description,
+        pgt.program_code,
+        dpt.dprtmnt_id,
+        dpt.dprtmnt_name,
+        dpt.dprtmnt_code,
+        sst.year_level_id,
+        es.en_remarks AS en_remarks,
+        es.en_remarks AS remark_summary,
+        ylt.year_level_description
+      FROM (
+        SELECT
+          student_number,
+          active_school_year_id,
+          curriculum_id,
+          MAX(en_remarks) AS en_remarks
+        FROM enrolled_subject
+        WHERE student_number = ?
+          AND active_school_year_id = ?
+        GROUP BY student_number, active_school_year_id, curriculum_id
+      ) es
+      INNER JOIN student_numbering_table snt
+        ON es.student_number = snt.student_number
+      INNER JOIN person_table pt
+        ON snt.person_id = pt.person_id
+      INNER JOIN curriculum_table ct
+        ON es.curriculum_id = ct.curriculum_id
+      INNER JOIN program_table pgt
+        ON ct.program_id = pgt.program_id
+      INNER JOIN dprtmnt_curriculum_table dct
+        ON es.curriculum_id = dct.curriculum_id
+      INNER JOIN dprtmnt_table dpt
+        ON dct.dprtmnt_id = dpt.dprtmnt_id
+      INNER JOIN student_status_table sst
+        ON es.student_number = sst.student_number
+       AND es.active_school_year_id = sst.active_school_year_id
+      INNER JOIN year_level_table ylt
+        ON sst.year_level_id = ylt.year_level_id
+      LEFT JOIN active_school_year_table asyt
+        ON es.active_school_year_id = asyt.id
+      LEFT JOIN year_table yt
+        ON asyt.year_id = yt.year_id
+      LEFT JOIN semester_table smt
+        ON asyt.semester_id = smt.semester_id
+        GROUP BY student_number, active_school_year_id, curriculum_id
+      `,
+      [studentNumber, activeSchoolYearId],
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ message: "Student data not found" });
+    }
+
+    res.status(200).json(rows[0]);
+  } catch (error) {
+    console.error("Error fetching student data:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+app.get("/api/list_of_students/documents/:personId", async (req, res) => {
+  const { personId } = req.params;
+
+  if (!personId) {
+    return res.status(400).json({ message: "Person ID is required" });
+  }
+
+  try {
+    const [rows] = await db3.query(
+      `
+      SELECT
+        rt.id AS requirements_id,
+        rt.description
+      FROM requirement_uploads ru
+      INNER JOIN requirements_table rt
+        ON ru.requirements_id = rt.id
+      WHERE ru.person_id = ?
+      GROUP BY ru.person_id, rt.id, rt.description
+      ORDER BY rt.id ASC
+      `,
+      [personId],
+    );
+
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error("Error fetching student documents:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 app.get("/api/all-applicants", async (req, res) => {
   try {
     const [rows] = await db.execute(`

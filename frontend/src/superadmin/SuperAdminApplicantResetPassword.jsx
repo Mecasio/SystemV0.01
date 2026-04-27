@@ -9,7 +9,7 @@ import {
   Paper,
   MenuItem,
   FormControl,
-  Select
+  Select,
 } from "@mui/material";
 import {
   Table,
@@ -30,23 +30,20 @@ import {
   School,
   SupervisorAccount,
   AdminPanelSettings,
-
 } from "@mui/icons-material";
-
 
 import API_BASE_URL from "../apiConfig";
 import DateField from "../components/DateField";
 
 const SuperAdminApplicantResetPassword = () => {
-
   const settings = useContext(SettingsContext);
 
   const [titleColor, setTitleColor] = useState("#000000");
   const [subtitleColor, setSubtitleColor] = useState("#555555");
   const [borderColor, setBorderColor] = useState("#000000");
   const [mainButtonColor, setMainButtonColor] = useState("#1976d2");
-  const [subButtonColor, setSubButtonColor] = useState("#ffffff");   // ✅ NEW
-  const [stepperColor, setStepperColor] = useState("#000000");       // ✅ NEW
+  const [subButtonColor, setSubButtonColor] = useState("#ffffff"); // ✅ NEW
+  const [stepperColor, setStepperColor] = useState("#000000"); // ✅ NEW
 
   const [fetchedLogo, setFetchedLogo] = useState(null);
   const [companyName, setCompanyName] = useState("");
@@ -60,9 +57,10 @@ const SuperAdminApplicantResetPassword = () => {
     if (settings.title_color) setTitleColor(settings.title_color);
     if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
     if (settings.border_color) setBorderColor(settings.border_color);
-    if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
-    if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);   // ✅ NEW
-    if (settings.stepper_color) setStepperColor(settings.stepper_color);           // ✅ NEW
+    if (settings.main_button_color)
+      setMainButtonColor(settings.main_button_color);
+    if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color); // ✅ NEW
+    if (settings.stepper_color) setStepperColor(settings.stepper_color); // ✅ NEW
 
     // 🏫 Logo
     if (settings.logo_url) {
@@ -75,7 +73,6 @@ const SuperAdminApplicantResetPassword = () => {
     if (settings.company_name) setCompanyName(settings.company_name);
     if (settings.short_term) setShortTerm(settings.short_term);
     if (settings.campus_address) setCampusAddress(settings.campus_address);
-
   }, [settings]);
 
   const [snackbar, setSnackbar] = useState({
@@ -85,17 +82,33 @@ const SuperAdminApplicantResetPassword = () => {
   });
 
   const tabs = [
-    { label: "Applicant Reset Password", to: "/superadmin_applicant_reset_password", icon: <People fontSize="large" /> },
-    { label: "Student Reset Password", to: "/superadmin_student_reset_password", icon: <School fontSize="large" /> },
-    { label: "Faculty Reset Password", to: "/superadmin_faculty_reset_password", icon: <SupervisorAccount fontSize="large" /> },
-    { label: "Registrar Reset Password", to: "/superadmin_registrar_reset_password", icon: <AdminPanelSettings fontSize="large" /> },
+    {
+      label: "Applicant Reset Password",
+      to: "/superadmin_applicant_reset_password",
+      icon: <People fontSize="large" />,
+    },
+    {
+      label: "Student Reset Password",
+      to: "/superadmin_student_reset_password",
+      icon: <School fontSize="large" />,
+    },
+    {
+      label: "Faculty Reset Password",
+      to: "/superadmin_faculty_reset_password",
+      icon: <SupervisorAccount fontSize="large" />,
+    },
+    {
+      label: "Registrar Reset Password",
+      to: "/superadmin_registrar_reset_password",
+      icon: <AdminPanelSettings fontSize="large" />,
+    },
   ];
-
 
   const navigate = useNavigate();
   const [activeStep, setActiveStep] = useState(0);
-  const [clickedSteps, setClickedSteps] = useState(Array(tabs.length).fill(false));
-
+  const [clickedSteps, setClickedSteps] = useState(
+    Array(tabs.length).fill(false),
+  );
 
   const handleStepClick = (index, to) => {
     setActiveStep(index);
@@ -119,7 +132,6 @@ const SuperAdminApplicantResetPassword = () => {
   const [employeeID, setEmployeeID] = useState("");
 
   useEffect(() => {
-
     const storedUser = localStorage.getItem("email");
     const storedRole = localStorage.getItem("role");
     const storedID = localStorage.getItem("person_id");
@@ -143,7 +155,9 @@ const SuperAdminApplicantResetPassword = () => {
 
   const checkAccess = async (employeeID) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`);
+      const response = await axios.get(
+        `${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`,
+      );
 
       if (response.data?.page_privilege === 1) {
         setHasAccess(true);
@@ -168,9 +182,12 @@ const SuperAdminApplicantResetPassword = () => {
       setResetMsg("");
       setSearchError("");
       try {
-        const res = await axios.post(`${API_BASE_URL}/superadmin-get-applicant`, {
-          email: searchQuery,
-        });
+        const res = await axios.post(
+          `${API_BASE_URL}/superadmin-get-applicant`,
+          {
+            email: searchQuery,
+          },
+        );
         setUserInfo(res.data);
       } catch (err) {
         setSearchError(err.response?.data?.message || "No applicant found.");
@@ -190,7 +207,9 @@ const SuperAdminApplicantResetPassword = () => {
     const fetchApplicants = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`${API_BASE_URL}/superadmin-get-all-applicants`);
+        const res = await axios.get(
+          `${API_BASE_URL}/superadmin-get-all-applicants`,
+        );
         setApplicants(res.data);
       } catch (err) {
         console.error("Failed to fetch applicants", err);
@@ -210,7 +229,7 @@ const SuperAdminApplicantResetPassword = () => {
     try {
       const res = await axios.post(
         `${API_BASE_URL}/superadmin-reset-applicant`,
-        { email: userInfo.email }
+        { email: userInfo.email },
       );
 
       setSnackbar({
@@ -218,7 +237,6 @@ const SuperAdminApplicantResetPassword = () => {
         message: res.data.message,
         severity: "success",
       });
-
     } catch (err) {
       setSnackbar({
         open: true,
@@ -297,7 +315,6 @@ const SuperAdminApplicantResetPassword = () => {
     border: `1px solid ${borderColor}`,
   };
 
-
   const handleNameClick = async (applicant) => {
     setSearchQuery(applicant.email);
     setPageLoading(true);
@@ -343,7 +360,7 @@ const SuperAdminApplicantResetPassword = () => {
         {
           email: userInfo.email,
           status: userInfo.status,
-        }
+        },
       );
 
       // ✅ UPDATE TABLE STATE (IMPORTANT)
@@ -351,8 +368,8 @@ const SuperAdminApplicantResetPassword = () => {
         prev.map((applicant) =>
           applicant.email === userInfo.email
             ? { ...applicant, status: userInfo.status }
-            : applicant
-        )
+            : applicant,
+        ),
       );
 
       setSnackbar({
@@ -360,7 +377,6 @@ const SuperAdminApplicantResetPassword = () => {
         message: res.data.message || "Status updated successfully",
         severity: "success",
       });
-
     } catch (err) {
       setSnackbar({
         open: true,
@@ -381,7 +397,16 @@ const SuperAdminApplicantResetPassword = () => {
   }
 
   return (
-    <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
+    <Box
+      sx={{
+        height: "calc(100vh - 150px)",
+        overflowY: "auto",
+        paddingRight: 1,
+        backgroundColor: "transparent",
+        mt: 1,
+        padding: 2,
+      }}
+    >
       {/* Header */}
       <Box
         sx={{
@@ -391,7 +416,6 @@ const SuperAdminApplicantResetPassword = () => {
           flexWrap: "wrap",
 
           mb: 2,
-
         }}
       >
         <Typography
@@ -451,7 +475,10 @@ const SuperAdminApplicantResetPassword = () => {
               cursor: "pointer",
               borderRadius: 2,
               border: `1px solid ${borderColor}`,
-              backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
+              backgroundColor:
+                activeStep === index
+                  ? settings?.header_color || "#1976d2"
+                  : "#E8C999",
               color: activeStep === index ? "#fff" : "#000",
               boxShadow:
                 activeStep === index
@@ -463,9 +490,17 @@ const SuperAdminApplicantResetPassword = () => {
               },
             }}
           >
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+            >
               <Box sx={{ fontSize: 40, mb: 1 }}>{tab.icon}</Box>
-              <Typography sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}>
+              <Typography
+                sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}
+              >
                 {tab.label}
               </Typography>
             </Box>
@@ -478,7 +513,6 @@ const SuperAdminApplicantResetPassword = () => {
 
       <TableContainer component={Paper} sx={{ width: "100%" }}>
         <Table size="small">
-
           {/* 🔥 TOP HEADER (Pagination + Total) */}
           <TableHead>
             <TableRow>
@@ -491,8 +525,11 @@ const SuperAdminApplicantResetPassword = () => {
                   color: "white",
                 }}
               >
-                <Box display="flex" justifyContent="space-between" alignItems="center">
-
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
                   {/* LEFT: TOTAL COUNT */}
                   <Typography fontSize="14px" fontWeight="bold" color="white">
                     Total Applicants: {applicants.length}
@@ -500,7 +537,6 @@ const SuperAdminApplicantResetPassword = () => {
 
                   {/* RIGHT: PAGINATION CONTROLS */}
                   <Box display="flex" alignItems="center" gap={1}>
-
                     {/* FIRST */}
                     <Button
                       onClick={() => setCurrentPage(1)}
@@ -514,7 +550,9 @@ const SuperAdminApplicantResetPassword = () => {
 
                     {/* PREV */}
                     <Button
-                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
                       disabled={currentPage === 1}
                       variant="outlined"
                       size="small"
@@ -530,7 +568,7 @@ const SuperAdminApplicantResetPassword = () => {
                         onChange={(e) => setCurrentPage(Number(e.target.value))}
                         sx={paginationSelectStyle}
                         MenuProps={{
-                          PaperProps: { sx: { maxHeight: 200 } }
+                          PaperProps: { sx: { maxHeight: 200 } },
                         }}
                       >
                         {Array.from({ length: totalPages }, (_, i) => (
@@ -547,7 +585,9 @@ const SuperAdminApplicantResetPassword = () => {
 
                     {/* NEXT */}
                     <Button
-                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
                       disabled={currentPage === totalPages}
                       variant="outlined"
                       size="small"
@@ -573,12 +613,60 @@ const SuperAdminApplicantResetPassword = () => {
 
             {/* 🔥 COLUMN HEADERS */}
             <TableRow>
-              <TableCell sx={{ ...headerStyle, backgroundColor: "white", color: "black" }}>#</TableCell>
-              <TableCell sx={{ ...headerStyle, backgroundColor: "white", color: "black" }}>Applicant Number</TableCell>
-              <TableCell sx={{ ...headerStyle, backgroundColor: "white", color: "black" }}>Full Name</TableCell>
-              <TableCell sx={{ ...headerStyle, backgroundColor: "white", color: "black" }}>Birthday</TableCell>
-              <TableCell sx={{ ...headerStyle, backgroundColor: "white", color: "black" }}>Email</TableCell>
-              <TableCell sx={{ ...headerStyle, backgroundColor: "white", color: "black" }}>Status</TableCell>
+              <TableCell
+                sx={{
+                  ...headerStyle,
+                  backgroundColor: "white",
+                  color: "black",
+                }}
+              >
+                #
+              </TableCell>
+              <TableCell
+                sx={{
+                  ...headerStyle,
+                  backgroundColor: "white",
+                  color: "black",
+                }}
+              >
+                Applicant Number
+              </TableCell>
+              <TableCell
+                sx={{
+                  ...headerStyle,
+                  backgroundColor: "white",
+                  color: "black",
+                }}
+              >
+                Full Name
+              </TableCell>
+              <TableCell
+                sx={{
+                  ...headerStyle,
+                  backgroundColor: "white",
+                  color: "black",
+                }}
+              >
+                Birthday
+              </TableCell>
+              <TableCell
+                sx={{
+                  ...headerStyle,
+                  backgroundColor: "white",
+                  color: "black",
+                }}
+              >
+                Email
+              </TableCell>
+              <TableCell
+                sx={{
+                  ...headerStyle,
+                  backgroundColor: "white",
+                  color: "black",
+                }}
+              >
+                Status
+              </TableCell>
             </TableRow>
           </TableHead>
 
@@ -598,11 +686,26 @@ const SuperAdminApplicantResetPassword = () => {
                     backgroundColor: index % 2 === 0 ? "#ffffff" : "lightgray", // 👈 alternating
                   }}
                 >
-                  <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>
+                  <TableCell
+                    align="center"
+                    sx={{ border: `1px solid ${borderColor}` }}
+                  >
                     {indexOfFirstRow + index + 1}
                   </TableCell>
 
-                  <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>
+                  <TableCell
+                    align="center"
+                    sx={{
+                      border: `1px solid ${borderColor}`,
+                      color: "blue",
+                      cursor: "pointer",
+
+                      "&:hover": {
+                        textDecoration: "underline",
+                      },
+                    }}
+                    onClick={() => handleNameClick(applicant)}
+                  >
                     {applicant.applicant_number}
                   </TableCell>
 
@@ -612,7 +715,7 @@ const SuperAdminApplicantResetPassword = () => {
                       border: `1px solid ${borderColor}`,
                       color: "blue",
                       cursor: "pointer",
-                      fontWeight: 500,
+
                       "&:hover": {
                         textDecoration: "underline",
                       },
@@ -622,12 +725,17 @@ const SuperAdminApplicantResetPassword = () => {
                     {applicant.fullName}
                   </TableCell>
 
-
-                  <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>
+                  <TableCell
+                    align="center"
+                    sx={{ border: `1px solid ${borderColor}` }}
+                  >
                     {formatDateLong(applicant.birthdate)}
                   </TableCell>
 
-                  <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>
+                  <TableCell
+                    align="center"
+                    sx={{ border: `1px solid ${borderColor}` }}
+                  >
                     {applicant.email}
                   </TableCell>
 
@@ -645,15 +753,11 @@ const SuperAdminApplicantResetPassword = () => {
               ))
             )}
           </TableBody>
-
         </Table>
       </TableContainer>
       <TableContainer component={Paper}>
-
         <Table size="small">
-
           <TableHead>
-
             {/* PAGINATION BAR */}
             <TableRow>
               <TableCell
@@ -665,8 +769,11 @@ const SuperAdminApplicantResetPassword = () => {
                   color: "white",
                 }}
               >
-                <Box display="flex" justifyContent="space-between" alignItems="center">
-
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
                   {/* LEFT: TOTAL COUNT */}
                   <Typography fontSize="14px" fontWeight="bold" color="white">
                     Total Applicants: {applicants.length}
@@ -674,7 +781,6 @@ const SuperAdminApplicantResetPassword = () => {
 
                   {/* RIGHT: PAGINATION CONTROLS */}
                   <Box display="flex" alignItems="center" gap={1}>
-
                     {/* FIRST */}
                     <Button
                       onClick={() => setCurrentPage(1)}
@@ -688,7 +794,9 @@ const SuperAdminApplicantResetPassword = () => {
 
                     {/* PREV */}
                     <Button
-                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
                       disabled={currentPage === 1}
                       variant="outlined"
                       size="small"
@@ -704,7 +812,7 @@ const SuperAdminApplicantResetPassword = () => {
                         onChange={(e) => setCurrentPage(Number(e.target.value))}
                         sx={paginationSelectStyle}
                         MenuProps={{
-                          PaperProps: { sx: { maxHeight: 200 } }
+                          PaperProps: { sx: { maxHeight: 200 } },
                         }}
                       >
                         {Array.from({ length: totalPages }, (_, i) => (
@@ -721,7 +829,9 @@ const SuperAdminApplicantResetPassword = () => {
 
                     {/* NEXT */}
                     <Button
-                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
                       disabled={currentPage === totalPages}
                       variant="outlined"
                       size="small"
@@ -744,31 +854,36 @@ const SuperAdminApplicantResetPassword = () => {
                 </Box>
               </TableCell>
             </TableRow>
-
-
           </TableHead>
-
         </Table>
-
       </TableContainer>
 
       <br />
       <br />
-      <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
+      <TableContainer
+        component={Paper}
+        sx={{ width: "100%", border: `1px solid ${borderColor}` }}
+      >
         <Table>
-          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
+          <TableHead
+            sx={{ backgroundColor: settings?.header_color || "#1976d2" }}
+          >
             <TableRow>
-              <TableCell sx={{ color: 'white', textAlign: "Center" }}>Applicant Information</TableCell>
+              <TableCell sx={{ color: "white", textAlign: "Center" }}>
+                Applicant Information
+              </TableCell>
             </TableRow>
           </TableHead>
         </Table>
       </TableContainer>
 
-
-
       {/* Info Panel */}
-      <Paper sx={{ p: 3, border: `1px solid ${borderColor}`, }}>
-        <Box display="grid" gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr" }} gap={2}>
+      <Paper sx={{ p: 3, border: `1px solid ${borderColor}` }}>
+        <Box
+          display="grid"
+          gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr" }}
+          gap={2}
+        >
           <TextField
             label="Applicant Number"
             value={userInfo?.applicant_number || ""}
@@ -796,7 +911,7 @@ const SuperAdminApplicantResetPassword = () => {
           <TextField
             select
             label="Status"
-            value={userInfo ? userInfo.status ?? "" : ""}
+            value={userInfo ? (userInfo.status ?? "") : ""}
             fullWidth
             onChange={(e) =>
               setUserInfo((prev) => ({
@@ -833,26 +948,20 @@ const SuperAdminApplicantResetPassword = () => {
         </Box>
       </Paper>
 
-
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}
-        onClose={() =>
-          setSnackbar((prev) => ({ ...prev, open: false }))
-        }
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert
           severity={snackbar.severity}
-          onClose={() =>
-            setSnackbar((prev) => ({ ...prev, open: false }))
-          }
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
           sx={{ width: "100%" }}
         >
           {snackbar.message}
         </Alert>
       </Snackbar>
-
     </Box>
   );
 };

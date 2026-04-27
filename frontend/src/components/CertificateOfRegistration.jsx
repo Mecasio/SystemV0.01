@@ -293,6 +293,7 @@ const CertificateOfRegistration = forwardRef(
     const [subjectCounts, setSubjectCounts] = useState({});
     const [year_Level_Description, setYearLevelDescription] = useState(null);
     const [activeSchoolYear, setActiveSchoolYear] = useState([]);
+    const [corActiveSchoolYearId, setCorActiveSchoolYearId] = useState("");
     const [major, setMajor] = useState(null);
 
     // Track when all critical data is loaded
@@ -350,7 +351,11 @@ const CertificateOfRegistration = forwardRef(
     useEffect(() => {
       if (userId && currId) {
         axios
-          .get(`${API_BASE_URL}/enrolled_courses/${userId}/${currId}`)
+          .get(`${API_BASE_URL}/enrolled_courses/${userId}/${currId}`, {
+            params: corActiveSchoolYearId
+              ? { activeSchoolYearId: corActiveSchoolYearId }
+              : {},
+          })
           .then((res) => {
             setEnrolled(res.data);
             setDataLoaded((prev) => ({ ...prev, enrolled: true }));
@@ -362,7 +367,7 @@ const CertificateOfRegistration = forwardRef(
       } else {
         setDataLoaded((prev) => ({ ...prev, enrolled: true }));
       }
-    }, [userId, currId]);
+    }, [userId, currId, corActiveSchoolYearId]);
 
     // Fetch department sections when component mounts
     useEffect(() => {
@@ -448,6 +453,12 @@ const CertificateOfRegistration = forwardRef(
       setCourseUnit(tagged.courseUnit ?? tagged.course_unit ?? "");
       setLabUnit(tagged.labUnit ?? tagged.lab_unit ?? "");
       setPersonID(personId);
+      setCorActiveSchoolYearId(
+        tagged.active_school_year_id ??
+          tagged.activeSchoolYearId ??
+          tagged.corData?.active_school_year_id ??
+          "",
+      );
       setYearLevelDescription(
         tagged.year_level_description ?? tagged.yearLevelDescription ?? "",
       );
@@ -476,17 +487,54 @@ const CertificateOfRegistration = forwardRef(
           const { studentNum, activeCurriculum } = applyTaggedStudent(tagged);
           if (!studentNum && !student_number) return;
 
-          // 2. Fetch full student data (COR info)
-          const corResponse = await axios.get(
-            `${API_BASE_URL}/student-data/${studentNum}`,
-          );
-          const fullData = corResponse.data;
-          setData([fullData]); // Wrap in array for data[0] compatibility
+          const fullData = {
+            ...(tagged.corData || {}),
+            student_number: studentNum,
+            first_name: tagged.first_name ?? tagged.firstName ?? tagged.corData?.first_name ?? "",
+            middle_name: tagged.middle_name ?? tagged.middleName ?? tagged.corData?.middle_name ?? "",
+            last_name: tagged.last_name ?? tagged.lastName ?? tagged.corData?.last_name ?? "",
+            extension: tagged.extension || tagged.corData?.extension || "",
+            major: tagged.major || tagged.corData?.major || "",
+            year_level_description:
+              tagged.year_level_description ??
+              tagged.yearLevelDescription ??
+              tagged.corData?.year_level_description ??
+              "",
+            year_description:
+              tagged.year_description ?? tagged.yearDesc ?? tagged.corData?.year_description ?? "",
+            curriculum_id: activeCurriculum,
+            active_school_year_id:
+              tagged.active_school_year_id ??
+              tagged.activeSchoolYearId ??
+              tagged.corData?.active_school_year_id ??
+              "",
+            program: activeCurriculum || tagged.program || tagged.corData?.program || "",
+            departmentName:
+              tagged.dprtmnt_name ??
+              tagged.departmentName ??
+              tagged.corData?.departmentName ??
+              "",
+            dprtmnt_name:
+              tagged.dprtmnt_name ??
+              tagged.departmentName ??
+              tagged.corData?.dprtmnt_name ??
+              "",
+            college:
+              tagged.dprtmnt_name ??
+              tagged.departmentName ??
+              tagged.corData?.college ??
+              "",
+            age: tagged.age ?? tagged.corData?.age ?? "",
+            gender: tagged.gender ?? tagged.corData?.gender ?? "",
+            email: tagged.email ?? tagged.corData?.email ?? tagged.emailAddress ?? "",
+            emailAddress:
+              tagged.emailAddress ?? tagged.email ?? tagged.corData?.emailAddress ?? "",
+          };
 
-          // 3. Set additional fields: gender, age, email, program
-          setGender(fullData.gender || null);
-          setAge(fullData.age || null);
-          setEmail(fullData.email || null);
+          setData([fullData]);
+          setGender(fullData.gender ?? null);
+          setAge(fullData.age ?? null);
+          setEmail(fullData.email || fullData.emailAddress || null);
           setProgram(activeCurriculum);
 
           // Small delay to ensure state is updated before signaling ready

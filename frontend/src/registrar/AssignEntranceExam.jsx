@@ -239,7 +239,7 @@ const AssignEntranceExam = () => {
     const scheduleMonth = new Date(s.schedule_date).getMonth() + 1;
 
     const matchesCampus =
-      !selectedCampusFilter || s.branch === selectedCampusFilter;
+      !selectedCampusFilter || String(s.branch) === String(selectedCampusFilter);
 
     const matchesMonth =
       !selectedMonth || scheduleMonth === Number(selectedMonth);
@@ -434,6 +434,11 @@ const AssignEntranceExam = () => {
       hour12: true,
 
     });
+  };
+
+  const getBranchLabel = (branchId) => {
+    const branch = branches.find((item) => String(item.id) === String(branchId));
+    return branch?.branch || branchId || "N/A";
   };
 
   const canCreate = true;
@@ -661,7 +666,7 @@ const AssignEntranceExam = () => {
                   <em>All Campus</em>
                 </MenuItem>
                 {branches.map((b) => (
-                  <MenuItem key={b.id} value={b.branch}>
+                  <MenuItem key={b.id} value={String(b.id)}>
                     {b.branch}
                   </MenuItem>
                 ))}
@@ -942,7 +947,7 @@ const AssignEntranceExam = () => {
               {paginatedSchedules.map((s, index) => (
                 <TableRow key={`${s.id}-${s.day_description}`}>
                   <TableCell align="center" sx={cellStyle}>{index + 1}</TableCell>
-                  <TableCell align="center" sx={cellStyle}>{s.branch}</TableCell>
+                  <TableCell align="center" sx={cellStyle}>{getBranchLabel(s.branch)}</TableCell>
                   <TableCell align="center" sx={cellStyle}>{formatDate(s.day_description)}</TableCell>
                   <TableCell align="center" sx={cellStyle}>{s.building_description}</TableCell>
                   <TableCell align="center" sx={cellStyle}>{s.room_description}</TableCell>
@@ -1349,7 +1354,7 @@ const AssignEntranceExam = () => {
                 onChange={(e) => setSelectedBranch(e.target.value)}
               >
                 {branches.map((b) => (
-                  <MenuItem key={b.id} value={b.branch}>
+                  <MenuItem key={b.id} value={String(b.id)}>
                     {b.branch}
                   </MenuItem>
                 ))}

@@ -18,7 +18,7 @@ import {
   TableRow,
   FormControl,
   Select,
-  Card
+  Card,
 } from "@mui/material";
 import { Snackbar, Alert } from "@mui/material";
 
@@ -32,7 +32,6 @@ import {
   School,
   SupervisorAccount,
   AdminPanelSettings,
-
 } from "@mui/icons-material";
 
 const SuperAdminRegistrarResetPassword = () => {
@@ -42,8 +41,8 @@ const SuperAdminRegistrarResetPassword = () => {
   const [subtitleColor, setSubtitleColor] = useState("#555555");
   const [borderColor, setBorderColor] = useState("#000000");
   const [mainButtonColor, setMainButtonColor] = useState("#1976d2");
-  const [subButtonColor, setSubButtonColor] = useState("#ffffff");   // ✅ NEW
-  const [stepperColor, setStepperColor] = useState("#000000");       // ✅ NEW
+  const [subButtonColor, setSubButtonColor] = useState("#ffffff"); // ✅ NEW
+  const [stepperColor, setStepperColor] = useState("#000000"); // ✅ NEW
 
   const [fetchedLogo, setFetchedLogo] = useState(null);
   const [companyName, setCompanyName] = useState("");
@@ -57,9 +56,10 @@ const SuperAdminRegistrarResetPassword = () => {
     if (settings.title_color) setTitleColor(settings.title_color);
     if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
     if (settings.border_color) setBorderColor(settings.border_color);
-    if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
-    if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);   // ✅ NEW
-    if (settings.stepper_color) setStepperColor(settings.stepper_color);           // ✅ NEW
+    if (settings.main_button_color)
+      setMainButtonColor(settings.main_button_color);
+    if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color); // ✅ NEW
+    if (settings.stepper_color) setStepperColor(settings.stepper_color); // ✅ NEW
 
     // 🏫 Logo
     if (settings.logo_url) {
@@ -72,10 +72,7 @@ const SuperAdminRegistrarResetPassword = () => {
     if (settings.company_name) setCompanyName(settings.company_name);
     if (settings.short_term) setShortTerm(settings.short_term);
     if (settings.campus_address) setCampusAddress(settings.campus_address);
-
   }, [settings]);
-
-
 
   const [userID, setUserID] = useState("");
   const [user, setUser] = useState("");
@@ -88,11 +85,9 @@ const SuperAdminRegistrarResetPassword = () => {
   const pageId = 83;
 
   const [employeeID, setEmployeeID] = useState("");
-  const [searchLoading, setSearchLoading] = useState(false);  // for search/reset
-
+  const [searchLoading, setSearchLoading] = useState(false); // for search/reset
 
   useEffect(() => {
-
     const storedUser = localStorage.getItem("email");
     const storedRole = localStorage.getItem("role");
     const storedID = localStorage.getItem("person_id");
@@ -116,14 +111,16 @@ const SuperAdminRegistrarResetPassword = () => {
 
   const checkAccess = async (employeeID) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`);
+      const response = await axios.get(
+        `${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`,
+      );
       if (response.data && response.data.page_privilege === 1) {
         setHasAccess(true);
       } else {
         setHasAccess(false);
       }
     } catch (error) {
-      console.error('Error checking access:', error);
+      console.error("Error checking access:", error);
       setHasAccess(false);
       if (error.response && error.response.data.message) {
         console.log(error.response.data.message);
@@ -135,17 +132,33 @@ const SuperAdminRegistrarResetPassword = () => {
   };
 
   const tabs = [
-    { label: "Applicant Reset Password", to: "/superadmin_applicant_reset_password", icon: <People fontSize="large" /> },
-    { label: "Student Reset Password", to: "/superadmin_student_reset_password", icon: <School fontSize="large" /> },
-    { label: "Faculty Reset Password", to: "/superadmin_faculty_reset_password", icon: <SupervisorAccount fontSize="large" /> },
-    { label: "Registrar Reset Password", to: "/superadmin_registrar_reset_password", icon: <AdminPanelSettings fontSize="large" /> },
+    {
+      label: "Applicant Reset Password",
+      to: "/superadmin_applicant_reset_password",
+      icon: <People fontSize="large" />,
+    },
+    {
+      label: "Student Reset Password",
+      to: "/superadmin_student_reset_password",
+      icon: <School fontSize="large" />,
+    },
+    {
+      label: "Faculty Reset Password",
+      to: "/superadmin_faculty_reset_password",
+      icon: <SupervisorAccount fontSize="large" />,
+    },
+    {
+      label: "Registrar Reset Password",
+      to: "/superadmin_registrar_reset_password",
+      icon: <AdminPanelSettings fontSize="large" />,
+    },
   ];
-
 
   const navigate = useNavigate();
   const [activeStep, setActiveStep] = useState(3);
-  const [clickedSteps, setClickedSteps] = useState(Array(tabs.length).fill(false));
-
+  const [clickedSteps, setClickedSteps] = useState(
+    Array(tabs.length).fill(false),
+  );
 
   const handleStepClick = (index, to) => {
     setActiveStep(index);
@@ -164,7 +177,9 @@ const SuperAdminRegistrarResetPassword = () => {
     const fetchRegistrars = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`${API_BASE_URL}/superadmin-get-all-registrar`);
+        const res = await axios.get(
+          `${API_BASE_URL}/superadmin-get-all-registrar`,
+        );
         setRegistrars(res.data);
       } catch (err) {
         console.error("Failed to fetch registrars", err);
@@ -197,29 +212,27 @@ const SuperAdminRegistrarResetPassword = () => {
         return;
       }
 
-      setSearchLoading(true);  // ✅ use searchLoading
+      setSearchLoading(true); // ✅ use searchLoading
       setResetMsg("");
       setSearchError("");
 
       try {
         const res = await axios.post(
           `${API_BASE_URL}/superadmin-get-registrar`,
-          { search: searchQuery }
+          { search: searchQuery },
         );
         setUserInfo(res.data);
       } catch (err) {
         setSearchError(err.response?.data?.message || "No registrar found.");
         setUserInfo(null);
       } finally {
-        setSearchLoading(false);  // ✅ use searchLoading
+        setSearchLoading(false); // ✅ use searchLoading
       }
     };
 
     const delayDebounce = setTimeout(fetchInfo, 600);
     return () => clearTimeout(delayDebounce);
   }, [searchQuery]);
-
-
 
   const handleReset = async () => {
     if (!userInfo) return;
@@ -228,7 +241,7 @@ const SuperAdminRegistrarResetPassword = () => {
     try {
       const res = await axios.post(
         `${API_BASE_URL}/forgot-password-registrar`,
-        { email: userInfo.email }
+        { email: userInfo.email },
       );
 
       setSnackbar({
@@ -236,7 +249,6 @@ const SuperAdminRegistrarResetPassword = () => {
         message: res.data.message,
         severity: "success",
       });
-
     } catch (err) {
       setSnackbar({
         open: true,
@@ -248,39 +260,33 @@ const SuperAdminRegistrarResetPassword = () => {
     }
   };
 
-
   // ✅ Change account status
   const handleStatusChange = async (e) => {
     const newStatus = parseInt(e.target.value, 10);
     setUserInfo((prev) => ({ ...prev, status: newStatus }));
 
     try {
-      await axios.post(
-        `${API_BASE_URL}/superadmin-update-status-registrar`,
-        {
-          email: userInfo.email,
-          status: newStatus,
-        }
-      );
+      await axios.post(`${API_BASE_URL}/superadmin-update-status-registrar`, {
+        email: userInfo.email,
+        status: newStatus,
+      });
     } catch (err) {
       console.error("Failed to update status", err);
     }
   };
 
-
   /* =====================================
      DATE FORMAT
   ===================================== */
   const formatDate = (date) => {
-
     if (!date) return "";
 
-    return new Date(date).toLocaleDateString(
-      "en-US",
-      { year: "numeric", month: "long", day: "numeric" }
-    );
+    return new Date(date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
   };
-
 
   // ================= STYLES =================
   const headerCellStyle = {
@@ -289,8 +295,6 @@ const SuperAdminRegistrarResetPassword = () => {
     fontSize: "12px",
     border: `1px solid ${borderColor}`,
   };
-
-
 
   const headerStyle = {
     textAlign: "center",
@@ -312,7 +316,6 @@ const SuperAdminRegistrarResetPassword = () => {
     },
   };
 
-
   const paginationButtonStyle = {
     minWidth: 70,
     color: "white",
@@ -330,7 +333,6 @@ const SuperAdminRegistrarResetPassword = () => {
     },
   };
 
-
   if (loading || hasAccess === null) {
     return <LoadingOverlay open={loading} message="Checking Access..." />;
   }
@@ -341,7 +343,16 @@ const SuperAdminRegistrarResetPassword = () => {
 
   // ✅ Main Component
   return (
-    <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
+    <Box
+      sx={{
+        height: "calc(100vh - 150px)",
+        overflowY: "auto",
+        paddingRight: 1,
+        backgroundColor: "transparent",
+        mt: 1,
+        padding: 2,
+      }}
+    >
       {/* Header */}
       <Box
         sx={{
@@ -351,7 +362,6 @@ const SuperAdminRegistrarResetPassword = () => {
           flexWrap: "wrap",
 
           mb: 2,
-
         }}
       >
         <Typography
@@ -378,7 +388,6 @@ const SuperAdminRegistrarResetPassword = () => {
             startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
           }}
         />
-
       </Box>
 
       {searchError && <Typography color="error">{searchError}</Typography>}
@@ -407,7 +416,10 @@ const SuperAdminRegistrarResetPassword = () => {
               cursor: "pointer",
               borderRadius: 2,
               border: `1px solid ${borderColor}`,
-              backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
+              backgroundColor:
+                activeStep === index
+                  ? settings?.header_color || "#1976d2"
+                  : "#E8C999",
               color: activeStep === index ? "#fff" : "#000",
               boxShadow:
                 activeStep === index
@@ -419,9 +431,17 @@ const SuperAdminRegistrarResetPassword = () => {
               },
             }}
           >
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+            >
               <Box sx={{ fontSize: 40, mb: 1 }}>{tab.icon}</Box>
-              <Typography sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}>
+              <Typography
+                sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}
+              >
                 {tab.label}
               </Typography>
             </Box>
@@ -432,7 +452,6 @@ const SuperAdminRegistrarResetPassword = () => {
       <br />
       <TableContainer component={Paper} sx={{ width: "100%" }}>
         <Table size="small">
-
           {/* 🔥 TOP HEADER (Pagination + Total) */}
           <TableHead>
             <TableRow>
@@ -445,8 +464,11 @@ const SuperAdminRegistrarResetPassword = () => {
                   color: "white",
                 }}
               >
-                <Box display="flex" justifyContent="space-between" alignItems="center">
-
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
                   {/* LEFT: TOTAL COUNT */}
                   <Typography fontSize="14px" fontWeight="bold" color="white">
                     Total Registrars: {registrars.length}
@@ -454,7 +476,6 @@ const SuperAdminRegistrarResetPassword = () => {
 
                   {/* RIGHT: PAGINATION CONTROLS */}
                   <Box display="flex" alignItems="center" gap={1}>
-
                     {/* FIRST */}
                     <Button
                       onClick={() => setCurrentPage(1)}
@@ -468,7 +489,9 @@ const SuperAdminRegistrarResetPassword = () => {
 
                     {/* PREV */}
                     <Button
-                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
                       disabled={currentPage === 1}
                       variant="outlined"
                       size="small"
@@ -484,7 +507,7 @@ const SuperAdminRegistrarResetPassword = () => {
                         onChange={(e) => setCurrentPage(Number(e.target.value))}
                         sx={paginationSelectStyle}
                         MenuProps={{
-                          PaperProps: { sx: { maxHeight: 200 } }
+                          PaperProps: { sx: { maxHeight: 200 } },
                         }}
                       >
                         {Array.from({ length: totalPages }, (_, i) => (
@@ -501,7 +524,9 @@ const SuperAdminRegistrarResetPassword = () => {
 
                     {/* NEXT */}
                     <Button
-                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
                       disabled={currentPage === totalPages}
                       variant="outlined"
                       size="small"
@@ -526,11 +551,51 @@ const SuperAdminRegistrarResetPassword = () => {
             </TableRow>
 
             <TableRow>
-              <TableCell sx={{ ...headerStyle, backgroundColor: "white", color: "black" }}>#</TableCell>
-              <TableCell sx={{ ...headerStyle, backgroundColor: "white", color: "black" }}>Employee ID</TableCell>
-              <TableCell sx={{ ...headerStyle, backgroundColor: "white", color: "black" }}>Full Name</TableCell>
-              <TableCell sx={{ ...headerStyle, backgroundColor: "white", color: "black" }}>Email</TableCell>
-              <TableCell sx={{ ...headerStyle, backgroundColor: "white", color: "black" }}>Status</TableCell>
+              <TableCell
+                sx={{
+                  ...headerStyle,
+                  backgroundColor: "white",
+                  color: "black",
+                }}
+              >
+                #
+              </TableCell>
+              <TableCell
+                sx={{
+                  ...headerStyle,
+                  backgroundColor: "white",
+                  color: "black",
+                }}
+              >
+                Employee ID
+              </TableCell>
+              <TableCell
+                sx={{
+                  ...headerStyle,
+                  backgroundColor: "white",
+                  color: "black",
+                }}
+              >
+                Full Name
+              </TableCell>
+              <TableCell
+                sx={{
+                  ...headerStyle,
+                  backgroundColor: "white",
+                  color: "black",
+                }}
+              >
+                Email
+              </TableCell>
+              <TableCell
+                sx={{
+                  ...headerStyle,
+                  backgroundColor: "white",
+                  color: "black",
+                }}
+              >
+                Status
+              </TableCell>
             </TableRow>
           </TableHead>
 
@@ -543,16 +608,36 @@ const SuperAdminRegistrarResetPassword = () => {
                   backgroundColor: index % 2 === 0 ? "#ffffff" : "lightgray", // 👈 alternating
                 }}
               >
-                <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>{indexOfFirstRow + index + 1}</TableCell>
-
-                <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>{r.employee_id}</TableCell>
+                <TableCell
+                  align="center"
+                  sx={{ border: `1px solid ${borderColor}` }}
+                >
+                  {indexOfFirstRow + index + 1}
+                </TableCell>
 
                 <TableCell
+                  align="center"
                   sx={{
                     border: `1px solid ${borderColor}`,
                     color: "blue",
                     cursor: "pointer",
-                    fontWeight: 500,
+
+                    "&:hover": {
+                      textDecoration: "underline",
+                    },
+                  }}
+                  onClick={() => handleNameClick(r)}
+                >
+                  {r.employee_id}
+                </TableCell>
+
+                <TableCell
+                  align="left"
+                  sx={{
+                    border: `1px solid ${borderColor}`,
+                    color: "blue",
+                    cursor: "pointer",
+
                     "&:hover": {
                       textDecoration: "underline",
                     },
@@ -562,14 +647,19 @@ const SuperAdminRegistrarResetPassword = () => {
                   {r.fullName}
                 </TableCell>
 
-                <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>{r.email}</TableCell>
+                <TableCell
+                  align="center"
+                  sx={{ border: `1px solid ${borderColor}` }}
+                >
+                  {r.email}
+                </TableCell>
 
                 <TableCell
                   sx={{
                     border: `1px solid ${borderColor}`,
                     fontWeight: "bold",
                     color: r.status === 1 ? "green" : "red",
-                    textAlign: "center"
+                    textAlign: "center",
                   }}
                 >
                   {r.status === 1 ? "Active" : "Inactive"}
@@ -580,11 +670,8 @@ const SuperAdminRegistrarResetPassword = () => {
         </Table>
       </TableContainer>
       <TableContainer component={Paper}>
-
         <Table size="small">
-
           <TableHead>
-
             {/* PAGINATION BAR */}
             <TableRow>
               <TableCell
@@ -596,8 +683,11 @@ const SuperAdminRegistrarResetPassword = () => {
                   color: "white",
                 }}
               >
-                <Box display="flex" justifyContent="space-between" alignItems="center">
-
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
                   {/* LEFT: TOTAL COUNT */}
                   <Typography fontSize="14px" fontWeight="bold" color="white">
                     Total Registrars: {registrars.length}
@@ -605,7 +695,6 @@ const SuperAdminRegistrarResetPassword = () => {
 
                   {/* RIGHT: PAGINATION CONTROLS */}
                   <Box display="flex" alignItems="center" gap={1}>
-
                     {/* FIRST */}
                     <Button
                       onClick={() => setCurrentPage(1)}
@@ -619,7 +708,9 @@ const SuperAdminRegistrarResetPassword = () => {
 
                     {/* PREV */}
                     <Button
-                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
                       disabled={currentPage === 1}
                       variant="outlined"
                       size="small"
@@ -635,7 +726,7 @@ const SuperAdminRegistrarResetPassword = () => {
                         onChange={(e) => setCurrentPage(Number(e.target.value))}
                         sx={paginationSelectStyle}
                         MenuProps={{
-                          PaperProps: { sx: { maxHeight: 200 } }
+                          PaperProps: { sx: { maxHeight: 200 } },
                         }}
                       >
                         {Array.from({ length: totalPages }, (_, i) => (
@@ -652,7 +743,9 @@ const SuperAdminRegistrarResetPassword = () => {
 
                     {/* NEXT */}
                     <Button
-                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
                       disabled={currentPage === totalPages}
                       variant="outlined"
                       size="small"
@@ -675,22 +768,25 @@ const SuperAdminRegistrarResetPassword = () => {
                 </Box>
               </TableCell>
             </TableRow>
-
-
           </TableHead>
-
         </Table>
-
       </TableContainer>
 
       <br />
       <br />
 
-      <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
+      <TableContainer
+        component={Paper}
+        sx={{ width: "100%", border: `1px solid ${borderColor}` }}
+      >
         <Table>
-          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
+          <TableHead
+            sx={{ backgroundColor: settings?.header_color || "#1976d2" }}
+          >
             <TableRow>
-              <TableCell sx={{ color: 'white', textAlign: "Center" }}>Registrar Information</TableCell>
+              <TableCell sx={{ color: "white", textAlign: "Center" }}>
+                Registrar Information
+              </TableCell>
             </TableRow>
           </TableHead>
         </Table>
@@ -735,7 +831,6 @@ const SuperAdminRegistrarResetPassword = () => {
           <Button
             sx={{ mt: 2 }}
             variant="contained"
-
             onClick={handleReset}
             disabled={!userInfo || loading}
           >
@@ -744,19 +839,13 @@ const SuperAdminRegistrarResetPassword = () => {
         </Box>
       </Paper>
 
-
-
-
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}
-        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
       >
-        <Alert severity={snackbar.severity}>
-          {snackbar.message}
-        </Alert>
+        <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
       </Snackbar>
-
     </Box>
   );
 };

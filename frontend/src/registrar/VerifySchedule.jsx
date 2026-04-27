@@ -440,6 +440,18 @@ const AssignScheduleToApplicants = () => {
     const getSelectedScheduleData = () =>
         schedules.find((s) => Number(s.schedule_id) === Number(selectedSchedule));
 
+    const handleScheduleChange = (scheduleId) => {
+        setSelectedSchedule(scheduleId);
+
+        const schedule = schedules.find((s) => Number(s.schedule_id) === Number(scheduleId));
+        const branchId = schedule?.branch ? String(schedule.branch) : "";
+
+        setSelectedCampusFilter(branchId);
+        setSelectedDepartmentFilter("");
+        setSelectedProgramFilter("");
+        setCurrentPage(1);
+    };
+
 
     // ✅ Always use the verify schedules source with occupancy counts
     const fetchSchedulesWithCount = async () => {
@@ -594,7 +606,7 @@ const AssignScheduleToApplicants = () => {
             return;
         }
 
-        const unassigned = persons
+        const unassigned = sortedPersons
             .filter(p => p.schedule_id == null)
             .slice(0, availableSlots)
             .map(p => p.applicant_number);
@@ -955,17 +967,54 @@ ${officeName}`
 
 
     const [selectedCampusFilter, setSelectedCampusFilter] = useState("");
+    const filteredDepartments = department.filter((dep) =>
+        allCurriculums.some(
+            (curriculum) =>
+                String(curriculum.dprtmnt_id) === String(dep.dprtmnt_id) &&
+                (!selectedCampusFilter ||
+                    String(curriculum.components) === String(selectedCampusFilter))
+        )
+    );
+
+    const filteredCurriculumOptions = allCurriculums.filter(
+        (curriculum) =>
+            (!selectedCampusFilter ||
+                String(curriculum.components) === String(selectedCampusFilter)) &&
+            (!selectedDepartmentFilter ||
+                String(curriculum.dprtmnt_id) === String(selectedDepartmentFilter))
+    );
+
+    const handleCampusFilterChange = (branchId) => {
+        setSelectedCampusFilter(branchId);
+        setSelectedSchedule("");
+        setSelectedDepartmentFilter("");
+        setSelectedProgramFilter("");
+        setCurrentPage(1);
+    };
+
+    const handleDepartmentChange = (departmentId) => {
+        setSelectedDepartmentFilter(departmentId);
+        setSelectedProgramFilter("");
+        setCurrentPage(1);
+    };
+
+    const handleProgramFilterChange = (curriculumId) => {
+        setSelectedProgramFilter(curriculumId);
+        setCurrentPage(1);
+    };
+
     // ✅ Step 1: Filtering
     const filteredPersons = persons.filter((personData) => {
         const query = searchQuery.toLowerCase();
         const fullName = `${personData.first_name ?? ""} ${personData.middle_name ?? ""} ${personData.last_name ?? ""}`.toLowerCase();
 
-
-
         /* 🏫 CAMPUS */
+        const personCampus = String(personData.campus ?? "").trim();
+        const selectedCampusId = String(selectedCampusFilter ?? "").trim();
+
         const matchesCampus =
             selectedCampusFilter === "" ||
-            personData.campus === selectedCampusFilter;
+            personCampus === selectedCampusId;
 
 
         const matchesApplicantID = personData.applicant_number?.toString().toLowerCase().includes(query);
@@ -978,10 +1027,12 @@ ${officeName}`
         const matchesProgramQuery = programInfo?.program_code?.toLowerCase().includes(query);
 
         const matchesDepartment =
-            selectedDepartmentFilter === "" || programInfo?.dprtmnt_name === selectedDepartmentFilter;
+            selectedDepartmentFilter === "" ||
+            String(programInfo?.dprtmnt_id) === String(selectedDepartmentFilter);
 
         const matchesProgramFilter =
-            selectedProgramFilter === "" || programInfo?.program_code === selectedProgramFilter;
+            selectedProgramFilter === "" ||
+            String(personData.program) === String(selectedProgramFilter);
 
         const applicantAppliedYear = new Date(personData.created_at).getFullYear();
         const schoolYear = schoolYears.find((sy) => sy.year_id === selectedSchoolYear);
@@ -991,7 +1042,6 @@ ${officeName}`
 
         const matchesSemester =
             selectedSchoolSemester === "" || String(personData.middle_code) === String(selectedSchoolSemester);
-
 
         return (
             (matchesApplicantID || matchesName || matchesEmail || matchesProgramQuery) &&
@@ -1096,6 +1146,11 @@ ${officeName}`
     //   }
     // });
 
+
+    const getBranchLabel = (branchId) => {
+        const branch = branches.find((item) => String(item.id) === String(branchId));
+        return branch?.branch || branchId || "N/A";
+    };
 
     // Put this at the very bottom before the return 
     if (loading || hasAccess === null) {
@@ -1245,7 +1300,7 @@ ${officeName}`
                                 select
                                 fullWidth
                                 value={selectedSchedule}
-                                onChange={(e) => setSelectedSchedule(e.target.value)}
+                                onChange={(e) => handleScheduleChange(e.target.value)}
                                 variant="outlined"
                                 sx={{
                                     border: `1px solid ${borderColor}`,
@@ -1257,6 +1312,12 @@ ${officeName}`
                                 <MenuItem value="">-- Select Schedule --</MenuItem>
 
                                 {Array.isArray(schedules) && schedules
+
+                                    // Filter schedules by selected campus/branch
+                                    .filter(s =>
+                                        !selectedCampusFilter ||
+                                        String(s.branch) === String(selectedCampusFilter)
+                                    )
 
                                     // ✅ REMOVE FULL ROOMS HERE
                                     .filter(s => {
@@ -1275,7 +1336,7 @@ ${officeName}`
                                             key={s.schedule_id}
                                             value={s.schedule_id}
                                         >
-                                            {s.branch} : {s.evaluator} - {s.schedule_date} | {s.building_description} | {s.room_description} |{" "}
+                                            {getBranchLabel(s.branch)} : {s.evaluator} - {s.schedule_date} | {s.building_description} | {s.room_description} |{" "}
                                             {new Date(`1970-01-01T${s.start_time}`).toLocaleTimeString("en-US", {
                                                 hour: "numeric",
                                                 minute: "2-digit",
@@ -1503,14 +1564,12 @@ ${officeName}`
                                 id="campus-select"
                                 name="campus"
                                 value={selectedCampusFilter}
-                                onChange={(e) => {
-                                    setSelectedCampusFilter(e.target.value);
-                                }}
+                                onChange={(e) => handleCampusFilterChange(e.target.value)}
                             >
                                 <MenuItem value=""><em>All Campuses</em></MenuItem>
 
                                 {branches.map((branch) => (
-                                    <MenuItem key={branch.id} value={branch.id}>
+                                    <MenuItem key={branch.id} value={String(branch.id)}>
                                         {branch.branch}
                                     </MenuItem>
                                 ))}
@@ -1521,16 +1580,12 @@ ${officeName}`
                         <FormControl size="small" sx={{ width: "250px" }}>
                             <Select
                                 value={selectedDepartmentFilter}
-                                onChange={(e) => {
-                                    const selectedDept = e.target.value;
-                                    setSelectedDepartmentFilter(selectedDept);
-                                    handleDepartmentChange(selectedDept);
-                                }}
+                                onChange={(e) => handleDepartmentChange(e.target.value)}
                                 displayEmpty
                             >
                                 <MenuItem value="">All Departments</MenuItem>
-                                {department.map((dep) => (
-                                    <MenuItem key={dep.dprtmnt_id} value={dep.dprtmnt_name}>
+                                {filteredDepartments.map((dep) => (
+                                    <MenuItem key={dep.dprtmnt_id} value={String(dep.dprtmnt_id)}>
                                         {dep.dprtmnt_name} ({dep.dprtmnt_code})
                                     </MenuItem>
                                 ))}
@@ -1547,12 +1602,12 @@ ${officeName}`
                         <FormControl size="small" sx={{ width: "250px" }}>
                             <Select
                                 value={selectedProgramFilter}
-                                onChange={(e) => setSelectedProgramFilter(e.target.value)}
+                                onChange={(e) => handleProgramFilterChange(e.target.value)}
                                 displayEmpty
                             >
                                 <MenuItem value="">All Programs</MenuItem>
-                                {curriculumOptions.map((prog) => (
-                                    <MenuItem key={prog.curriculum_id} value={prog.program_code}>
+                                {filteredCurriculumOptions.map((prog) => (
+                                    <MenuItem key={prog.curriculum_id} value={String(prog.curriculum_id)}>
                                         {prog.program_code} - {prog.program_description}
                                     </MenuItem>
                                 ))}
@@ -1865,7 +1920,7 @@ ${officeName}`
 
                                         {/* Program */}
                                         <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}`, fontSize: "12px" }}>
-                                            {curriculumOptions.find(
+                                            {allCurriculums.find(
                                                 (item) => item.curriculum_id?.toString() === person.program?.toString()
                                             )?.program_code ?? "N/A"}
                                         </TableCell>
