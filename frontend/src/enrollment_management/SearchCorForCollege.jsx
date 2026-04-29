@@ -16,7 +16,7 @@ import {
     Alert,
 } from "@mui/material";
 import '../styles/Print.css'
-import CertificateOfRegistrationForCollege from "../registrar/CertificateOfRegistrationForCollege";
+import CertificateOfRegistrationForCollege from "./CertificateOfRegistrationForCollege";
 import EaristLogo from "../assets/EaristLogo.png";
 import SearchIcon from "@mui/icons-material/Search";
 import SchoolIcon from '@mui/icons-material/School';

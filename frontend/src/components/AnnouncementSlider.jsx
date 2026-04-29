@@ -233,8 +233,8 @@ const AnnouncementSlider = () => {
                             <div
                                 style={{
                                     position: "absolute",
-                                    top: -48,
-                                    left: -210,   // 👈 changed from right → left
+                                    top: -55,
+                                    left: -480,   // 👈 changed from right → left
                                     display: "flex",
                                     gap: "8px",
                                     alignItems: "center",

@@ -30,10 +30,10 @@ import ProtectedRoute, { isTokenValid } from "./components/ProtectedRoute";
 
 import API_BASE_URL from "./apiConfig";
 import StudentListForEnrollment from "./registrar/StudentListForEnrollment";
-import ApplicationProcessAdmin from "./superadmin/ApplicationProcessAdmin";
-import CourseTaggingForSummerCollege from "./registrar/CourseTaggingForSummerCollege";
-import StudentAccounts from "./superadmin/StudentAccounts";
-import GradeConversionAdmin from "./superadmin/GradeConversionAdmin";
+import ApplicationProcessAdmin from "./admission/ApplicationProcessAdmin";
+import CourseTaggingForSummerCollege from "./enrollment_management/CourseTaggingForSummerCollege";
+import StudentAccounts from "./account_management/StudentAccounts";
+import GradeConversionAdmin from "./system_management/GradeConversionAdmin";
 
 // ✅ Create a Context so all components can access settings
 export const SettingsContext = createContext(null);
@@ -87,103 +87,103 @@ const SearchCertificateOfRegistration = lazy(
   () => import("./registrar/SearchCertificateOfRegistration"),
 );
 const AdminECATApplicationForm = lazy(
-  () => import("./registrar/AdminECATApplicationForm"),
+  () => import("./admission/AdminECATApplicationForm"),
 );
 const AdminPersonalDataForm = lazy(
-  () => import("./registrar/AdminPersonalDataForm"),
+  () => import("./admission/AdminPersonalDataForm"),
 );
 const AdminOfficeOfTheRegistrar = lazy(
-  () => import("./registrar/AdminOfficeOfTheRegistrar"),
+  () => import("./admission/AdminOfficeOfTheRegistrar"),
 );
 const AdminAdmissionFormProcess = lazy(
-  () => import("./registrar/AdminAdmissionFormProcess"),
+  () => import("./admission/AdminAdmissionFormProcess"),
 );
-const AdminDashboard1 = lazy(() => import("./registrar/AdminDashboard1"));
-const AdminDashboard2 = lazy(() => import("./registrar/AdminDashboard2"));
-const AdminDashboard3 = lazy(() => import("./registrar/AdminDashboard3"));
-const AdminDashboard4 = lazy(() => import("./registrar/AdminDashboard4"));
-const AdminDashboard5 = lazy(() => import("./registrar/AdminDashboard5"));
+const AdminDashboard1 = lazy(() => import("./admission/AdminDashboard1"));
+const AdminDashboard2 = lazy(() => import("./admission/AdminDashboard2"));
+const AdminDashboard3 = lazy(() => import("./admission/AdminDashboard3"));
+const AdminDashboard4 = lazy(() => import("./admission/AdminDashboard4"));
+const AdminDashboard5 = lazy(() => import("./admission/AdminDashboard5"));
 const RegistrarDashboard1 = lazy(
-  () => import("./registrar/RegistrarDashboard1"),
+  () => import("./enrollment_management/RegistrarDashboard1"),
 );
 const RegistrarDashboard2 = lazy(
-  () => import("./registrar/RegistrarDashboard2"),
+  () => import("./enrollment_management/RegistrarDashboard2"),
 );
 const RegistrarDashboard3 = lazy(
-  () => import("./registrar/RegistrarDashboard3"),
+  () => import("./enrollment_management/RegistrarDashboard3"),
 );
 const RegistrarDashboard4 = lazy(
-  () => import("./registrar/RegistrarDashboard4"),
+  () => import("./enrollment_management/RegistrarDashboard4"),
 );
 const RegistrarDashboard5 = lazy(
-  () => import("./registrar/RegistrarDashboard5"),
+  () => import("./enrollment_management/RegistrarDashboard5"),
 );
-const ApplicantList = lazy(() => import("./registrar/ApplicantList"));
-const ApplicantListAdmin = lazy(() => import("./registrar/ApplicantListAdmin"));
+const ApplicantList = lazy(() => import("./enrollment_management/ApplicantList"));
+const ApplicantListAdmin = lazy(() => import("./admission/ApplicantListAdmin"));
 const StudentRequirements = lazy(
-  () => import("./registrar/StudentRequirements"),
+  () => import("./admission/StudentRequirements"),
 );
 const RegistrarRequirements = lazy(
-  () => import("./registrar/RegistrarRequirements"),
+  () => import("./enrollment_management/RegistrarRequirements"),
 );
 const RegistrarExaminationProfile = lazy(
-  () => import("./registrar/RegistrarExaminationProfile"),
+  () => import("./admission/RegistrarExaminationProfile"),
 );
 const AssignScheduleToApplicants = lazy(
-  () => import("./registrar/AssignScheduleToApplicants"),
+  () => import("./admission/AssignScheduleToApplicants"),
 );
-const AssignEntranceExam = lazy(() => import("./registrar/AssignEntranceExam"));
+const AssignEntranceExam = lazy(() => import("./admission/AssignEntranceExam"));
 const AdmissionScheduleTile = lazy(
-  () => import("./registrar/AdmissionScheduleTile"),
+  () => import("./admission/AdmissionScheduleTile"),
 );
 const EnrollmentScheduleTile = lazy(
-  () => import("./registrar/EnrollmentScheduleTile"),
+  () => import("./enrollment_management/EnrollmentScheduleTile"),
 );
 const ProctorApplicantList = lazy(
-  () => import("./registrar/ProctorApplicantList"),
+  () => import("./admission/ProctorApplicantList"),
 );
-const ApplicantScoring = lazy(() => import("./registrar/ApplicantScoring"));
+const ApplicantScoring = lazy(() => import("./admission/ApplicantScoring"));
 const QualifyingInterviewExamScore = lazy(
-  () => import("./registrar/QualifyingInterviewExamScore"),
+  () => import("./enrollment_management/QualifyingInterviewExamScore"),
 );
 const QualifyingInterviewerApplicantList = lazy(
-  () => import("./registrar/QualifyingInterviewerApplicantList"),
+  () => import("./enrollment_management/QualifyingInterviewerApplicantList"),
 );
 const AssignQualifyingInterviewExam = lazy(
-  () => import("./registrar/AssignQualifyingInterviewExam"),
+  () => import("./enrollment_management/AssignQualifyingInterviewExam"),
 );
 const AssignScheduleToApplicantsQualifyingInterviewer = lazy(
-  () => import("./registrar/AssignScheduleToApplicantsQualifyingInterviewer"),
+  () => import("./enrollment_management/AssignScheduleToApplicantsQualifyingInterviewer"),
 );
 const ClassRoster = lazy(() => import("./registrar/ClassRoster"));
 const ClassRosterForEnrollment = lazy(() => import("./registrar/ClassRosterForEnrollment"));
 const DepartmentRegistration = lazy(
-  () => import("./registrar/DprtmntRegistration"),
+  () => import("./department_management/DprtmntRegistration"),
 );
-const DepartmentRoom = lazy(() => import("./registrar/DprtmntRoom"));
-const ProgramTagging = lazy(() => import("./registrar/ProgramTagging"));
-const CoursePanel = lazy(() => import("./registrar/CoursePanel"));
-const ProgramPanel = lazy(() => import("./registrar/ProgramPanel"));
-const CurriculumPanel = lazy(() => import("./registrar/CurriculumPanel"));
-const SectionPanel = lazy(() => import("./registrar/SectionPanel"));
-const DepartmentSection = lazy(() => import("./registrar/DepartmentSection"));
-const YearLevelPanel = lazy(() => import("./registrar/YearLevelPanel"));
-const YearPanel = lazy(() => import("./registrar/YearPanel"));
-const YearUpdateForm = lazy(() => import("./registrar/YearUpdateForm"));
-const SemesterPanel = lazy(() => import("./registrar/SemesterPanel"));
-const SchoolYearPanel = lazy(() => import("./registrar/SchoolYearPanel"));
+const DepartmentRoom = lazy(() => import("./department_management/DprtmntRoom"));
+const ProgramTagging = lazy(() => import("./course_management/ProgramTagging"));
+const CoursePanel = lazy(() => import("./course_management/CoursePanel"));
+const ProgramPanel = lazy(() => import("./course_management/ProgramPanel"));
+const CurriculumPanel = lazy(() => import("./course_management/CurriculumPanel"));
+const SectionPanel = lazy(() => import("./system_management/SectionPanel"));
+const DepartmentSection = lazy(() => import("./department_management/DepartmentSection"));
+const YearLevelPanel = lazy(() => import("./system_management/YearLevelPanel"));
+const YearPanel = lazy(() => import("./system_management/YearPanel"));
+const YearUpdateForm = lazy(() => import("./system_management/YearUpdateForm"));
+const SemesterPanel = lazy(() => import("./system_management/SemesterPanel"));
+const SchoolYearPanel = lazy(() => import("./system_management/SchoolYearPanel"));
 const SchoolYearActivatorPanel = lazy(
-  () => import("./registrar/SchoolYearActivatorPanel"),
+  () => import("./system_management/SchoolYearActivatorPanel"),
 );
-const RequirementsForm = lazy(() => import("./registrar/RequirementsForm"));
+const RequirementsForm = lazy(() => import("./system_management/RequirementsForm"));
 const StudentNumbering = lazy(() => import("./registrar/StudentNumbering"));
 const StudentNumberingPerCollege = lazy(
-  () => import("./registrar/StudentNumberingPerCollege"),
+  () => import("./enrollment_management/StudentNumberingPerCollege"),
 );
 const CourseTagging = lazy(() => import("./registrar/CourseTagging"));
-const ChangeGradingPeriod = lazy(() => import("./registrar/ChangeYearGradPer"));
+const ChangeGradingPeriod = lazy(() => import("./system_management/ChangeYearGradPer"));
 const ScheduleChecker = lazy(() => import("./registrar/ScheduleChecker"));
-const RoomRegistration = lazy(() => import("./registrar/RoomRegistration"));
+const RoomRegistration = lazy(() => import("./admission/RoomRegistration"));
 const RegistrarExamPermit = lazy(
   () => import("./components/ApplicantExamPermit"),
 );
@@ -191,28 +191,28 @@ const ReportOfGrade = lazy(() => import("./registrar/ReportOfGrade"));
 const TranscriptOfRecords = lazy(
   () => import("./registrar/TranscriptOfRecords"),
 );
-const EvaluationCRUD = lazy(() => import("./registrar/EvaluationCrud"));
+const EvaluationCRUD = lazy(() => import("./system_management/EvaluationCrud"));
 const DepartmentCurriculumPanel = lazy(
-  () => import("./registrar/DepartmentCurriculumPanel"),
+  () => import("./department_management/DepartmentCurriculumPanel"),
 );
 const MedicalApplicantList = lazy(
-  () => import("./registrar/MedicalApplicantList"),
+  () => import("./medical_management/MedicalApplicantList"),
 );
 const MedicalRequirementsForm = lazy(
-  () => import("./registrar/MedicalRequirementsForm"),
+  () => import("./medical_management/MedicalRequirementsForm"),
 );
-const DentalAssessment = lazy(() => import("./registrar/DentalAssessment"));
-const PhysicalNeuroExam = lazy(() => import("./registrar/PhysicalNeuroExam"));
-const MedicalDashboard1 = lazy(() => import("./registrar/MedicalDashboard1"));
-const MedicalDashboard2 = lazy(() => import("./registrar/MedicalDashboard2"));
-const MedicalDashboard3 = lazy(() => import("./registrar/MedicalDashboard3"));
-const MedicalDashboard4 = lazy(() => import("./registrar/MedicalDashboard4"));
-const MedicalDashboard5 = lazy(() => import("./registrar/MedicalDashboard5"));
+const DentalAssessment = lazy(() => import("./medical_management/DentalAssessment"));
+const PhysicalNeuroExam = lazy(() => import("./medical_management/PhysicalNeuroExam"));
+const MedicalDashboard1 = lazy(() => import("./medical_management/MedicalDashboard1"));
+const MedicalDashboard2 = lazy(() => import("./medical_management/MedicalDashboard2"));
+const MedicalDashboard3 = lazy(() => import("./medical_management/MedicalDashboard3"));
+const MedicalDashboard4 = lazy(() => import("./medical_management/MedicalDashboard4"));
+const MedicalDashboard5 = lazy(() => import("./medical_management/MedicalDashboard5"));
 const MedicalRequirements = lazy(
-  () => import("./registrar/MedicalRequirements"),
+  () => import("./medical_management/MedicalRequirements"),
 );
-const MedicalCertificate = lazy(() => import("./registrar/MedicalCertificate"));
-const HealthRecord = lazy(() => import("./registrar/HealthRecord"));
+const MedicalCertificate = lazy(() => import("./medical_management/MedicalCertificate"));
+const HealthRecord = lazy(() => import("./medical_management/HealthRecord"));
 const ReadmissionDashboard1 = lazy(
   () => import("./registrar/ReadmissionDashboard1"),
 );
@@ -229,22 +229,22 @@ const ReadmissionDashboard5 = lazy(
   () => import("./registrar/ReadmissionDashboard5"),
 );
 const AnnouncementForAdmission = lazy(
-  () => import("./registrar/AnnouncementForAdmission"),
+  () => import("./admission/AnnouncementForAdmission"),
 );
 const StudentList = lazy(() => import("./registrar/StudentList"));
 const SubmittedDocuments = lazy(() => import("./registrar/SubmittedDocuments"));
-const ProgramSlotLimit = lazy(() => import("./registrar/ProgramSlotLimit"));
+const ProgramSlotLimit = lazy(() => import("./admission/ProgramSlotLimit"));
 const GradingEvaluationForRegistrar = lazy(
   () => import("./registrar/GradingEvaluationForRegistrar"),
 );
-const ProgramPayment = lazy(() => import("./registrar/ProgramPayment"));
-const Prerequisite = lazy(() => import("./registrar/Prerequisite"));
-const ProgramUnit = lazy(() => import("./registrar/ProgramUnit"));
+const ProgramPayment = lazy(() => import("./course_management/ProgramPayment"));
+const Prerequisite = lazy(() => import("./course_management/Prerequisite"));
+const ProgramUnit = lazy(() => import("./course_management/ProgramUnit"));
 const EvaluatorApplicantList = lazy(
-  () => import("./registrar/EvaluatorApplicantList"),
+  () => import("./admission/EvaluatorApplicantList"),
 );
 const EvaluatorScheduleTile = lazy(
-  () => import("./registrar/EvaluatorScheduleTile"),
+  () => import("./admission/EvaluatorScheduleTile"),
 );
 const Dashboard1 = lazy(() => import("./applicant/Dashboard1"));
 const Dashboard2 = lazy(() => import("./applicant/Dashboard2"));
@@ -305,146 +305,146 @@ const StudentAdmissionFormProcess = lazy(
   () => import("./student/StudentAdmissionFormProcess"),
 );
 const EmailTemplateManager = lazy(
-  () => import("./superadmin/EmailTemplateManager"),
+  () => import("./system_management/EmailTemplateManager"),
 );
-const Announcement = lazy(() => import("./superadmin/Announcement"));
+const Announcement = lazy(() => import("./system_management/Announcement"));
 const MigrationDataPanel = lazy(
-  () => import("./superadmin/MigrationDataPanel"),
+  () => import("./account_management/MigrationDataPanel"),
 );
 const SuperAdminApplicantList = lazy(
-  () => import("./superadmin/SuperAdminApplicantList"),
+  () => import("./registrar/SuperAdminApplicantList"),
 );
 const SuperAdminApplicantDashboard1 = lazy(
-  () => import("./superadmin/SuperAdminApplicantDashboard1"),
+  () => import("./account_management/SuperAdminApplicantDashboard1"),
 );
 const SuperAdminApplicantDashboard2 = lazy(
-  () => import("./superadmin/SuperAdminApplicantDashboard2"),
+  () => import("./account_management/SuperAdminApplicantDashboard2"),
 );
 const SuperAdminApplicantDashboard3 = lazy(
-  () => import("./superadmin/SuperAdminApplicantDashboard3"),
+  () => import("./account_management/SuperAdminApplicantDashboard3"),
 );
 const SuperAdminApplicantDashboard4 = lazy(
-  () => import("./superadmin/SuperAdminApplicantDashboard4"),
+  () => import("./account_management/SuperAdminApplicantDashboard4"),
 );
 const SuperAdminApplicantDashboard5 = lazy(
-  () => import("./superadmin/SuperAdminApplicantDashboard5"),
+  () => import("./account_management/SuperAdminApplicantDashboard5"),
 );
 const SuperAdminRequirementsUploader = lazy(
-  () => import("./superadmin/SuperAdminRequirementsUploader"),
+  () => import("./account_management/SuperAdminRequirementsUploader"),
 );
-const SignatureUpload = lazy(() => import("./superadmin/SignatureUpload"));
+const SignatureUpload = lazy(() => import("./system_management/SignatureUpload"));
 const SuperAdminStudentDashboard1 = lazy(
-  () => import("./superadmin/SuperAdminStudentDashboard1"),
+  () => import("./account_management/SuperAdminStudentDashboard1"),
 );
 const SuperAdminStudentDashboard2 = lazy(
-  () => import("./superadmin/SuperAdminStudentDashboard2"),
+  () => import("./account_management/SuperAdminStudentDashboard2"),
 );
 const SuperAdminStudentDashboard3 = lazy(
-  () => import("./superadmin/SuperAdminStudentDashboard3"),
+  () => import("./account_management/SuperAdminStudentDashboard3"),
 );
 const SuperAdminStudentDashboard4 = lazy(
-  () => import("./superadmin/SuperAdminStudentDashboard4"),
+  () => import("./account_management/SuperAdminStudentDashboard4"),
 );
 const SuperAdminStudentDashboard5 = lazy(
-  () => import("./superadmin/SuperAdminStudentDashboard5"),
+  () => import("./account_management/SuperAdminStudentDashboard5"),
 );
 const SuperAdminApplicantResetPassword = lazy(
-  () => import("./superadmin/SuperAdminApplicantResetPassword"),
+  () => import("./account_management/SuperAdminApplicantResetPassword"),
 );
 const SuperAdminStudentResetPassword = lazy(
-  () => import("./superadmin/SuperAdminStudentResetPassword"),
+  () => import("./account_management/SuperAdminStudentResetPassword"),
 );
 const SuperAdminFacultyResetPassword = lazy(
-  () => import("./superadmin/SuperAdminFacultyResetPassword"),
+  () => import("./account_management/SuperAdminFacultyResetPassword"),
 );
 const SuperAdminRegistrarPassword = lazy(
-  () => import("./superadmin/SuperAdminRegistrarResetPassword"),
+  () => import("./account_management/SuperAdminRegistrarResetPassword"),
 );
 const SuperAdminProfessorEducation = lazy(
-  () => import("./superadmin/SuperAdminProfessorEducation"),
+  () => import("./account_management/SuperAdminProfessorEducation"),
 );
 const Notifications = lazy(() => import("./superadmin/Notifications"));
 const RegistrarResetPassword = lazy(
-  () => import("./superadmin/RegistrarResetPassword"),
+  () => import("./account_management/RegistrarResetPassword"),
 );
-const RegisterProf = lazy(() => import("./superadmin/RegisterProf"));
-const RegisterRegistrar = lazy(() => import("./superadmin/RegisterRegistrar"));
-const RegisterStudent = lazy(() => import("./superadmin/RegisterStudent"));
-const PageCRUD = lazy(() => import("./superadmin/PageCRUD"));
-const UserPageAccess = lazy(() => import("./superadmin/UserPageAccess"));
-const Settings = lazy(() => import("./superadmin/Settings"));
+const RegisterProf = lazy(() => import("./account_management/RegisterProf"));
+const RegisterRegistrar = lazy(() => import("./account_management/RegisterRegistrar"));
+const RegisterStudent = lazy(() => import("./account_management/RegisterStudent"));
+const PageCRUD = lazy(() => import("./account_management/PageCRUD"));
+const UserPageAccess = lazy(() => import("./account_management/UserPageAccess"));
+const Settings = lazy(() => import("./system_management/Settings"));
 const SuperAdminRoomRegistration = lazy(
-  () => import("./superadmin/SuperAdminRoomRegistration"),
+  () => import("./system_management/SuperAdminRoomRegistration"),
 );
 const CollegeScheduleChecker = lazy(
   () => import("./registrar/CollegeScheduleChecker"),
 );
-const StudentGradeFile = lazy(() => import("./superadmin/StudentGradeFile"));
-const StudentEnrollment = lazy(() => import("./superadmin/StudentEnrollment"));
+const StudentGradeFile = lazy(() => import("./account_management/StudentGradeFile"));
+const StudentEnrollment = lazy(() => import("./registrar/StudentEnrollment"));
 const PaymentExportingModule = lazy(
-  () => import("./superadmin/PaymentExportingModule"),
+  () => import("./system_management/PaymentExportingModule"),
 );
 const CORExportingModule = lazy(
-  () => import("./superadmin/CORExportingModule"),
+  () => import("./registrar/CORExportingModule"),
 );
 const VerifyDocumentsSchedule = lazy(
-  () => import("./registrar/VerifyDocumentsSchedule"),
+  () => import("./admission/VerifyDocumentsSchedule"),
 );
 const VerifyApplicantDocumentSchedule = lazy(
-  () => import("./registrar/VerifySchedule"),
+  () => import("./admission/VerifySchedule"),
 );
 const StudentScholarshipList = lazy(
-  () => import("./superadmin/StudentScholarshipList"),
+  () => import("./system_management/StudentScholarshipList"),
 );
-const TOSFCrud = lazy(() => import("./superadmin/TOSFCrud"));
+const TOSFCrud = lazy(() => import("./system_management/TOSFCrud"));
 const ReceiptCounterAssignment = lazy(
-  () => import("./superadmin/ReceiptCounterAssignment"),
+  () => import("./system_management/ReceiptCounterAssignment"),
 );
 const MatriculationPaymentModule = lazy(
-  () => import("./superadmin/MatriculationPaymentModule"),
+  () => import("./system_management/MatriculationPaymentModule"),
 );
-const SectionSlotMonitoring = lazy(() => import("./superadmin/SlotMonitoring"));
+const SectionSlotMonitoring = lazy(() => import("./department_management/SlotMonitoring"));
 const SearchCorForCollege = lazy(
-  () => import("./registrar/SearchCorForCollege"),
+  () => import("./enrollment_management/SearchCorForCollege"),
 );
 const CertificateOfRegistrationForCollege = lazy(
-  () => import("./registrar/CertificateOfRegistrationForCollege"),
+  () => import("./enrollment_management/CertificateOfRegistrationForCollege"),
 );
 const OfficialStudentDashboard1 = lazy(
-  () => import("./registrar/OfficialStudentDashboard1"),
+  () => import("./enrollment_management/OfficialStudentDashboard1"),
 );
 const OfficialStudentDashboard2 = lazy(
-  () => import("./registrar/OfficialStudentDashboard2"),
+  () => import("./enrollment_management/OfficialStudentDashboard2"),
 );
 const OfficialStudentDashboard3 = lazy(
-  () => import("./registrar/OfficialStudentDashboard3"),
+  () => import("./enrollment_management/OfficialStudentDashboard3"),
 );
 const OfficialStudentDashboard4 = lazy(
-  () => import("./registrar/OfficialStudentDashboard4"),
+  () => import("./enrollment_management/OfficialStudentDashboard4"),
 );
 const OfficialStudentDashboard5 = lazy(
-  () => import("./registrar/OfficialStudentDashboard5"),
+  () => import("./enrollment_management/OfficialStudentDashboard5"),
 );
 const OfficialRequirements = lazy(
-  () => import("./registrar/OfficialRequirements"),
+  () => import("./enrollment_management/OfficialRequirements"),
 );
 const AdminBranches = lazy(
-  () => import("./superadmin/AdminBranches"),
+  () => import("./system_management/AdminBranches"),
 );
 
 const CourseTaggingForCollege = lazy(
-  () => import("./registrar/CourseTaggingForCollege"),
+  () => import("./enrollment_management/CourseTaggingForCollege"),
 );
 const CourseTaggingForSummer = lazy(
   () => import("./registrar/CourseTaggingForSummer"),
 );
 const NSTPTagging = lazy(
-  () => import("./superadmin/NSTPTagging"),
+  () => import("./course_management/NSTPTagging"),
 );
 const DepartmentSectionTagging = lazy(
-  () => import("./superadmin/DepartmentSectionTagging"),
+  () => import("./department_management/DepartmentSectionTagging"),
 );
-const Archived = lazy(() => import("./superadmin/ArchivedModule"));
+const Archived = lazy(() => import("./account_management/ArchivedModule"));
 const LoadingOverlay = lazy(() => import("./components/LoadingOverlay"));
 
 
@@ -488,11 +488,19 @@ function App() {
             ? JSON.parse(data.branches)
             : data.branches || [],
       });
-      localStorage.setItem("app_settings_cache", JSON.stringify(data));
+      const normalized = {
+        ...data,
+        branches:
+          typeof data.branches === "string"
+            ? JSON.parse(data.branches)
+            : data.branches || [],
+      };
 
+      setSettings(normalized);
+      localStorage.setItem("app_settings_cache", JSON.stringify(normalized));
       setLogoVersion(Date.now());
     } catch (error) {
-      console.error("Error fetching settings:", error);
+      console.error("Error fetching settings:", error.response?.data || error.message);
     } finally {
       setSettingsReady(true);
     }

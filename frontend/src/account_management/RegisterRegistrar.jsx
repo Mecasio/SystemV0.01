@@ -35,6 +35,7 @@ import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
 import SaveIcon from '@mui/icons-material/Save';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
+import SearchIcon from "@mui/icons-material/Search";
 
 const RegisterRegistrar = () => {
 
@@ -165,17 +166,33 @@ const RegisterRegistrar = () => {
 
     const [selectedDepartmentFilter, setSelectedDepartmentFilter] = useState("");
     const [sortOrder, setSortOrder] = useState("");
+
+    const [searchTerm, setSearchTerm] = useState("");
     const filteredRegistrar = registrars
-        .filter((r) =>
-            selectedDepartmentFilter
+        .filter((r) => {
+            const matchesDepartment = selectedDepartmentFilter
                 ? r.dprtmnt_name === selectedDepartmentFilter
-                : true
-        )
+                : true;
+
+            const search = searchTerm.toLowerCase();
+
+            const matchesSearch =
+                r.employee_id?.toLowerCase().includes(search) ||
+                r.first_name?.toLowerCase().includes(search) ||
+                r.middle_name?.toLowerCase().includes(search) ||
+                r.last_name?.toLowerCase().includes(search) ||
+                r.email?.toLowerCase().includes(search) ||
+                r.dprtmnt_name?.toLowerCase().includes(search);
+
+            return matchesDepartment && matchesSearch;
+        })
         .sort((a, b) => {
             if (sortOrder === "asc") return a.last_name.localeCompare(b.last_name);
             if (sortOrder === "desc") return b.last_name.localeCompare(a.last_name);
             return 0;
         });
+
+
 
     const totalPages = Math.ceil(filteredRegistrar.length / itemsPerPage);
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -200,6 +217,8 @@ const RegisterRegistrar = () => {
     for (let i = startPage; i <= endPage; i++) {
         visiblePages.push(i);
     }
+
+
 
     useEffect(() => {
         fetchDepartments();
@@ -384,7 +403,25 @@ const RegisterRegistrar = () => {
                     REGISTRAR ACCOUNTS
                 </Typography>
 
-                {/* Right: Search */}
+                <TextField
+                    size="small"
+                    placeholder="Search registrar..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    sx={{
+                        width: 450,
+                        backgroundColor: "#fff",
+                        borderRadius: 1,
+                        "& .MuiOutlinedInput-root": {
+                            borderRadius: "10px",
+                        },
+                    }}
+                    InputProps={{
+                        startAdornment: (
+                            <SearchIcon sx={{ mr: 1, color: "gray" }} />
+                        ),
+                    }}
+                />
 
             </Box>
 
@@ -713,7 +750,7 @@ const RegisterRegistrar = () => {
 
                     <TableBody>
                         {registrars.length > 0 ? (
-                            registrars.map((r, i) => (
+                            currentRegistrar.map((r, i) => (
                                 <TableRow key={r.id}
 
                                     sx={{

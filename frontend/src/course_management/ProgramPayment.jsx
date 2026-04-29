@@ -698,7 +698,7 @@ const CurriculumCourseMap = () => {
             placeholder="Search program, major, year..."
           />
         )}
-        sx={{ maxWidth: 400, mb: 4 }}
+        sx={{ maxWidth: 700, mb: 4 }}
       />
 
       {/* YEARS */}

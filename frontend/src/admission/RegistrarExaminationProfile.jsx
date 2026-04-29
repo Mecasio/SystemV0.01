@@ -406,6 +406,15 @@ const ExaminationProfile = ({ personId }) => {
             .catch((err) => console.error("Error fetching registrar name:", err));
     }, []);
 
+    const getOrdinal = (n) => {
+        if (!n) return "";
+
+        const s = ["th", "st", "nd", "rd"];
+        const v = n % 100;
+
+        return n + (s[(v - 20) % 10] || s[v] || s[0]);
+    };
+
     const permitRef = useRef();
     const changeCourseRef = useRef();
     const newFormRef = useRef();
@@ -861,8 +870,8 @@ const ExaminationProfile = ({ personId }) => {
 
 
                                 <tbody>
-                            
-                            
+
+
                                     <tr>
 
                                         <td colSpan={40} style={{ height: "0.5in", textAlign: "center" }}>
@@ -889,8 +898,8 @@ const ExaminationProfile = ({ personId }) => {
 
                                                         {/* Center Column - School Information */}
                                                         <td style={{
-                                                            width: "60%", textAlign: "center", lineHeight: "1", 
-                                                            
+                                                            width: "60%", textAlign: "center", lineHeight: "1",
+
                                                         }}>
                                                             <div style={{ fontSize: "13px", fontFamily: "Arial" }}>Republic of the Philippines</div>
                                                             <div
@@ -1201,7 +1210,7 @@ const ExaminationProfile = ({ personId }) => {
                                                         textAlign: "left",
                                                     }}
                                                 >
-                                                    {examSchedule?.building_description || ""}
+                                                    {examSchedule?.building_description || ""} - {getOrdinal(examSchedule?.floor)} Floor
                                                 </span>
                                             </div>
                                         </td>

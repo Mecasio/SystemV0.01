@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useContext, useRef } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { SettingsContext } from "../App";
 import axios from "axios";
+
 import {
   Box,
   Button,
@@ -17,14 +18,19 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  Card,
   TableRow,
+  Card,
 } from "@mui/material";
 import { Snackbar, Alert } from "@mui/material";
+
 import SearchIcon from "@mui/icons-material/Search";
+
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
+
+import API_BASE_URL from "../apiConfig";
 import { useNavigate, useLocation } from "react-router-dom";
+import DateField from "../components/DateField";
 import {
   People,
   School,
@@ -32,10 +38,7 @@ import {
   AdminPanelSettings,
 } from "@mui/icons-material";
 
-import API_BASE_URL from "../apiConfig";
-import DateField from "../components/DateField";
-
-const SuperAdminApplicantResetPassword = () => {
+const SuperAdminStudentResetPassword = () => {
   const settings = useContext(SettingsContext);
 
   const [titleColor, setTitleColor] = useState("#000000");
@@ -75,11 +78,40 @@ const SuperAdminApplicantResetPassword = () => {
     if (settings.campus_address) setCampusAddress(settings.campus_address);
   }, [settings]);
 
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success", // success | error | warning | info
-  });
+  /* =====================================
+     AUTH
+  ===================================== */
+  const [hasAccess, setHasAccess] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const pageId = 91;
+  const [employeeID, setEmployeeID] = useState("");
+
+  useEffect(() => {
+    const email = localStorage.getItem("email");
+    const role = localStorage.getItem("role");
+    const empID = localStorage.getItem("employee_id");
+
+    if (!email || role !== "registrar") {
+      window.location.href = "/login";
+      return;
+    }
+
+    setEmployeeID(empID);
+    checkAccess(empID);
+  }, []);
+
+  const checkAccess = async (id) => {
+    try {
+      const res = await axios.get(
+        `${API_BASE_URL}/api/page_access/${id}/${pageId}`,
+      );
+
+      setHasAccess(res.data?.page_privilege === 1);
+    } catch {
+      setHasAccess(false);
+    }
+  };
 
   const tabs = [
     {
@@ -105,7 +137,7 @@ const SuperAdminApplicantResetPassword = () => {
   ];
 
   const navigate = useNavigate();
-  const [activeStep, setActiveStep] = useState(0);
+  const [activeStep, setActiveStep] = useState(1);
   const [clickedSteps, setClickedSteps] = useState(
     Array(tabs.length).fill(false),
   );
@@ -115,122 +147,88 @@ const SuperAdminApplicantResetPassword = () => {
     navigate(to); // this will actually change the page
   };
 
-  const [userID, setUserID] = useState("");
-  const [user, setUser] = useState("");
-  const [userRole, setUserRole] = useState("");
-  const [hasAccess, setHasAccess] = useState(null);
+  /* =====================================
+     SNACKBAR
+  ===================================== */
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
+  /* =====================================
+     SEARCH
+  ===================================== */
   const [searchQuery, setSearchQuery] = useState("");
   const [userInfo, setUserInfo] = useState(null);
-  const [loading, setLoading] = useState(false); // for table/search
-  const [resetLoading, setResetLoading] = useState(false);
-  const [statusLoading, setStatusLoading] = useState(false);
   const [searchError, setSearchError] = useState("");
-  const pageId = 81;
-  const [accessLoading, setAccessLoading] = useState(true);
-  const [pageLoading, setPageLoading] = useState(false);
 
-  const [employeeID, setEmployeeID] = useState("");
-
+  /* =====================================
+     FETCH SINGLE STUDENT
+  ===================================== */
   useEffect(() => {
-    const storedUser = localStorage.getItem("email");
-    const storedRole = localStorage.getItem("role");
-    const storedID = localStorage.getItem("person_id");
-    const storedEmployeeID = localStorage.getItem("employee_id");
-
-    if (storedUser && storedRole && storedID) {
-      setUser(storedUser);
-      setUserRole(storedRole);
-      setUserID(storedID);
-      setEmployeeID(storedEmployeeID);
-
-      if (storedRole === "registrar") {
-        checkAccess(storedEmployeeID);
-      } else {
-        window.location.href = "/login";
-      }
-    } else {
-      window.location.href = "/login";
-    }
-  }, []);
-
-  const checkAccess = async (employeeID) => {
-    try {
-      const response = await axios.get(
-        `${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`,
-      );
-
-      if (response.data?.page_privilege === 1) {
-        setHasAccess(true);
-      } else {
-        setHasAccess(false);
-      }
-    } catch (error) {
-      setHasAccess(false);
-    } finally {
-      setAccessLoading(false); // ✅ ONLY here
-    }
-  };
-
-  useEffect(() => {
-    const fetchInfo = async () => {
-      if (!searchQuery) {
-        setUserInfo(null);
-        setSearchError("");
-        return;
-      }
-      setLoading(true);
-      setResetMsg("");
+    if (!searchQuery) {
+      setUserInfo(null);
       setSearchError("");
+      return;
+    }
+
+    const fetchStudent = async () => {
       try {
-        const res = await axios.post(
-          `${API_BASE_URL}/superadmin-get-applicant`,
-          {
-            email: searchQuery,
-          },
-        );
+        const res = await axios.post(`${API_BASE_URL}/superadmin-get-student`, {
+          search: searchQuery,
+        });
+
         setUserInfo(res.data);
       } catch (err) {
-        setSearchError(err.response?.data?.message || "No applicant found.");
+        setSearchError(err.response?.data?.message || "Student not found");
+
         setUserInfo(null);
-      } finally {
-        setLoading(false);
       }
     };
 
-    const delayDebounce = setTimeout(fetchInfo, 600);
-    return () => clearTimeout(delayDebounce);
+    const delay = setTimeout(fetchStudent, 600);
+
+    return () => clearTimeout(delay);
   }, [searchQuery]);
 
-  const [applicants, setApplicants] = useState([]);
+  /* =====================================
+     FETCH ALL STUDENTS
+  ===================================== */
+  const [students, setStudents] = useState([]);
 
   useEffect(() => {
-    const fetchApplicants = async () => {
+    const fetchStudents = async () => {
       setLoading(true);
+
       try {
         const res = await axios.get(
-          `${API_BASE_URL}/superadmin-get-all-applicants`,
+          `${API_BASE_URL}/superadmin-get-all-students`,
         );
-        setApplicants(res.data);
+
+        setStudents(res.data);
       } catch (err) {
-        console.error("Failed to fetch applicants", err);
-      } finally {
-        setLoading(false);
+        console.error("Fetch students error", err);
       }
+
+      setLoading(false);
     };
 
-    fetchApplicants();
+    fetchStudents();
   }, []);
 
+  /* =====================================
+     RESET PASSWORD
+  ===================================== */
   const handleReset = async () => {
     if (!userInfo) return;
 
-    setResetLoading(true);
+    setLoading(true);
 
     try {
-      const res = await axios.post(
-        `${API_BASE_URL}/superadmin-reset-applicant`,
-        { email: userInfo.email },
-      );
+      const res = await axios.post(`${API_BASE_URL}/superadmin-reset-student`, {
+        search: userInfo.email,
+      });
 
       setSnackbar({
         open: true,
@@ -240,36 +238,62 @@ const SuperAdminApplicantResetPassword = () => {
     } catch (err) {
       setSnackbar({
         open: true,
-        message: err.response?.data?.message || "Error resetting password.",
+        message: err.response?.data?.message || "Reset failed",
         severity: "error",
       });
     } finally {
-      setResetLoading(false);
+      setLoading(false);
     }
   };
 
+  /* =====================================
+     UPDATE STATUS
+  ===================================== */
   const handleStatusChange = async (e) => {
-    const newStatus = parseInt(e.target.value, 10);
-    setUserInfo((prev) => ({ ...prev, status: newStatus }));
+    const newStatus = Number(e.target.value);
+
+    setUserInfo((prev) => ({
+      ...prev,
+      status: newStatus,
+    }));
+
     try {
-      await axios.post(`${API_BASE_URL}/superadmin-update-status-applicant`, {
+      await axios.post(`${API_BASE_URL}/superadmin-update-status-student`, {
         email: userInfo.email,
         status: newStatus,
       });
-    } catch (err) {
-      console.error("Failed to update status", err);
+    } catch {
+      console.error("Status update failed");
     }
   };
 
+  /* =====================================
+     PAGINATION
+  ===================================== */
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 20; // you can change to 5, 15, etc.
 
-  const totalPages = Math.ceil(applicants.length / rowsPerPage);
+  const rowsPerPage = 20;
 
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+  const totalPages = Math.ceil(students.length / rowsPerPage);
 
-  const currentRows = applicants.slice(indexOfFirstRow, indexOfLastRow);
+  const indexOfLast = currentPage * rowsPerPage;
+  const indexOfFirstRow = indexOfLast - rowsPerPage;
+
+  const currentRows = students.slice(indexOfFirstRow, indexOfLast);
+
+  /* =====================================
+     CLICK NAME
+  ===================================== */
+  const handleNameClick = (student) => {
+    // You can search by email (safest because it's unique)
+    setSearchQuery(student.email);
+
+    // Optional: scroll to info panel
+    window.scrollTo({
+      top: document.body.scrollHeight,
+      behavior: "smooth",
+    });
+  };
 
   const headerCellStyle = {
     color: "white",
@@ -309,93 +333,42 @@ const SuperAdminApplicantResetPassword = () => {
     },
   };
 
-  const headerStyle = {
-    textAlign: "center",
-    fontSize: "12px",
-    border: `1px solid ${borderColor}`,
-  };
+  /* =====================================
+     DATE FORMAT
+  ===================================== */
+  const formatDate = (date) => {
+    if (!date) return "";
 
-  const handleNameClick = async (applicant) => {
-    setSearchQuery(applicant.email);
-    setPageLoading(true);
-    setSearchError("");
-
-    try {
-      const res = await axios.post(`${API_BASE_URL}/superadmin-get-applicant`, {
-        email: applicant.email,
-      });
-
-      setUserInfo(res.data);
-    } catch (err) {
-      setSearchError(err.response?.data?.message || "No applicant found.");
-      setUserInfo(null);
-    } finally {
-      setPageLoading(false);
-    }
-
-    window.scrollTo({
-      top: document.body.scrollHeight,
-      behavior: "smooth",
-    });
-  };
-
-  const formatDateLong = (dateStr) => {
-    if (!dateStr) return "";
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("en-US", {
+    return new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
     });
   };
 
-  const handleUpdateStatus = async () => {
-    if (!userInfo) return;
-
-    setStatusLoading(true);
-
-    try {
-      const res = await axios.post(
-        `${API_BASE_URL}/superadmin-update-status-applicant`,
-        {
-          email: userInfo.email,
-          status: userInfo.status,
-        },
-      );
-
-      // ✅ UPDATE TABLE STATE (IMPORTANT)
-      setApplicants((prev) =>
-        prev.map((applicant) =>
-          applicant.email === userInfo.email
-            ? { ...applicant, status: userInfo.status }
-            : applicant,
-        ),
-      );
-
-      setSnackbar({
-        open: true,
-        message: res.data.message || "Status updated successfully",
-        severity: "success",
-      });
-    } catch (err) {
-      setSnackbar({
-        open: true,
-        message: err.response?.data?.message || "Failed to update status",
-        severity: "error",
-      });
-    } finally {
-      setStatusLoading(false);
-    }
-  };
-
-  if (accessLoading) {
-    return <LoadingOverlay open message="Checking Access..." />;
+  /* =====================================
+     GUARDS
+  ===================================== */
+  if (loading || hasAccess === null) {
+    return <LoadingOverlay open={loading} message="Loading..." />;
   }
 
   if (!hasAccess) {
     return <Unauthorized />;
   }
 
+  /* =====================================
+     STYLES
+  ===================================== */
+  const headerStyle = {
+    textAlign: "center",
+    fontSize: "12px",
+    border: `1px solid ${borderColor}`,
+  };
+
+  /* =====================================
+     RENDER
+  ===================================== */
   return (
     <Box
       sx={{
@@ -418,20 +391,13 @@ const SuperAdminApplicantResetPassword = () => {
           mb: 2,
         }}
       >
-        <Typography
-          variant="h4"
-          sx={{
-            fontWeight: "bold",
-            color: titleColor,
-            fontSize: "36px",
-          }}
-        >
-          APPLICANT RESET PASSWORD
+        <Typography variant="h4" fontWeight="bold" color={titleColor}>
+          STUDENT RESET PASSWORD
         </Typography>
 
         <TextField
           size="small"
-          placeholder="Search Applicant Name / Email / Applicant ID"
+          placeholder="Search Student / Email / Name"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           sx={{
@@ -449,9 +415,9 @@ const SuperAdminApplicantResetPassword = () => {
       </Box>
 
       {searchError && <Typography color="error">{searchError}</Typography>}
-      <hr style={{ border: "2px solid #ccc", width: "100%" }} />
-      <br />
 
+      <hr />
+      <br />
       <Box
         sx={{
           display: "flex",
@@ -508,13 +474,80 @@ const SuperAdminApplicantResetPassword = () => {
         ))}
       </Box>
       <br />
-
       <br />
 
-      <TableContainer component={Paper} sx={{ width: "100%" }}>
+      <TableContainer
+        component={Paper}
+        sx={{ width: "100%", border: `1px solid ${borderColor}` }}
+      >
+        <Table>
+          <TableHead
+            sx={{ backgroundColor: settings?.header_color || "#1976d2" }}
+          >
+            <TableRow>
+              <TableCell sx={{ color: "white", textAlign: "Center" }}>
+                Student Information
+              </TableCell>
+            </TableRow>
+          </TableHead>
+        </Table>
+      </TableContainer>
+
+      <Paper sx={{ p: 3, border: `1px solid ${borderColor}` }}>
+        <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
+          <TextField
+            label="Student Number"
+            value={userInfo?.student_number || ""}
+            InputProps={{ readOnly: true }}
+          />
+
+          <TextField
+            label="Email"
+            value={userInfo?.email || ""}
+            InputProps={{ readOnly: true }}
+          />
+
+          <TextField
+            label="Full Name"
+            value={userInfo?.fullName || ""}
+            InputProps={{ readOnly: true }}
+          />
+
+          <DateField
+            label="Birthdate"
+            value={userInfo?.birthdate || ""}
+            InputProps={{ readOnly: true }}
+          />
+
+          <TextField
+            select
+            label="Status"
+            value={userInfo?.status ?? ""}
+            onChange={handleStatusChange}
+          >
+            <MenuItem value={1}>Active</MenuItem>
+            <MenuItem value={0}>Inactive</MenuItem>
+          </TextField>
+        </Box>
+
+        <Box mt={3}>
+          <Button
+            sx={{ mt: 2 }}
+            variant="contained"
+            disabled={!userInfo || loading}
+            onClick={handleReset}
+          >
+            {loading ? "Processing..." : "Reset Password"}
+          </Button>
+        </Box>
+      </Paper>
+
+      <br/>
+      <br/>
+      <TableContainer component={Paper}>
         <Table size="small">
-          {/* 🔥 TOP HEADER (Pagination + Total) */}
           <TableHead>
+            {/* PAGINATION BAR */}
             <TableRow>
               <TableCell
                 colSpan={6}
@@ -532,7 +565,7 @@ const SuperAdminApplicantResetPassword = () => {
                 >
                   {/* LEFT: TOTAL COUNT */}
                   <Typography fontSize="14px" fontWeight="bold" color="white">
-                    Total Applicants: {applicants.length}
+                    Total Students: {students.length}
                   </Typography>
 
                   {/* RIGHT: PAGINATION CONTROLS */}
@@ -611,7 +644,7 @@ const SuperAdminApplicantResetPassword = () => {
               </TableCell>
             </TableRow>
 
-            {/* 🔥 COLUMN HEADERS */}
+            {/* COLUMNS */}
             <TableRow>
               <TableCell
                 sx={{
@@ -629,7 +662,7 @@ const SuperAdminApplicantResetPassword = () => {
                   color: "black",
                 }}
               >
-                Applicant Number
+                Student No.
               </TableCell>
               <TableCell
                 sx={{
@@ -670,27 +703,26 @@ const SuperAdminApplicantResetPassword = () => {
             </TableRow>
           </TableHead>
 
-          {/* 🔥 TABLE BODY */}
           <TableBody>
             {currentRows.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} align="center">
-                  No applicants found.
+                  No students found
                 </TableCell>
               </TableRow>
             ) : (
-              currentRows.map((applicant, index) => (
+              currentRows.map((s, i) => (
                 <TableRow
-                  key={index}
+                  key={i}
                   sx={{
-                    backgroundColor: index % 2 === 0 ? "#ffffff" : "lightgray", // 👈 alternating
+                    backgroundColor: i % 2 === 0 ? "#ffffff" : "lightgray",
                   }}
                 >
                   <TableCell
                     align="center"
                     sx={{ border: `1px solid ${borderColor}` }}
                   >
-                    {indexOfFirstRow + index + 1}
+                    {indexOfFirstRow + i + 1}
                   </TableCell>
 
                   <TableCell
@@ -704,9 +736,9 @@ const SuperAdminApplicantResetPassword = () => {
                         textDecoration: "underline",
                       },
                     }}
-                    onClick={() => handleNameClick(applicant)}
+                    onClick={() => handleNameClick(s)}
                   >
-                    {applicant.applicant_number}
+                    {s.student_number}
                   </TableCell>
 
                   <TableCell
@@ -720,23 +752,23 @@ const SuperAdminApplicantResetPassword = () => {
                         textDecoration: "underline",
                       },
                     }}
-                    onClick={() => handleNameClick(applicant)}
+                    onClick={() => handleNameClick(s)}
                   >
-                    {applicant.fullName}
+                    {s.fullName}
                   </TableCell>
 
                   <TableCell
                     align="center"
                     sx={{ border: `1px solid ${borderColor}` }}
                   >
-                    {formatDateLong(applicant.birthdate)}
+                    {formatDate(s.birthdate)}
                   </TableCell>
 
                   <TableCell
                     align="center"
                     sx={{ border: `1px solid ${borderColor}` }}
                   >
-                    {applicant.email}
+                    {s.email}
                   </TableCell>
 
                   <TableCell
@@ -744,10 +776,10 @@ const SuperAdminApplicantResetPassword = () => {
                     sx={{
                       border: `1px solid ${borderColor}`,
                       fontWeight: "bold",
-                      color: applicant.status === 1 ? "green" : "red",
+                      color: s.status === 1 ? "green" : "red",
                     }}
                   >
-                    {applicant.status === 1 ? "Active" : "Inactive"}
+                    {s.status === 1 ? "Active" : "Inactive"}
                   </TableCell>
                 </TableRow>
               ))
@@ -755,6 +787,7 @@ const SuperAdminApplicantResetPassword = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
       <TableContainer component={Paper}>
         <Table size="small">
           <TableHead>
@@ -776,7 +809,7 @@ const SuperAdminApplicantResetPassword = () => {
                 >
                   {/* LEFT: TOTAL COUNT */}
                   <Typography fontSize="14px" fontWeight="bold" color="white">
-                    Total Applicants: {applicants.length}
+                    Total Students: {students.length}
                   </Typography>
 
                   {/* RIGHT: PAGINATION CONTROLS */}
@@ -858,106 +891,20 @@ const SuperAdminApplicantResetPassword = () => {
         </Table>
       </TableContainer>
 
-      <br />
-      <br />
-      <TableContainer
-        component={Paper}
-        sx={{ width: "100%", border: `1px solid ${borderColor}` }}
-      >
-        <Table>
-          <TableHead
-            sx={{ backgroundColor: settings?.header_color || "#1976d2" }}
-          >
-            <TableRow>
-              <TableCell sx={{ color: "white", textAlign: "Center" }}>
-                Applicant Information
-              </TableCell>
-            </TableRow>
-          </TableHead>
-        </Table>
-      </TableContainer>
 
-      {/* Info Panel */}
-      <Paper sx={{ p: 3, border: `1px solid ${borderColor}` }}>
-        <Box
-          display="grid"
-          gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr" }}
-          gap={2}
-        >
-          <TextField
-            label="Applicant Number"
-            value={userInfo?.applicant_number || ""}
-            fullWidth
-            InputProps={{ readOnly: true }}
-          />
-          <TextField
-            label="Email"
-            value={userInfo ? userInfo.email : ""}
-            fullWidth
-            InputProps={{ readOnly: true }}
-          />
-          <TextField
-            label="Full Name"
-            value={userInfo ? userInfo.fullName : ""}
-            fullWidth
-            InputProps={{ readOnly: true }}
-          />
-          <DateField
-            label="Birthdate"
-            value={userInfo ? userInfo.birthdate : ""}
-            fullWidth
-            InputProps={{ readOnly: true }}
-          />
-          <TextField
-            select
-            label="Status"
-            value={userInfo ? (userInfo.status ?? "") : ""}
-            fullWidth
-            onChange={(e) =>
-              setUserInfo((prev) => ({
-                ...prev,
-                status: parseInt(e.target.value, 10),
-              }))
-            }
-          >
-            <MenuItem value={1}>Active</MenuItem>
-            <MenuItem value={0}>Inactive</MenuItem>
-          </TextField>
-        </Box>
 
-        <Box mt={3} display="flex" gap={2}>
-          {/* UPDATE STATUS */}
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleUpdateStatus}
-            disabled={!userInfo || statusLoading || resetLoading}
-          >
-            {statusLoading ? "Updating..." : "Update Status"}
-          </Button>
-
-          {/* RESET PASSWORD */}
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={handleReset}
-            disabled={!userInfo || resetLoading || statusLoading}
-          >
-            {resetLoading ? "Processing..." : "Reset Password"}
-          </Button>
-        </Box>
-      </Paper>
+      {/* ================= SNACKBAR ================= */}
 
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}
-        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        onClose={() => setSnackbar((p) => ({ ...p, open: false }))}
       >
         <Alert
           severity={snackbar.severity}
-          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
           sx={{ width: "100%" }}
+          onClose={() => setSnackbar((p) => ({ ...p, open: false }))}
         >
           {snackbar.message}
         </Alert>
@@ -966,4 +913,4 @@ const SuperAdminApplicantResetPassword = () => {
   );
 };
 
-export default SuperAdminApplicantResetPassword;
+export default SuperAdminStudentResetPassword;

@@ -25,7 +25,7 @@ import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
 import { Autocomplete, TextField } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import ProgramTaggingFilter from "../registrar/ProgramTaggingFilter";
+import ProgramTaggingFilter from "./ProgramTaggingFilter";
 import {
   Dialog,
   DialogTitle,

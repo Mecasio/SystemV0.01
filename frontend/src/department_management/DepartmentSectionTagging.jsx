@@ -56,7 +56,7 @@ const DepartmentSectionTagging = () => {
   const [hasAccess,  setHasAccess]  = useState(null);
   const [loading,    setLoading]    = useState(false);
   const [employeeID, setEmployeeID] = useState("");
-  const pageId = 121; // update to correct page id
+  const pageId = 146; // update to correct page id
 
   useEffect(() => {
     const storedRole       = localStorage.getItem("role");

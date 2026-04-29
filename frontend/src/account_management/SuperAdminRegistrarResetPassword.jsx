@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import { SettingsContext } from "../App";
 import axios from "axios";
-
 import {
   Box,
   Button,
@@ -9,8 +8,6 @@ import {
   Typography,
   Paper,
   MenuItem,
-  FormControl,
-  Select,
 } from "@mui/material";
 import {
   Table,
@@ -19,9 +16,12 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  FormControl,
+  Select,
   Card,
 } from "@mui/material";
 import { Snackbar, Alert } from "@mui/material";
+
 import SearchIcon from "@mui/icons-material/Search";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
@@ -34,7 +34,7 @@ import {
   AdminPanelSettings,
 } from "@mui/icons-material";
 
-const SuperAdminFacultyResetPassword = () => {
+const SuperAdminRegistrarResetPassword = () => {
   const settings = useContext(SettingsContext);
 
   const [titleColor, setTitleColor] = useState("#000000");
@@ -74,17 +74,62 @@ const SuperAdminFacultyResetPassword = () => {
     if (settings.campus_address) setCampusAddress(settings.campus_address);
   }, [settings]);
 
+  const [userID, setUserID] = useState("");
+  const [user, setUser] = useState("");
+  const [userRole, setUserRole] = useState("");
+  const [hasAccess, setHasAccess] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [facultyList, setFacultyList] = useState([]);
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [searchError, setSearchError] = useState("");
+  const pageId = 83;
 
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
+  const [employeeID, setEmployeeID] = useState("");
+  const [searchLoading, setSearchLoading] = useState(false); // for search/reset
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("email");
+    const storedRole = localStorage.getItem("role");
+    const storedID = localStorage.getItem("person_id");
+    const storedEmployeeID = localStorage.getItem("employee_id");
+
+    if (storedUser && storedRole && storedID) {
+      setUser(storedUser);
+      setUserRole(storedRole);
+      setUserID(storedID);
+      setEmployeeID(storedEmployeeID);
+
+      if (storedRole === "registrar") {
+        checkAccess(storedEmployeeID);
+      } else {
+        window.location.href = "/login";
+      }
+    } else {
+      window.location.href = "/login";
+    }
+  }, []);
+
+  const checkAccess = async (employeeID) => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`,
+      );
+      if (response.data && response.data.page_privilege === 1) {
+        setHasAccess(true);
+      } else {
+        setHasAccess(false);
+      }
+    } catch (error) {
+      console.error("Error checking access:", error);
+      setHasAccess(false);
+      if (error.response && error.response.data.message) {
+        console.log(error.response.data.message);
+      } else {
+        console.log("An unexpected error occurred.");
+      }
+      setLoading(false);
+    }
+  };
 
   const tabs = [
     {
@@ -110,7 +155,7 @@ const SuperAdminFacultyResetPassword = () => {
   ];
 
   const navigate = useNavigate();
-  const [activeStep, setActiveStep] = useState(2);
+  const [activeStep, setActiveStep] = useState(3);
   const [clickedSteps, setClickedSteps] = useState(
     Array(tabs.length).fill(false),
   );
@@ -120,27 +165,45 @@ const SuperAdminFacultyResetPassword = () => {
     navigate(to); // this will actually change the page
   };
 
-  // ================= FETCH ALL FACULTY =================
-  const [faculty, setFaculty] = useState([]); // ONLY USE THIS
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
+  const [registrars, setRegistrars] = useState([]);
 
   useEffect(() => {
-    const fetchFaculty = async () => {
+    const fetchRegistrars = async () => {
       setLoading(true);
       try {
         const res = await axios.get(
-          `${API_BASE_URL}/superadmin-get-all-faculty`,
+          `${API_BASE_URL}/superadmin-get-all-registrar`,
         );
-        setFaculty(res.data); // ✅ FIX
+        setRegistrars(res.data);
       } catch (err) {
-        console.error("Failed to fetch faculty list", err);
+        console.error("Failed to fetch registrars", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchFaculty();
+
+    fetchRegistrars();
   }, []);
 
-  // ================= SEARCH FACULTY =================
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 20;
+
+  const totalPages = Math.ceil(registrars.length / rowsPerPage);
+  const indexOfLastRow = currentPage * rowsPerPage;
+  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+  const currentRows = registrars.slice(indexOfFirstRow, indexOfLastRow);
+
+  const handleNameClick = (r) => {
+    setSearchQuery(r.employee_id); // or r.email if backend supports
+    setUserInfo(r); // 🔥 instantly fill panel without waiting backend
+  };
+
   useEffect(() => {
     const fetchInfo = async () => {
       if (!searchQuery) {
@@ -149,28 +212,37 @@ const SuperAdminFacultyResetPassword = () => {
         return;
       }
 
+      setSearchLoading(true); // ✅ use searchLoading
+      setResetMsg("");
+      setSearchError("");
+
       try {
-        const res = await axios.post(`${API_BASE_URL}/superadmin-get-faculty`, {
-          search: searchQuery,
-        });
+        const res = await axios.post(
+          `${API_BASE_URL}/superadmin-get-registrar`,
+          { search: searchQuery },
+        );
         setUserInfo(res.data);
       } catch (err) {
+        setSearchError(err.response?.data?.message || "No registrar found.");
         setUserInfo(null);
-        setSearchError("Faculty not found");
+      } finally {
+        setSearchLoading(false); // ✅ use searchLoading
       }
     };
 
-    const delay = setTimeout(fetchInfo, 600);
-    return () => clearTimeout(delay);
+    const delayDebounce = setTimeout(fetchInfo, 600);
+    return () => clearTimeout(delayDebounce);
   }, [searchQuery]);
 
-  // ================= RESET PASSWORD =================
   const handleReset = async () => {
     if (!userInfo) return;
+
+    setSearchLoading(true);
     try {
-      const res = await axios.post(`${API_BASE_URL}/superadmin-reset-faculty`, {
-        email: userInfo.email,
-      });
+      const res = await axios.post(
+        `${API_BASE_URL}/forgot-password-registrar`,
+        { email: userInfo.email },
+      );
 
       setSnackbar({
         open: true,
@@ -180,46 +252,27 @@ const SuperAdminFacultyResetPassword = () => {
     } catch (err) {
       setSnackbar({
         open: true,
-        message: "Reset failed",
+        message: err.response?.data?.message || "Error resetting password",
         severity: "error",
       });
+    } finally {
+      setSearchLoading(false);
     }
   };
 
-  // ================= UPDATE STATUS =================
+  // ✅ Change account status
   const handleStatusChange = async (e) => {
-    const newStatus = parseInt(e.target.value);
+    const newStatus = parseInt(e.target.value, 10);
     setUserInfo((prev) => ({ ...prev, status: newStatus }));
 
-    await axios.post(`${API_BASE_URL}/superadmin-update-status-faculty`, {
-      email: userInfo.email,
-      status: newStatus,
-    });
-  };
-
-  /* =====================================
-      PAGINATION
-   ===================================== */
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const rowsPerPage = 20;
-  const totalPages = Math.ceil(faculty.length / rowsPerPage);
-
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-
-  const currentRows = faculty.slice(indexOfFirstRow, indexOfLastRow);
-
-  /* =====================================
-     CLICK NAME
-  ===================================== */
-  const handleNameClick = (student) => {
-    setSearchQuery(student.email);
-
-    window.scrollTo({
-      top: document.body.scrollHeight,
-      behavior: "smooth",
-    });
+    try {
+      await axios.post(`${API_BASE_URL}/superadmin-update-status-registrar`, {
+        email: userInfo.email,
+        status: newStatus,
+      });
+    } catch (err) {
+      console.error("Failed to update status", err);
+    }
   };
 
   /* =====================================
@@ -280,9 +333,15 @@ const SuperAdminFacultyResetPassword = () => {
     },
   };
 
-  // ================= UI =================
-  if (loading) return <LoadingOverlay open={true} message="Loading..." />;
+  if (loading || hasAccess === null) {
+    return <LoadingOverlay open={loading} message="Checking Access..." />;
+  }
 
+  if (!hasAccess) {
+    return <Unauthorized />;
+  }
+
+  // ✅ Main Component
   return (
     <Box
       sx={{
@@ -309,12 +368,12 @@ const SuperAdminFacultyResetPassword = () => {
           variant="h4"
           sx={{ fontWeight: "bold", color: titleColor, fontSize: "36px" }}
         >
-          FACULTY RESET PASSWORD
+          REGISTRAR RESET PASSWORD
         </Typography>
 
         <TextField
           size="small"
-          placeholder="Search Employee ID / Name / Email"
+          placeholder="Search Employee ID / Name / Email Address"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           sx={{
@@ -331,6 +390,7 @@ const SuperAdminFacultyResetPassword = () => {
         />
       </Box>
 
+      {searchError && <Typography color="error">{searchError}</Typography>}
       <hr />
       <br />
       <Box
@@ -388,14 +448,79 @@ const SuperAdminFacultyResetPassword = () => {
           </Card>
         ))}
       </Box>
+     <br />
       <br />
-      <br />
-      {/* ================= FACULTY TABLE ================= */}
-      <TableContainer component={Paper}>
+
+      <TableContainer
+        component={Paper}
+        sx={{ width: "100%", border: `1px solid ${borderColor}` }}
+      >
+        <Table>
+          <TableHead
+            sx={{ backgroundColor: settings?.header_color || "#1976d2" }}
+          >
+            <TableRow>
+              <TableCell sx={{ color: "white", textAlign: "Center" }}>
+                Registrar Information
+              </TableCell>
+            </TableRow>
+          </TableHead>
+        </Table>
+      </TableContainer>
+      <Paper sx={{ p: 3, border: `1px solid ${borderColor}` }}>
+        <Box
+          display="grid"
+          gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr" }}
+          gap={2}
+        >
+          <TextField
+            label="Employee ID"
+            value={userInfo?.employee_id || ""}
+            fullWidth
+            InputProps={{ readOnly: true }}
+          />
+          <TextField
+            label="Email"
+            value={userInfo?.email || ""}
+            fullWidth
+            InputProps={{ readOnly: true }}
+          />
+          <TextField
+            label="Full Name"
+            value={userInfo?.fullName || ""}
+            fullWidth
+            InputProps={{ readOnly: true }}
+          />
+          <TextField
+            select
+            label="Status"
+            value={userInfo?.status ?? ""}
+            fullWidth
+            onChange={handleStatusChange}
+          >
+            <MenuItem value={1}>Active</MenuItem>
+            <MenuItem value={0}>Inactive</MenuItem>
+          </TextField>
+        </Box>
+
+        <Box mt={3}>
+          <Button
+            sx={{ mt: 2 }}
+            variant="contained"
+            onClick={handleReset}
+            disabled={!userInfo || loading}
+          >
+            {loading ? "Processing..." : "Reset Password"}
+          </Button>
+        </Box>
+      </Paper>
+
+      <br/>
+      <br/>
+      <TableContainer component={Paper} sx={{ width: "100%" }}>
         <Table size="small">
+          {/* 🔥 TOP HEADER (Pagination + Total) */}
           <TableHead>
-            {/* TOP PAGINATION HEADER */}
-            {/* PAGINATION BAR */}
             <TableRow>
               <TableCell
                 colSpan={6}
@@ -413,7 +538,7 @@ const SuperAdminFacultyResetPassword = () => {
                 >
                   {/* LEFT: TOTAL COUNT */}
                   <Typography fontSize="14px" fontWeight="bold" color="white">
-                    Total Faculty: {faculty.length}
+                    Total Registrars: {registrars.length}
                   </Typography>
 
                   {/* RIGHT: PAGINATION CONTROLS */}
@@ -492,7 +617,6 @@ const SuperAdminFacultyResetPassword = () => {
               </TableCell>
             </TableRow>
 
-            {/* COLUMN HEADERS */}
             <TableRow>
               <TableCell
                 sx={{
@@ -542,8 +666,9 @@ const SuperAdminFacultyResetPassword = () => {
             </TableRow>
           </TableHead>
 
+          {/* BODY */}
           <TableBody>
-            {currentRows.map((f, index) => (
+            {currentRows.map((r, index) => (
               <TableRow
                 key={index}
                 sx={{
@@ -554,17 +679,57 @@ const SuperAdminFacultyResetPassword = () => {
                   align="center"
                   sx={{ border: `1px solid ${borderColor}` }}
                 >
-                  {f.email}
+                  {indexOfFirstRow + index + 1}
                 </TableCell>
+
                 <TableCell
                   align="center"
                   sx={{
                     border: `1px solid ${borderColor}`,
+                    color: "blue",
+                    cursor: "pointer",
+
+                    "&:hover": {
+                      textDecoration: "underline",
+                    },
+                  }}
+                  onClick={() => handleNameClick(r)}
+                >
+                  {r.employee_id}
+                </TableCell>
+
+                <TableCell
+                  align="left"
+                  sx={{
+                    border: `1px solid ${borderColor}`,
+                    color: "blue",
+                    cursor: "pointer",
+
+                    "&:hover": {
+                      textDecoration: "underline",
+                    },
+                  }}
+                  onClick={() => handleNameClick(r)}
+                >
+                  {r.fullName}
+                </TableCell>
+
+                <TableCell
+                  align="center"
+                  sx={{ border: `1px solid ${borderColor}` }}
+                >
+                  {r.email}
+                </TableCell>
+
+                <TableCell
+                  sx={{
+                    border: `1px solid ${borderColor}`,
                     fontWeight: "bold",
-                    color: f.status === 1 ? "green" : "red",
+                    color: r.status === 1 ? "green" : "red",
+                    textAlign: "center",
                   }}
                 >
-                  {f.status === 1 ? "Active" : "Inactive"}
+                  {r.status === 1 ? "Active" : "Inactive"}
                 </TableCell>
               </TableRow>
             ))}
@@ -592,7 +757,7 @@ const SuperAdminFacultyResetPassword = () => {
                 >
                   {/* LEFT: TOTAL COUNT */}
                   <Typography fontSize="14px" fontWeight="bold" color="white">
-                    Total Faculty: {faculty.length}
+                    Total Registrars: {registrars.length}
                   </Typography>
 
                   {/* RIGHT: PAGINATION CONTROLS */}
@@ -673,67 +838,13 @@ const SuperAdminFacultyResetPassword = () => {
           </TableHead>
         </Table>
       </TableContainer>
-      <br />
-      <br />
 
-      <TableContainer
-        component={Paper}
-        sx={{ width: "100%", border: `1px solid ${borderColor}` }}
-      >
-        <Table>
-          <TableHead
-            sx={{ backgroundColor: settings?.header_color || "#1976d2" }}
-          >
-            <TableRow>
-              <TableCell sx={{ color: "white", textAlign: "Center" }}>
-                Faculty Information
-              </TableCell>
-            </TableRow>
-          </TableHead>
-        </Table>
-      </TableContainer>
+     
 
-      {/* ================= INFO PANEL ================= */}
-      <Paper sx={{ p: 3, border: `1px solid ${borderColor}` }}>
-        <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
-          <TextField
-            label="Employee ID"
-            value={userInfo?.employee_id || ""}
-            InputProps={{ readOnly: true }}
-          />
-          <TextField
-            label="Email"
-            value={userInfo?.email || ""}
-            InputProps={{ readOnly: true }}
-          />
-          <TextField
-            label="Full Name"
-            value={userInfo?.fullName || ""}
-            InputProps={{ readOnly: true }}
-          />
-
-          <TextField
-            select
-            label="Status"
-            value={userInfo?.status ?? ""}
-            onChange={handleStatusChange}
-          >
-            <MenuItem value={1}>Active</MenuItem>
-            <MenuItem value={0}>Inactive</MenuItem>
-          </TextField>
-        </Box>
-
-        <Button sx={{ mt: 2 }} variant="contained" onClick={handleReset}>
-          Reset Password
-        </Button>
-      </Paper>
-
-      {/* ================= SNACKBAR ================= */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
       >
         <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
       </Snackbar>
@@ -741,4 +852,4 @@ const SuperAdminFacultyResetPassword = () => {
   );
 };
 
-export default SuperAdminFacultyResetPassword;
+export default SuperAdminRegistrarResetPassword;

@@ -101,7 +101,7 @@ const NSTPTagging = () => {
   const [hasAccess, setHasAccess] = useState(null);
   const [loading, setLoading] = useState(false);
   const [employeeID, setEmployeeID] = useState("");
-  const pageId = 120;
+  const pageId = 145;
 
   useEffect(() => {
     const storedRole = localStorage.getItem("role");

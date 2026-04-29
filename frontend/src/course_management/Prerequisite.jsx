@@ -5,56 +5,47 @@ import API_BASE_URL from "../apiConfig";
 import {
     Box,
     Typography,
-    FormControl,
-    InputLabel,
     Snackbar,
     Alert,
+    FormControl,
+    InputLabel,
     Select,
     MenuItem,
     TextField
 } from "@mui/material";
-import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
+import Unauthorized from "../components/Unauthorized";
 import { Autocomplete } from "@mui/material";
 
-const ProgramUnit = () => {
+const CoursePanelMap = () => {
     const settings = useContext(SettingsContext);
 
-    const [titleColor, setTitleColor] = useState("#000000");
-    const [subtitleColor, setSubtitleColor] = useState("#555555");
-    const [borderColor, setBorderColor] = useState("#000000");
-    const [mainButtonColor, setMainButtonColor] = useState("#1976d2");
-    const [subButtonColor, setSubButtonColor] = useState("#ffffff");   // ✅ NEW
-    const [stepperColor, setStepperColor] = useState("#000000");       // ✅ NEW
-
-    const [fetchedLogo, setFetchedLogo] = useState(null);
-    const [companyName, setCompanyName] = useState("");
-    const [shortTerm, setShortTerm] = useState("");
-    const [campusAddress, setCampusAddress] = useState("");
+    const [titleColor, setTitleColor] = useState("#000");
+    const [borderColor, setBorderColor] = useState("#000");
     const [branches, setBranches] = useState([]);
 
+    const [curriculumList, setCurriculumList] = useState([]);
+    const [selectedCurriculum, setSelectedCurriculum] = useState("");
+    const [taggedPrograms, setTaggedPrograms] = useState([]);
+
+    // editable prereqs
+    const [editedCourseReqs, setEditedCourseReqs] = useState({});
+
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: "",
+        severity: "success",
+    });
+
+    const [hasAccess, setHasAccess] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const pageId = 112; // 🔁 change if needed
+
+    /* ===================== SETTINGS ===================== */
     useEffect(() => {
         if (!settings) return;
-
-        // 🎨 Colors
         if (settings.title_color) setTitleColor(settings.title_color);
-        if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
         if (settings.border_color) setBorderColor(settings.border_color);
-        if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
-        if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);   // ✅ NEW
-        if (settings.stepper_color) setStepperColor(settings.stepper_color);           // ✅ NEW
-
-        // 🏫 Logo
-        if (settings.logo_url) {
-            setFetchedLogo(`${API_BASE_URL}${settings.logo_url}`);
-        } else {
-            setFetchedLogo(EaristLogo);
-        }
-
-        // 🏷️ School Information
-        if (settings.company_name) setCompanyName(settings.company_name);
-        if (settings.short_term) setShortTerm(settings.short_term);
-        if (settings.campus_address) setCampusAddress(settings.campus_address);
         if (settings?.branches) {
             try {
                 const parsed =
@@ -69,76 +60,31 @@ const ProgramUnit = () => {
         } else {
             setBranches([]);
         }
-
     }, [settings]);
 
-    const [curriculumList, setCurriculumList] = useState([]);
-    const [selectedCurriculum, setSelectedCurriculum] = useState("");
-    const [taggedPrograms, setTaggedPrograms] = useState([]);
-
-    const [editedCourseReqs, setEditedCourseReqs] = useState({});
-
-    const [userID, setUserID] = useState("");
-    const [user, setUser] = useState("");
-    const [userRole, setUserRole] = useState("");
-    const [hasAccess, setHasAccess] = useState(null);
-    const [loading, setLoading] = useState(false);
-
-    const [employeeID, setEmployeeID] = useState("");
-
+    /* ===================== AUTH ===================== */
     useEffect(() => {
+        const role = localStorage.getItem("role");
+        const employeeID = localStorage.getItem("employee_id");
 
-        const storedUser = localStorage.getItem("email");
-        const storedRole = localStorage.getItem("role");
-        const storedID = localStorage.getItem("person_id");
-        const storedEmployeeID = localStorage.getItem("employee_id");
-
-        if (storedUser && storedRole && storedID) {
-            setUser(storedUser);
-            setUserRole(storedRole);
-            setUserID(storedID);
-            setEmployeeID(storedEmployeeID);
-
-            if (storedRole === "registrar") {
-                checkAccess(storedEmployeeID);
-            } else {
-                window.location.href = "/login";
-            }
-        } else {
+        if (role !== "registrar") {
             window.location.href = "/login";
+            return;
         }
+
+        checkAccess(employeeID);
     }, []);
 
     const checkAccess = async (employeeID) => {
         try {
-            const response = await axios.get(`${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`);
-            if (response.data && response.data.page_privilege === 1) {
-                setHasAccess(true);
-            } else {
-                setHasAccess(false);
-            }
-        } catch (error) {
-            console.error('Error checking access:', error);
+            const res = await axios.get(
+                `${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`
+            );
+            setHasAccess(res.data?.page_privilege === 1);
+        } catch {
             setHasAccess(false);
-            if (error.response && error.response.data.message) {
-                console.log(error.response.data.message);
-            } else {
-                console.log("An unexpected error occurred.");
-            }
-            setLoading(false);
         }
     };
-
-    const pageId = 113;
-
-
-
-    const [snackbar, setSnackbar] = useState({
-        open: false,
-        message: "",
-        severity: "success",
-    });
-
 
     /* ===================== DATA ===================== */
     useEffect(() => {
@@ -160,70 +106,13 @@ const ProgramUnit = () => {
 
     };
 
-    /* ===================== EDIT HANDLERS ===================== */
-    const handleReqChange = (id, field, value) => {
-        setEditedCourseReqs(prev => ({
-            ...prev,
-            [id]: {
-                ...prev[id],
-                [field]: value === "" ? null : Number(value),
-            },
-        }));
-    };
-
-    const handleSaveSemester = async (courses) => {
-        try {
-            const updates = {};
-
-            // group edits by course_id
-            for (const c of courses) {
-                const edited = editedCourseReqs[c.program_tagging_id];
-                if (!edited) continue;
-
-                updates[c.course_id] = {
-                    lec_unit:
-                        edited.lec_unit !== undefined ? edited.lec_unit : c.lec_unit,
-                    lab_unit:
-                        edited.lab_unit !== undefined ? edited.lab_unit : c.lab_unit,
-                    course_unit:
-                        edited.course_unit !== undefined
-                            ? edited.course_unit
-                            : c.course_unit,
-                };
-            }
-
-            // save once per course
-            for (const courseId of Object.keys(updates)) {
-                await axios.put(
-                    `${API_BASE_URL}/update_course/${courseId}`,
-                    updates[courseId]
-                );
-            }
-
-            setEditedCourseReqs({});
-            fetchTaggedPrograms();
-            setSnackbar({
-                open: true,
-                message: "Saved successfully!",
-                severity: "success",
-            });
-        } catch (err) {
-            console.error(err);
-            setSnackbar({
-                open: true,
-                message: "Save failed",
-                severity: "error",
-            });
-        }
-    };
-
     /* ===================== GROUP YEAR → SEM ===================== */
     const groupedData = () => {
         const result = {};
 
         taggedPrograms
-            .filter((p) => p.curriculum_id == selectedCurriculum)
-            .forEach((p) => {
+            .filter(p => p.curriculum_id == selectedCurriculum)
+            .forEach(p => {
                 if (!result[p.year_level_description]) {
                     result[p.year_level_description] = {};
                 }
@@ -238,29 +127,65 @@ const ProgramUnit = () => {
 
     const data = groupedData();
 
-    const selectedCurriculumName =
-        curriculumList.find((c) => c.curriculum_id === selectedCurriculum)
-            ?.program_description +
-        (curriculumList.find((c) => c.curriculum_id === selectedCurriculum)
-            ?.major
-            ? ` ${curriculumList.find(
-                (c) => c.curriculum_id === selectedCurriculum
-            )?.major}`
-            : "") || "";
-
-    const formatSchoolYear = (yearDesc) => {
-        if (!yearDesc) return "";
-        const startYear = Number(yearDesc);
-        if (isNaN(startYear)) return yearDesc; // safe fallback
-        return `${startYear} - ${startYear + 1}`;
+    /* ===================== HANDLERS ===================== */
+    const handleReqChange = (id, field, value) => {
+        setEditedCourseReqs(prev => ({
+            ...prev,
+            [id]: {
+                ...prev[id],
+                [field]: value,
+            },
+        }));
     };
+
+    const handleSaveSemester = async (courses) => {
+        try {
+            for (const course of courses) {
+                const edited = editedCourseReqs[course.program_tagging_id];
+                if (!edited) continue;
+
+                await axios.put(
+                    `${API_BASE_URL}/update_course_requirements/${course.course_id}`,
+                    {
+                        prereq: edited.prereq ?? course.prereq ?? null,
+
+                        corequisite: edited.corequisite ?? course.corequisite ?? null,
+                    }
+                );
+
+            }
+
+            setSnackbar({
+                open: true,
+                message: "Requirements saved successfully!",
+                severity: "success",
+            });
+
+            setEditedCourseReqs({});
+            fetchTaggedPrograms();
+        } catch (err) {
+            console.error(err);
+            setSnackbar({
+                open: true,
+                message: "Failed to save requirements",
+                severity: "error",
+            });
+        }
+    };
+
+
+    const selectedCurriculumName = curriculumList.find(
+        (c) => c.curriculum_id === selectedCurriculum
+    )?.program_description +
+        (curriculumList.find(c => c.curriculum_id === selectedCurriculum)?.major
+            ? ` ${curriculumList.find(c => c.curriculum_id === selectedCurriculum)?.major}`
+            : "") || "";
 
 
     const [filteredPrograms, setFilteredPrograms] = useState([]);
 
     const [selectedCampus, setSelectedCampus] = useState("");
     const [selectedAcademicProgram, setSelectedAcademicProgram] = useState("");
-
 
     const filteredCurriculumList = curriculumList
         .filter((item) => {
@@ -303,19 +228,30 @@ const ProgramUnit = () => {
         "Fifth Year": "5th Year",
     };
 
+    const formatSchoolYear = (yearDesc) => {
+        if (!yearDesc) return "";
+        const startYear = Number(yearDesc);
+        if (isNaN(startYear)) return yearDesc;
+        return `${startYear} - ${startYear + 1}`;
+    };
+
+    const getBranchLabel = (branchId) => {
+        const branch = branches.find((item) => Number(item.id) === Number(branchId));
+        return branch?.branch || "�";
+    };
+
     const formatYearLabel = (year) => {
-        return `${yearLabelMap[year] || year} - (${year})`;
+        return yearLabelMap[year] || year;
     };
 
 
     if (loading || hasAccess === null) {
-        return <LoadingOverlay open={loading} message="Loading..." />;
+        return <LoadingOverlay open={true} message="Loading..." />;
     }
 
     if (!hasAccess) {
         return <Unauthorized />;
     }
-
 
     const headerStyle = {
         backgroundColor: settings?.header_color || "#1976d2",
@@ -328,7 +264,6 @@ const ProgramUnit = () => {
     const cellStyle = {
         border: `1px solid ${borderColor}`,
         padding: "8px",
-        textAlign: "center",
     };
 
     return (
@@ -360,7 +295,7 @@ const ProgramUnit = () => {
                         fontSize: "36px",
                     }}
                 >
-                    PROGRAM UNITS
+                   PREREQUISITE
                 </Typography>
             </Box>
 
@@ -411,7 +346,6 @@ const ProgramUnit = () => {
                 </Select>
             </FormControl>
 
-
             <Typography fontWeight={500}>Search Curriculum:</Typography>
 
             <Autocomplete
@@ -445,10 +379,8 @@ const ProgramUnit = () => {
                         placeholder="Search program, major, year..."
                     />
                 )}
-                sx={{ maxWidth: 400, mb: 4 }}
+                sx={{ maxWidth: 700, mb: 4 }}
             />
-
-
 
             {/* YEARS */}
             {selectedCurriculum &&
@@ -465,7 +397,7 @@ const ProgramUnit = () => {
                                 backgroundColor: "#fafafa",
                             }}
                         >
-                            {/* CURRICULUM HEADER */}
+                            {/* ===== CURRICULUM HEADER (ONCE PER YEAR) ===== */}
                             <Typography
                                 variant="h4"
                                 sx={{
@@ -484,9 +416,10 @@ const ProgramUnit = () => {
                                 {formatSchoolYear(
                                     curriculumList.find(c => c.curriculum_id === selectedCurriculum)?.year_description
                                 )} : {selectedCurriculumName}
+
                             </Typography>
 
-                            {/* SEMESTERS */}
+                            {/* ===== SEMESTER TABLES ===== */}
                             <Box
                                 sx={{
                                     display: "grid",
@@ -497,7 +430,7 @@ const ProgramUnit = () => {
                                 {Object.keys(data[year])
                                     .sort((a, b) => semesterOrder[a] - semesterOrder[b])
                                     .map((sem) => {
-                                        const courses = data[year][sem];
+                                        const semesterCourses = data[year][sem];
 
                                         return (
                                             <Box
@@ -513,14 +446,19 @@ const ProgramUnit = () => {
                                                 }}
                                             >
                                                 <Box sx={{ position: "relative", pb: 7 }}>
-                                                    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                                                    <table
+                                                        style={{
+                                                            width: "100%",
+                                                            borderCollapse: "collapse",
+                                                        }}
+                                                    >
                                                         <thead>
-                                                            {/* YEAR + SEM */}
+                                                            {/* YEAR + SEMESTER */}
                                                             <tr>
+                                                                {/* YEAR (LEFT) */}
                                                                 <th
-                                                                    colSpan={4}
+                                                                    colSpan={3}
                                                                     style={{
-
                                                                         backgroundColor: "#f5f5f5",
                                                                         borderLeft: `1px solid ${borderColor}`,
                                                                         borderTop: `1px solid ${borderColor}`,
@@ -528,15 +466,16 @@ const ProgramUnit = () => {
                                                                         padding: "10px",
                                                                         fontWeight: "bold",
                                                                         textAlign: "left",
-                                                                        fontSize: "21px",
                                                                         color: titleColor,
+                                                                        fontSize: "21px",
                                                                     }}
                                                                 >
                                                                     {formatYearLabel(year)}
                                                                 </th>
 
+                                                                {/* SEMESTER (RIGHT) */}
                                                                 <th
-                                                                    colSpan={4}
+                                                                    colSpan={3}
                                                                     style={{
                                                                         backgroundColor: "#f5f5f5",
                                                                         borderRight: `1px solid ${borderColor}`,
@@ -544,166 +483,139 @@ const ProgramUnit = () => {
                                                                         borderBottom: `1px solid ${borderColor}`,
                                                                         padding: "10px",
                                                                         fontWeight: "bold",
-                                                                        textAlign: "right",
                                                                         fontSize: "21px",
                                                                         color: titleColor,
+                                                                        textAlign: "right",
                                                                     }}
                                                                 >
                                                                     {sem}
                                                                 </th>
                                                             </tr>
 
+
+                                                            {/* COLUMN HEADERS */}
                                                             <tr>
                                                                 <th style={headerStyle}>#</th>
                                                                 <th style={headerStyle}>COURSE CODE</th>
                                                                 <th style={headerStyle}>COURSE DESCRIPTION</th>
-                                                                <th style={headerStyle}>PREREQUISITE</th>
-                                                                <th style={headerStyle}>LEC</th>
-                                                                <th style={headerStyle}>LAB</th>
-                                                                <th style={headerStyle}>CREDIT</th>
-                                                                <th style={headerStyle}>TUITION</th>
+
+                                                                <th style={headerStyle}>CREDITED UNITS</th>
+                                                                <th style={headerStyle}>PREREQUISITES</th>
+
+                                                                <th style={headerStyle}>COREQUISITE</th>
                                                             </tr>
                                                         </thead>
 
                                                         <tbody>
-                                                            {courses.map((c, index) => (
-                                                                <tr key={c.program_tagging_id}>
-                                                                    <td style={cellStyle}>{index + 1}</td>
-                                                                    <td style={cellStyle}>{c.course_code}</td>
-                                                                    <td style={{ ...cellStyle, textAlign: "center" }}>
-                                                                        {c.course_description}
-                                                                    </td>
-                                                                    <td style={{ ...cellStyle, textAlign: "center" }}>
-                                                                        {c.prereq}
-                                                                    </td>
+                                                            {semesterCourses.map((course, index) => (
+                                                                <tr key={course.program_tagging_id}>
+                                                                    <td style={{ ...cellStyle, textAlign: "center" }}>{index + 1}</td>
+                                                                    <td style={cellStyle}>{course.course_code}</td>
+                                                                    <td style={cellStyle}>{course.course_description}</td>
 
                                                                     <td style={{ ...cellStyle, textAlign: "center" }}>
+                                                                        {course.course_unit}
+                                                                    </td>
+
+                                                                    <td style={cellStyle}>
                                                                         <input
-                                                                            type="number"
+                                                                            type="text"
                                                                             value={
-                                                                                editedCourseReqs[c.program_tagging_id]?.lec_unit ?? c.lec_unit ?? 0
+                                                                                editedCourseReqs[course.program_tagging_id]?.prereq ?? course.prereq ?? ""
                                                                             }
                                                                             onChange={(e) =>
-                                                                                handleReqChange(c.program_tagging_id, "lec_unit", e.target.value)
+                                                                                handleReqChange(course.program_tagging_id, "prereq", e.target.value)
                                                                             }
                                                                             style={{
-                                                                                width: "90px",
+                                                                                width: "100%",
                                                                                 padding: "6px",
                                                                                 border: "1px solid #ccc",
                                                                                 borderRadius: 4,
-                                                                                textAlign: "right",
+                                                                                textAlign: "right"
                                                                             }}
                                                                         />
                                                                     </td>
 
-                                                                    <td style={{ ...cellStyle, textAlign: "center" }}>
+                                                                    <td style={cellStyle}>
                                                                         <input
-                                                                            type="number"
+                                                                            type="text"
                                                                             value={
-                                                                                editedCourseReqs[c.program_tagging_id]?.lab_unit ?? c.lab_unit ?? 0
+                                                                                editedCourseReqs[course.program_tagging_id]?.corequisite ?? course.corequisite ?? ""
                                                                             }
                                                                             onChange={(e) =>
-                                                                                handleReqChange(c.program_tagging_id, "lab_unit", e.target.value)
+                                                                                handleReqChange(course.program_tagging_id, "corequisite", e.target.value)
                                                                             }
                                                                             style={{
-                                                                                width: "90px",
+                                                                                width: "100%",
                                                                                 padding: "6px",
                                                                                 border: "1px solid #ccc",
                                                                                 borderRadius: 4,
-                                                                                textAlign: "right",
+                                                                                textAlign: "right"
                                                                             }}
                                                                         />
                                                                     </td>
-
-                                                                    <td style={{ ...cellStyle, textAlign: "center" }}>
-                                                                        <input
-                                                                            type="number"
-                                                                            value={
-                                                                                editedCourseReqs[c.program_tagging_id]?.course_unit ?? c.course_unit ?? 0
-                                                                            }
-                                                                            onChange={(e) =>
-                                                                                handleReqChange(c.program_tagging_id, "course_unit", e.target.value)
-                                                                            }
-                                                                            style={{
-                                                                                width: "90px",
-                                                                                padding: "6px",
-                                                                                border: "1px solid #ccc",
-                                                                                borderRadius: 4,
-                                                                                textAlign: "right",
-
-                                                                            }}
-                                                                        />
-                                                                    </td>
-
-                                                                    <td style={{ ...cellStyle, textAlign: "center", fontWeight: "bold" }}>
-                                                                        {c.course_unit ?? 0}
-                                                                    </td>
-
 
                                                                 </tr>
+
                                                             ))}
 
-                                                            {/* TOTAL */}
-                                                            <tr style={{ fontWeight: "bold", backgroundColor: "#f0f0f0" }}>
-                                                                <td colSpan={4} style={cellStyle}>
+                                                            {/* ===== TOTAL ROW ===== */}
+                                                            {/* ===== TOTAL ROW ===== */}
+
+
+                                                            <tr
+                                                                style={{ fontWeight: "bold", backgroundColor: "#f0f0f0" }}>
+                                                                <td style={cellStyle} colSpan={2}>
                                                                     TOTAL
                                                                 </td>
+
                                                                 <td style={{ ...cellStyle, textAlign: "center" }}>
-                                                                    {courses.reduce(
-                                                                        (sum, c) =>
-                                                                            sum +
-                                                                            Number(
-                                                                                editedCourseReqs[c.program_tagging_id]?.lec_unit ??
-                                                                                c.lec_unit ??
-                                                                                0
-                                                                            ),
+
+                                                                </td>
+
+                                                                {/* TOTAL UNITS */}
+                                                                <td style={{ ...cellStyle, textAlign: "center" }}>
+                                                                    {semesterCourses.reduce(
+                                                                        (sum, course) => sum + Number(course.course_unit || 0),
                                                                         0
                                                                     )}
                                                                 </td>
+
+                                                                {/* TOTAL PREREQ 1 */}
                                                                 <td style={{ ...cellStyle, textAlign: "center" }}>
-                                                                    {courses.reduce(
-                                                                        (sum, c) =>
-                                                                            sum +
-                                                                            Number(
-                                                                                editedCourseReqs[c.program_tagging_id]?.lab_unit ??
-                                                                                c.lab_unit ??
-                                                                                0
-                                                                            ),
-                                                                        0
-                                                                    )}
+                                                                    {semesterCourses.reduce((count, course) => {
+                                                                        const value =
+                                                                            editedCourseReqs[course.program_tagging_id]?.prereq ??
+                                                                            course.prereq ??
+                                                                            "";
+                                                                        return count + (value.trim() !== "" ? 1 : 0);
+                                                                    }, 0)}
                                                                 </td>
+
+                                                                {/* TOTAL PREREQ 2 */}
+
+                                                                {/* TOTAL COREQUISITE */}
                                                                 <td style={{ ...cellStyle, textAlign: "center" }}>
-                                                                    {courses.reduce(
-                                                                        (sum, c) =>
-                                                                            sum +
-                                                                            Number(
-                                                                                editedCourseReqs[c.program_tagging_id]?.course_unit ??
-                                                                                c.course_unit ??
-                                                                                0
-                                                                            ),
-                                                                        0
-                                                                    )}
-                                                                </td>
-                                                                <td style={{ ...cellStyle, textAlign: "center" }}>
-                                                                    {courses.reduce(
-                                                                        (sum, c) =>
-                                                                            sum +
-                                                                            Number(
-                                                                                editedCourseReqs[c.program_tagging_id]?.course_unit ??
-                                                                                c.course_unit ??
-                                                                                0
-                                                                            ),
-                                                                        0
-                                                                    )}
+                                                                    {semesterCourses.reduce((count, course) => {
+                                                                        const value =
+                                                                            editedCourseReqs[course.program_tagging_id]?.corequisite ??
+                                                                            course.corequisite ??
+                                                                            "";
+                                                                        return count + (value.trim() !== "" ? 1 : 0);
+                                                                    }, 0)}
                                                                 </td>
                                                             </tr>
+
                                                         </tbody>
+
                                                     </table>
                                                 </Box>
 
                                                 {/* SAVE BUTTON */}
                                                 <button
-                                                    onClick={() => handleSaveSemester(courses)}
+                                                    onClick={() =>
+                                                        handleSaveSemester(semesterCourses)
+                                                    }
                                                     style={{
                                                         marginTop: 10,
                                                         padding: "6px 14px",
@@ -721,6 +633,8 @@ const ProgramUnit = () => {
                                         );
                                     })}
                             </Box>
+
+
                         </Box>
                     ))}
 
@@ -735,12 +649,11 @@ const ProgramUnit = () => {
                     {snackbar.message}
                 </Alert>
             </Snackbar>
-
         </Box>
     );
 
 };
 
-export default ProgramUnit;
+export default CoursePanelMap;
 
 

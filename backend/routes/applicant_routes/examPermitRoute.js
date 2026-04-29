@@ -152,6 +152,7 @@ router.get("/exam-schedule/:applicant_number", async (req, res) => {
         s.building_description,
         s.room_description,
         s.proctor,
+       
         s.created_at AS schedule_created_at
       FROM exam_applicants ea
       JOIN entrance_exam_schedule s 
