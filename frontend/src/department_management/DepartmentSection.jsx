@@ -83,6 +83,7 @@ const DepartmentSection = () => {
   const [userRole, setUserRole] = useState("");
   const [hasAccess, setHasAccess] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [canCreate, setCanCreate] = useState(false);
 
   const [deptSearchQuery, setDeptSearchQuery] = useState("");
 
@@ -113,6 +114,11 @@ const DepartmentSection = () => {
 
   const [employeeID, setEmployeeID] = useState("");
 
+  const getPermissionHeaders = () => ({
+    "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+    "x-page-id": pageId,
+  });
+
   useEffect(() => {
 
     const storedUser = localStorage.getItem("email");
@@ -139,14 +145,17 @@ const DepartmentSection = () => {
   const checkAccess = async (employeeID) => {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`);
-      if (response.data && response.data.page_privilege === 1) {
+      if (response.data && Number(response.data.page_privilege) === 1) {
         setHasAccess(true);
+        setCanCreate(Number(response.data?.can_create) === 1);
       } else {
         setHasAccess(false);
+        setCanCreate(false);
       }
     } catch (error) {
       console.error('Error checking access:', error);
       setHasAccess(false);
+      setCanCreate(false);
       if (error.response && error.response.data.message) {
         console.log(error.response.data.message);
       } else {
@@ -209,11 +218,22 @@ const DepartmentSection = () => {
         message: "Please select both curriculum and section.",
         severity: "error",
       });
-      return;
+      return false;
+    }
+
+    if (!canCreate) {
+      setSnackbar({
+        open: true,
+        message: "You do not have permission to create items on this page.",
+        severity: "error",
+      });
+      return false;
     }
 
     try {
-      await axios.post(`${API_BASE_URL}/department_section`, dprtmntSection);
+      await axios.post(`${API_BASE_URL}/department_section`, dprtmntSection, {
+        headers: getPermissionHeaders(),
+      });
       setDprtmntSection({ curriculum_id: '', section_id: '' });
       fetchDepartmentSections();
       setSnackbar({
@@ -221,6 +241,7 @@ const DepartmentSection = () => {
         message: "Department section added successfully!",
         severity: "success",
       });
+      return true;
     } catch (err) {
       console.error(err);
       setSnackbar({
@@ -228,6 +249,7 @@ const DepartmentSection = () => {
         message: err.response?.data?.message || "Failed to add department section.",
         severity: "error",
       });
+      return false;
     }
   };
 
@@ -494,32 +516,34 @@ const DepartmentSection = () => {
                       Last
                     </Button>
 
-                    <Button
-                      variant="contained"
-                      onClick={() => {
-                        setEditId(null);
-                        setDprtmntSection({
-                          curriculum_id: '',
-                          section_id: '',
-                        });
-                        setOpenFormDialog(true);
-                      }}
-                      sx={{
-                        backgroundColor: "#1976d2", // ✅ Blue
-                        color: "#fff",
-                        fontWeight: "bold",
-                        borderRadius: "8px",
-                        width: "250px",
-                        textTransform: "none",
-                        px: 2,
-                        mr: "15px",
-                        '&:hover': {
-                          backgroundColor: "#1565c0" // darker blue hover
-                        }
-                      }}
-                    >
-                      + Add Department Section
-                    </Button>
+                    {canCreate && (
+                      <Button
+                        variant="contained"
+                        onClick={() => {
+                          setEditId(null);
+                          setDprtmntSection({
+                            curriculum_id: '',
+                            section_id: '',
+                          });
+                          setOpenFormDialog(true);
+                        }}
+                        sx={{
+                          backgroundColor: "#1976d2",
+                          color: "#fff",
+                          fontWeight: "bold",
+                          borderRadius: "8px",
+                          width: "250px",
+                          textTransform: "none",
+                          px: 2,
+                          mr: "15px",
+                          '&:hover': {
+                            backgroundColor: "#1565c0"
+                          }
+                        }}
+                      >
+                        + Add Department Section
+                      </Button>
+                    )}
                   </Box>
                 </Box>
               </TableCell>
@@ -939,8 +963,8 @@ const DepartmentSection = () => {
               textTransform: "none"
             }}
             onClick={async () => {
-              await handleAddDepartmentSection();
-              setOpenFormDialog(false);
+              const saved = await handleAddDepartmentSection();
+              if (saved) setOpenFormDialog(false);
             }}
           >
             <SaveIcon fontSize="small" /> Save

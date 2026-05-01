@@ -119,6 +119,11 @@ const CurriculumPanel = () => {
   const pageId = 18;
   const [employeeID, setEmployeeID] = useState("");
 
+  const getPermissionHeaders = () => ({
+    "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+    "x-page-id": pageId,
+  });
+
   useEffect(() => {
     const storedUser = localStorage.getItem("email");
     const storedRole = localStorage.getItem("role");
@@ -147,7 +152,7 @@ const CurriculumPanel = () => {
       const response = await axios.get(
         `${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`,
       );
-      if (response.data && response.data.page_privilege === 1) {
+      if (response.data && Number(response.data.page_privilege) === 1) {
         setHasAccess(true);
         setCanCreate(Number(response.data?.can_create) === 1);
         setCanDelete(Number(response.data?.can_delete) === 1);
@@ -226,7 +231,7 @@ const CurriculumPanel = () => {
         message: "Please fill all fields",
         severity: "warning",
       });
-      return;
+      return false;
     }
 
     // ✅ Check permissions
@@ -236,7 +241,7 @@ const CurriculumPanel = () => {
         message: "You do not have permission to edit this item",
         severity: "error",
       });
-      return;
+      return false;
     }
 
     if (!editingId && !canCreate) {
@@ -245,7 +250,7 @@ const CurriculumPanel = () => {
         message: "You do not have permission to create items on this page",
         severity: "error",
       });
-      return;
+      return false;
     }
 
     try {
@@ -253,6 +258,7 @@ const CurriculumPanel = () => {
         await axios.put(
           `${API_BASE_URL}/update_curriculum_data/${editingId}`,
           curriculum,
+          { headers: getPermissionHeaders() },
         );
 
         setSnackbar({
@@ -263,7 +269,9 @@ const CurriculumPanel = () => {
 
         setEditingId(null);
       } else {
-        await axios.post(`${API_BASE_URL}/curriculum`, curriculum);
+        await axios.post(`${API_BASE_URL}/curriculum`, curriculum, {
+          headers: getPermissionHeaders(),
+        });
 
         setSnackbar({
           open: true,
@@ -274,6 +282,7 @@ const CurriculumPanel = () => {
 
       setCurriculum({ year_id: "", program_id: "" });
       fetchCurriculum();
+      return true;
     } catch (err) {
       console.error(err);
       setSnackbar({
@@ -281,6 +290,7 @@ const CurriculumPanel = () => {
         message: err.response?.data?.message || "Operation failed!",
         severity: "error",
       });
+      return false;
     }
   };
 
@@ -308,6 +318,7 @@ const CurriculumPanel = () => {
     try {
       await axios.delete(
         `${API_BASE_URL}/delete_curriculum/${curriculumToDelete.curriculum_id}`,
+        { headers: getPermissionHeaders() },
       );
 
       setSnackbar({
@@ -382,9 +393,11 @@ const CurriculumPanel = () => {
     });
 
     try {
-      await axios.put(`${API_BASE_URL}/update_curriculum/${id}`, {
-        lock_status: newStatus,
-      });
+      await axios.put(
+        `${API_BASE_URL}/update_curriculum/${id}`,
+        { lock_status: newStatus },
+        { headers: getPermissionHeaders() },
+      );
 
       // Confirm success
       setSnackbar({
@@ -1258,9 +1271,9 @@ const CurriculumPanel = () => {
               fontWeight: 600,
               textTransform: "none",
             }}
-            onClick={() => {
-              handleAddCurriculum();
-              setOpenCurriculumDialog(false);
+            onClick={async () => {
+              const saved = await handleAddCurriculum();
+              if (saved) setOpenCurriculumDialog(false);
             }}
           >
             <SaveIcon fontSize="small" sx={{ mr: 1 }} /> Save

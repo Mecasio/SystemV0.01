@@ -98,6 +98,8 @@ const Register = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [academicProgram, setAcademicProgram] = useState("");
   const [applyingAs, setApplyingAs] = useState("");
+  const [selectedCurriculum, setSelectedCurriculum] = useState("");
+  const [curriculumOptions, setCurriculumOptions] = useState([]);
 
   const [branches, setBranches] = useState([]);
   const [branchId, setBranchId] = useState("");
@@ -106,6 +108,12 @@ const Register = () => {
     axios.get(`${API_BASE_URL}/api/branches`)
       .then(res => setBranches(res.data))
       .catch(err => console.error(err));
+  }, []);
+
+  useEffect(() => {
+    axios.get(`${API_BASE_URL}/api/applied_program`)
+      .then(res => setCurriculumOptions(res.data))
+      .catch(err => console.error("Error fetching curriculum options:", err));
   }, []);
 
   const handleOtpChange = (value, index) => {
@@ -254,6 +262,11 @@ const Register = () => {
       isValid = false;
     }
 
+    if (!selectedCurriculum) {
+      newErrors.selectedCurriculum = true;
+      isValid = false;
+    }
+
     if (!usersData.email) {
       newErrors.email = true;
       isValid = false;
@@ -338,6 +351,7 @@ const Register = () => {
         birthday,
         academicProgram,
         applyingAs,
+        program: selectedCurriculum,
         otp: otpValue,
       });
 
@@ -376,6 +390,9 @@ const Register = () => {
   const handleBranchSelect = (e) => {
     const selectedId = e.target.value;
     setBranchId(selectedId);
+    setAcademicProgram("");
+    setApplyingAs("");
+    setSelectedCurriculum("");
   };
 
   const isDisabled = !registrationOpen;
@@ -416,6 +433,18 @@ const Register = () => {
   const selectedBranch = branches.find(
     (b) => b.id.toString() === branchId
   );
+
+  const filteredCurriculum = curriculumOptions.filter((item) => {
+    if (branchId && Number(item.components) !== Number(branchId)) {
+      return false;
+    }
+
+    if (academicProgram && Number(item.academic_program) !== Number(academicProgram)) {
+      return false;
+    }
+
+    return true;
+  });
 
   const handleKeyDownRegister = (e) => {
     if (e.key === "Enter" && !isSubmitting) {
@@ -700,7 +729,11 @@ const Register = () => {
                   required
                   value={academicProgram}
                   disabled={fieldDisabled}
-                  onChange={(e) => setAcademicProgram(e.target.value)}
+                  onChange={(e) => {
+                    setAcademicProgram(e.target.value);
+                    setApplyingAs("");
+                    setSelectedCurriculum("");
+                  }}
                   className="border"
                   style={{
                     paddingLeft: "1rem",
@@ -759,13 +792,14 @@ const Register = () => {
                     }
 
                     setApplyingAs(e.target.value);
+                    setSelectedCurriculum("");
                   }}
 
                   className="border"
                   style={{
                     paddingLeft: "1rem",
                     height: "45px",
-                    border: errors.academicProgram ? "2px solid red" : "2px solid black",
+                    border: errors.applyingAs ? "2px solid red" : "2px solid black",
                     width: "100%",
                     appearance: "none",   // 👈 remove default arrow
                     WebkitAppearance: "none",
@@ -831,6 +865,49 @@ const Register = () => {
                 />
 
 
+              </div>
+
+              <div className="TextField" style={{ position: "relative" }}>
+                <label>Curriculum / Course Applied</label>
+                <select
+                  required
+                  value={selectedCurriculum}
+                  disabled={fieldDisabled || !academicProgram}
+                  onChange={(e) => setSelectedCurriculum(e.target.value)}
+                  className="border"
+                  style={{
+                    paddingLeft: "1rem",
+                    height: "45px",
+                    border: errors.selectedCurriculum ? "2px solid red" : "2px solid black",
+                    width: "100%",
+                    appearance: "none",
+                    WebkitAppearance: "none",
+                    MozAppearance: "none",
+                  }}
+                >
+                  <option value="">Select Curriculum / Course</option>
+                  {filteredCurriculum.map((item) => (
+                    <option key={item.curriculum_id} value={item.curriculum_id}>
+                      {`(${item.program_code}): ${item.program_description}${item.major ? ` (${item.major})` : ""}`}
+                    </option>
+                  ))}
+                </select>
+                {errors.selectedCurriculum && (
+                  <span style={{ color: "red", fontSize: "12px" }}>
+                    This field is required
+                  </span>
+                )}
+                <ArrowDropDownIcon
+                  sx={{
+                    position: "absolute",
+                    right: "10px",
+                    top: getIconTop(errors.selectedCurriculum),
+                    transform: "translateY(-50%)",
+                    fontSize: "30px",
+                    color: "black",
+                    pointerEvents: "none",
+                  }}
+                />
               </div>
 
 

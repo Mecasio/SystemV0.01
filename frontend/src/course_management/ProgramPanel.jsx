@@ -95,6 +95,11 @@ const ProgramPanel = () => {
   const pageId = 34;
   const [employeeID, setEmployeeID] = useState("");
 
+  const getPermissionHeaders = () => ({
+    "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+    "x-page-id": pageId,
+  });
+
   useEffect(() => {
     const storedUser = localStorage.getItem("email");
     const storedRole = localStorage.getItem("role");
@@ -121,7 +126,7 @@ const ProgramPanel = () => {
       const response = await axios.get(
         `${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`,
       );
-      if (response.data && response.data.page_privilege === 1) {
+      if (response.data && Number(response.data.page_privilege) === 1) {
         setHasAccess(true);
         setCanCreate(Number(response.data?.can_create) === 1);
         setCanDelete(Number(response.data?.can_delete) === 1);
@@ -181,7 +186,7 @@ const ProgramPanel = () => {
         message: "Please fill all fields",
         severity: "error",
       });
-      return;
+      return false;
     }
 
     // ✅ Fixed: Changed editingId to editId
@@ -191,7 +196,7 @@ const ProgramPanel = () => {
         message: "You do not have permission to edit this item",
         severity: "error",
       });
-      return;
+      return false;
     }
 
     if (!editId && !canCreate) {
@@ -200,19 +205,23 @@ const ProgramPanel = () => {
         message: "You do not have permission to create items on this page",
         severity: "error",
       });
-      return;
+      return false;
     }
 
     try {
       if (editMode) {
-        await axios.put(`${API_BASE_URL}/program/${editId}`, program);
+        await axios.put(`${API_BASE_URL}/program/${editId}`, program, {
+          headers: getPermissionHeaders(),
+        });
         setSnackbar({
           open: true,
           message: "Program updated successfully!",
           severity: "success",
         });
       } else {
-        await axios.post(`${API_BASE_URL}/program`, program);
+        await axios.post(`${API_BASE_URL}/program`, program, {
+          headers: getPermissionHeaders(),
+        });
         setSnackbar({
           open: true,
           message: "Program added successfully!",
@@ -229,6 +238,7 @@ const ProgramPanel = () => {
       setEditMode(false);
       setEditId(null);
       fetchPrograms();
+      return true;
     } catch (err) {
       console.error("Error saving program:", err);
       setSnackbar({
@@ -236,6 +246,7 @@ const ProgramPanel = () => {
         message: err.response?.data?.message || "Error saving program!",
         severity: "error",
       });
+      return false;
     }
   };
 
@@ -278,7 +289,9 @@ const ProgramPanel = () => {
     }
 
     try {
-      await axios.delete(`${API_BASE_URL}/program/${id}`);
+      await axios.delete(`${API_BASE_URL}/program/${id}`, {
+        headers: getPermissionHeaders(),
+      });
       fetchPrograms();
       setSnackbar({
         open: true,
@@ -1181,9 +1194,9 @@ const ProgramPanel = () => {
               fontWeight: 600,
               textTransform: "none",
             }}
-            onClick={() => {
-              handleAddingProgram();
-              setOpenProgramDialog(false);
+            onClick={async () => {
+              const saved = await handleAddingProgram();
+              if (saved) setOpenProgramDialog(false);
             }}
           >
             <SaveIcon fontSize="small" sx={{ mr: 1 }} /> Save

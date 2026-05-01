@@ -449,6 +449,11 @@ const Dashboard1 = (props) => {
     const target = e && e.target ? e.target : {};
     const { name, type, checked, value } = target;
 
+    if (name === "program" && person.program && String(value) !== String(person.program)) {
+      showSnackbar("Curriculum selected during registration cannot be changed.");
+      return;
+    }
+
     const updatedValue =
       type === "checkbox"
         ? checked
@@ -1583,6 +1588,7 @@ const Dashboard1 = (props) => {
                         value={person.program || ""}
                         onBlur={() => handleUpdate(person)}
                         onChange={handleChange}
+                        disabled={!!person.program}
                         label="Program"
                       >
                         <MenuItem value="">
@@ -1628,6 +1634,11 @@ const Dashboard1 = (props) => {
 
                       {errors.program && (
                         <FormHelperText>This field is required.</FormHelperText>
+                      )}
+                      {person.program && !errors.program && (
+                        <FormHelperText>
+                          Curriculum was selected during registration and cannot be changed.
+                        </FormHelperText>
                       )}
                     </FormControl>
                   </Box>

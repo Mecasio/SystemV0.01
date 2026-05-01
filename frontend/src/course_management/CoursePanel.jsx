@@ -82,6 +82,11 @@ const CoursePanel = () => {
   const [hasAccess, setHasAccess] = useState(null);
   const pageId = 16;
 
+  const getPermissionHeaders = () => ({
+    "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+    "x-page-id": pageId,
+  });
+
   const [searchQuery, setSearchQuery] = useState("");
 
   const [course, setCourse] = useState({
@@ -177,7 +182,7 @@ const CoursePanel = () => {
       const response = await axios.get(
         `${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`,
       );
-      if (response.data && response.data.page_privilege === 1) {
+      if (response.data && Number(response.data.page_privilege) === 1) {
         setHasAccess(true);
         setCanCreate(Number(response.data?.can_create) === 1);
         setCanDelete(Number(response.data?.can_delete) === 1);
@@ -317,18 +322,22 @@ const CoursePanel = () => {
     }
     
     try {
-      await axios.post(`${API_BASE_URL}/adding_course`, {
-        ...course,
-        course_unit: parseFloat(course.course_unit) || 0,
-        lec_unit: parseFloat(course.lec_unit) || 0,
-        lab_unit: parseFloat(course.lab_unit) || 0,
-        prereq: course.prereq || null,
-        corequisite: course.corequisite || null,
-        is_included: Number(course.is_included) || 0,
-        include_summa: Number(course.include_summa) ?? 1,
-        include_magna: Number(course.include_magna) ?? 1,
-        include_cum: Number(course.include_cum) ?? 1,
-      });
+      await axios.post(
+        `${API_BASE_URL}/adding_course`,
+        {
+          ...course,
+          course_unit: parseFloat(course.course_unit) || 0,
+          lec_unit: parseFloat(course.lec_unit) || 0,
+          lab_unit: parseFloat(course.lab_unit) || 0,
+          prereq: course.prereq || null,
+          corequisite: course.corequisite || null,
+          is_included: Number(course.is_included) || 0,
+          include_summa: Number(course.include_summa) ?? 1,
+          include_magna: Number(course.include_magna) ?? 1,
+          include_cum: Number(course.include_cum) ?? 1,
+        },
+        { headers: getPermissionHeaders() },
+      );
       setCourse({
         course_code: "",
         course_description: "",
@@ -392,14 +401,18 @@ const CoursePanel = () => {
     }
 
     try {
-      await axios.put(`${API_BASE_URL}/update_course/${editId}`, {
-        ...course,
-        course_unit: parseFloat(course.course_unit) || 0,
-        lec_unit: parseFloat(course.lec_unit) || 0,
-        lab_unit: parseFloat(course.lab_unit) || 0,
-        prereq: course.prereq || null,
-        corequisite: course.corequisite || null,
-      });
+      await axios.put(
+        `${API_BASE_URL}/update_course/${editId}`,
+        {
+          ...course,
+          course_unit: parseFloat(course.course_unit) || 0,
+          lec_unit: parseFloat(course.lec_unit) || 0,
+          lab_unit: parseFloat(course.lab_unit) || 0,
+          prereq: course.prereq || null,
+          corequisite: course.corequisite || null,
+        },
+        { headers: getPermissionHeaders() },
+      );
 
       await fetchCourses();
 
@@ -439,7 +452,9 @@ const CoursePanel = () => {
     }
 
     try {
-      await axios.delete(`${API_BASE_URL}/delete_course/${id}`);
+      await axios.delete(`${API_BASE_URL}/delete_course/${id}`, {
+        headers: getPermissionHeaders(),
+      });
 
       setCourseList((prevList) =>
         prevList.filter((item) => item.course_id !== id),

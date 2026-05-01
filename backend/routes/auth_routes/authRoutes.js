@@ -103,6 +103,7 @@ router.post("/register", async (req, res) => {
     birthday,
     academicProgram,
     applyingAs,
+    program,
   } = req.body;
   const normalizedEmail = email?.trim().toLowerCase();
 
@@ -213,7 +214,7 @@ router.post("/register", async (req, res) => {
 
 
 
-  if (!normalizedEmail || !password) {
+  if (!normalizedEmail || !password || !campus || !academicProgram || !applyingAs || !program) {
     return res.json({
       success: false,
       message: "Please fill up all required fields",
@@ -253,11 +254,30 @@ router.post("/register", async (req, res) => {
     });
   }
 
+  const [selectedCurriculumRows] = await db3.query(
+    `SELECT ct.curriculum_id
+     FROM curriculum_table AS ct
+     INNER JOIN program_table AS pt ON pt.program_id = ct.program_id
+     WHERE ct.curriculum_id = ?
+       AND pt.components = ?
+       AND pt.academic_program = ?
+       AND ct.lock_status = 1
+     LIMIT 1`,
+    [program, campus, academicProgram],
+  );
+
+  if (selectedCurriculumRows.length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid curriculum selected",
+    });
+  }
+
   // ⭐⭐⭐ THEN OTP VALIDATION
   const stored = otpStore[normalizedEmail];
   const now = Date.now();
 
-  if (!normalizedEmail || !password) {
+  if (!normalizedEmail || !password || !campus || !academicProgram || !applyingAs || !program) {
     await insertAuditLog({
       actorId: normalizedEmail || "unknown",
       role: "applicant",
@@ -348,8 +368,8 @@ router.post("/register", async (req, res) => {
 
     const [personResult] = await db.query(
       `INSERT INTO person_table 
-(campus, emailAddress, first_name, middle_name, last_name, birthOfDate, age, academicProgram, applyingAs, termsOfAgreement, current_step)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+(campus, emailAddress, first_name, middle_name, last_name, birthOfDate, age, academicProgram, applyingAs, program, termsOfAgreement, current_step)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         campus,
         normalizedEmail,
@@ -359,7 +379,8 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         birthday,
         age,
         academicProgram,
-        applyingAs, // ✅ NOW MATCHES
+        applyingAs,
+        program,
         0, // termsOfAgreement
         1, // current_step
       ],
@@ -1399,3 +1420,4 @@ router.post("/update-otp-setting", async (req, res) => {
 });
 
 module.exports = router;
+

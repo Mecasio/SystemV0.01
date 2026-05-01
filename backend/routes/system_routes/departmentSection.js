@@ -1,5 +1,6 @@
 const express = require("express");
 const { db3 } = require("../database/database");
+const { CanCreate } = require("../../middleware/pagePermissions");
 
 const router = express.Router();
 
@@ -133,7 +134,7 @@ router.get("/section_table/:dprtmnt_id", async (req, res) => {
 });
 
 // DEPARTMENT SECTION - CREATE
-router.post("/department_section", async (req, res) => {
+router.post("/department_section", CanCreate, async (req, res) => {
   const { curriculum_id, section_id } = req.body;
 
   if (!curriculum_id || !section_id) {
