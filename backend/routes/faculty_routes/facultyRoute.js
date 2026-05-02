@@ -118,6 +118,7 @@ router.post(
     try {
       const {
         person_id,
+        employee_id,
         fname,
         mname,
         lname,
@@ -127,34 +128,42 @@ router.post(
         role,
       } = req.body;
 
+      if (!employee_id || !fname || !lname || !email || !password || !dprtmnt_id) {
+        return res.status(400).json({
+          success: false,
+          error: "Employee ID, first name, last name, email, password, and department are required.",
+        });
+      }
+
       const [existingUser] = await db3.query(
-        "SELECT * FROM prof_table WHERE email = ?",
-        [email],
+        "SELECT * FROM prof_table WHERE email = ? OR employee_id = ?",
+        [email, employee_id],
       );
 
       if (existingUser.length > 0) {
         return res.json({
           success: false,
-          error: "Email already exists. Please use a different email.",
+          error: "Email or Employee ID already exists. Please use different credentials.",
         });
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      let profileImage = null;
+      let profileImage = "";
       if (req.file) {
         const year = new Date().getFullYear();
         const ext = path.extname(req.file.originalname).toLowerCase();
-        const filename = `${person_id}_ProfessorProfile_${year}${ext}`;
+        const filename = `${employee_id}_ProfessorProfile_${year}${ext}`;
         const filePath = path.join(__dirname, "uploads", filename);
         await fs.promises.writeFile(filePath, req.file.buffer);
         profileImage = filename;
       }
 
-      const sql = `INSERT INTO prof_table (person_id, fname, mname, lname, email, password, role, profile_image)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+      const sql = `INSERT INTO prof_table (person_id, employee_id, fname, mname, lname, email, password, role, profile_image)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
       const values = [
-        person_id,
+        person_id || null,
+        employee_id,
         fname,
         mname,
         lname,
@@ -187,7 +196,7 @@ router.put(
   async (req, res) => {
     const id = req.params.id;
     const {
-      person_id,
+      employee_id,
       fname,
       mname,
       lname,
@@ -198,13 +207,20 @@ router.put(
     } = req.body;
 
     try {
-      const checkSQL = `SELECT * FROM prof_table WHERE email = ? AND prof_id != ?`;
-      const [existingRows] = await db3.query(checkSQL, [email, id]);
+      if (!employee_id || !fname || !lname || !email || !dprtmnt_id) {
+        return res.status(400).json({
+          success: false,
+          error: "Employee ID, first name, last name, email, and department are required.",
+        });
+      }
+
+      const checkSQL = `SELECT * FROM prof_table WHERE (email = ? OR employee_id = ?) AND prof_id != ?`;
+      const [existingRows] = await db3.query(checkSQL, [email, employee_id, id]);
 
       if (existingRows.length > 0) {
         return res.json({
           success: false,
-          error: "Email already exists for another professor.",
+          error: "Email or Employee ID already exists for another professor.",
         });
       }
 
@@ -213,7 +229,7 @@ router.put(
       if (req.file) {
         const year = new Date().getFullYear();
         const ext = path.extname(req.file.originalname).toLowerCase();
-        const filename = `${person_id}_ProfessorProfile_${year}${ext}`;
+        const filename = `${employee_id}_ProfessorProfile_${year}${ext}`;
         const filePath = path.join(__dirname, "uploads", filename);
         await fs.promises.writeFile(filePath, req.file.buffer);
         profileImage = filename;
@@ -226,11 +242,11 @@ router.put(
         const hashedPassword = await bcrypt.hash(password, 10);
         updateSQL = `
         UPDATE prof_table
-        SET person_id = ?, fname = ?, mname = ?, lname = ?, email = ?, password = ?, role = ?, profile_image = ?
+        SET employee_id = ?, fname = ?, mname = ?, lname = ?, email = ?, password = ?, role = ?, profile_image = ?
         WHERE prof_id = ?
       `;
         values = [
-          person_id,
+          employee_id,
           fname,
           mname,
           lname,
@@ -244,11 +260,11 @@ router.put(
         const hashedPassword = await bcrypt.hash(password, 10);
         updateSQL = `
         UPDATE prof_table
-        SET person_id = ?, fname = ?, mname = ?, lname = ?, email = ?, password = ?, role = ?
+        SET employee_id = ?, fname = ?, mname = ?, lname = ?, email = ?, password = ?, role = ?
         WHERE prof_id = ?
       `;
         values = [
-          person_id,
+          employee_id,
           fname,
           mname,
           lname,
@@ -260,11 +276,11 @@ router.put(
       } else if (profileImage) {
         updateSQL = `
         UPDATE prof_table
-        SET person_id = ?, fname = ?, mname = ?, lname = ?, email = ?, role = ?, profile_image = ?
+        SET employee_id = ?, fname = ?, mname = ?, lname = ?, email = ?, role = ?, profile_image = ?
         WHERE prof_id = ?
       `;
         values = [
-          person_id,
+          employee_id,
           fname,
           mname,
           lname,
@@ -276,10 +292,10 @@ router.put(
       } else {
         updateSQL = `
         UPDATE prof_table
-        SET person_id = ?, fname = ?, mname = ?, lname = ?, email = ?, role = ?
+        SET employee_id = ?, fname = ?, mname = ?, lname = ?, email = ?, role = ?
         WHERE prof_id = ?
       `;
-        values = [person_id, fname, mname, lname, email, role, id];
+        values = [employee_id, fname, mname, lname, email, role, id];
       }
 
       await db3.query(updateSQL, values);

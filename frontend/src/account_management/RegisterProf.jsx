@@ -445,7 +445,12 @@ const RegisterProf = () => {
 
   const handleChange = (e) => {
     if (e.target.name === "profileImage") {
-      setForm({ ...form, profileImage: e.target.files[0] });
+      const file = e.target.files?.[0] || null;
+      setForm({
+        ...form,
+        profileImage: file,
+        preview: file ? URL.createObjectURL(file) : "",
+      });
     } else {
       setForm({ ...form, [e.target.name]: e.target.value });
     }
@@ -456,11 +461,11 @@ const RegisterProf = () => {
   };
 
   const handleSubmit = async () => {
-    const requiredFields = ["fname", "lname", "email"];
+    const requiredFields = ["fname", "lname", "email", "dprtmnt_id"];
 
     // Only required when creating a new professor
     if (!editData) {
-      requiredFields.push("password", "profileImage", "employee_id");
+      requiredFields.push("password", "employee_id");
     }
 
     const missing = requiredFields.filter((key) => !form[key]);
@@ -475,22 +480,30 @@ const RegisterProf = () => {
       // 💡 If editing and password is empty → DO NOT send it
       if (editData && key === "password" && value === "") return;
 
-      if (value) formData.append(key, value);
+      if (key === "preview") return;
+      if (value !== null && value !== undefined && value !== "") formData.append(key, value);
     });
 
     try {
+      let response;
       if (editData) {
-        await axios.put(
+        response = await axios.put(
           `${API_BASE_URL}/faculty/update_prof/${editData.prof_id}`,
           formData
         );
-        setSnackbarMessage("Professor updated successfully!");
-        setSnackbarSeverity("success");
       } else {
-        await axios.post(`${API_BASE_URL}/faculty/register_prof`, formData);
-        setSnackbarMessage("Professor registered successfully!");
-        setSnackbarSeverity("success");
+        response = await axios.post(`${API_BASE_URL}/faculty/register_prof`, formData);
       }
+
+      if (response.data?.success === false) {
+        setSnackbarMessage(response.data?.error || "Failed to save professor.");
+        setSnackbarSeverity("error");
+        setOpenSnackbar(true);
+        return;
+      }
+
+      setSnackbarMessage(editData ? "Professor updated successfully!" : "Professor registered successfully!");
+      setSnackbarSeverity("success");
 
       setOpenSnackbar(true);
 
@@ -546,6 +559,7 @@ const RegisterProf = () => {
       role: prof.role || "faculty",
       dprtmnt_id: prof.dprtmnt_id || "",
       profileImage: null,
+      preview: prof.profile_image ? `${API_BASE_URL}/uploads/${prof.profile_image}` : "",
     });
     setOpenDialog(true);
   };
@@ -563,6 +577,7 @@ const RegisterProf = () => {
       role: "faculty",
       dprtmnt_id: "",
       profileImage: null,
+      preview: "",
     });
   };
 
@@ -683,6 +698,8 @@ const RegisterProf = () => {
           variant="outlined"
           placeholder="Search by name or email"
           size="small"
+          name="professor_account_search"
+          autoComplete="new-password"
 
           value={searchQuery}
           onChange={(e) => {
@@ -699,6 +716,7 @@ const RegisterProf = () => {
           }}
           InputProps={{
             startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
+            autoComplete: "new-password",
           }}
         />
 
@@ -915,6 +933,7 @@ const RegisterProf = () => {
                       variant="contained"
                       onClick={() => {
                         setEditData(null);
+                        setSearchQuery("");
                         setForm((prev) => ({
                           ...prev,
                           employee_id: "",
@@ -926,6 +945,7 @@ const RegisterProf = () => {
                           role: "faculty",
                           dprtmnt_id: "",
                           profileImage: null,
+                          preview: "",
                         }));
                         setTimeout(() => setOpenDialog(true), 0);
                       }}
@@ -1228,8 +1248,11 @@ const RegisterProf = () => {
               <TextField
                 label="Employee ID"
                 fullWidth
+                name="employee_id"
                 value={form.employee_id}
-                InputProps={{ readOnly: true }}
+                onChange={handleChange}
+                autoComplete="new-password"
+                InputProps={{ readOnly: Boolean(editData) }}
               />
             </Grid>
 
@@ -1240,6 +1263,7 @@ const RegisterProf = () => {
                 name="fname"
                 value={form.fname}
                 onChange={handleChange}
+                autoComplete="new-password"
               />
             </Grid>
 
@@ -1250,6 +1274,7 @@ const RegisterProf = () => {
                 name="lname"
                 value={form.lname}
                 onChange={handleChange}
+                autoComplete="new-password"
               />
             </Grid>
 
@@ -1260,6 +1285,7 @@ const RegisterProf = () => {
                 name="mname"
                 value={form.mname}
                 onChange={handleChange}
+                autoComplete="new-password"
               />
             </Grid>
           </Grid>
@@ -1274,6 +1300,7 @@ const RegisterProf = () => {
             value={form.email}
             name="email"
             onChange={handleChange}
+            autoComplete="new-password"
           />
 
           {/* PASSWORD BOX */}
@@ -1345,7 +1372,13 @@ const RegisterProf = () => {
                 }}
               >
                 Upload Image
-                <input hidden type="file" onChange={handleChange} />
+                <input
+                  hidden
+                  type="file"
+                  name="profileImage"
+                  accept="image/*"
+                  onChange={handleChange}
+                />
               </Button>
 
             </Stack>
@@ -1409,6 +1442,14 @@ const RegisterProf = () => {
 
             >
               Send Email
+            </Button>
+
+            <Button
+              variant="contained"
+              startIcon={<SaveIcon />}
+              onClick={handleSubmit}
+            >
+              {editData ? "Save Changes" : "Save"}
             </Button>
           </Box>
         </DialogActions>
