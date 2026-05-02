@@ -36,7 +36,7 @@ import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import SearchIcon from "@mui/icons-material/Search";
 import API_BASE_URL from "../apiConfig";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import ScoreIcon from "@mui/icons-material/Score";
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
@@ -87,6 +87,7 @@ const CourseTaggingForCollege = () => {
   const [personID, setPersonID] = useState("");
   //////////
   const [hasAccess, setHasAccess] = useState(null);
+  const [accessLoading, setAccessLoading] = useState(true);
 
   const [snack, setSnack] = useState({
     open: false,
@@ -126,6 +127,7 @@ const CourseTaggingForCollege = () => {
   }, []);
 
   const checkAccess = async (employeeID) => {
+    setAccessLoading(true);
     try {
       const response = await axios.get(
         `${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`,
@@ -143,7 +145,8 @@ const CourseTaggingForCollege = () => {
       } else {
         console.log("An unexpected error occurred.");
       }
-      setLoading(false);
+    } finally {
+      setAccessLoading(false);
     }
   };
 
@@ -182,6 +185,7 @@ const CourseTaggingForCollege = () => {
   ];
 
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeStep, setActiveStep] = useState(3);
   const [clickedSteps, setClickedSteps] = useState(
     Array(tabs.length).fill(false),
@@ -189,7 +193,23 @@ const CourseTaggingForCollege = () => {
 
   const handleStepClick = (index, to) => {
     setActiveStep(index);
-    navigate(to); // this will actually change the page
+    const params = new URLSearchParams(location.search);
+    const pid =
+      params.get("person_id") ||
+      sessionStorage.getItem("edit_person_id") ||
+      sessionStorage.getItem("admin_edit_person_id");
+    const sn =
+      params.get("student_number") ||
+      sessionStorage.getItem("edit_student_number") ||
+      studentNumber;
+
+    if (pid) {
+      navigate(`${to}?person_id=${pid}`);
+    } else if (sn) {
+      navigate(`${to}?student_number=${sn}`);
+    } else {
+      navigate(to);
+    }
   };
 
   useEffect(() => {
@@ -226,7 +246,7 @@ const CourseTaggingForCollege = () => {
   const [sectionDescription, setSectionDescription] = useState("");
   const [sections, setSections] = useState([]);
   const [selectedSection, setSelectedSection] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [sectionLoading, setSectionLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [yearLevel, setYearLevel] = useState([]);
@@ -330,9 +350,13 @@ const CourseTaggingForCollege = () => {
         .then((res) => {
           const deptId = res.data?.dprtmnt_id;
           setSelectedDepartment(deptId || null);
+          if (!deptId) {
+            setError("No department is assigned to your account.");
+          }
         })
         .catch((err) => {
           console.error("Failed to fetch admin data:", err);
+          setError("Failed to load your department.");
           setSnack({
             open: true,
             message: "Failed to load your department.",
@@ -345,7 +369,8 @@ const CourseTaggingForCollege = () => {
   // Fetch department sections based on selected department
   const fetchDepartmentSections = async () => {
     try {
-      setLoading(true);
+      setSectionLoading(true);
+      setError(null);
       const response = await axios.get(
         `${API_BASE_URL}/api/department-sections`,
         {
@@ -355,12 +380,12 @@ const CourseTaggingForCollege = () => {
       // Artificial delay
       setTimeout(() => {
         setSections(response.data);
-        setLoading(false);
+        setSectionLoading(false);
       }, 700);
     } catch (err) {
       console.error("Error fetching department sections:", err);
       setError("Failed to load department sections");
-      setLoading(false);
+      setSectionLoading(false);
     }
   };
 
@@ -790,6 +815,44 @@ const CourseTaggingForCollege = () => {
     }
   };
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const studentNumberFromUrl = params.get("student_number")?.trim();
+    const personIdFromUrl = params.get("person_id")?.trim();
+
+    if (studentNumberFromUrl) {
+      setStudentNumber(studentNumberFromUrl);
+      sessionStorage.setItem("edit_student_number", studentNumberFromUrl);
+      return;
+    }
+
+    if (!personIdFromUrl) return;
+
+    setStudentNumber("");
+    setUserId(null);
+    setCurr(null);
+    setCourses([]);
+    setEnrolled([]);
+
+    axios
+      .get(`${API_BASE_URL}/api/student-person-data/${personIdFromUrl}`)
+      .then((res) => {
+        const resolvedStudentNumber = res.data?.student_number;
+        if (resolvedStudentNumber) {
+          setStudentNumber(resolvedStudentNumber);
+          sessionStorage.setItem("edit_person_id", personIdFromUrl);
+          sessionStorage.setItem("edit_student_number", resolvedStudentNumber);
+        } else {
+          setSnack({
+            open: true,
+            message: "No student number found for the selected person.",
+            severity: "warning",
+          });
+        }
+      })
+      .catch((err) => console.error("Auto search failed:", err));
+  }, [location.search]);
+
   const [selectedFile, setSelectedFile] = useState(null);
 
   const handleImport = async () => {
@@ -1019,18 +1082,18 @@ const CourseTaggingForCollege = () => {
   };
 
   useEffect(() => {
-    if (!studentNumber) return;
+    if (!studentNumber || !selectedDepartment) return;
 
     const delayDebounce = setTimeout(() => {
       handleSearchStudent();
     }, 500); // ⏱️ adjust delay if needed
 
     return () => clearTimeout(delayDebounce);
-  }, [studentNumber]);
+  }, [studentNumber, selectedDepartment]);
 
   // Put this at the very bottom before the return
-  if (loading || hasAccess === null) {
-    return <LoadingOverlay open={loading} message="Loading..." />;
+  if (accessLoading || hasAccess === null) {
+    return <LoadingOverlay open message="Loading..." />;
   }
 
   if (!hasAccess) {
@@ -1535,7 +1598,7 @@ const CourseTaggingForCollege = () => {
           </Box>
 
           {/* Department Sections Dropdown */}
-          {loading ? (
+          {sectionLoading ? (
             <Box sx={{ width: "100%", mt: 2 }}>
               <LinearWithValueLabel />
             </Box>

@@ -458,8 +458,6 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
         { title: "Medical Requirements", link: "/medical_requirements_form", icon: MedicalServices, page_id: 31 },
         { title: "Dental Assessment", link: "/dental_assessment", icon: HealthAndSafety, page_id: 19 },
         { title: "Physical & Neuro Exam", link: "/physical_neuro_exam", icon: Psychology, page_id: 32 },
-        { title: "Health Records Certificate", link: "/health_record", icon: ContactEmergency },
-        { title: "Medical Certificate", link: "/medical_certificate", icon: MedicalServices, page_id: 130 },
       ]
     },
   ];

@@ -7020,6 +7020,59 @@ app.get("/get_college_professor_schedule/:dprtmnt_id", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
+app.get("/get_professor_schedule/:employee_id", async (req, res) => {
+  const { employee_id } = req.params;
+
+  try {
+    const sql = `
+      SELECT
+        pt.employee_id,
+        pt.fname,
+        pt.mname,
+        pt.lname,
+        ct.course_code,
+        pgt.program_id,
+        pgt.program_code,
+        sct.description AS section_description,
+        rdt.description AS day,
+        tt.school_time_start,
+        tt.school_time_end,
+        COALESCE(rt_from_mapping.room_id, rt_direct.room_id) AS room_id,
+        COALESCE(rt_from_mapping.room_description, rt_direct.room_description) AS room_description,
+        tt.ishonorarium,
+        yt.year_id,
+        yt.year_description AS current_year,
+        yt.year_description + 1 AS next_year,
+        st.semester_id,
+        st.semester_description
+      FROM time_table tt
+      INNER JOIN prof_table pt ON tt.professor_id = pt.prof_id
+      LEFT JOIN course_table ct ON tt.course_id = ct.course_id
+      LEFT JOIN dprtmnt_section_table dst ON tt.department_section_id = dst.id
+      LEFT JOIN section_table sct ON dst.section_id = sct.id
+      LEFT JOIN curriculum_table cct ON dst.curriculum_id = cct.curriculum_id
+      LEFT JOIN program_table pgt ON cct.program_id = pgt.program_id
+      LEFT JOIN room_day_table rdt ON tt.room_day = rdt.id
+      LEFT JOIN dprtmnt_room_table drt ON tt.department_room_id = drt.dprtmnt_room_id
+      LEFT JOIN room_table rt_from_mapping ON drt.room_id = rt_from_mapping.room_id
+      LEFT JOIN room_table rt_direct ON tt.department_room_id = rt_direct.room_id
+      INNER JOIN active_school_year_table sy ON tt.school_year_id = sy.id
+      LEFT JOIN year_table yt ON sy.year_id = yt.year_id
+      LEFT JOIN semester_table st ON sy.semester_id = st.semester_id
+      WHERE pt.employee_id = ? AND sy.astatus = 1
+      ORDER BY FIELD(rdt.description, 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'),
+               tt.school_time_start,
+               tt.school_time_end
+    `;
+
+    const [rows] = await db3.execute(sql, [employee_id]);
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 //----------------------------prereq end
 
 app.get("/prof_dropdown", async (req, res) => {

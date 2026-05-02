@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
-import axios from 'axios';
-import { Link, useNavigate } from 'react-router-dom';
-import '../styles/Container.css';
-import Logo from '../assets/Logo.png';
+import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
+import "../styles/Container.css";
+import Logo from "../assets/Logo.png";
 import {
   Container,
   Box,
@@ -17,7 +17,7 @@ import {
   Typography,
   Button,
   Checkbox,
-  FormControlLabel
+  FormControlLabel,
 } from "@mui/material";
 import {
   Email as EmailIcon,
@@ -49,19 +49,24 @@ const Register = () => {
       if (settings.title_color) setTitleColor(settings.title_color);
       if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
       if (settings.border_color) setBorderColor(settings.border_color);
-      if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
-
+      if (settings.main_button_color)
+        setMainButtonColor(settings.main_button_color);
     }
   }, [settings]);
 
   // const [capVal, setCapVal] = useState(null);
   const [usersData, setUserData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [snack, setSnack] = useState({ open: false, message: '', severity: 'info' });
+  const [snack, setSnack] = useState({
+    open: false,
+    message: "",
+    severity: "info",
+  });
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const otpRefs = useRef([]);
   const [showOtpModal, setShowOtpModal] = useState(false);
@@ -72,7 +77,7 @@ const Register = () => {
 
   const handleChanges = (e) => {
     const { name, value } = e.target;
-    setUserData(prevState => ({ ...prevState, [name]: value }));
+    setUserData((prevState) => ({ ...prevState, [name]: value }));
   };
 
   const [agreeChecked, setAgreeChecked] = useState(false); // Terms checkbox
@@ -86,8 +91,8 @@ const Register = () => {
   }, []);
 
   const handleClose = (_, reason) => {
-    if (reason === 'clickaway') return;
-    setSnack(prev => ({ ...prev, open: false }));
+    if (reason === "clickaway") return;
+    setSnack((prev) => ({ ...prev, open: false }));
   };
 
   const [lastName, setLastName] = useState("");
@@ -105,15 +110,17 @@ const Register = () => {
   const [branchId, setBranchId] = useState("");
 
   useEffect(() => {
-    axios.get(`${API_BASE_URL}/api/branches`)
-      .then(res => setBranches(res.data))
-      .catch(err => console.error(err));
+    axios
+      .get(`${API_BASE_URL}/api/branches`)
+      .then((res) => setBranches(res.data))
+      .catch((err) => console.error(err));
   }, []);
 
   useEffect(() => {
-    axios.get(`${API_BASE_URL}/api/applied_program`)
-      .then(res => setCurriculumOptions(res.data))
-      .catch(err => console.error("Error fetching curriculum options:", err));
+    axios
+      .get(`${API_BASE_URL}/api/applied_program`)
+      .then((res) => setCurriculumOptions(res.data))
+      .catch((err) => console.error("Error fetching curriculum options:", err));
   }, []);
 
   const handleOtpChange = (value, index) => {
@@ -128,7 +135,6 @@ const Register = () => {
       otpRefs.current[index + 1]?.focus();
     }
   };
-
 
   const handleOtpKeyDown = (e, index) => {
     if (e.key === "Backspace") {
@@ -159,7 +165,6 @@ const Register = () => {
       });
       return;
     }
-
 
     if (!isFormValid()) {
       setSnack({
@@ -216,7 +221,6 @@ const Register = () => {
         message: "OTP sent to your email",
         severity: "success",
       });
-
     } catch (error) {
       setSnack({
         open: true,
@@ -370,7 +374,6 @@ const Register = () => {
       setTimeout(() => {
         navigate("/login_applicant");
       }, 3000);
-
     } catch (err) {
       setSnack({
         open: true,
@@ -397,14 +400,13 @@ const Register = () => {
 
   const isDisabled = !registrationOpen;
 
-
   useEffect(() => {
     if (!branchId) return;
 
     const fetchRegistrationStatus = async () => {
       try {
         const res = await axios.get(
-          `${API_BASE_URL}/api/registration-status/${branchId}`
+          `${API_BASE_URL}/api/registration-status/${branchId}`,
         );
 
         const isOpen = res.data.registration_open === 1;
@@ -414,7 +416,6 @@ const Register = () => {
         if (!isOpen) {
           setOpenBranchDialog(true); // ✅ THIS is your "closed" indicator
         }
-
       } catch (err) {
         console.error(err);
       }
@@ -427,19 +428,17 @@ const Register = () => {
 
   const fieldDisabled = !branchSelected || !registrationOpen;
 
-
-
-
-  const selectedBranch = branches.find(
-    (b) => b.id.toString() === branchId
-  );
+  const selectedBranch = branches.find((b) => b.id.toString() === branchId);
 
   const filteredCurriculum = curriculumOptions.filter((item) => {
     if (branchId && Number(item.components) !== Number(branchId)) {
       return false;
     }
 
-    if (academicProgram && Number(item.academic_program) !== Number(academicProgram)) {
+    if (
+      academicProgram &&
+      Number(item.academic_program) !== Number(academicProgram)
+    ) {
       return false;
     }
 
@@ -448,7 +447,6 @@ const Register = () => {
 
   const handleKeyDownRegister = (e) => {
     if (e.key === "Enter" && !isSubmitting) {
-
       if (!branchId) {
         setSnack({
           open: true,
@@ -478,14 +476,15 @@ const Register = () => {
 
   const [branchStatusMessage, setBranchStatusMessage] = useState("");
 
-
-  {/* Unified Dialog Style */ }
+  {
+    /* Unified Dialog Style */
+  }
   const dialogStyles = {
     title: { textAlign: "center", fontWeight: "bold", fontSize: "18px" },
     contentText: { fontSize: "16px", textAlign: "justify", mt: 1 },
-    contentTextCenter: { fontSize: "16px", textAlign: "center", mt: 2, },
+    contentTextCenter: { fontSize: "16px", textAlign: "center", mt: 2 },
     actions: { justifyContent: "center", pb: 2 },
-    button: { fontWeight: "bold", textTransform: "none", minWidth: "220px" }
+    button: { fontWeight: "bold", textTransform: "none", minWidth: "220px" },
   };
 
   // ✅ Use background from settings or fallback image
@@ -493,9 +492,10 @@ const Register = () => {
     ? `url(${API_BASE_URL}${settings.bg_image})`
     : "url(/default-bg.jpg)";
 
-
   if (redirectLoading) {
-    return <RedirectLoading message="Account created! Redirecting to login..." />;
+    return (
+      <RedirectLoading message="Account created! Redirecting to login..." />
+    );
   }
   return (
     <>
@@ -517,13 +517,16 @@ const Register = () => {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-
           }}
           maxWidth={false}
         >
           <AnnouncementSlider style={{ marginTop: "-350px" }} />
           <div
-            style={{ border: "5px solid black", marginLeft: -100, marginTop: "-50px" }}
+            style={{
+              border: "5px solid black",
+              marginLeft: -100,
+              marginTop: "-50px",
+            }}
             className="Container"
           >
             <div
@@ -534,7 +537,6 @@ const Register = () => {
                 borderBottom: "3px solid black",
               }}
             >
-
               <div className="HeaderTitle">
                 <div className="CircleCon">
                   <img
@@ -548,26 +550,26 @@ const Register = () => {
                 </div>
               </div>
               <div className="HeaderBody">
-                <strong style={{
-                  color: "white",
-                }}>{(settings?.company_name || "Company Name")
-                  .split(" ")
-                  .reduce((acc, word, index) => {
-                    if (index % 4 === 0 && index !== 0) {
-                      acc.push(<br key={`br-${index}`} />);
-                    }
-                    acc.push(word + " ");
-                    return acc;
-                  }, [])}
+                <strong
+                  style={{
+                    color: "white",
+                  }}
+                >
+                  {(settings?.company_name || "Company Name")
+                    .split(" ")
+                    .reduce((acc, word, index) => {
+                      if (index % 4 === 0 && index !== 0) {
+                        acc.push(<br key={`br-${index}`} />);
+                      }
+                      acc.push(word + " ");
+                      return acc;
+                    }, [])}
                 </strong>
                 <p>Student Information System</p>
               </div>
             </div>
 
             <div className="Body">
-
-
-
               <div className="TextField">
                 <label>Campus</label>
                 <select
@@ -579,7 +581,7 @@ const Register = () => {
                     height: "45px",
                     border: errors.campus ? "2px solid red" : "2px solid black",
                     width: "100%",
-                    appearance: "none",   // 👈 remove default arrow
+                    appearance: "none", // 👈 remove default arrow
                     WebkitAppearance: "none",
                     MozAppearance: "none",
                   }}
@@ -617,7 +619,9 @@ const Register = () => {
                   className="border"
                   style={{
                     paddingLeft: "2.5rem",
-                    border: errors.lastName ? "2px solid red" : "2px solid black",
+                    border: errors.lastName
+                      ? "2px solid red"
+                      : "2px solid black",
                   }}
                 />
                 <BadgeIcon
@@ -648,7 +652,9 @@ const Register = () => {
                   className="border"
                   style={{
                     paddingLeft: "2.5rem",
-                    border: errors.firstName ? "2px solid red" : "2px solid black",
+                    border: errors.firstName
+                      ? "2px solid red"
+                      : "2px solid black",
                   }}
                 />
                 <PersonIcon
@@ -703,7 +709,9 @@ const Register = () => {
                   className="border"
                   style={{
                     paddingLeft: "2.5rem",
-                    border: errors.birthday ? "2px solid red" : "2px solid black",
+                    border: errors.birthday
+                      ? "2px solid red"
+                      : "2px solid black",
                   }}
                 />
                 <CakeIcon
@@ -721,8 +729,6 @@ const Register = () => {
                 )}
               </div>
 
-
-
               <div className="TextField" style={{ position: "relative" }}>
                 <label>Academic Program</label>
                 <select
@@ -738,9 +744,11 @@ const Register = () => {
                   style={{
                     paddingLeft: "1rem",
                     height: "45px",
-                    border: errors.academicProgram ? "2px solid red" : "2px solid black",
+                    border: errors.academicProgram
+                      ? "2px solid red"
+                      : "2px solid black",
                     width: "100%",
-                    appearance: "none",   // 👈 remove default arrow
+                    appearance: "none", // 👈 remove default arrow
                     WebkitAppearance: "none",
                     MozAppearance: "none",
                   }}
@@ -770,10 +778,7 @@ const Register = () => {
                     pointerEvents: "none", // 👈 allow clicking select
                   }}
                 />
-
-
               </div>
-
 
               <div className="TextField" style={{ position: "relative" }}>
                 <label>Applying As</label>
@@ -794,14 +799,15 @@ const Register = () => {
                     setApplyingAs(e.target.value);
                     setSelectedCurriculum("");
                   }}
-
                   className="border"
                   style={{
                     paddingLeft: "1rem",
                     height: "45px",
-                    border: errors.applyingAs ? "2px solid red" : "2px solid black",
+                    border: errors.applyingAs
+                      ? "2px solid red"
+                      : "2px solid black",
                     width: "100%",
-                    appearance: "none",   // 👈 remove default arrow
+                    appearance: "none", // 👈 remove default arrow
                     WebkitAppearance: "none",
                     MozAppearance: "none",
                   }}
@@ -809,9 +815,10 @@ const Register = () => {
                   <option value="">Select Applying</option>
 
                   {(() => {
-                    const selectedProgram = selectedBranch?.academicPrograms?.find(
-                      (prog) => prog.id.toString() === academicProgram
-                    );
+                    const selectedProgram =
+                      selectedBranch?.academicPrograms?.find(
+                        (prog) => prog.id.toString() === academicProgram,
+                      );
 
                     if (!selectedProgram) return null;
 
@@ -820,11 +827,16 @@ const Register = () => {
                     if (name.includes("undergraduate")) {
                       return (
                         <>
-
                           <option value="1">Senior High School Graduate</option>
-                          <option value="2">Senior High School Graduating Student</option>
-                          <option value="3">ALS (Alternative Learning System) Passer</option>
-                          <option value="4">Transferee from other University/College</option>
+                          <option value="2">
+                            Senior High School Graduating Student
+                          </option>
+                          <option value="3">
+                            ALS (Alternative Learning System) Passer
+                          </option>
+                          <option value="4">
+                            Transferee from other University/College
+                          </option>
                           <option value="5">Cross Enrolee Student</option>
                           <option value="6">Foreign Applicant/Student</option>
                         </>
@@ -863,8 +875,6 @@ const Register = () => {
                     pointerEvents: "none", // 👈 allow clicking select
                   }}
                 />
-
-
               </div>
 
               <div className="TextField" style={{ position: "relative" }}>
@@ -878,7 +888,9 @@ const Register = () => {
                   style={{
                     paddingLeft: "1rem",
                     height: "45px",
-                    border: errors.selectedCurriculum ? "2px solid red" : "2px solid black",
+                    border: errors.selectedCurriculum
+                      ? "2px solid red"
+                      : "2px solid black",
                     width: "100%",
                     appearance: "none",
                     WebkitAppearance: "none",
@@ -910,8 +922,6 @@ const Register = () => {
                 />
               </div>
 
-
-
               <div className="TextField" style={{ position: "relative" }}>
                 <label htmlFor="email">Email Address</label>
                 <input
@@ -925,14 +935,17 @@ const Register = () => {
                   value={usersData.email}
                   onChange={handleChanges}
                   onKeyDown={handleKeyDownRegister}
-                  style={{ paddingLeft: "2.5rem", border: errors.email ? "2px solid red" : "2px solid black", }}
+                  style={{
+                    paddingLeft: "2.5rem",
+                    border: errors.email ? "2px solid red" : "2px solid black",
+                  }}
                 />
                 <EmailIcon
                   style={{
                     position: "absolute",
                     top: "2.5rem",
                     left: "0.7rem",
-                    color: "rgba(0,0,0,0.4)"
+                    color: "rgba(0,0,0,0.4)",
                   }}
                 />
                 {errors.email && (
@@ -940,11 +953,11 @@ const Register = () => {
                     This field is required
                   </span>
                 )}
-                <span style={{ fontSize: "14px", color: "red", mt: 2}}>
-                  Note: Each email can only be used once. Use a valid and unused Gmail account.
+                <span style={{ fontSize: "14px", color: "red", mt: 2 }}>
+                  Note: Each email can only be used once. Use a valid and unused
+                  Gmail account.
                 </span>
               </div>
-
 
               <div className="TextField" style={{ position: "relative" }}>
                 <label htmlFor="password">Password</label>
@@ -959,7 +972,12 @@ const Register = () => {
                   onChange={handleChanges}
                   onKeyDown={handleKeyDownRegister}
                   required
-                  style={{ paddingLeft: "2.5rem", border: errors.confirmPassword ? "2px solid red" : "2px solid black", }}
+                  style={{
+                    paddingLeft: "2.5rem",
+                    border: errors.confirmPassword
+                      ? "2px solid red"
+                      : "2px solid black",
+                  }}
                 />
                 <LockIcon
                   style={{
@@ -981,15 +999,18 @@ const Register = () => {
                     right: "1rem",
                     background: "none",
                     border: "none",
-                    cursor: "pointer"
+                    cursor: "pointer",
                   }}
                 >
                   {showPassword ? (
-                    <Visibility sx={{ fontSize: "26px", color: "rgba(0,0,0,0.4)" }} />
+                    <Visibility
+                      sx={{ fontSize: "26px", color: "rgba(0,0,0,0.4)" }}
+                    />
                   ) : (
-                    <VisibilityOff sx={{ fontSize: "26px", color: "rgba(0,0,0,0.4)" }} />
+                    <VisibilityOff
+                      sx={{ fontSize: "26px", color: "rgba(0,0,0,0.4)" }}
+                    />
                   )}
-
                 </button>
                 {errors.password && (
                   <span style={{ color: "red", fontSize: "12px" }}>
@@ -998,14 +1019,13 @@ const Register = () => {
                 )}
               </div>
 
-              <div className="TextField" style={{ position: "relative", }}>
+              <div className="TextField" style={{ position: "relative" }}>
                 <label htmlFor="confirmPassword">Confirm Password</label>
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={showConfirmPassword ? "text" : "password"}
                   className="border"
                   id="confirmPassword"
                   name="confirmPassword"
-
                   placeholder="Re-enter your password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -1014,7 +1034,9 @@ const Register = () => {
                   disabled={!usersData.password} // ✅ Disabled until password is filled
                   style={{
                     paddingLeft: "2.5rem",
-                    border: errors.confirmPassword ? "2px solid red" : "2px solid black",
+                    border: errors.confirmPassword
+                      ? "2px solid red"
+                      : "2px solid black",
                     backgroundColor: !usersData.password ? "#f0f0f0" : "white", // Optional: gray background when disabled
                     cursor: !usersData.password ? "not-allowed" : "text",
                   }}
@@ -1030,7 +1052,7 @@ const Register = () => {
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   style={{
                     color: "rgba(0,0,0,0.3)",
                     outline: "none",
@@ -1039,15 +1061,18 @@ const Register = () => {
                     right: "1rem",
                     background: "none",
                     border: "none",
-                    cursor: "pointer"
+                    cursor: "pointer",
                   }}
                 >
-                  {showPassword ? (
-                    <Visibility sx={{ fontSize: "26px", color: "rgba(0,0,0,0.4)" }} />
+                  {showConfirmPassword ? (
+                    <Visibility
+                      sx={{ fontSize: "26px", color: "rgba(0,0,0,0.4)" }}
+                    />
                   ) : (
-                    <VisibilityOff sx={{ fontSize: "26px", color: "rgba(0,0,0,0.4)" }} />
+                    <VisibilityOff
+                      sx={{ fontSize: "26px", color: "rgba(0,0,0,0.4)" }}
+                    />
                   )}
-
                 </button>
                 {errors.password && (
                   <span style={{ color: "red", fontSize: "12px" }}>
@@ -1055,7 +1080,6 @@ const Register = () => {
                   </span>
                 )}
               </div>
-
 
               {/* CAPTCHA */}
               {/* <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
@@ -1079,16 +1103,16 @@ const Register = () => {
                       checked={reminderChecked}
                       onChange={(e) => setReminderChecked(e.target.checked)}
                     />
-
                   }
                   label={
                     <Typography sx={{ fontSize: "14px" }}>
-                      In order to proceed to the online application, please indicate by checking the box that you have read and agreed to EARIST requirements.
+                      In order to proceed to the online application, please
+                      indicate by checking the box that you have read and agreed
+                      to EARIST requirements.
                     </Typography>
                   }
                 />
               </Box>
-
 
               {/* Register Button — disabled until CAPTCHA is solved */}
               <div
@@ -1105,7 +1129,8 @@ const Register = () => {
                   if (!registrationOpen) {
                     setSnack({
                       open: true,
-                      message: "Registration is currently closed for this campus.",
+                      message:
+                        "Registration is currently closed for this campus.",
                       severity: "error",
                     });
                     return;
@@ -1124,13 +1149,9 @@ const Register = () => {
                   if (!isSubmitting) {
                     handleRegister();
                   }
-
                 }}
                 style={{
-                  opacity:
-                    registrationOpen && branchSelected
-                      ? 1
-                      : 0.5,
+                  opacity: registrationOpen && branchSelected ? 1 : 0.5,
 
                   cursor: "pointer",
                   marginTop: "40px",
@@ -1145,7 +1166,6 @@ const Register = () => {
                   fontWeight: "bold",
                   fontSize: "16px",
                 }}
-
               >
                 {!registrationOpen
                   ? "Registration Closed"
@@ -1154,10 +1174,14 @@ const Register = () => {
                     : "Register"}
               </div>
 
-
-              <div className="LinkContainer RegistrationLink" style={{ margin: '0.1rem 0rem' }}>
+              <div
+                className="LinkContainer RegistrationLink"
+                style={{ margin: "0.1rem 0rem" }}
+              >
                 <p>Already Have an Account?</p>
-                <span><Link to={'/login_applicant'}>Sign In here</Link></span>
+                <span>
+                  <Link to={"/login_applicant"}>Sign In here</Link>
+                </span>
               </div>
             </div>
 
@@ -1206,9 +1230,6 @@ const Register = () => {
             >
               ✕
             </button>
-
-
-
 
             {/* Title */}
             <h2
@@ -1333,20 +1354,21 @@ const Register = () => {
           </Box>
         </Modal>
 
-
         {/* Snackbar Notification */}
         <Snackbar
           open={snack.open}
           autoHideDuration={4000}
           onClose={handleClose}
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
         >
-          <Alert severity={snack.severity} onClose={handleClose} sx={{ width: '100%' }}>
+          <Alert
+            severity={snack.severity}
+            onClose={handleClose}
+            sx={{ width: "100%" }}
+          >
             {snack.message}
           </Alert>
         </Snackbar>
-
-
 
         {/* Important Reminder Dialog */}
         <Dialog
@@ -1361,19 +1383,25 @@ const Register = () => {
 
           <DialogContent>
             <Typography sx={dialogStyles.contentText}>
-              Please make sure that all information you provide in your application is correct and complete before submitting.
+              Please make sure that all information you provide in your
+              application is correct and complete before submitting.
             </Typography>
 
             <Typography sx={{ ...dialogStyles.contentText, mt: 2 }}>
-              Creating multiple accounts or submitting more than one application is strictly not allowed. Each applicant should only register and apply once.
+              Creating multiple accounts or submitting more than one application
+              is strictly not allowed. Each applicant should only register and
+              apply once.
             </Typography>
 
             <Typography sx={{ ...dialogStyles.contentText, mt: 2 }}>
-              If multiple accounts or duplicate applications are detected, your application may be rejected or automatically disqualified from the admission process.
+              If multiple accounts or duplicate applications are detected, your
+              application may be rejected or automatically disqualified from the
+              admission process.
             </Typography>
 
             <Typography sx={{ ...dialogStyles.contentText, mt: 2 }}>
-              Please wait for the official announcement regarding the results of the application screening.
+              Please wait for the official announcement regarding the results of
+              the application screening.
             </Typography>
 
             <Typography sx={dialogStyles.contentTextCenter}>
@@ -1388,7 +1416,11 @@ const Register = () => {
                     onChange={(e) => setAgreeChecked(e.target.checked)}
                   />
                 }
-                label={<Typography sx={{ fontSize: "15px" }}>I understand and agree to submit only one application.</Typography>}
+                label={
+                  <Typography sx={{ fontSize: "15px" }}>
+                    I understand and agree to submit only one application.
+                  </Typography>
+                }
               />
             </Box>
           </DialogContent>
@@ -1413,7 +1445,8 @@ const Register = () => {
 
           <DialogContent>
             <Typography sx={{ fontSize: "16px", textAlign: "center" }}>
-              Registration is currently closed. Please wait for the official announcement.
+              Registration is currently closed. Please wait for the official
+              announcement.
             </Typography>
           </DialogContent>
 
@@ -1441,24 +1474,68 @@ const Register = () => {
 
           <DialogContent>
             <Typography sx={dialogStyles.contentText}>
-              We sincerely apologize that during this time, this campus is not currently accepting applications.
-              Registration is only available during the officially designated hours, and any submissions outside this period cannot be processed.
+              We sincerely apologize that during this time, this campus is not
+              currently accepting applications. Registration is only available
+              during the officially designated hours, and any submissions
+              outside this period cannot be processed.
             </Typography>
 
             <Typography sx={{ ...dialogStyles.contentText, mt: 2 }}>
-              Kindly return during the authorized registration hours to complete your application.
-              We highly encourage reviewing the official schedule to ensure timely submission.
+              Kindly return during the authorized registration hours to complete
+              your application. We highly encourage reviewing the official
+              schedule to ensure timely submission.
             </Typography>
 
             {selectedBranch?.start_date && selectedBranch?.end_date && (
-              <Box sx={{ textAlign: "center", mt: 2.5, p: 2, background: "#f8fafc", borderRadius: "12px", border: "1.5px solid #e2e8f0" }}>
-                <Typography sx={{ fontSize: "12px", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700, mb: 0.5 }}>
+              <Box
+                sx={{
+                  textAlign: "center",
+                  mt: 2.5,
+                  p: 2,
+                  background: "#f8fafc",
+                  borderRadius: "12px",
+                  border: "1.5px solid #e2e8f0",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: "12px",
+                    color: "#94a3b8",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    fontWeight: 700,
+                    mb: 0.5,
+                  }}
+                >
                   Registration Hours
                 </Typography>
-                <Typography sx={{ fontSize: "28px", fontWeight: 700, color: "#1a1a2e", fontFamily: "'DM Sans', sans-serif" }}>
-                  {new Date(selectedBranch.start_date).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: "Asia/Manila" })}
+                <Typography
+                  sx={{
+                    fontSize: "28px",
+                    fontWeight: 700,
+                    color: "#1a1a2e",
+                    fontFamily: "'DM Sans', sans-serif",
+                  }}
+                >
+                  {new Date(selectedBranch.start_date).toLocaleTimeString(
+                    "en-US",
+                    {
+                      hour: "numeric",
+                      minute: "2-digit",
+                      hour12: true,
+                      timeZone: "Asia/Manila",
+                    },
+                  )}
                   {" – "}
-                  {new Date(selectedBranch.end_date).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: "Asia/Manila" })}
+                  {new Date(selectedBranch.end_date).toLocaleTimeString(
+                    "en-US",
+                    {
+                      hour: "numeric",
+                      minute: "2-digit",
+                      hour12: true,
+                      timeZone: "Asia/Manila",
+                    },
+                  )}
                 </Typography>
               </Box>
             )}
@@ -1467,7 +1544,6 @@ const Register = () => {
               We sincerely appreciate your patience and understanding.
             </Typography>
           </DialogContent>
-
 
           <DialogActions sx={dialogStyles.actions}>
             <Button

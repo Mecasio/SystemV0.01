@@ -50,7 +50,7 @@ const PaymentExportingModule = () => {
     const [exportConfirmOpen, setExportConfirmOpen] = useState(false);
 
     const [campusFilter, setCampusFilter] = useState(1);
-    const [personTypeFilter, setPersonTypeFilter] = useState(0);
+    const [personTypeFilter, setPersonTypeFilter] = useState(1);
     const [paymentType, setPaymentType] = useState(0);
 
     const [dataFetched, setDataFetched] = useState(false);
@@ -190,7 +190,6 @@ const PaymentExportingModule = () => {
         const endpoint = getEndpoint();
 
         if (!endpoint) return;
-        if (personTypeFilter === 0) return;
 
         axios
             .get(`${API_BASE_URL}${endpoint}`)
@@ -296,7 +295,7 @@ const PaymentExportingModule = () => {
             if (paymentType === 1) return "/get_student_data_matriculation";
         }
 
-        return null; // no "All" for now
+        return null;
     };
 
     const handleViewRecord = () => {
@@ -369,7 +368,7 @@ const PaymentExportingModule = () => {
     };
 
     const handleExport = async () => {
-        if (!filteredData.length || personTypeFilter === 0) return;
+        if (!filteredData.length) return;
 
         setExportTotal(filteredData.length);
         setExportProgress(0);
@@ -533,7 +532,6 @@ const PaymentExportingModule = () => {
                                 value={personTypeFilter}
                                 onChange={(e) => setPersonTypeFilter(e.target.value)}
                             >
-                                <MenuItem value={0}>All</MenuItem>
                                 <MenuItem value={1}>Applicant</MenuItem>
                                 <MenuItem value={2}>Student</MenuItem>
                             </Select>

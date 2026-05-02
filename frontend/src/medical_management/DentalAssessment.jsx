@@ -264,6 +264,7 @@ const DentalAssessment = () => {
     const [userRole, setUserRole] = useState("");
 
     const [explicitSelection, setExplicitSelection] = useState(false);
+    const lastResolvedPersonIdRef = useRef("");
 
 
     const fetchMedicalData = async (number) => {
@@ -283,11 +284,17 @@ const DentalAssessment = () => {
 
 
     const fetchByPersonId = async (personID) => {
+        if (!personID || lastResolvedPersonIdRef.current === String(personID)) return;
+        lastResolvedPersonIdRef.current = String(personID);
+
         try {
-            const res = await axios.get(`${API_BASE_URL}/api/person_with_applicant/${personID}`);
+            const res = await axios.get(`${API_BASE_URL}/api/student-person-data/${personID}`);
             setPerson(res.data);
             setSelectedPerson(res.data);
             if (res.data?.student_number) {
+                setStudentNumber(res.data.student_number);
+                sessionStorage.setItem("edit_person_id", String(personID));
+                sessionStorage.setItem("edit_student_number", res.data.student_number);
             }
         } catch (err) {
             console.error("❌ person_with_applicant failed:", err);
@@ -377,12 +384,18 @@ const DentalAssessment = () => {
     useEffect(() => {
         const fetchPersonById = async () => {
             if (!userID) return;
+            if (lastResolvedPersonIdRef.current === String(userID)) return;
+            lastResolvedPersonIdRef.current = String(userID);
 
             try {
-                const res = await axios.get(`${API_BASE_URL}/api/person_with_applicant/${userID}`);
+                const res = await axios.get(`${API_BASE_URL}/api/student-person-data/${userID}`);
                 if (res.data) {
                     setPerson(res.data);
                     setSelectedPerson(res.data);
+                    if (res.data.student_number) {
+                        setStudentNumber(res.data.student_number);
+                        sessionStorage.setItem("edit_student_number", res.data.student_number);
+                    }
                 } else {
                     console.warn("⚠️ No person found for ID:", userID);
                 }
@@ -469,11 +482,19 @@ const DentalAssessment = () => {
 
     useEffect(() => {
         const queryParams = new URLSearchParams(location.search);
-        const personIdFromUrl = queryParams.get("person_id");
+        const studentNumberFromUrl = queryParams.get("student_number")?.trim();
+        const personIdFromUrl = queryParams.get("person_id")?.trim();
+
+        if (studentNumberFromUrl) {
+            setStudentNumber(studentNumberFromUrl);
+            sessionStorage.setItem("edit_student_number", studentNumberFromUrl);
+            return;
+        }
 
         if (!personIdFromUrl) return;
 
-        // fetch info of that person
+        fetchByPersonId(personIdFromUrl);
+        /* Removed duplicate person_id resolver.
         axios
             .get(`${API_BASE_URL}api/person_with_applicant/${personIdFromUrl}`)
             .then((res) => {
@@ -483,26 +504,37 @@ const DentalAssessment = () => {
                     setSearchQuery(res.data.student_number);
 
                     // If you have a fetchUploads() or fetchExamScore() — call it
-                    if (typeof fetchUploadsByApplicantNumber === "function") {
-                        fetchUploadsByApplicantNumber(res.data.student_number);
+                    if (typeof window.fetchUploadsByApplicantNumber === "function") {
+                        window.fetchUploadsByApplicantNumber(res.data.student_number);
                     }
 
-                    if (typeof fetchApplicants === "function") {
-                        fetchApplicants();
+                    if (typeof window.fetchApplicants === "function") {
+                        window.fetchApplicants();
                     }
                 }
             })
             .catch((err) => console.error("Auto search failed:", err));
+        */
     }, [location.search]);
 
     const handleStepClick = (index, to) => {
         setActiveStep(index);
-        const pid = sessionStorage.getItem("edit_person_id");
-        const sn = sessionStorage.getItem("edit_student_number");
+        const params = new URLSearchParams(location.search);
+        const pid =
+            params.get("person_id") ||
+            sessionStorage.getItem("edit_person_id") ||
+            sessionStorage.getItem("admin_edit_person_id");
+        const sn =
+            params.get("student_number") ||
+            sessionStorage.getItem("edit_student_number") ||
+            studentNumber;
 
         if (pid) {
+            sessionStorage.setItem("edit_person_id", String(pid));
+            if (sn) sessionStorage.setItem("edit_student_number", String(sn));
             navigate(`${to}?person_id=${pid}`);
         } else if (sn) {
+            sessionStorage.setItem("edit_student_number", String(sn));
             navigate(`${to}?student_number=${sn}`);
         } else {
             navigate(to); // no id → open without query
@@ -513,7 +545,7 @@ const DentalAssessment = () => {
         const storedId = sessionStorage.getItem("edit_student_number");
 
         if (storedId) {
-            setSearchQuery(storedId);
+            setStudentNumber(storedId);
         }
     }, []);
 

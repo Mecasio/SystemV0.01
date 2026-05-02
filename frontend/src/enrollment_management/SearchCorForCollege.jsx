@@ -26,7 +26,7 @@ import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import ScoreIcon from '@mui/icons-material/Score';
 import { FcPrint } from "react-icons/fc";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import API_BASE_URL from "../apiConfig";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay"
@@ -141,6 +141,7 @@ const SearchCorForCollege = () => {
     };
 
     const navigate = useNavigate();
+    const location = useLocation();
     const isTabNavigationRef = useRef(false);
     const COLLEGE_COR_SEARCH_KEY = "college_cor_search_student_number";
 
@@ -159,13 +160,26 @@ const SearchCorForCollege = () => {
     const handleStepClick = (index, to) => {
         setActiveStep(index);
         isTabNavigationRef.current = true;
+        const params = new URLSearchParams(location.search);
+        const pid =
+            params.get("person_id") ||
+            sessionStorage.getItem("edit_person_id") ||
+            sessionStorage.getItem("admin_edit_person_id");
         const trimmed = studentNumber.trim();
         if (trimmed) {
             sessionStorage.setItem(COLLEGE_COR_SEARCH_KEY, trimmed);
+            sessionStorage.setItem("edit_student_number", trimmed);
         } else {
             sessionStorage.removeItem(COLLEGE_COR_SEARCH_KEY);
         }
-        navigate(to);
+
+        if (pid) {
+            navigate(`${to}?person_id=${pid}`);
+        } else if (trimmed) {
+            navigate(`${to}?student_number=${trimmed}`);
+        } else {
+            navigate(to);
+        }
     };
 
     const [studentNumber, setStudentNumber] = useState(() => {
@@ -186,6 +200,46 @@ const SearchCorForCollege = () => {
         setSnackbarSeverity(severity);
         setOpenSnackbar(true);
     };
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const studentNumberFromUrl = params.get("student_number")?.trim();
+        const personIdFromUrl = params.get("person_id")?.trim();
+
+        if (studentNumberFromUrl) {
+            setStudentNumber(studentNumberFromUrl);
+            sessionStorage.setItem(COLLEGE_COR_SEARCH_KEY, studentNumberFromUrl);
+            sessionStorage.setItem("edit_student_number", studentNumberFromUrl);
+            return;
+        }
+
+        if (!personIdFromUrl) return;
+
+        setStudentNumber("");
+        setDebouncedStudentNumber("");
+        setSelectedStudent(null);
+        setStudentData([]);
+        setStudentDetails([]);
+        setCorPreload(null);
+
+        axios
+            .get(`${API_BASE_URL}/api/student-person-data/${personIdFromUrl}`)
+            .then((res) => {
+                const resolvedStudentNumber = res.data?.student_number;
+                if (resolvedStudentNumber) {
+                    setStudentNumber(resolvedStudentNumber);
+                    sessionStorage.setItem("edit_person_id", personIdFromUrl);
+                    sessionStorage.setItem("edit_student_number", resolvedStudentNumber);
+                    sessionStorage.setItem(COLLEGE_COR_SEARCH_KEY, resolvedStudentNumber);
+                } else {
+                    showSnackbar("No student number found for the selected person.", "warning");
+                }
+            })
+            .catch((err) => {
+                console.error("Auto COR search failed:", err);
+                showSnackbar("Unable to load student number for the selected person.", "error");
+            });
+    }, [location.search]);
 
     const handleCloseSnackbar = (_, reason) => {
         if (reason === "clickaway") return;

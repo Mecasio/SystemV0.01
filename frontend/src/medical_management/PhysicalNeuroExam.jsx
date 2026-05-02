@@ -148,6 +148,29 @@ const PhysicalNeuroExam = () => {
     const queryParams = new URLSearchParams(location.search);
     const queryPersonId = queryParams.get("person_id")?.trim() || "";
 
+    const fetchByPersonId = async (personId) => {
+        if (!personId) return;
+
+        try {
+            const res = await axios.get(`${API_BASE_URL}/api/student-person-data/${personId}`);
+            if (res.data) {
+                setPerson(res.data);
+                setSelectedPerson(res.data);
+                setUserID(personId);
+                sessionStorage.setItem("edit_person_id", String(personId));
+
+                if (res.data.student_number) {
+                    setStudentNumber(res.data.student_number);
+                    sessionStorage.setItem("edit_student_number", res.data.student_number);
+                }
+            } else {
+                console.warn("No person found for ID:", personId);
+            }
+        } catch (err) {
+            console.error("Failed to fetch person by ID:", err);
+        }
+    };
+
     useEffect(() => {
         const storedUser = localStorage.getItem("email");
         const storedRole = localStorage.getItem("role");
@@ -228,10 +251,14 @@ const PhysicalNeuroExam = () => {
             if (!userID) return;
 
             try {
-                const res = await axios.get(`${API_BASE_URL}/api/person_with_applicant/${userID}`);
+                const res = await axios.get(`${API_BASE_URL}/api/student-person-data/${userID}`);
                 if (res.data) {
                     setPerson(res.data);
                     setSelectedPerson(res.data);
+                    if (res.data.student_number) {
+                        setStudentNumber(res.data.student_number);
+                        sessionStorage.setItem("edit_student_number", res.data.student_number);
+                    }
                 } else {
                     console.warn("⚠️ No person found for ID:", userID);
                 }
@@ -444,27 +471,29 @@ const PhysicalNeuroExam = () => {
 
     useEffect(() => {
         const queryParams = new URLSearchParams(location.search);
-        const personIdFromUrl = queryParams.get("person_id");
+        const studentNumberFromUrl = queryParams.get("student_number")?.trim();
+        const personIdFromUrl = queryParams.get("person_id")?.trim();
+
+        if (studentNumberFromUrl) {
+            setStudentNumber(studentNumberFromUrl);
+            sessionStorage.setItem("edit_student_number", studentNumberFromUrl);
+            return;
+        }
 
         if (!personIdFromUrl) return;
 
         // fetch info of that person
         axios
-            .get(`${API_BASE_URL}api/person_with_applicant/${personIdFromUrl}`)
+            .get(`${API_BASE_URL}/api/student-person-data/${personIdFromUrl}`)
             .then((res) => {
                 if (res.data?.student_number) {
 
                     // AUTO-INSERT applicant_number into search bar
-                    setSearchQuery(res.data.student_number);
+                    setStudentNumber(res.data.student_number);
+                    sessionStorage.setItem("edit_person_id", personIdFromUrl);
+                    sessionStorage.setItem("edit_student_number", res.data.student_number);
 
                     // If you have a fetchUploads() or fetchExamScore() — call it
-                    if (typeof fetchUploadsByApplicantNumber === "function") {
-                        fetchUploadsByApplicantNumber(res.data.student_number);
-                    }
-
-                    if (typeof fetchApplicants === "function") {
-                        fetchApplicants();
-                    }
                 }
             })
             .catch((err) => console.error("Auto search failed:", err));
@@ -472,12 +501,22 @@ const PhysicalNeuroExam = () => {
 
     const handleStepClick = (index, to) => {
         setActiveStep(index);
-        const pid = sessionStorage.getItem("edit_person_id");
-        const sn = sessionStorage.getItem("edit_student_number");
+        const params = new URLSearchParams(location.search);
+        const pid =
+            params.get("person_id") ||
+            sessionStorage.getItem("edit_person_id") ||
+            sessionStorage.getItem("admin_edit_person_id");
+        const sn =
+            params.get("student_number") ||
+            sessionStorage.getItem("edit_student_number") ||
+            studentNumber;
 
         if (pid) {
+            sessionStorage.setItem("edit_person_id", String(pid));
+            if (sn) sessionStorage.setItem("edit_student_number", String(sn));
             navigate(`${to}?person_id=${pid}`);
         } else if (sn) {
+            sessionStorage.setItem("edit_student_number", String(sn));
             navigate(`${to}?student_number=${sn}`);
         } else {
             navigate(to); // no id → open without query
@@ -488,7 +527,7 @@ const PhysicalNeuroExam = () => {
         const storedId = sessionStorage.getItem("edit_student_number");
 
         if (storedId) {
-            setSearchQuery(storedId);
+            setStudentNumber(storedId);
         }
     }, []);
 

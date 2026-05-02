@@ -215,7 +215,7 @@ const StudentNumbering = () => {
     const [userRole, setUserRole] = useState("");
 
     const [hasAccess, setHasAccess] = useState(null);
-    const [loading, setLoading] = useState(false);
+    const [accessLoading, setAccessLoading] = useState(true);
 
 
     const pageId = 60;
@@ -246,6 +246,7 @@ const StudentNumbering = () => {
     }, []);
 
     const checkAccess = async (employeeID) => {
+        setAccessLoading(true);
         try {
             const response = await axios.get(`${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`);
             if (response.data && response.data.page_privilege === 1) {
@@ -261,7 +262,8 @@ const StudentNumbering = () => {
             } else {
                 console.log("An unexpected error occurred.");
             }
-            setLoading(false);
+        } finally {
+            setAccessLoading(false);
         }
     };
 
@@ -571,8 +573,8 @@ const StudentNumbering = () => {
 
 
     // Put this at the very bottom before the return 
-    if (loading || hasAccess === null) {
-        return <LoadingOverlay open={loading} message="Loading..." />;
+    if (accessLoading || hasAccess === null) {
+        return <LoadingOverlay open message="Loading..." />;
     }
 
     if (!hasAccess) {

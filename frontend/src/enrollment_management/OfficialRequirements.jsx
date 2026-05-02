@@ -199,12 +199,22 @@ const OfficialRequirements = () => {
 
   const handleStepClick = (index, to) => {
     setActiveStep(index);
-    const pid = sessionStorage.getItem("edit_person_id");
-    const sn = sessionStorage.getItem("edit_student_number");
+    const pid =
+      selectedPerson?.person_id ||
+      person?.person_id ||
+      sessionStorage.getItem("edit_person_id") ||
+      sessionStorage.getItem("admin_edit_person_id");
+    const sn =
+      selectedPerson?.student_number ||
+      person?.student_number ||
+      sessionStorage.getItem("edit_student_number");
 
     if (pid) {
+      sessionStorage.setItem("edit_person_id", String(pid));
+      if (sn) sessionStorage.setItem("edit_student_number", String(sn));
       navigate(`${to}?person_id=${pid}`);
     } else if (sn) {
+      sessionStorage.setItem("edit_student_number", String(sn));
       navigate(`${to}?student_number=${sn}`);
     } else {
       navigate(to); // no id → open without query

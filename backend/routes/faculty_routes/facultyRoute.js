@@ -85,7 +85,16 @@ router.get("/professors", async (req, res) => {
         dpt.dprtmnt_name,
         dpt.dprtmnt_code
       FROM prof_table AS pft
-      LEFT JOIN dprtmnt_profs_table AS dpft 
+      LEFT JOIN (
+        SELECT dpft_current.*
+        FROM dprtmnt_profs_table AS dpft_current
+        INNER JOIN (
+          SELECT prof_id, MAX(dprtmnt_profs_id) AS latest_id
+          FROM dprtmnt_profs_table
+          GROUP BY prof_id
+        ) AS latest_dpft
+          ON latest_dpft.latest_id = dpft_current.dprtmnt_profs_id
+      ) AS dpft
         ON dpft.prof_id = pft.prof_id
       LEFT JOIN dprtmnt_table AS dpt 
         ON dpft.dprtmnt_id = dpt.dprtmnt_id

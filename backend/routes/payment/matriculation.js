@@ -6,9 +6,22 @@ const router = express.Router();
 router.get('/api/payment_matriculation/transactions', async (req, res) => {
     try {
         const [rows] = await db3.query(
-            `SELECT id, student_number, payment, employee_id, active_school_year_id, remark, created_at
-             FROM transaction_table
-             ORDER BY created_at DESC, id DESC`
+            `SELECT
+                tt.id,
+                tt.student_number,
+                tt.payment,
+                tt.employee_id,
+                tt.active_school_year_id,
+                yt.year_description AS current_year,
+                yt.year_description + 1 AS next_year,
+                st.semester_description,
+                tt.remark,
+                tt.created_at
+             FROM transaction_table AS tt
+             LEFT JOIN active_school_year_table AS sy ON tt.active_school_year_id = sy.id
+             LEFT JOIN year_table AS yt ON sy.year_id = yt.year_id
+             LEFT JOIN semester_table AS st ON sy.semester_id = st.semester_id
+             ORDER BY tt.created_at DESC, tt.id DESC`
         );
 
         return res.json(rows);

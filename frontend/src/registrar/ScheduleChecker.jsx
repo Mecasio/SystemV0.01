@@ -22,7 +22,8 @@ import {
   TableRow,
   TableCell,
   Paper,
-  Button
+  Button,
+  Autocomplete,
 } from "@mui/material";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
@@ -162,6 +163,8 @@ const ScheduleChecker = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [openReviewDialog, setOpenReviewDialog] = useState(false);
   const [selectedReviewEmployeeId, setSelectedReviewEmployeeId] = useState("");
+  const [reviewSchedules, setReviewSchedules] = useState([]);
+  const [reviewScheduleLoading, setReviewScheduleLoading] = useState(false);
   const { dprtmnt_id } = useParams();
 
   const fetchRoom = async () => {
@@ -271,6 +274,26 @@ const ScheduleChecker = () => {
     }
   };
 
+  const fetchProfessorReviewSchedule = async (employeeId) => {
+    if (!employeeId) {
+      setReviewSchedules([]);
+      return;
+    }
+
+    setReviewScheduleLoading(true);
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/get_professor_schedule/${employeeId}`
+      );
+      setReviewSchedules(response.data || []);
+    } catch (error) {
+      console.error("Error fetching professor review schedule:", error);
+      setReviewSchedules([]);
+    } finally {
+      setReviewScheduleLoading(false);
+    }
+  };
+
   const formatTimeTo12Hour = (time24) => {
     const [hours, minutes] = time24.split(":");
     const h = parseInt(hours);
@@ -339,6 +362,10 @@ const ScheduleChecker = () => {
       fetchSchedule();
     }
   }, [selectedRoom]);
+
+  useEffect(() => {
+    fetchProfessorReviewSchedule(selectedReviewEmployeeId);
+  }, [selectedReviewEmployeeId]);
 
   useEffect(() => {
     if (schoolYearList.length > 0) {
@@ -769,8 +796,8 @@ const ScheduleChecker = () => {
   };
 
   const reviewedProfessorSchedules = selectedReviewEmployeeId
-    ? allschedules
-      .filter((row) => String(row.employee_id || "") === String(selectedReviewEmployeeId))
+    ? reviewSchedules
+      .slice()
       .sort((a, b) => {
         const dayA = daySortOrder[(a.day || "").toUpperCase()] || 99;
         const dayB = daySortOrder[(b.day || "").toUpperCase()] || 99;
@@ -1175,44 +1202,40 @@ const ScheduleChecker = () => {
               </div>
             </div>
 
-            {/* Search Professor & Professor Select */}
+            {/* Professor Select */}
             <div className="flex flex-col mb-2 w-full">
-              {/* Professor Search Input */}
-              <div className="flex mb-2 items-center">
-                <div className="p-2 w-[12rem]">Search Professor:</div>
-                <input
-                  type="text"
-                  placeholder="Search Professor"
-                  value={profSearch}
-                  onChange={(e) => setProfSearch(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      if (filteredProfessors.length > 0) {
-                        setSelectedProf(filteredProfessors[0].prof_id);
-                      }
-                    }
-                  }}
-                  className="border border-gray-500 rounded w-full h-10 px-2"
-                />
-              </div>
-
-              {/* Professor Select */}
               <div className="flex mb-1 items-center">
                 <div className="p-2 w-[12rem]">Professor:</div>
-                <select
-                  className="border border-gray-500 outline-none rounded w-full h-10 px-2"
-                  value={selectedProf}
-                  onChange={(e) => setSelectedProf(e.target.value)}
-                  required
-                >
-                  <option value="">Select Professor</option>
-                  {filteredProfessors.map((prof) => (
-                    <option key={prof.prof_id} value={prof.prof_id}>
-                      {prof.lname}, {prof.fname} {prof.mname}
-                    </option>
-                  ))}
-                </select>
+                <Autocomplete
+                  options={filteredProfessors}
+                  fullWidth
+                  inputValue={profSearch}
+                  onInputChange={(event, newInputValue) => {
+                    setProfSearch(newInputValue);
+                  }}
+                  getOptionLabel={(option) =>
+                    `${option.lname || ""}, ${option.fname || ""} ${option.mname || ""}`.trim()
+                  }
+                  value={
+                    profList.find(
+                      (prof) => String(prof.prof_id) === String(selectedProf)
+                    ) || null
+                  }
+                  onChange={(event, newValue) => {
+                    setSelectedProf(newValue ? newValue.prof_id : "");
+                  }}
+                  isOptionEqualToValue={(option, value) =>
+                    String(option.prof_id) === String(value.prof_id)
+                  }
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Professor"
+                      size="small"
+                      required
+                    />
+                  )}
+                />
               </div>
             </div>
 
@@ -2370,27 +2393,38 @@ const ScheduleChecker = () => {
         <DialogTitle>Review Schedule</DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 1, mb: 2 }}>
-            <FormControl fullWidth size="small">
-              <InputLabel id="review-prof-label">Professor</InputLabel>
-              <Select
-                labelId="review-prof-label"
-                label="Professor"
-                value={selectedReviewEmployeeId}
-                onChange={(e) => setSelectedReviewEmployeeId(e.target.value)}
-              >
-                <MenuItem value="">
-                  <em>Select Professor</em>
-                </MenuItem>
-                {filteredProfessors.map((prof) => (
-                  <MenuItem key={prof.prof_id} value={prof.employee_id}>
-                    {prof.employee_id} - {prof.fname} {prof.mname?.charAt(0)}. {prof.lname}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <Autocomplete
+              options={profList}
+              fullWidth
+              getOptionLabel={(option) =>
+                `${option.employee_id || ""} - ${option.fname || ""} ${option.mname?.charAt(0) || ""}${option.mname ? "." : ""} ${option.lname || ""}`.trim()
+              }
+              value={
+                profList.find(
+                  (prof) => String(prof.employee_id) === String(selectedReviewEmployeeId)
+                ) || null
+              }
+              onChange={(event, newValue) => {
+                setSelectedReviewEmployeeId(newValue ? newValue.employee_id : "");
+              }}
+              isOptionEqualToValue={(option, value) =>
+                String(option.employee_id) === String(value.employee_id)
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Professor"
+                  size="small"
+                />
+              )}
+            />
           </Box>
 
-          {selectedReviewEmployeeId ? (
+          {selectedReviewEmployeeId && reviewScheduleLoading ? (
+            <Typography variant="body2" color="text.secondary">
+              Loading professor schedule...
+            </Typography>
+          ) : selectedReviewEmployeeId ? (
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr>

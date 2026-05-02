@@ -146,6 +146,39 @@ const computePriorityPayment = (row, paymentInput) => {
     };
 };
 
+const formatAcademicSchoolYear = (row) => {
+    const currentYear = row?.current_year ?? row?.year_description;
+    const nextYear = row?.next_year;
+    const semester = row?.semester_description;
+
+    if (currentYear && nextYear && semester) {
+        return `${currentYear}-${nextYear}, ${semester}`;
+    }
+
+    if (currentYear && semester) {
+        return `${currentYear}, ${semester}`;
+    }
+
+    return row?.active_school_year_id || "";
+};
+
+const formatTransactionDateTime = (value) => {
+    if (!value) return "";
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+
+    return date.toLocaleString("en-US", {
+        month: "long",
+        day: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+    });
+};
+
 const MatriculationPaymentModule = () => {
     const settings = useContext(SettingsContext);
 
@@ -1075,7 +1108,7 @@ const MatriculationPaymentModule = () => {
                                         <TableCell><strong>Student Number</strong></TableCell>
                                         <TableCell><strong>Payment</strong></TableCell>
                                         <TableCell><strong>Employee ID</strong></TableCell>
-                                        <TableCell><strong>Active School Year ID</strong></TableCell>
+                                        <TableCell><strong>Academic School Year</strong></TableCell>
                                         <TableCell><strong>Remark</strong></TableCell>
                                         <TableCell><strong>Created At</strong></TableCell>
                                     </TableRow>
@@ -1094,9 +1127,9 @@ const MatriculationPaymentModule = () => {
                                                 <TableCell>{tx.student_number}</TableCell>
                                                 <TableCell>{tx.payment}</TableCell>
                                                 <TableCell>{tx.employee_id}</TableCell>
-                                                <TableCell>{tx.active_school_year_id}</TableCell>
+                                                <TableCell>{formatAcademicSchoolYear(tx)}</TableCell>
                                                 <TableCell>{tx.remark}</TableCell>
-                                                <TableCell>{tx.created_at}</TableCell>
+                                                <TableCell>{formatTransactionDateTime(tx.created_at)}</TableCell>
                                             </TableRow>
                                         ))
                                     )}

@@ -369,6 +369,10 @@ const RegisterProf = () => {
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [sortOrder, setSortOrder] = useState("");
 
+  const normalizeDepartmentId = (value) => {
+    if (value === null || value === undefined) return "";
+    return String(value);
+  };
 
   const filteredProfessors = React.useMemo(() => {
     return professors
@@ -376,12 +380,14 @@ const RegisterProf = () => {
         // Search filter
         const fullText = `${p.fname || ""} ${p.mname || ""} ${p.lname || ""} ${p.email || ""}`.toLowerCase();
         const matchesSearch = fullText.includes(searchQuery);
+        const selectedDepartment = normalizeDepartmentId(selectedDepartmentFilter);
+        const professorDepartment = normalizeDepartmentId(p.dprtmnt_id);
 
         // Department filter
         const matchesDepartment =
-          selectedDepartmentFilter === "" ||                  // All departments
-          (selectedDepartmentFilter === "unassigned" && !p.dprtmnt_id) || // Unassigned
-          p.dprtmnt_id === selectedDepartmentFilter;          // Matches specific department
+          selectedDepartment === "" ||                  // All departments
+          (selectedDepartment === "unassigned" && professorDepartment === "") || // Unassigned
+          professorDepartment === selectedDepartment;          // Matches specific department
 
         return matchesSearch && matchesDepartment;
       })
@@ -949,7 +955,7 @@ const RegisterProf = () => {
                         >
                           <MenuItem value="">All Departments</MenuItem>
                           {department.map((dep) => (
-                            <MenuItem key={dep.dprtmnt_id} value={dep.dprtmnt_id}>
+                            <MenuItem key={dep.dprtmnt_id} value={String(dep.dprtmnt_id)}>
                               {dep.dprtmnt_name} ({dep.dprtmnt_code})
                             </MenuItem>
                           ))}

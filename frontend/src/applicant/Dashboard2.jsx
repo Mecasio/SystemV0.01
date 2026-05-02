@@ -2,17 +2,32 @@ import React, { useState, useEffect, useContext, useRef } from "react";
 import { SettingsContext } from "../App";
 
 import axios from "axios";
-import { Button, Box, TextField, Container, Card, Modal, Typography, FormControl, FormHelperText, InputLabel, Select, MenuItem, Checkbox, FormControlLabel } from "@mui/material";
+import {
+  Button,
+  Box,
+  TextField,
+  Container,
+  Card,
+  Modal,
+  Typography,
+  FormControl,
+  FormHelperText,
+  InputLabel,
+  Select,
+  MenuItem,
+  Checkbox,
+  FormControlLabel,
+} from "@mui/material";
 import { Link } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
 import FamilyRestroomIcon from "@mui/icons-material/FamilyRestroom";
 import SchoolIcon from "@mui/icons-material/School";
 import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
 import InfoIcon from "@mui/icons-material/Info";
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ErrorIcon from '@mui/icons-material/Error';
-import { useNavigate } from 'react-router-dom';
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ErrorIcon from "@mui/icons-material/Error";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import ExamPermit from "../applicant/ExamPermit";
@@ -26,8 +41,8 @@ const Dashboard2 = (props) => {
   const [subtitleColor, setSubtitleColor] = useState("#555555");
   const [borderColor, setBorderColor] = useState("#000000");
   const [mainButtonColor, setMainButtonColor] = useState("#1976d2");
-  const [subButtonColor, setSubButtonColor] = useState("#ffffff");   // ✅ NEW
-  const [stepperColor, setStepperColor] = useState("#000000");       // ✅ NEW
+  const [subButtonColor, setSubButtonColor] = useState("#ffffff"); // ✅ NEW
+  const [stepperColor, setStepperColor] = useState("#000000"); // ✅ NEW
 
   const [fetchedLogo, setFetchedLogo] = useState(null);
   const [companyName, setCompanyName] = useState("");
@@ -41,9 +56,10 @@ const Dashboard2 = (props) => {
     if (settings.title_color) setTitleColor(settings.title_color);
     if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
     if (settings.border_color) setBorderColor(settings.border_color);
-    if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
-    if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);   // ✅ NEW
-    if (settings.stepper_color) setStepperColor(settings.stepper_color);           // ✅ NEW
+    if (settings.main_button_color)
+      setMainButtonColor(settings.main_button_color);
+    if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color); // ✅ NEW
+    if (settings.stepper_color) setStepperColor(settings.stepper_color); // ✅ NEW
 
     // 🏫 Logo
     if (settings.logo_url) {
@@ -56,36 +72,77 @@ const Dashboard2 = (props) => {
     if (settings.company_name) setCompanyName(settings.company_name);
     if (settings.short_term) setShortTerm(settings.short_term);
     if (settings.campus_address) setCampusAddress(settings.campus_address);
-
   }, [settings]);
-
 
   const navigate = useNavigate();
   const [userID, setUserID] = useState("");
   const [user, setUser] = useState("");
   const [userRole, setUserRole] = useState("");
   const [person, setPerson] = useState({
-    solo_parent: "", father_deceased: "", father_family_name: "", father_given_name: "", father_middle_name: "",
-    father_ext: "", father_nickname: "", father_education: "", father_education_level: "", father_last_school: "", father_course: "", father_year_graduated: "", father_school_address: "", father_contact: "", father_occupation: "", father_employer: "",
-    father_income: "", father_email: "", mother_deceased: "", mother_family_name: "", mother_given_name: "", mother_middle_name: "", mother_ext: "", mother_nickname: "", mother_education: "", mother_education_level: "", mother_last_school: "", mother_course: "",
-    mother_year_graduated: "", mother_school_address: "", mother_contact: "", mother_occupation: "", mother_employer: "", mother_income: "", mother_email: "", guardian: "", guardian_family_name: "", guardian_given_name: "",
-    guardian_middle_name: "", guardian_ext: "", guardian_nickname: "", guardian_address: "", guardian_contact: "", guardian_email: "", annual_income: "",
+    solo_parent: "",
+    father_deceased: "",
+    father_family_name: "",
+    father_given_name: "",
+    father_middle_name: "",
+    father_ext: "",
+    father_nickname: "",
+    father_education: "",
+    father_education_level: "",
+    father_last_school: "",
+    father_course: "",
+    father_year_graduated: "",
+    father_school_address: "",
+    father_contact: "",
+    father_occupation: "",
+    father_employer: "",
+    father_income: "",
+    father_email: "",
+    mother_deceased: "",
+    mother_family_name: "",
+    mother_given_name: "",
+    mother_middle_name: "",
+    mother_ext: "",
+    mother_nickname: "",
+    mother_education: "",
+    mother_education_level: "",
+    mother_last_school: "",
+    mother_course: "",
+    mother_year_graduated: "",
+    mother_school_address: "",
+    mother_contact: "",
+    mother_occupation: "",
+    mother_employer: "",
+    mother_income: "",
+    mother_email: "",
+    guardian: "",
+    guardian_family_name: "",
+    guardian_given_name: "",
+    guardian_middle_name: "",
+    guardian_ext: "",
+    guardian_nickname: "",
+    guardian_address: "",
+    guardian_contact: "",
+    guardian_email: "",
+    annual_income: "",
   });
 
   // Add this state at the top if not already:
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "warning" });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "warning",
+  });
 
   // Snackbar close handler
   const handleCloseSnackbar = (event, reason) => {
-    if (reason === 'clickaway') return;
-    setSnackbar(prev => ({ ...prev, open: false }));
+    if (reason === "clickaway") return;
+    setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
   // Example: replace previous calls with this:
   const showSnackbar = (message) => {
     setSnackbar({ open: true, message, severity: "warning" });
   };
-
 
   // do not alter
   useEffect(() => {
@@ -122,20 +179,40 @@ const Dashboard2 = (props) => {
     }
   }, []);
 
-
   const keys = JSON.parse(localStorage.getItem("dashboardKeys") || "{}");
 
   const steps = [
-    { label: "Personal Information", icon: <PersonIcon />, path: `/dashboard/${keys.step1}` },
-    { label: "Family Background", icon: <FamilyRestroomIcon />, path: `/dashboard/${keys.step2}` },
-    { label: "Educational Attainment", icon: <SchoolIcon />, path: `/dashboard/${keys.step3}` },
-    { label: "Health Medical Records", icon: <HealthAndSafetyIcon />, path: `/dashboard/${keys.step4}` },
-    { label: "Other Information", icon: <InfoIcon />, path: `/dashboard/${keys.step5}` },
+    {
+      label: "Personal Information",
+      icon: <PersonIcon />,
+      path: `/dashboard/${keys.step1}`,
+    },
+    {
+      label: "Family Background",
+      icon: <FamilyRestroomIcon />,
+      path: `/dashboard/${keys.step2}`,
+    },
+    {
+      label: "Educational Attainment",
+      icon: <SchoolIcon />,
+      path: `/dashboard/${keys.step3}`,
+    },
+    {
+      label: "Health Medical Records",
+      icon: <HealthAndSafetyIcon />,
+      path: `/dashboard/${keys.step4}`,
+    },
+    {
+      label: "Other Information",
+      icon: <InfoIcon />,
+      path: `/dashboard/${keys.step5}`,
+    },
   ];
 
-
   const [activeStep, setActiveStep] = useState(1);
-  const [clickedSteps, setClickedSteps] = useState(Array(steps.length).fill(false));
+  const [clickedSteps, setClickedSteps] = useState(
+    Array(steps.length).fill(false),
+  );
 
   const handleStepClick = (index) => {
     if (isFormValid()) {
@@ -148,7 +225,6 @@ const Dashboard2 = (props) => {
       showSnackbar("Please fill all required fields before proceeding.");
     }
   };
-
 
   const handleGuardianChange = (e) => {
     const { value } = e.target;
@@ -184,14 +260,13 @@ const Dashboard2 = (props) => {
     setPerson(updatedPerson);
   };
 
-
   const fetchPersonData = async (id) => {
     try {
       const res = await axios.get(`${API_BASE_URL}/form/person/${id}`);
 
       // Sanitize null values and set state
       const safePerson = Object.fromEntries(
-        Object.entries(res.data).map(([key, val]) => [key, val ?? ""])
+        Object.entries(res.data).map(([key, val]) => [key, val ?? ""]),
       );
 
       setPerson(safePerson);
@@ -209,7 +284,6 @@ const Dashboard2 = (props) => {
     }
   };
 
-
   // Do not alter
   const handleUpdate = async (updatedPerson) => {
     try {
@@ -224,7 +298,10 @@ const Dashboard2 = (props) => {
       await axios.put(`${API_BASE_URL}/form/person/${userID}`, updatedPerson);
       console.log("✅ Auto-saved successfully!");
     } catch (error) {
-      console.error("❌ Auto-save failed:", error.response?.data || error.message);
+      console.error(
+        "❌ Auto-save failed:",
+        error.response?.data || error.message,
+      );
     }
   };
 
@@ -239,8 +316,14 @@ const Dashboard2 = (props) => {
 
     // If updating either mother_income or father_income, calculate total and set annual_income
     if (name === "mother_income" || name === "father_income") {
-      const motherIncome = parseFloat(name === "mother_income" ? value : updatedPerson.mother_income) || 0;
-      const fatherIncome = parseFloat(name === "father_income" ? value : updatedPerson.father_income) || 0;
+      const motherIncome =
+        parseFloat(
+          name === "mother_income" ? value : updatedPerson.mother_income,
+        ) || 0;
+      const fatherIncome =
+        parseFloat(
+          name === "father_income" ? value : updatedPerson.father_income,
+        ) || 0;
       const totalIncome = motherIncome + fatherIncome;
 
       let annualIncomeBracket = "";
@@ -265,7 +348,6 @@ const Dashboard2 = (props) => {
     handleUpdate(updatedPerson); // No delay, real-time save
   };
 
-
   // const handleBlur = async () => {
   //   try {
   //     await axios.put(`${API_BASE_URL}/form/person/${userID}`, person);
@@ -286,8 +368,6 @@ const Dashboard2 = (props) => {
     setIsMotherDeceased(person.mother_deceased === 1);
   }, [person.mother_deceased]);
 
-
-
   // No need for local states like isFatherDeceased, etc. if you're using person state directly
   useEffect(() => {
     if (person.parent_type === "Mother") {
@@ -305,8 +385,6 @@ const Dashboard2 = (props) => {
     }
   }, [person.parent_type]);
 
-
-
   const [errors, setErrors] = useState({});
 
   const isFormValid = () => {
@@ -315,14 +393,22 @@ const Dashboard2 = (props) => {
     // If father is NOT deceased, require father fields:
     if (person.father_deceased !== 1) {
       requiredFields.push(
-        "father_family_name", "father_given_name",
-        "father_contact", "father_occupation", "father_employer", "father_income",
+        "father_family_name",
+        "father_given_name",
+        "father_contact",
+        "father_occupation",
+        "father_employer",
+        "father_income",
       );
 
       // but only require education details if father_education !== 1
       if (person.father_education !== 1) {
         requiredFields.push(
-          "father_education_level", "father_last_school", "father_course", "father_year_graduated", "father_school_address"
+          "father_education_level",
+          "father_last_school",
+          "father_course",
+          "father_year_graduated",
+          "father_school_address",
         );
       }
     }
@@ -330,21 +416,33 @@ const Dashboard2 = (props) => {
     // If mother is NOT deceased, require mother fields:
     if (person.mother_deceased !== 1) {
       requiredFields.push(
-        "mother_family_name", "mother_given_name",
-        "mother_contact", "mother_occupation", "mother_employer", "mother_income",
+        "mother_family_name",
+        "mother_given_name",
+        "mother_contact",
+        "mother_occupation",
+        "mother_employer",
+        "mother_income",
       );
 
       // only require education details if mother_education !== 1
       if (person.mother_education !== 1) {
         requiredFields.push(
-          "mother_education_level", "mother_last_school", "mother_course", "mother_year_graduated", "mother_school_address"
+          "mother_education_level",
+          "mother_last_school",
+          "mother_course",
+          "mother_year_graduated",
+          "mother_school_address",
         );
       }
     }
 
     // Guardian fields always required:
     requiredFields.push(
-      "guardian", "guardian_family_name", "guardian_given_name", "guardian_address", "guardian_contact"
+      "guardian",
+      "guardian_family_name",
+      "guardian_given_name",
+      "guardian_address",
+      "guardian_contact",
     );
 
     // Annual income always required:
@@ -367,7 +465,6 @@ const Dashboard2 = (props) => {
     return isValid;
   };
   const [soloParentChoice, setSoloParentChoice] = useState("");
-
 
   const divToPrintRef = useRef();
   const [showPrintView, setShowPrintView] = useState(false);
@@ -410,7 +507,6 @@ const Dashboard2 = (props) => {
     }
   };
 
-
   const [examPermitError, setExamPermitError] = useState("");
   const [examPermitModalOpen, setExamPermitModalOpen] = useState(false);
 
@@ -421,11 +517,15 @@ const Dashboard2 = (props) => {
 
   const handleExamPermitClick = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/verified-exam-applicants`);
-      const verified = res.data.some(a => a.person_id === parseInt(userID));
+      const res = await axios.get(
+        `${API_BASE_URL}/api/verified-exam-applicants`,
+      );
+      const verified = res.data.some((a) => a.person_id === parseInt(userID));
 
       if (!verified) {
-        setExamPermitError("❌ You cannot print the Exam Permit until all required documents are verified.");
+        setExamPermitError(
+          "❌ You cannot print the Exam Permit until all required documents are verified.",
+        );
         setExamPermitModalOpen(true);
         return;
       }
@@ -438,11 +538,12 @@ const Dashboard2 = (props) => {
       }, 500);
     } catch (err) {
       console.error("Error verifying exam permit eligibility:", err);
-      setExamPermitError("⚠️ Unable to check document verification status right now.");
+      setExamPermitError(
+        "⚠️ Unable to check document verification status right now.",
+      );
       setExamPermitModalOpen(true);
     }
   };
-
 
   const links = [
     { to: "/ecat_application_form", label: "ECAT Application Form" },
@@ -452,29 +553,37 @@ const Dashboard2 = (props) => {
       to: "/office_of_the_registrar",
       label: `Application For ${shortTerm ? shortTerm.toUpperCase() : ""} College Admission`,
     },
-    { to: "/admission_services", label: "Application/Student Satisfactory Survey" },
+    {
+      to: "/admission_services",
+      label: "Application/Student Satisfactory Survey",
+    },
     { label: "Examination Permit", onClick: handleExamPermitClick },
   ];
-
-
 
   const [canPrintPermit, setCanPrintPermit] = useState(false);
 
   useEffect(() => {
     if (!userID) return;
-    axios.get(`${API_BASE_URL}/exampermit/verified-exam-applicants`)
-      .then(res => {
-        const verified = res.data.some(a => a.person_id === parseInt(userID));
+    axios
+      .get(`${API_BASE_URL}/exampermit/verified-exam-applicants`)
+      .then((res) => {
+        const verified = res.data.some((a) => a.person_id === parseInt(userID));
         setCanPrintPermit(verified);
       });
   }, [userID]);
 
-
-
-
   // dot not alter
   return (
-    <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
+    <Box
+      sx={{
+        height: "calc(100vh - 150px)",
+        overflowY: "auto",
+        paddingRight: 1,
+        backgroundColor: "transparent",
+        mt: 1,
+        padding: 2,
+      }}
+    >
       {showPrintView && (
         <div ref={divToPrintRef} style={{ display: "block" }}>
           <ExamPermit />
@@ -482,30 +591,24 @@ const Dashboard2 = (props) => {
       )}
       <Box
         sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
 
           mb: 2,
-
         }}
       >
         <Typography
           variant="h4"
           sx={{
-            fontWeight: 'bold',
+            fontWeight: "bold",
             color: titleColor,
-            fontSize: '36px',
+            fontSize: "36px",
           }}
         >
           FAMILY BACKGROUND
         </Typography>
-
-
-
-
       </Box>
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
 
@@ -560,16 +663,25 @@ const Dashboard2 = (props) => {
             }}
           >
             <strong style={{ color: "maroon" }}>Notice:</strong> &nbsp;
-            <strong></strong> <span style={{ fontSize: '1.2em', margin: '0 15px' }}>➔</span> Kindly type 'NA' or N/A in boxes where there are no possible answers to the information being requested. &nbsp;  &nbsp; <br />
-            <strong></strong> <span style={{ fontSize: '1.2em', margin: '0 15px', marginLeft: "100px", }}>➔</span> To make use of the letter 'Ñ', please press ALT while typing "165", while for 'ñ', please press ALT while typing "164"
-
+            <strong></strong>{" "}
+            <span style={{ fontSize: "1.2em", margin: "0 15px" }}>➔</span>{" "}
+            Kindly type 'NA' or N/A in boxes where there are no possible answers
+            to the information being requested. &nbsp; &nbsp; <br />
+            <strong></strong>{" "}
+            <span
+              style={{
+                fontSize: "1.2em",
+                margin: "0 15px",
+                marginLeft: "100px",
+              }}
+            >
+              ➔
+            </span>{" "}
+            To make use of the letter 'Ñ', please press ALT while typing "165",
+            while for 'ñ', please press ALT while typing "164"
           </Typography>
         </Box>
       </Box>
-
-
-
-
 
       <h1
         style={{
@@ -658,14 +770,22 @@ const Dashboard2 = (props) => {
         ))}
       </Box>
 
-
       <Container>
-
-
         <Container>
-          <h1 style={{ fontSize: "50px", fontWeight: "bold", textAlign: "center", color: subtitleColor, marginTop: "25px" }}>APPLICANT FORM</h1>
+          <h1
+            style={{
+              fontSize: "50px",
+              fontWeight: "bold",
+              textAlign: "center",
+              color: subtitleColor,
+              marginTop: "25px",
+            }}
+          >
+            APPLICANT FORM
+          </h1>
           <div style={{ textAlign: "center" }}>
-            Complete the applicant form to secure your place for the upcoming academic year at{" "}
+            Complete the applicant form to secure your place for the upcoming
+            academic year at{" "}
             {shortTerm ? (
               <>
                 <strong>{shortTerm.toUpperCase()}</strong> <br />
@@ -676,11 +796,17 @@ const Dashboard2 = (props) => {
             )}
             .
           </div>
-
         </Container>
         <br />
 
-        <Box sx={{ display: "flex", justifyContent: "center", width: "100%", px: 4 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            width: "100%",
+            px: 4,
+          }}
+        >
           {steps.map((step, index) => (
             <React.Fragment key={index}>
               <Box
@@ -698,7 +824,10 @@ const Dashboard2 = (props) => {
                     height: 50,
                     borderRadius: "50%",
                     border: `1px solid ${borderColor}`,
-                    backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
+                    backgroundColor:
+                      activeStep === index
+                        ? settings?.header_color || "#1976d2"
+                        : "#E8C999",
                     color: activeStep === index ? "#fff" : "#000",
                     display: "flex",
                     alignItems: "center",
@@ -750,18 +879,39 @@ const Dashboard2 = (props) => {
             }}
           >
             <Box sx={{ width: "100%" }}>
-              <Typography style={{ fontSize: "20px", padding: "10px", fontFamily: "Poppins, sans-serif" }}>Step 2: Family Background</Typography>
+              <Typography
+                style={{
+                  fontSize: "20px",
+                  padding: "10px",
+                  fontFamily: "Poppins, sans-serif",
+                }}
+              >
+                Step 2: Family Background
+              </Typography>
             </Box>
           </Container>
 
-
-          <Container maxWidth="100%" sx={{ backgroundColor: "#f1f1f1", border: `1px solid ${borderColor}`, padding: 4, borderRadius: 2, boxShadow: 3 }}>
-            <Typography style={{ fontSize: "20px", color: mainButtonColor, fontWeight: "bold" }}>Family Background:</Typography>
+          <Container
+            maxWidth="100%"
+            sx={{
+              backgroundColor: "#f1f1f1",
+              border: `1px solid ${borderColor}`,
+              padding: 4,
+              borderRadius: 2,
+              boxShadow: 3,
+            }}
+          >
+            <Typography
+              style={{
+                fontSize: "20px",
+                color: mainButtonColor,
+                fontWeight: "bold",
+              }}
+            >
+              Family Background:
+            </Typography>
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
-
-
-
 
             <Box display="flex" gap={3} width="100%" alignItems="center">
               {/* Solo Parent Checkbox */}
@@ -775,8 +925,18 @@ const Dashboard2 = (props) => {
                     const newPerson = {
                       ...person,
                       solo_parent: checked ? 1 : 0,
-                      father_deceased: checked && soloParentChoice === "Mother" ? 1 : checked ? 0 : null,
-                      mother_deceased: checked && soloParentChoice === "Father" ? 1 : checked ? 0 : null,
+                      father_deceased:
+                        checked && soloParentChoice === "Mother"
+                          ? 1
+                          : checked
+                            ? 0
+                            : null,
+                      mother_deceased:
+                        checked && soloParentChoice === "Father"
+                          ? 1
+                          : checked
+                            ? 0
+                            : null,
                     };
 
                     setPerson(newPerson);
@@ -785,7 +945,9 @@ const Dashboard2 = (props) => {
                   onBlur={() => handleUpdate(person)}
                   sx={{ width: 25, height: 25 }}
                 />
-                <label style={{ fontFamily: "Poppins, sans-serif" }}>Solo Parent</label>
+                <label style={{ fontFamily: "Poppins, sans-serif" }}>
+                  Solo Parent
+                </label>
               </Box>
 
               {/* Parent Type Dropdown */}
@@ -814,15 +976,19 @@ const Dashboard2 = (props) => {
                   </Select>
                 </FormControl>
               )}
-
-
             </Box>
 
             <br />
 
-
-
-            <Typography style={{ fontSize: "20px", color: mainButtonColor, fontWeight: "bold" }}>Father's Details</Typography>
+            <Typography
+              style={{
+                fontSize: "20px",
+                color: mainButtonColor,
+                fontWeight: "bold",
+              }}
+            >
+              Father's Details
+            </Typography>
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
 
@@ -850,16 +1016,18 @@ const Dashboard2 = (props) => {
                     onBlur={() => handleUpdate(person)}
                   />
                 }
-                label="Father Seperated / Deceased"
+                label="Seperated / Deceased"
               />
               <br />
 
               {/* Show Father's Info ONLY if not deceased */}
               {!isFatherDeceased && (
                 <>
-                  <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+                  <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="subtitle2" mb={1}>Father Family Name<span style={{ color: "red" }}> *</span></Typography>
+                      <Typography variant="subtitle2" mb={1}>
+                        Last Name<span style={{ color: "red" }}> *</span>
+                      </Typography>
                       <TextField
                         fullWidth
                         size="small"
@@ -869,11 +1037,18 @@ const Dashboard2 = (props) => {
                         value={person.father_family_name || ""}
                         onChange={handleChange}
                         onBlur={() => handleUpdate(person)}
-                        error={errors.father_family_name} helperText={errors.father_family_name ? "This field is required." : ""}
+                        error={errors.father_family_name}
+                        helperText={
+                          errors.father_family_name
+                            ? "This field is required."
+                            : ""
+                        }
                       />
                     </Box>
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="subtitle2" mb={1}>Father Given Name<span style={{ color: "red" }}> *</span></Typography>
+                      <Typography variant="subtitle2" mb={1}>
+                        First Name<span style={{ color: "red" }}> *</span>
+                      </Typography>
                       <TextField
                         fullWidth
                         size="small"
@@ -883,11 +1058,18 @@ const Dashboard2 = (props) => {
                         value={person.father_given_name || ""}
                         onChange={handleChange}
                         onBlur={() => handleUpdate(person)}
-                        error={errors.father_given_name} helperText={errors.father_given_name ? "This field is required." : ""}
+                        error={errors.father_given_name}
+                        helperText={
+                          errors.father_given_name
+                            ? "This field is required."
+                            : ""
+                        }
                       />
                     </Box>
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="subtitle2" mb={1}>Father Middle Name</Typography>
+                      <Typography variant="subtitle2" mb={1}>
+                        Middle Name
+                      </Typography>
                       <TextField
                         fullWidth
                         size="small"
@@ -897,23 +1079,29 @@ const Dashboard2 = (props) => {
                         value={person.father_middle_name || ""}
                         onChange={handleChange}
                         onBlur={() => handleUpdate(person)}
-
                       />
                     </Box>
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="subtitle2" mb={1}>Father Extension</Typography>
-                      <FormControl fullWidth size="small" required error={!!errors.father_ext}>
-                        <InputLabel id="father-ext-label">Extension</InputLabel>
+                      <Typography variant="subtitle2" mb={1}>
+                        Name Extension
+                      </Typography>
+                      <FormControl
+                        fullWidth
+                        size="small"
+                        required
+                        error={!!errors.father_ext}
+                      >
                         <Select
                           labelId="father-ext-label"
                           id="father_ext"
                           name="father_ext"
                           value={person.father_ext || ""}
-                          label="Extension"
                           onChange={handleChange}
                           onBlur={() => handleUpdate(person)}
                         >
-                          <MenuItem value=""><em>Select Extension</em></MenuItem>
+                          <MenuItem value="">
+                            <em>Select Extension</em>
+                          </MenuItem>
                           <MenuItem value="Jr.">Jr.</MenuItem>
                           <MenuItem value="Sr.">Sr.</MenuItem>
                           <MenuItem value="I">I</MenuItem>
@@ -922,12 +1110,13 @@ const Dashboard2 = (props) => {
                           <MenuItem value="IV">IV</MenuItem>
                           <MenuItem value="V">V</MenuItem>
                         </Select>
-
                       </FormControl>
                     </Box>
 
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="subtitle2" mb={1}>Father Nickname</Typography>
+                      <Typography variant="subtitle2" mb={1}>
+                        Nickname
+                      </Typography>
                       <TextField
                         fullWidth
                         size="small"
@@ -937,15 +1126,21 @@ const Dashboard2 = (props) => {
                         value={person.father_nickname || ""}
                         onChange={handleChange}
                         onBlur={() => handleUpdate(person)}
-
                       />
                     </Box>
                   </Box>
 
-                  <Typography sx={{ fontSize: '20px', color: mainButtonColor, fontWeight: 'bold', mt: 3 }}>
+                  <Typography
+                    sx={{
+                      fontSize: "20px",
+                      color: mainButtonColor,
+                      fontWeight: "bold",
+                      mt: 3,
+                    }}
+                  >
                     Father's Educational Background
                   </Typography>
-                  <hr style={{ border: '1px solid #ccc', width: '100%' }} />
+                  <hr style={{ border: "1px solid #ccc", width: "100%" }} />
                   <br />
                   <Box display="flex" gap={3} alignItems="center">
                     {/* Father's Education Not Applicable Checkbox */}
@@ -960,12 +1155,12 @@ const Dashboard2 = (props) => {
                           father_education: isChecked ? 1 : 0,
                           ...(isChecked
                             ? {
-                              father_education_level: "",
-                              father_last_school: "",
-                              father_course: "",
-                              father_year_graduated: "",
-                              father_school_address: "",
-                            }
+                                father_education_level: "",
+                                father_last_school: "",
+                                father_course: "",
+                                father_year_graduated: "",
+                                father_school_address: "",
+                              }
                             : {}),
                         };
 
@@ -975,17 +1170,22 @@ const Dashboard2 = (props) => {
                       onBlur={() => handleUpdate(person)}
                       sx={{ width: 25, height: 25 }}
                     />
-                    <label style={{ fontFamily: "Poppins, sans-serif" }}>Father's education not applicable</label>
+                    <label style={{ fontFamily: "Poppins, sans-serif" }}>
+                      Father's education not applicable
+                    </label>
                   </Box>
-
-
-
 
                   {/* Father Educational Details (conditionally rendered) */}
                   {person.father_education !== 1 && (
-                    <Box sx={{ display: 'flex', gap: 2, mt: 2, flexWrap: 'wrap' }}>
+                    <Box
+                      sx={{ display: "flex", gap: 2, mt: 2, flexWrap: "wrap" }}
+                    >
                       <Box sx={{ flex: 1 }}>
-                        <Typography variant="subtitle2" mb={1}> Educational Attainment<span style={{ color: "red" }}> *</span></Typography>
+                        <Typography variant="subtitle2" mb={1}>
+                          {" "}
+                          Educational Attainment
+                          <span style={{ color: "red" }}> *</span>
+                        </Typography>
                         <TextField
                           fullWidth
                           size="small"
@@ -995,12 +1195,19 @@ const Dashboard2 = (props) => {
                           onChange={handleChange}
                           onBlur={() => handleUpdate(person)}
                           error={errors.father_education_level}
-                          helperText={errors.father_education_level ? "This field is required." : ""}
+                          helperText={
+                            errors.father_education_level
+                              ? "This field is required."
+                              : ""
+                          }
                         />
                       </Box>
 
                       <Box sx={{ flex: 1 }}>
-                        <Typography variant="subtitle2" mb={1}>Father Last School<span style={{ color: "red" }}> *</span></Typography>
+                        <Typography variant="subtitle2" mb={1}>
+                          Last School Attended
+                          <span style={{ color: "red" }}> *</span>
+                        </Typography>
                         <TextField
                           fullWidth
                           size="small"
@@ -1010,12 +1217,18 @@ const Dashboard2 = (props) => {
                           onChange={handleChange}
                           onBlur={() => handleUpdate(person)}
                           error={errors.father_last_school}
-                          helperText={errors.father_last_school ? "This field is required." : ""}
+                          helperText={
+                            errors.father_last_school
+                              ? "This field is required."
+                              : ""
+                          }
                         />
                       </Box>
 
                       <Box sx={{ flex: 1 }}>
-                        <Typography variant="subtitle2" mb={1}>Father Course<span style={{ color: "red" }}> *</span></Typography>
+                        <Typography variant="subtitle2" mb={1}>
+                          Course<span style={{ color: "red" }}> *</span>
+                        </Typography>
                         <TextField
                           fullWidth
                           size="small"
@@ -1025,12 +1238,18 @@ const Dashboard2 = (props) => {
                           onChange={handleChange}
                           onBlur={() => handleUpdate(person)}
                           error={errors.father_course}
-                          helperText={errors.father_course ? "This field is required." : ""}
+                          helperText={
+                            errors.father_course
+                              ? "This field is required."
+                              : ""
+                          }
                         />
                       </Box>
 
                       <Box sx={{ flex: 1 }}>
-                        <Typography variant="subtitle2" mb={1}>Father Year Graduated<span style={{ color: "red" }}> *</span></Typography>
+                        <Typography variant="subtitle2" mb={1}>
+                          Year Graduated<span style={{ color: "red" }}> *</span>
+                        </Typography>
                         <TextField
                           fullWidth
                           size="small"
@@ -1041,7 +1260,11 @@ const Dashboard2 = (props) => {
                           onChange={handleChange}
                           onBlur={() => handleUpdate(person)}
                           error={errors.father_year_graduated}
-                          helperText={errors.father_year_graduated ? "This field is required." : ""}
+                          helperText={
+                            errors.father_year_graduated
+                              ? "This field is required."
+                              : ""
+                          }
                         />
                       </Box>
 
@@ -1051,12 +1274,13 @@ const Dashboard2 = (props) => {
                           mb={1.8}
                           sx={{
                             fontSize: "10px",
-                            whiteSpace: "nowrap",   // 👉 never wraps
+                            whiteSpace: "nowrap", // 👉 never wraps
                             overflow: "hidden",
-                            textOverflow: "ellipsis" // 👉 adds "..."
+                            textOverflow: "ellipsis", // 👉 adds "..."
                           }}
                         >
-                          School Full Address (St/ Brgy / City)<span style={{ color: "red" }}> *</span>
+                          School Full Address (St/ Brgy / City)
+                          <span style={{ color: "red" }}> *</span>
                         </Typography>
                         <TextField
                           fullWidth
@@ -1067,24 +1291,35 @@ const Dashboard2 = (props) => {
                           onChange={handleChange}
                           onBlur={() => handleUpdate(person)}
                           error={errors.father_school_address}
-                          helperText={errors.father_school_address ? "This field is required." : ""}
+                          helperText={
+                            errors.father_school_address
+                              ? "This field is required."
+                              : ""
+                          }
                         />
                       </Box>
                     </Box>
                   )}
 
-
-                  <Typography sx={{ fontSize: '20px', color: mainButtonColor, fontWeight: 'bold', mt: 3 }}>
+                  <Typography
+                    sx={{
+                      fontSize: "20px",
+                      color: mainButtonColor,
+                      fontWeight: "bold",
+                      mt: 3,
+                    }}
+                  >
                     Father's Contact Information
                   </Typography>
-                  <hr style={{ border: '1px solid #ccc', width: '100%' }} />
+                  <hr style={{ border: "1px solid #ccc", width: "100%" }} />
                   <br />
 
                   <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-
                     {/* Father Contact */}
                     <Box flex={1} display="flex" flexDirection="column">
-                      <Typography variant="subtitle2" mb={0.5}>Father Contact<span style={{ color: "red" }}> *</span></Typography>
+                      <Typography variant="subtitle2" mb={0.5}>
+                        Contacts<span style={{ color: "red" }}> *</span>
+                      </Typography>
 
                       <TextField
                         fullWidth
@@ -1103,10 +1338,14 @@ const Dashboard2 = (props) => {
                           });
                         }}
                         error={!!errors.father_contact}
-                        helperText={errors.father_contact && "This field is required."}
+                        helperText={
+                          errors.father_contact && "This field is required."
+                        }
                         InputProps={{
                           startAdornment: (
-                            <Typography sx={{ mr: 1, fontWeight: "bold" }}>+63</Typography>
+                            <Typography sx={{ mr: 1, fontWeight: "bold" }}>
+                              +63
+                            </Typography>
                           ),
                         }}
                       />
@@ -1114,7 +1353,9 @@ const Dashboard2 = (props) => {
 
                     {/* Father Occupation */}
                     <Box flex={1}>
-                      <Typography variant="subtitle2" mb={0.5}>Father Occupation<span style={{ color: "red" }}> *</span></Typography>
+                      <Typography variant="subtitle2" mb={0.5}>
+                        Occupation<span style={{ color: "red" }}> *</span>
+                      </Typography>
                       <TextField
                         fullWidth
                         size="small"
@@ -1125,13 +1366,19 @@ const Dashboard2 = (props) => {
                         onChange={handleChange}
                         onBlur={() => handleUpdate(person)}
                         error={errors.father_occupation}
-                        helperText={errors.father_occupation ? "This field is required." : ""}
+                        helperText={
+                          errors.father_occupation
+                            ? "This field is required."
+                            : ""
+                        }
                       />
                     </Box>
 
                     {/* Father Employer */}
                     <Box flex={1}>
-                      <Typography variant="subtitle2" mb={0.5}>Father Employer<span style={{ color: "red" }}> *</span></Typography>
+                      <Typography variant="subtitle2" mb={0.5}>
+                        Employer<span style={{ color: "red" }}> *</span>
+                      </Typography>
                       <TextField
                         fullWidth
                         size="small"
@@ -1142,13 +1389,19 @@ const Dashboard2 = (props) => {
                         onChange={handleChange}
                         onBlur={() => handleUpdate(person)}
                         error={errors.father_employer}
-                        helperText={errors.father_employer ? "This field is required." : ""}
+                        helperText={
+                          errors.father_employer
+                            ? "This field is required."
+                            : ""
+                        }
                       />
                     </Box>
 
                     {/* Father Income */}
                     <Box flex={1}>
-                      <Typography variant="subtitle2" mb={0.5}>Father Income<span style={{ color: "red" }}> *</span></Typography>
+                      <Typography variant="subtitle2" mb={0.5}>
+                        Monthly Income<span style={{ color: "red" }}> *</span>
+                      </Typography>
 
                       <TextField
                         fullWidth
@@ -1159,7 +1412,10 @@ const Dashboard2 = (props) => {
                         placeholder="Enter Father Income"
                         value={person.father_income ?? ""}
                         onChange={(e) => {
-                          const num = e.target.value === "" ? null : Number(e.target.value);
+                          const num =
+                            e.target.value === ""
+                              ? null
+                              : Number(e.target.value);
                           handleChange({
                             target: {
                               name: "father_income",
@@ -1169,16 +1425,19 @@ const Dashboard2 = (props) => {
                         }}
                         onBlur={() => handleUpdate(person)}
                         error={errors.father_income}
-                        helperText={errors.father_income ? "This field is required." : ""}
+                        helperText={
+                          errors.father_income ? "This field is required." : ""
+                        }
                       />
                     </Box>
 
                     {/* Father Email */}
-
                   </Box>
 
                   <Box flex={1}>
-                    <Typography variant="subtitle2" mb={0.5}>Father Email Address</Typography>
+                    <Typography variant="subtitle2" mb={0.5}>
+                      Email Address
+                    </Typography>
                     <TextField
                       fullWidth
                       size="small"
@@ -1189,7 +1448,7 @@ const Dashboard2 = (props) => {
                       onChange={(e) => {
                         const cleaned = e.target.value.replace(/\s/g, "");
                         handleChange({
-                          target: { name: "father_email", value: cleaned }
+                          target: { name: "father_email", value: cleaned },
                         });
                       }}
                       onBlur={(e) => {
@@ -1198,20 +1457,25 @@ const Dashboard2 = (props) => {
                           value += "@gmail.com";
                         }
                         handleChange({
-                          target: { name: "father_email", value }
+                          target: { name: "father_email", value },
                         });
                         handleUpdate(person);
                       }}
-
                     />
                   </Box>
-
                 </>
               )}
             </Box>
 
-
-            <Typography style={{ fontSize: "20px", color: mainButtonColor, fontWeight: "bold" }}>Mother's Details</Typography>
+            <Typography
+              style={{
+                fontSize: "20px",
+                color: mainButtonColor,
+                fontWeight: "bold",
+              }}
+            >
+              Mother's Details (Maiden)
+            </Typography>
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
             <Box sx={{ mb: 2 }}>
@@ -1245,9 +1509,11 @@ const Dashboard2 = (props) => {
               {/* Show Mother's Info ONLY if not deceased */}
               {!isMotherDeceased && (
                 <>
-                  <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+                  <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="subtitle2" mb={1}>Mother Family Name<span style={{ color: "red" }}> *</span></Typography>
+                      <Typography variant="subtitle2" mb={1}>
+                        Last Name<span style={{ color: "red" }}> *</span>
+                      </Typography>
                       <TextField
                         fullWidth
                         size="small"
@@ -1258,12 +1524,18 @@ const Dashboard2 = (props) => {
                         onChange={handleChange}
                         onBlur={() => handleUpdate(person)}
                         error={errors.mother_family_name}
-                        helperText={errors.mother_family_name ? "This field is required." : ""}
+                        helperText={
+                          errors.mother_family_name
+                            ? "This field is required."
+                            : ""
+                        }
                       />
                     </Box>
 
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="subtitle2" mb={1}>Mother First Name<span style={{ color: "red" }}> *</span></Typography>
+                      <Typography variant="subtitle2" mb={1}>
+                        First Name<span style={{ color: "red" }}> *</span>
+                      </Typography>
                       <TextField
                         fullWidth
                         size="small"
@@ -1274,12 +1546,18 @@ const Dashboard2 = (props) => {
                         onChange={handleChange}
                         onBlur={() => handleUpdate(person)}
                         error={errors.mother_given_name}
-                        helperText={errors.mother_given_name ? "This field is required." : ""}
+                        helperText={
+                          errors.mother_given_name
+                            ? "This field is required."
+                            : ""
+                        }
                       />
                     </Box>
 
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="subtitle2" mb={1}>Mother Middle Name<span style={{ color: "red" }}> *</span></Typography>
+                      <Typography variant="subtitle2" mb={1}>
+                        Middle Name<span style={{ color: "red" }}> *</span>
+                      </Typography>
                       <TextField
                         fullWidth
                         size="small"
@@ -1289,25 +1567,26 @@ const Dashboard2 = (props) => {
                         value={person.mother_middle_name || ""}
                         onChange={handleChange}
                         onBlur={() => handleUpdate(person)}
-
                       />
                     </Box>
 
                     {/* Mother Extension */}
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="subtitle2" mb={1}>Mother Extension</Typography>
-                      <FormControl fullWidth size="small" >
-                        <InputLabel id="mother-ext-label">Extension</InputLabel>
+                      <Typography variant="subtitle2" mb={1}>
+                        Name Extension
+                      </Typography>
+                      <FormControl fullWidth size="small">
                         <Select
                           labelId="mother-ext-label"
                           id="mother_ext"
                           name="mother_ext"
                           value={person.mother_ext || ""}
-                          label="Extension"
                           onChange={handleChange}
                           onBlur={() => handleUpdate(person)}
                         >
-                          <MenuItem value=""><em>Select Extension</em></MenuItem>
+                          <MenuItem value="">
+                            <em>Select Extension</em>
+                          </MenuItem>
                           <MenuItem value="Jr.">Jr.</MenuItem>
                           <MenuItem value="Sr.">Sr.</MenuItem>
                           <MenuItem value="I">I</MenuItem>
@@ -1316,13 +1595,13 @@ const Dashboard2 = (props) => {
                           <MenuItem value="IV">IV</MenuItem>
                           <MenuItem value="V">V</MenuItem>
                         </Select>
-
                       </FormControl>
                     </Box>
 
-
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="subtitle2" mb={1}>Mother Nickname</Typography>
+                      <Typography variant="subtitle2" mb={1}>
+                        Nickname
+                      </Typography>
                       <TextField
                         fullWidth
                         size="small"
@@ -1332,16 +1611,21 @@ const Dashboard2 = (props) => {
                         value={person.mother_nickname || ""}
                         onChange={handleChange}
                         onBlur={() => handleUpdate(person)}
-
                       />
                     </Box>
                   </Box>
 
-
-                  <Typography sx={{ fontSize: '20px', color: '#6D2323', fontWeight: 'bold', mt: 3 }}>
+                  <Typography
+                    sx={{
+                      fontSize: "20px",
+                      color: "#6D2323",
+                      fontWeight: "bold",
+                      mt: 3,
+                    }}
+                  >
                     Mother's Educational Background
                   </Typography>
-                  <hr style={{ border: '1px solid #ccc', width: '100%' }} />
+                  <hr style={{ border: "1px solid #ccc", width: "100%" }} />
                   <br />
 
                   <Box display="flex" gap={3} alignItems="center">
@@ -1357,12 +1641,12 @@ const Dashboard2 = (props) => {
                           mother_education: isChecked ? 1 : 0,
                           ...(isChecked
                             ? {
-                              mother_education_level: "",
-                              mother_last_school: "",
-                              mother_course: "",
-                              mother_year_graduated: "",
-                              mother_school_address: "",
-                            }
+                                mother_education_level: "",
+                                mother_last_school: "",
+                                mother_course: "",
+                                mother_year_graduated: "",
+                                mother_school_address: "",
+                              }
                             : {}),
                         };
 
@@ -1372,14 +1656,26 @@ const Dashboard2 = (props) => {
                       onBlur={() => handleUpdate(person)}
                       sx={{ width: 25, height: 25 }}
                     />
-                    <label style={{ fontFamily: "Poppins, sans-serif" }}>Mother's education not applicable</label>
+                    <label style={{ fontFamily: "Poppins, sans-serif" }}>
+                      Mother's education not applicable
+                    </label>
                   </Box>
 
                   {/* Mother Educational Details (conditionally rendered) */}
                   {person.mother_education !== 1 && (
-                    <Box sx={{ display: 'flex', gap: 2, mt: 2, flexWrap: 'nowrap' }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        gap: 2,
+                        mt: 2,
+                        flexWrap: "nowrap",
+                      }}
+                    >
                       <Box sx={{ flex: 1 }}>
-                        <Typography variant="subtitle2" mb={1}>Educational Attainment<span style={{ color: "red" }}> *</span></Typography>
+                        <Typography variant="subtitle2" mb={1}>
+                          Educational Attainment
+                          <span style={{ color: "red" }}> *</span>
+                        </Typography>
                         <TextField
                           fullWidth
                           size="small"
@@ -1389,12 +1685,19 @@ const Dashboard2 = (props) => {
                           onChange={handleChange}
                           onBlur={() => handleUpdate(person)}
                           error={errors.mother_education_level}
-                          helperText={errors.mother_education_level ? "This field is required." : ""}
+                          helperText={
+                            errors.mother_education_level
+                              ? "This field is required."
+                              : ""
+                          }
                         />
                       </Box>
 
                       <Box sx={{ flex: 1 }}>
-                        <Typography variant="subtitle2" mb={1}>Mother Last School<span style={{ color: "red" }}> *</span></Typography>
+                        <Typography variant="subtitle2" mb={1}>
+                          Last School Attended
+                          <span style={{ color: "red" }}> *</span>
+                        </Typography>
                         <TextField
                           fullWidth
                           size="small"
@@ -1404,12 +1707,18 @@ const Dashboard2 = (props) => {
                           onChange={handleChange}
                           onBlur={() => handleUpdate(person)}
                           error={errors.mother_last_school}
-                          helperText={errors.mother_last_school ? "This field is required." : ""}
+                          helperText={
+                            errors.mother_last_school
+                              ? "This field is required."
+                              : ""
+                          }
                         />
                       </Box>
 
                       <Box sx={{ flex: 1 }}>
-                        <Typography variant="subtitle2" mb={1}>Mother Course<span style={{ color: "red" }}> *</span></Typography>
+                        <Typography variant="subtitle2" mb={1}>
+                          Course<span style={{ color: "red" }}> *</span>
+                        </Typography>
                         <TextField
                           fullWidth
                           size="small"
@@ -1419,12 +1728,18 @@ const Dashboard2 = (props) => {
                           onChange={handleChange}
                           onBlur={() => handleUpdate(person)}
                           error={errors.mother_course}
-                          helperText={errors.mother_course ? "This field is required." : ""}
+                          helperText={
+                            errors.mother_course
+                              ? "This field is required."
+                              : ""
+                          }
                         />
                       </Box>
 
                       <Box sx={{ flex: 1 }}>
-                        <Typography variant="subtitle2" mb={1}>Mother Year Graduated<span style={{ color: "red" }}> *</span></Typography>
+                        <Typography variant="subtitle2" mb={1}>
+                          Year Graduated<span style={{ color: "red" }}> *</span>
+                        </Typography>
                         <TextField
                           fullWidth
                           size="small"
@@ -1435,7 +1750,11 @@ const Dashboard2 = (props) => {
                           onChange={handleChange}
                           onBlur={() => handleUpdate(person)}
                           error={errors.mother_year_graduated}
-                          helperText={errors.mother_year_graduated ? "This field is required." : ""}
+                          helperText={
+                            errors.mother_year_graduated
+                              ? "This field is required."
+                              : ""
+                          }
                         />
                       </Box>
 
@@ -1445,12 +1764,13 @@ const Dashboard2 = (props) => {
                           mb={1.8}
                           sx={{
                             fontSize: "10px",
-                            whiteSpace: "nowrap",   // 👉 never wraps
+                            whiteSpace: "nowrap", // 👉 never wraps
                             overflow: "hidden",
-                            textOverflow: "ellipsis" // 👉 adds "..."
+                            textOverflow: "ellipsis", // 👉 adds "..."
                           }}
                         >
-                          School Full Address (St/ Brgy / City)<span style={{ color: "red" }}> *</span>
+                          School Full Address (St/ Brgy / City)
+                          <span style={{ color: "red" }}> *</span>
                         </Typography>
 
                         <TextField
@@ -1462,24 +1782,35 @@ const Dashboard2 = (props) => {
                           onChange={handleChange}
                           onBlur={() => handleUpdate(person)}
                           error={errors.mother_school_address}
-                          helperText={errors.mother_school_address ? "This field is required." : ""}
+                          helperText={
+                            errors.mother_school_address
+                              ? "This field is required."
+                              : ""
+                          }
                         />
                       </Box>
                     </Box>
-
                   )}
 
-                  <Typography sx={{ fontSize: '20px', color: '#6D2323', fontWeight: 'bold', mt: 3 }}>
+                  <Typography
+                    sx={{
+                      fontSize: "20px",
+                      color: "#6D2323",
+                      fontWeight: "bold",
+                      mt: 3,
+                    }}
+                  >
                     Mother's Contact Information
                   </Typography>
-                  <hr style={{ border: '1px solid #ccc', width: '100%' }} />
+                  <hr style={{ border: "1px solid #ccc", width: "100%" }} />
                   <br />
 
                   <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-
                     {/* Mother Contact */}
                     <Box flex={1} display="flex" flexDirection="column">
-                      <Typography variant="subtitle2" mb={0.5}>Mother Contact<span style={{ color: "red" }}> *</span></Typography>
+                      <Typography variant="subtitle2" mb={0.5}>
+                        Contacts<span style={{ color: "red" }}> *</span>
+                      </Typography>
 
                       <TextField
                         fullWidth
@@ -1498,10 +1829,14 @@ const Dashboard2 = (props) => {
                           });
                         }}
                         error={!!errors.mother_contact}
-                        helperText={errors.mother_contact && "This field is required."}
+                        helperText={
+                          errors.mother_contact && "This field is required."
+                        }
                         InputProps={{
                           startAdornment: (
-                            <Typography sx={{ mr: 1, fontWeight: "bold" }}>+63</Typography>
+                            <Typography sx={{ mr: 1, fontWeight: "bold" }}>
+                              +63
+                            </Typography>
                           ),
                         }}
                       />
@@ -1509,7 +1844,9 @@ const Dashboard2 = (props) => {
 
                     {/* Mother Occupation */}
                     <Box flex={1}>
-                      <Typography variant="subtitle2" mb={0.5}>Mother Occupation<span style={{ color: "red" }}> *</span></Typography>
+                      <Typography variant="subtitle2" mb={0.5}>
+                        Occupation<span style={{ color: "red" }}> *</span>
+                      </Typography>
                       <TextField
                         fullWidth
                         size="small"
@@ -1520,13 +1857,19 @@ const Dashboard2 = (props) => {
                         onChange={handleChange}
                         onBlur={() => handleUpdate(person)}
                         error={errors.mother_occupation}
-                        helperText={errors.mother_occupation ? "This field is required." : ""}
+                        helperText={
+                          errors.mother_occupation
+                            ? "This field is required."
+                            : ""
+                        }
                       />
                     </Box>
 
                     {/* Mother Employer */}
                     <Box flex={1}>
-                      <Typography variant="subtitle2" mb={0.5}>Mother Employer<span style={{ color: "red" }}> *</span></Typography>
+                      <Typography variant="subtitle2" mb={0.5}>
+                        Employer<span style={{ color: "red" }}> *</span>
+                      </Typography>
                       <TextField
                         fullWidth
                         size="small"
@@ -1537,13 +1880,19 @@ const Dashboard2 = (props) => {
                         onChange={handleChange}
                         onBlur={() => handleUpdate(person)}
                         error={errors.mother_employer}
-                        helperText={errors.mother_employer ? "This field is required." : ""}
+                        helperText={
+                          errors.mother_employer
+                            ? "This field is required."
+                            : ""
+                        }
                       />
                     </Box>
 
                     {/* Mother Income */}
                     <Box flex={1}>
-                      <Typography variant="subtitle2" mb={0.5}>Mother Income<span style={{ color: "red" }}> *</span></Typography>
+                      <Typography variant="subtitle2" mb={0.5}>
+                        Monthly Income<span style={{ color: "red" }}> *</span>
+                      </Typography>
 
                       <TextField
                         fullWidth
@@ -1554,7 +1903,10 @@ const Dashboard2 = (props) => {
                         placeholder="Enter Mother Income"
                         value={person.mother_income ?? ""}
                         onChange={(e) => {
-                          const num = e.target.value === "" ? null : Number(e.target.value);
+                          const num =
+                            e.target.value === ""
+                              ? null
+                              : Number(e.target.value);
                           handleChange({
                             target: {
                               name: "mother_income",
@@ -1564,16 +1916,19 @@ const Dashboard2 = (props) => {
                         }}
                         onBlur={() => handleUpdate(person)}
                         error={errors.mother_income}
-                        helperText={errors.mother_income ? "This field is required." : ""}
+                        helperText={
+                          errors.mother_income ? "This field is required." : ""
+                        }
                       />
                     </Box>
 
                     {/* Mother Email */}
-
                   </Box>
 
                   <Box flex={1}>
-                    <Typography variant="subtitle2" mb={0.5}>Mother Email Address</Typography>
+                    <Typography variant="subtitle2" mb={0.5}>
+                      Email Address
+                    </Typography>
                     <TextField
                       fullWidth
                       size="small"
@@ -1584,7 +1939,7 @@ const Dashboard2 = (props) => {
                       onChange={(e) => {
                         const cleaned = e.target.value.replace(/\s/g, "");
                         handleChange({
-                          target: { name: "mother_email", value: cleaned }
+                          target: { name: "mother_email", value: cleaned },
                         });
                       }}
                       onBlur={(e) => {
@@ -1593,29 +1948,39 @@ const Dashboard2 = (props) => {
                           value += "@gmail.com";
                         }
                         handleChange({
-                          target: { name: "mother_email", value }
+                          target: { name: "mother_email", value },
                         });
 
                         handleUpdate(person);
                       }}
-
                     />
                   </Box>
-
                 </>
               )}
-
-
             </Box>
 
-
-            <Typography style={{ fontSize: "20px", color: mainButtonColor, fontWeight: "bold" }}>In Case of Emergency</Typography>
+            <Typography
+              style={{
+                fontSize: "20px",
+                color: mainButtonColor,
+                fontWeight: "bold",
+              }}
+            >
+              In Case of Emergency
+            </Typography>
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
 
             <Box sx={{ flex: 1 }}>
-              <Typography variant="subtitle2" mb={1}>Guardian<span style={{ color: "red" }}> *</span></Typography>
-              <FormControl style={{ marginBottom: "10px", width: "200px" }} size="small" required error={!!errors.guardian}>
+              <Typography variant="subtitle2" mb={1}>
+                Guardian<span style={{ color: "red" }}> *</span>
+              </Typography>
+              <FormControl
+                style={{ marginBottom: "10px", width: "200px" }}
+                size="small"
+                required
+                error={!!errors.guardian}
+              >
                 <InputLabel id="guardian-label">Guardian</InputLabel>
                 <Select
                   labelId="guardian-label"
@@ -1626,7 +1991,9 @@ const Dashboard2 = (props) => {
                   onChange={handleGuardianChange}
                   onBlur={() => handleUpdate(person)}
                 >
-                  <MenuItem value=""><em>Select Guardian</em></MenuItem>
+                  <MenuItem value="">
+                    <em>Select Guardian</em>
+                  </MenuItem>
                   <MenuItem value="Father">Father</MenuItem>
                   <MenuItem value="Mother">Mother</MenuItem>
                   <MenuItem value="Brother/Sister">Brother/Sister</MenuItem>
@@ -1644,16 +2011,15 @@ const Dashboard2 = (props) => {
                   <MenuItem value="Spouse">Spouse</MenuItem>
                   <MenuItem value="Others">Others</MenuItem>
                 </Select>
-
               </FormControl>
             </Box>
 
-
-
-            <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'nowrap' }}>
+            <Box sx={{ display: "flex", gap: 2, mb: 2, flexWrap: "nowrap" }}>
               {/* Guardian Family Name */}
               <Box sx={{ flex: 1 }}>
-                <Typography variant="subtitle2" mb={1}>Guardian Family Name<span style={{ color: "red" }}> *</span></Typography>
+                <Typography variant="subtitle2" mb={1}>
+                  Last Name<span style={{ color: "red" }}> *</span>
+                </Typography>
                 <TextField
                   fullWidth
                   size="small"
@@ -1664,13 +2030,17 @@ const Dashboard2 = (props) => {
                   onChange={handleChange}
                   onBlur={() => handleUpdate(person)}
                   error={!!errors.guardian_family_name}
-                  helperText={errors.guardian_family_name ? "This field is required." : ""}
+                  helperText={
+                    errors.guardian_family_name ? "This field is required." : ""
+                  }
                 />
               </Box>
 
               {/* Guardian First Name */}
               <Box sx={{ flex: 1 }}>
-                <Typography variant="subtitle2" mb={1}>Guardian First Name<span style={{ color: "red" }}> *</span></Typography>
+                <Typography variant="subtitle2" mb={1}>
+                  First Name<span style={{ color: "red" }}> *</span>
+                </Typography>
                 <TextField
                   fullWidth
                   size="small"
@@ -1681,13 +2051,17 @@ const Dashboard2 = (props) => {
                   onChange={handleChange}
                   onBlur={() => handleUpdate(person)}
                   error={!!errors.guardian_given_name}
-                  helperText={errors.guardian_given_name ? "This field is required." : ""}
+                  helperText={
+                    errors.guardian_given_name ? "This field is required." : ""
+                  }
                 />
               </Box>
 
               {/* Guardian Middle Name */}
               <Box sx={{ flex: 1 }}>
-                <Typography variant="subtitle2" mb={1}>Guardian Middle Name</Typography>
+                <Typography variant="subtitle2" mb={1}>
+                  Middle Name
+                </Typography>
                 <TextField
                   fullWidth
                   size="small"
@@ -1697,26 +2071,31 @@ const Dashboard2 = (props) => {
                   value={person.guardian_middle_name || ""}
                   onChange={handleChange}
                   onBlur={() => handleUpdate(person)}
-
-
                 />
               </Box>
 
               {/* Guardian Name Extension */}
               <Box sx={{ flex: 1 }}>
-                <Typography variant="subtitle2" mb={1}>Guardian Name Extension</Typography>
-                <FormControl fullWidth size="small" required error={!!errors.guardian_ext}>
-                  <InputLabel id="guardian-ext-label">Extension</InputLabel>
+                <Typography variant="subtitle2" mb={1}>
+                  Name Extension
+                </Typography>
+                <FormControl
+                  fullWidth
+                  size="small"
+                  required
+                  error={!!errors.guardian_ext}
+                >
                   <Select
                     labelId="guardian-ext-label"
                     id="guardian_ext"
                     name="guardian_ext"
                     value={person.guardian_ext || ""}
-                    label="Extension"
                     onChange={handleChange}
                     onBlur={() => handleUpdate(person)}
                   >
-                    <MenuItem value=""><em>Select Extension</em></MenuItem>
+                    <MenuItem value="">
+                      <em>Select Extension</em>
+                    </MenuItem>
                     <MenuItem value="Jr.">Jr.</MenuItem>
                     <MenuItem value="Sr.">Sr.</MenuItem>
                     <MenuItem value="I">I</MenuItem>
@@ -1733,7 +2112,9 @@ const Dashboard2 = (props) => {
 
               {/* Guardian Nickname */}
               <Box sx={{ flex: 1 }}>
-                <Typography variant="subtitle2" mb={1}>Guardian Nickname</Typography>
+                <Typography variant="subtitle2" mb={1}>
+                  Nickname
+                </Typography>
                 <TextField
                   fullWidth
                   size="small"
@@ -1744,17 +2125,29 @@ const Dashboard2 = (props) => {
                   onChange={handleChange}
                   onBlur={() => handleUpdate(person)}
                   error={!!errors.guardian_nickname}
-                  helperText={errors.guardian_nickname ? "This field is required." : ""}
+                  helperText={
+                    errors.guardian_nickname ? "This field is required." : ""
+                  }
                 />
               </Box>
             </Box>
 
-            <Typography style={{ fontSize: "20px", color: mainButtonColor, fontWeight: "bold" }}>Guardian's Contact Information</Typography>
+            <Typography
+              style={{
+                fontSize: "20px",
+                color: mainButtonColor,
+                fontWeight: "bold",
+              }}
+            >
+              Guardian's Contact Information
+            </Typography>
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
 
-            <Box sx={{ width: '100%', mb: 2 }}>
-              <Typography variant="subtitle2" mb={1}>Guardian Address<span style={{ color: "red" }}> *</span></Typography>
+            <Box sx={{ width: "100%", mb: 2 }}>
+              <Typography variant="subtitle2" mb={1}>
+                Present Address<span style={{ color: "red" }}> *</span>
+              </Typography>
               <TextField
                 fullWidth
                 size="small"
@@ -1765,15 +2158,18 @@ const Dashboard2 = (props) => {
                 onChange={handleChange}
                 onBlur={() => handleUpdate(person)}
                 error={errors.guardian_address}
-                helperText={errors.guardian_address ? "This field is required." : ""}
+                helperText={
+                  errors.guardian_address ? "This field is required." : ""
+                }
               />
             </Box>
 
             <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-
               {/* Guardian Contact */}
               <Box flex={1} display="flex" flexDirection="column">
-                <Typography variant="subtitle2" mb={0.5}>Guardian Contact<span style={{ color: "red" }}> *</span></Typography>
+                <Typography variant="subtitle2" mb={0.5}>
+                  Contacts<span style={{ color: "red" }}> *</span>
+                </Typography>
 
                 <TextField
                   fullWidth
@@ -1792,10 +2188,14 @@ const Dashboard2 = (props) => {
                   }}
                   onBlur={() => handleUpdate(person)}
                   error={!!errors.guardian_contact}
-                  helperText={errors.guardian_contact && "This field is required."}
+                  helperText={
+                    errors.guardian_contact && "This field is required."
+                  }
                   InputProps={{
                     startAdornment: (
-                      <Typography sx={{ mr: 1, fontWeight: "bold" }}>+63</Typography>
+                      <Typography sx={{ mr: 1, fontWeight: "bold" }}>
+                        +63
+                      </Typography>
                     ),
                   }}
                 />
@@ -1803,7 +2203,9 @@ const Dashboard2 = (props) => {
 
               {/* Guardian Email */}
               <Box flex={1} display="flex" flexDirection="column">
-                <Typography variant="subtitle2" mb={0.5}>Guardian Email</Typography>
+                <Typography variant="subtitle2" mb={0.5}>
+                  Email Address
+                </Typography>
 
                 <TextField
                   fullWidth
@@ -1815,7 +2217,7 @@ const Dashboard2 = (props) => {
                   onChange={(e) => {
                     const cleaned = e.target.value.replace(/\s/g, "");
                     handleChange({
-                      target: { name: "guardian_email", value: cleaned }
+                      target: { name: "guardian_email", value: cleaned },
                     });
                   }}
                   onBlur={(e) => {
@@ -1826,27 +2228,44 @@ const Dashboard2 = (props) => {
                     }
 
                     handleChange({
-                      target: { name: "guardian_email", value }
+                      target: { name: "guardian_email", value },
                     });
 
                     handleUpdate(person);
                   }}
                   error={errors.guardian_email}
-                  helperText={errors.guardian_email ? "Please enter a valid email address." : ""}
+                  helperText={
+                    errors.guardian_email
+                      ? "Please enter a valid email address."
+                      : ""
+                  }
                 />
               </Box>
-
             </Box>
 
-
-            <Typography style={{ fontSize: "20px", color: mainButtonColor, fontWeight: "bold" }}>Family (Annual Income)</Typography>
+            <Typography
+              style={{
+                fontSize: "20px",
+                color: mainButtonColor,
+                fontWeight: "bold",
+              }}
+            >
+              Family (Annual Income)
+            </Typography>
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
 
             {/* Annual Income */}
-            <Box sx={{ width: '100%', mb: 2 }}>
-              <Typography variant="subtitle2" mb={1}>Annual Income<span style={{ color: "red" }}> *</span></Typography>
-              <FormControl fullWidth size="small" required error={!!errors.annual_income}>
+            <Box sx={{ width: "100%", mb: 2 }}>
+              <Typography variant="subtitle2" mb={1}>
+                Annual Income<span style={{ color: "red" }}> *</span>
+              </Typography>
+              <FormControl
+                fullWidth
+                size="small"
+                required
+                error={!!errors.annual_income}
+              >
                 <InputLabel id="annual-income-label">Annual Income</InputLabel>
                 <Select
                   labelId="annual-income-label"
@@ -1856,13 +2275,25 @@ const Dashboard2 = (props) => {
                   onChange={handleChange}
                   onBlur={() => handleUpdate(person)}
                 >
-                  <MenuItem value=""><em>Select Annual Income</em></MenuItem>
+                  <MenuItem value="">
+                    <em>Select Annual Income</em>
+                  </MenuItem>
                   <MenuItem value="80,000 and below">80,000 and below</MenuItem>
-                  <MenuItem value="80,000 to 135,000">80,000 to 135,000</MenuItem>
-                  <MenuItem value="135,000 to 250,000">135,000 to 250,000</MenuItem>
-                  <MenuItem value="250,000 to 500,000">250,000 to 500,000</MenuItem>
-                  <MenuItem value="500,000 to 1,000,000">500,000 to 1,000,000</MenuItem>
-                  <MenuItem value="1,000,000 and above">1,000,000 and above</MenuItem>
+                  <MenuItem value="80,000 to 135,000">
+                    80,000 to 135,000
+                  </MenuItem>
+                  <MenuItem value="135,000 to 250,000">
+                    135,000 to 250,000
+                  </MenuItem>
+                  <MenuItem value="250,000 to 500,000">
+                    250,000 to 500,000
+                  </MenuItem>
+                  <MenuItem value="500,000 to 1,000,000">
+                    500,000 to 1,000,000
+                  </MenuItem>
+                  <MenuItem value="1,000,000 and above">
+                    1,000,000 and above
+                  </MenuItem>
                 </Select>
                 {errors.annual_income && (
                   <FormHelperText>This field is required.</FormHelperText>
@@ -1891,8 +2322,15 @@ const Dashboard2 = (props) => {
                   textAlign: "center",
                 }}
               >
-                <ErrorIcon sx={{ color: mainButtonColor, fontSize: 50, mb: 2 }} />
-                <Typography id="exam-permit-error-title" variant="h6" component="h2" color="maroon">
+                <ErrorIcon
+                  sx={{ color: mainButtonColor, fontSize: 50, mb: 2 }}
+                />
+                <Typography
+                  id="exam-permit-error-title"
+                  variant="h6"
+                  component="h2"
+                  color="maroon"
+                >
                   Exam Permit Notice
                 </Typography>
                 <Typography id="exam-permit-error-description" sx={{ mt: 2 }}>
@@ -1901,15 +2339,16 @@ const Dashboard2 = (props) => {
                 <Button
                   onClick={handleCloseExamPermitModal}
                   variant="contained"
-                  sx={{ mt: 3, backgroundcolor: mainButtonColor, "&:hover": { backgroundColor: "#8B0000" } }}
+                  sx={{
+                    mt: 3,
+                    backgroundcolor: mainButtonColor,
+                    "&:hover": { backgroundColor: "#8B0000" },
+                  }}
                 >
                   Close
                 </Button>
               </Box>
             </Modal>
-
-
-
 
             <Box display="flex" justifyContent="space-between" mt={4}>
               {/* Previous Step Button */}
@@ -1921,7 +2360,9 @@ const Dashboard2 = (props) => {
                   if (isFormValid()) {
                     navigate(`/dashboard/${keys.step1}`);
                   } else {
-                    showSnackbar("Please complete all required fields before proceeding.");
+                    showSnackbar(
+                      "Please complete all required fields before proceeding.",
+                    );
                   }
                 }}
                 startIcon={
@@ -1957,7 +2398,9 @@ const Dashboard2 = (props) => {
                   if (isFormValid()) {
                     navigate(`/dashboard/${keys.step3}`); // ✅ Goes to next step
                   } else {
-                    showSnackbar("Please complete all required fields before proceeding.");
+                    showSnackbar(
+                      "Please complete all required fields before proceeding.",
+                    );
                   }
                 }}
                 endIcon={
@@ -1983,7 +2426,6 @@ const Dashboard2 = (props) => {
               >
                 Next Step
               </Button>
-
             </Box>
             <Snackbar
               open={snackbar.open}
@@ -1991,18 +2433,19 @@ const Dashboard2 = (props) => {
               onClose={handleCloseSnackbar}
               anchorOrigin={{ vertical: "top", horizontal: "center" }}
             >
-              <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+              <Alert
+                onClose={handleCloseSnackbar}
+                severity={snackbar.severity}
+                sx={{ width: "100%" }}
+              >
                 {snackbar.message}
               </Alert>
             </Snackbar>
-
-
           </Container>
         </form>
       </Container>
     </Box>
   );
 };
-
 
 export default Dashboard2;
