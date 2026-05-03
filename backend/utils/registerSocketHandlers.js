@@ -20,143 +20,148 @@ module.exports = function registerSocketHandlers({
 }) {
   const __dirname = baseDir;
 
-io.on("connection", (socket) => {
-  console.log(" Socket.IO client connected");
+  io.on("connection", (socket) => {
+    console.log(" Socket.IO client connected");
 
-  // ---------------------- Forgot Password: Applicant ----------------------
-  socket.on("forgot-password-applicant", async (data) => {
-    const { applicant_number, email, birthdate } = data;
+    // ---------------------- Forgot Password: Applicant ----------------------
+    socket.on("forgot-password-applicant", async (data) => {
+      const { applicant_number, email, birthdate } = data;
 
-    try {
-      //  Validate all 3 fields
-      const [rows] = await db.query(
-        `SELECT ua.email, p.birthOfDate
+      try {
+        //  Validate all 3 fields
+        const [rows] = await db.query(
+          `SELECT ua.email, p.birthOfDate
        FROM user_accounts ua
        JOIN person_table p ON ua.person_id = p.person_id
        JOIN applicant_numbering_table a ON p.person_id = a.person_id
        WHERE ua.email = ?
          AND a.applicant_number = ?
          AND p.birthOfDate = ?`,
-        [email, applicant_number, birthdate]
-      );
+          [email, applicant_number, birthdate]
+        );
 
-      if (rows.length === 0) {
-        return socket.emit("password-reset-result-applicant", {
+        if (rows.length === 0) {
+          return socket.emit("password-reset-result-applicant", {
+            success: false,
+            message: "Invalid Applicant Number, Birthday, or Email.",
+          });
+        }
+
+        //  Generate password
+        const newPassword = Array.from({ length: 8 }, () =>
+          String.fromCharCode(Math.floor(Math.random() * 26) + 65)
+        ).join("");
+
+        const hashed = await bcrypt.hash(newPassword, 10);
+
+        await db.query(
+          "UPDATE user_accounts SET password = ? WHERE email = ?",
+          [hashed, email]
+        );
+
+        //  Send email (same as your code)
+        const transporter = nodemailer.createTransport({
+          service: "gmail",
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+          },
+        });
+
+        await transporter.sendMail({
+          from: `"System" <${process.env.EMAIL_USER}>`,
+          to: email,
+          subject: "Password Reset",
+          text: `Your new password is: ${newPassword}`,
+        });
+
+        socket.emit("password-reset-result-applicant", {
+          success: true,
+          message: "Password reset successful. Check your email.",
+        });
+
+      } catch (error) {
+        console.error(error);
+        socket.emit("password-reset-result-applicant", {
           success: false,
-          message: "Invalid Applicant Number, Birthday, or Email.",
+          message: "Server error.",
         });
       }
+    });
 
-      //  Generate password
-      const newPassword = Array.from({ length: 8 }, () =>
-        String.fromCharCode(Math.floor(Math.random() * 26) + 65)
-      ).join("");
-
-      const hashed = await bcrypt.hash(newPassword, 10);
-
-      await db.query(
-        "UPDATE user_accounts SET password = ? WHERE email = ?",
-        [hashed, email]
-      );
-
-      //  Send email (same as your code)
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
-        },
-      });
-
-      await transporter.sendMail({
-        from: `"System" <${process.env.EMAIL_USER}>`,
-        to: email,
-        subject: "Password Reset",
-        text: `Your new password is: ${newPassword}`,
-      });
-
-      socket.emit("password-reset-result-applicant", {
-        success: true,
-        message: "Password reset successful. Check your email.",
-      });
-
-    } catch (error) {
-      console.error(error);
-      socket.emit("password-reset-result-applicant", {
-        success: false,
-        message: "Server error.",
-      });
-    }
-  });
-
-  // ---------------- Registrar: Reset Password ----------------
-  // FORGOT PASSWORD (handles student, registrar, faculty)
+    // ---------------- Registrar: Reset Password ----------------
+    // FORGOT PASSWORD (handles student, registrar, faculty)
 
 
 
 
-  //  Get exam scores for a person
-  app.get("/api/exam/:personId", async (req, res) => {
-    try {
-      const { personId } = req.params;
+    app.get("/api/exam/:personId", async (req, res) => {
+      try {
+        const { personId } = req.params;
 
-      const [rows] = await db.query(
-        `SELECT
-         id,
-         person_id,
-         English,
-         Science,
-         Filipino,
-         Math,
-         Abstract,
-         final_rating,
-         user,
-         DATE_FORMAT(date_created, '%Y-%m-%d') AS date_created
-       FROM admission_exam
-       WHERE person_id = ?`,
-        [personId],
-      );
+        const [rows] = await db.query(
+          `SELECT
+        er.id AS exam_result_id,
+        er.person_id,
+        s.id AS subject_id,
+        s.name AS subject,
+        erd.score,
+        s.max_score,
+        er.total_score,
+        er.percentage,
+        er.final_rating,
+        er.status,
+        DATE_FORMAT(er.date_created, '%Y-%m-%d') AS date_created
 
-      res.json(rows);
-    } catch (err) {
-      console.error(" GET exam error:", err);
-      res.status(500).json({ error: "Database error" });
-    }
-  });
+      FROM exam_results er
+      JOIN exam_result_details erd ON er.id = erd.exam_result_id
+      JOIN subjects s ON erd.subject_id = s.id
 
-  // Get person by applicant_number
-  app.get("/api/person-by-applicant/:applicant_number", async (req, res) => {
-    const { applicant_number } = req.params;
+      WHERE er.person_id = ?
+      ORDER BY er.id, s.id`,
+          [personId]
+        );
 
-    try {
-      const [rows] = await db.execute(
-        `SELECT p.*, a.applicant_number, ae.final_rating
+        res.json(rows);
+      } catch (err) {
+        console.error("GET exam error:", err);
+        res.status(500).json({ error: "Database error" });
+      }
+    });
+
+    // Get person by applicant_number
+    app.get("/api/person-by-applicant/:applicant_number", async (req, res) => {
+      const { applicant_number } = req.params;
+
+      try {
+        const [rows] = await db.execute(
+          `SELECT p.*, a.applicant_number, ae.final_rating
        FROM person_table p
        JOIN applicant_numbering_table a
          ON p.person_id = a.person_id
-       JOIN admission_exam ae ON p.person_id = ae.person_id
+       JOIN azzz ae ON p.person_id = ae.person_id
        WHERE a.applicant_number = ? `,
-        [applicant_number],
-      );
+          [applicant_number],
+        );
 
-      if (rows.length === 0) {
-        return res.status(404).json({ error: "Applicant not found" });
+        if (rows.length === 0) {
+          return res.status(404).json({ error: "Applicant not found" });
+        }
+
+        res.json(rows[0]);
+      } catch (err) {
+        console.error("Error fetching person by applicant_number:", err);
+        res.status(500).json({ error: "Server error" });
       }
+    });
 
-      res.json(rows[0]);
-    } catch (err) {
-      console.error("Error fetching person by applicant_number:", err);
-      res.status(500).json({ error: "Server error" });
-    }
-  });
+    app.get("/api/applicant-schedule/:applicantNumber", async (req, res) => {
+      try {
+        const { applicantNumber } = req.params;
+        console.log("Receive Applicant Number: ", applicantNumber);
 
-  app.get("/api/applicant-schedule/:applicantNumber", async (req, res) => {
-    try {
-      const { applicantNumber } = req.params;
-      console.log("Receive Applicant Number: ", applicantNumber);
-
-      const [rows] = await db.query(
-        `SELECT
+        const [rows] = await db.query(
+          `SELECT
           s.schedule_id,
           s.day_description,
           s.building_description,
@@ -171,30 +176,30 @@ io.on("connection", (socket) => {
        INNER JOIN exam_applicants ea
          ON ea.schedule_id = s.schedule_id
        WHERE ea.applicant_id = ?`,
-        [applicantNumber],
-      );
+          [applicantNumber],
+        );
 
-      if (rows.length === 0) {
-        return res
-          .status(404)
-          .json({ error: "No schedule found for this applicant." });
+        if (rows.length === 0) {
+          return res
+            .status(404)
+            .json({ error: "No schedule found for this applicant." });
+        }
+
+        res.json(rows[0]);
+      } catch (err) {
+        console.error("Error fetching applicant schedule:", err.message);
+        res.status(500).json({ error: "Failed to fetch applicant schedule" });
       }
+    });
 
-      res.json(rows[0]);
-    } catch (err) {
-      console.error("Error fetching applicant schedule:", err.message);
-      res.status(500).json({ error: "Failed to fetch applicant schedule" });
-    }
-  });
+    // Get applicants assigned to a proctor
 
-  // Get applicants assigned to a proctor
-
-  // Get applicants assigned to a proctor
-  app.get("/api/proctor-applicants/:proctor_name", async (req, res) => {
-    const { proctor_name } = req.params;
-    try {
-      const [rows] = await db.query(
-        `
+    // Get applicants assigned to a proctor
+    app.get("/api/proctor-applicants/:proctor_name", async (req, res) => {
+      const { proctor_name } = req.params;
+      try {
+        const [rows] = await db.query(
+          `
       SELECT
         ea.applicant_id,
         an.applicant_number,
@@ -214,91 +219,91 @@ io.on("connection", (socket) => {
       JOIN entrance_exam_schedule ees ON ea.schedule_id = ees.schedule_id
       WHERE ees.proctor = ?
     `,
-        [proctor_name],
-      );
-      res.json(rows);
-    } catch (err) {
-      console.error(" Error fetching proctor applicants:", err);
-      res.status(500).json({ error: "Failed to fetch applicants for proctor" });
-    }
-  });
+          [proctor_name],
+        );
+        res.json(rows);
+      } catch (err) {
+        console.error(" Error fetching proctor applicants:", err);
+        res.status(500).json({ error: "Failed to fetch applicants for proctor" });
+      }
+    });
 
-  // Search proctor by name and return their assigned applicants
-  app.get("/api/proctor-applicants", async (req, res) => {
-    const { query } = req.query;
+    // Search proctor by name and return their assigned applicants
+    app.get("/api/proctor-applicants", async (req, res) => {
+      const { query } = req.query;
 
-    if (!query) {
-      return res.status(400).json({ message: "Query is required" });
-    }
+      if (!query) {
+        return res.status(400).json({ message: "Query is required" });
+      }
 
-    try {
-      // Find schedules where this proctor is assigned
-      const [schedules] = await db.query(
-        `SELECT schedule_id, day_description, room_description, building_description, start_time, end_time, proctor
+      try {
+        // Find schedules where this proctor is assigned
+        const [schedules] = await db.query(
+          `SELECT schedule_id, day_description, room_description, building_description, start_time, end_time, proctor
 FROM entrance_exam_schedule
 WHERE proctor LIKE ?
 `,
-        [`%${query}%`],
-      );
+          [`%${query}%`],
+        );
 
-      if (schedules.length === 0) {
-        return res
-          .status(404)
-          .json({ message: "Proctor not found in schedules" });
-      }
+        if (schedules.length === 0) {
+          return res
+            .status(404)
+            .json({ message: "Proctor not found in schedules" });
+        }
 
-      // For each schedule, get assigned applicants with email_sent
-      const results = [];
-      for (const sched of schedules) {
-        const [applicants] = await db.query(
-          `SELECT ea.applicant_id, ea.email_sent,
+        // For each schedule, get assigned applicants with email_sent
+        const results = [];
+        for (const sched of schedules) {
+          const [applicants] = await db.query(
+            `SELECT ea.applicant_id, ea.email_sent,
                 an.applicant_number,
                 p.last_name, p.first_name, p.middle_name, p.program
          FROM exam_applicants ea
          JOIN applicant_numbering_table an ON ea.applicant_id = an.applicant_number
          JOIN person_table p ON an.person_id = p.person_id
          WHERE ea.schedule_id = ?`,
-          [sched.schedule_id],
-        );
+            [sched.schedule_id],
+          );
 
-        results.push({
-          schedule: sched,
-          applicants,
-        });
+          results.push({
+            schedule: sched,
+            applicants,
+          });
+        }
+
+        res.json(results);
+      } catch (err) {
+        console.error(" Error fetching proctor applicants:", err);
+        res.status(500).json({ error: "Failed to fetch applicants for proctor" });
       }
+    });
 
-      res.json(results);
-    } catch (err) {
-      console.error(" Error fetching proctor applicants:", err);
-      res.status(500).json({ error: "Failed to fetch applicants for proctor" });
-    }
-  });
+    //  Get Notifications
+    app.get("/api/notifications", async (req, res) => {
+      try {
+        const [rows] = await db.query(
+          "SELECT id, type, message, applicant_number, actor_email, actor_name, timestamp FROM notifications ORDER BY timestamp DESC",
+        );
+        res.json(rows);
+      } catch (err) {
+        console.error(" Fetch notifications error:", err);
+        res.status(500).json({ error: "Failed to fetch notifications" });
+      }
+    });
 
-  //  Get Notifications
-  app.get("/api/notifications", async (req, res) => {
-    try {
-      const [rows] = await db.query(
-        "SELECT id, type, message, applicant_number, actor_email, actor_name, timestamp FROM notifications ORDER BY timestamp DESC",
-      );
-      res.json(rows);
-    } catch (err) {
-      console.error(" Fetch notifications error:", err);
-      res.status(500).json({ error: "Failed to fetch notifications" });
-    }
-  });
+    // ==================== INTERVIEW ROUTES ====================
+    // ==============================
+    // INTERVIEW ROUTES
+    // ==============================
 
-  // ==================== INTERVIEW ROUTES ====================
-  // ==============================
-  // INTERVIEW ROUTES
-  // ==============================
+    // 1. Get interview by applicant_number
+    app.get("/api/interview/:applicant_number", async (req, res) => {
+      const { applicant_number } = req.params;
 
-  // 1. Get interview by applicant_number
-  app.get("/api/interview/:applicant_number", async (req, res) => {
-    const { applicant_number } = req.params;
-
-    try {
-      const [rows] = await db.query(
-        `
+      try {
+        const [rows] = await db.query(
+          `
       SELECT
         a.applicant_number,
         a.person_id,
@@ -309,97 +314,97 @@ WHERE proctor LIKE ?
       LEFT JOIN person_status_table ps ON ps.person_id = a.person_id
       WHERE a.applicant_number = ?
       `,
-        [applicant_number],
-      );
+          [applicant_number],
+        );
 
-      if (!rows.length) return res.json(null);
+        if (!rows.length) return res.json(null);
 
-      const row = rows[0];
-      res.json({
-        applicant_number: row.applicant_number,
-        person_id: row.person_id,
-        qualifying_exam_score: row.qualifying_exam_score ?? 0,
-        qualifying_interview_score: row.qualifying_interview_score ?? 0,
-        total_ave: row.total_ave ?? 0,
-      });
-    } catch (err) {
-      console.error(" Error fetching interview:", err);
-      res.status(500).json({ message: "Server error" });
-    }
-  });
-
-  // 2) PUT update (must exist)
-  // � Update single Qualifying/Interview scores + log notifications
-
-  // ---------------------------------------------------------
-  // 2) SAVE or UPDATE (UPSERT) using person_status_table
-  //    Payload: { applicant_number, qualifying_exam_score, qualifying_interview_score }
-  //    Mapping -> qualifying_result, interview_result, exam_result
-  // ---------------------------------------------------------
-  app.post("/api/interview", async (req, res) => {
-    try {
-      const {
-        applicant_number,
-        qualifying_exam_score,
-        qualifying_interview_score,
-      } = req.body;
-      console.log("� Payload:", req.body);
-
-      // 1� Find person_id of applicant
-      const [rows] = await db.query(
-        "SELECT person_id FROM applicant_numbering_table WHERE applicant_number = ?",
-        [applicant_number],
-      );
-      if (rows.length === 0) {
-        return res.status(400).json({ error: "Applicant number not found" });
+        const row = rows[0];
+        res.json({
+          applicant_number: row.applicant_number,
+          person_id: row.person_id,
+          qualifying_exam_score: row.qualifying_exam_score ?? 0,
+          qualifying_interview_score: row.qualifying_interview_score ?? 0,
+          total_ave: row.total_ave ?? 0,
+        });
+      } catch (err) {
+        console.error(" Error fetching interview:", err);
+        res.status(500).json({ message: "Server error" });
       }
-      const person_id = rows[0].person_id;
+    });
 
-      // 2� Compute new scores
-      const qExam = Number(qualifying_exam_score) || 0;
-      const qInterview = Number(qualifying_interview_score) || 0;
-      const totalAve = (qExam + qInterview) / 2;
+    // 2) PUT update (must exist)
+    // � Update single Qualifying/Interview scores + log notifications
 
-      // 3� Insert or update (Upsert)
-      await db.query(
-        `INSERT INTO person_status_table (person_id, qualifying_result, interview_result, exam_result)
+    // ---------------------------------------------------------
+    // 2) SAVE or UPDATE (UPSERT) using person_status_table
+    //    Payload: { applicant_number, qualifying_exam_score, qualifying_interview_score }
+    //    Mapping -> qualifying_result, interview_result, exam_result
+    // ---------------------------------------------------------
+    app.post("/api/interview", async (req, res) => {
+      try {
+        const {
+          applicant_number,
+          qualifying_exam_score,
+          qualifying_interview_score,
+        } = req.body;
+        console.log("� Payload:", req.body);
+
+        // 1� Find person_id of applicant
+        const [rows] = await db.query(
+          "SELECT person_id FROM applicant_numbering_table WHERE applicant_number = ?",
+          [applicant_number],
+        );
+        if (rows.length === 0) {
+          return res.status(400).json({ error: "Applicant number not found" });
+        }
+        const person_id = rows[0].person_id;
+
+        // 2� Compute new scores
+        const qExam = Number(qualifying_exam_score) || 0;
+        const qInterview = Number(qualifying_interview_score) || 0;
+        const totalAve = (qExam + qInterview) / 2;
+
+        // 3� Insert or update (Upsert)
+        await db.query(
+          `INSERT INTO person_status_table (person_id, qualifying_result, interview_result, exam_result)
        VALUES (?, ?, ?, ?)
        ON DUPLICATE KEY UPDATE
          qualifying_result = VALUES(qualifying_result),
          interview_result = VALUES(interview_result),
          exam_result = VALUES(exam_result)`,
-        [person_id, qExam, qInterview, totalAve],
-      );
+          [person_id, qExam, qInterview, totalAve],
+        );
 
-      // 4� Return success (no notification here)
-      res.json({
-        success: true,
-        message: "Interview and exam scores saved successfully!",
-      });
-    } catch (err) {
-      console.error(" Error saving interview/exam scores:", err);
-      res.status(500).json({ error: "Failed to save interview/exam scores" });
-    }
-  });
+        // 4� Return success (no notification here)
+        res.json({
+          success: true,
+          message: "Interview and exam scores saved successfully!",
+        });
+      } catch (err) {
+        console.error(" Error saving interview/exam scores:", err);
+        res.status(500).json({ error: "Failed to save interview/exam scores" });
+      }
+    });
 
-  // ---------------------------------------------------------
-  // 3) Update by applicant_number (same mapping)
-  // ---------------------------------------------------------
-  // ---------------------------------------------------------
-  // Save or Update Interview Scores
-  // ---------------------------------------------------------
-  async function insertNotificationOnce({
-    type = "update",
-    message,
-    applicant_number,
-    actorEmail,
-    actorName,
-  }) {
-    // Prevent duplicates in two ways:
-    // 1) If exact same message exists within last 5 seconds -> skip (protects against double-requests)
-    // 2) Also skip if same message already exists today -> skip (daily dedupe)
-    await db.query(
-      `INSERT INTO notifications (type, message, applicant_number, actor_email, actor_name, timestamp)
+    // ---------------------------------------------------------
+    // 3) Update by applicant_number (same mapping)
+    // ---------------------------------------------------------
+    // ---------------------------------------------------------
+    // Save or Update Interview Scores
+    // ---------------------------------------------------------
+    async function insertNotificationOnce({
+      type = "update",
+      message,
+      applicant_number,
+      actorEmail,
+      actorName,
+    }) {
+      // Prevent duplicates in two ways:
+      // 1) If exact same message exists within last 5 seconds -> skip (protects against double-requests)
+      // 2) Also skip if same message already exists today -> skip (daily dedupe)
+      await db.query(
+        `INSERT INTO notifications (type, message, applicant_number, actor_email, actor_name, timestamp)
      SELECT ?, ?, ?, ?, ?, NOW()
      FROM DUAL
      WHERE NOT EXISTS (
@@ -408,361 +413,361 @@ WHERE proctor LIKE ?
          AND message = ?
          AND (timestamp >= NOW() - INTERVAL 5 SECOND OR DATE(timestamp) = CURDATE())
      )`,
-      [
-        type,
-        message,
-        applicant_number,
-        actorEmail,
-        actorName,
-        applicant_number,
-        message,
-      ],
-    );
-  }
-
-  // ---------------------- Assign Student Number ----------------------
-
-  socket.on("assign-student-number", async (person_id) => {
-    try {
-      //  Fetch person info
-      const [rows] = await db.query(
-        `SELECT * FROM person_table AS pt WHERE person_id = ?`,
-        [person_id],
+        [
+          type,
+          message,
+          applicant_number,
+          actorEmail,
+          actorName,
+          applicant_number,
+          message,
+        ],
       );
+    }
 
-      if (rows.length === 0) {
-        return socket.emit("assign-student-number-result", {
-          success: false,
-          message: "Person not found.",
-        });
-      }
+    // ---------------------- Assign Student Number ----------------------
 
-      const person_data = rows[0];
-      const { emailAddress, first_name, middle_name, last_name } = person_data;
-      const student_number = `${new Date().getFullYear()}${String(person_id).padStart(5, "0")}`;
-      const tempPassword = Math.random().toString(36).slice(-8).toUpperCase();
-      const hashedPassword = await bcrypt.hash(tempPassword, 10);
-      let studentProfileImg = person_data.profile_img;
+    socket.on("assign-student-number", async (person_id) => {
+      try {
+        //  Fetch person info
+        const [rows] = await db.query(
+          `SELECT * FROM person_table AS pt WHERE person_id = ?`,
+          [person_id],
+        );
 
-      // Copy applicant 1x1 image to student 1x1 folder during student-number assignment.
-      if (person_data.profile_img) {
-        try {
-          const applicantDir = path.join(__dirname, "uploads", "Applicant1by1");
-          const studentDir = path.join(__dirname, "uploads", "Student1by1");
-          const uploadRootDir = path.join(__dirname, "uploads");
+        if (rows.length === 0) {
+          return socket.emit("assign-student-number-result", {
+            success: false,
+            message: "Person not found.",
+          });
+        }
 
-          if (!fs.existsSync(studentDir)) {
-            fs.mkdirSync(studentDir, { recursive: true });
-          }
+        const person_data = rows[0];
+        const { emailAddress, first_name, middle_name, last_name } = person_data;
+        const student_number = `${new Date().getFullYear()}${String(person_id).padStart(5, "0")}`;
+        const tempPassword = Math.random().toString(36).slice(-8).toUpperCase();
+        const hashedPassword = await bcrypt.hash(tempPassword, 10);
+        let studentProfileImg = person_data.profile_img;
 
-          const applicantPath = path.join(
-            applicantDir,
-            person_data.profile_img,
-          );
-          const uploadRootPath = path.join(
-            uploadRootDir,
-            person_data.profile_img,
-          );
-          const sourcePath = fs.existsSync(applicantPath)
-            ? applicantPath
-            : fs.existsSync(uploadRootPath)
-              ? uploadRootPath
-              : null;
+        // Copy applicant 1x1 image to student 1x1 folder during student-number assignment.
+        if (person_data.profile_img) {
+          try {
+            const applicantDir = path.join(__dirname, "uploads", "Applicant1by1");
+            const studentDir = path.join(__dirname, "uploads", "Student1by1");
+            const uploadRootDir = path.join(__dirname, "uploads");
 
-          if (sourcePath) {
-            const ext = path.extname(person_data.profile_img) || ".jpg";
-            studentProfileImg = `${student_number}_profile_image${ext}`;
-            const targetPath = path.join(studentDir, studentProfileImg);
-            fs.copyFileSync(sourcePath, targetPath);
-          } else {
-            console.warn(
-              `[assign-student-number] profile image not found for person_id=${person_id}: ${person_data.profile_img}`,
+            if (!fs.existsSync(studentDir)) {
+              fs.mkdirSync(studentDir, { recursive: true });
+            }
+
+            const applicantPath = path.join(
+              applicantDir,
+              person_data.profile_img,
+            );
+            const uploadRootPath = path.join(
+              uploadRootDir,
+              person_data.profile_img,
+            );
+            const sourcePath = fs.existsSync(applicantPath)
+              ? applicantPath
+              : fs.existsSync(uploadRootPath)
+                ? uploadRootPath
+                : null;
+
+            if (sourcePath) {
+              const ext = path.extname(person_data.profile_img) || ".jpg";
+              studentProfileImg = `${student_number}_profile_image${ext}`;
+              const targetPath = path.join(studentDir, studentProfileImg);
+              fs.copyFileSync(sourcePath, targetPath);
+            } else {
+              console.warn(
+                `[assign-student-number] profile image not found for person_id=${person_id}: ${person_data.profile_img}`,
+              );
+            }
+          } catch (imgErr) {
+            console.error(
+              `[assign-student-number] failed to copy profile image for person_id=${person_id}`,
+              imgErr,
             );
           }
-        } catch (imgErr) {
-          console.error(
-            `[assign-student-number] failed to copy profile image for person_id=${person_id}`,
-            imgErr,
-          );
         }
-      }
 
-      //  Get uploaded requirements
-      const [requirements] = await db.query(
-        `SELECT * FROM requirement_uploads WHERE person_id = ?`,
-        [person_id],
-      );
+        //  Get uploaded requirements
+        const [requirements] = await db.query(
+          `SELECT * FROM requirement_uploads WHERE person_id = ?`,
+          [person_id],
+        );
 
-      const [studentFuturePI] = await db3.query(
-        `SELECT MAX(person_id) AS latest_person_id FROM person_table;`,
-      );
+        const [studentFuturePI] = await db3.query(
+          `SELECT MAX(person_id) AS latest_person_id FROM person_table;`,
+        );
 
-      const personIdForStudent = studentFuturePI[0].latest_person_id;
+        const personIdForStudent = studentFuturePI[0].latest_person_id;
 
-      //  Save to student_numbering_table
-      await db3.query(
-        `INSERT INTO student_numbering_table (student_number, person_id) VALUES (?, ?)`,
-        [student_number, personIdForStudent + 1],
-      );
-
-      await db3.query(
-        `INSERT INTO person_status_table (person_id, exam_status, requirements, residency, student_registration_status, exam_result, hs_ave)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [personIdForStudent + 1, 0, 0, 0, 0, 0, 0],
-      );
-
-      //  Copy requirements to db3
-      for (const req of requirements) {
+        //  Save to student_numbering_table
         await db3.query(
-          `INSERT INTO requirement_uploads
+          `INSERT INTO student_numbering_table (student_number, person_id) VALUES (?, ?)`,
+          [student_number, personIdForStudent + 1],
+        );
+
+        await db3.query(
+          `INSERT INTO person_status_table (person_id, exam_status, requirements, residency, student_registration_status, exam_result, hs_ave)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [personIdForStudent + 1, 0, 0, 0, 0, 0, 0],
+        );
+
+        //  Copy requirements to db3
+        for (const req of requirements) {
+          await db3.query(
+            `INSERT INTO requirement_uploads
           (requirements_id, person_id, submitted_documents, file_path, original_name, remarks, status, document_status, registrar_status, created_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            req.requirements_id,
-            personIdForStudent + 1,
-            req.submitted_documents,
-            req.file_path,
-            req.original_name,
-            req.remarks,
-            req.status,
-            req.document_status,
-            req.registrar_status,
-            req.created_at,
-          ],
-        );
-      }
+            [
+              req.requirements_id,
+              personIdForStudent + 1,
+              req.submitted_documents,
+              req.file_path,
+              req.original_name,
+              req.remarks,
+              req.status,
+              req.document_status,
+              req.registrar_status,
+              req.created_at,
+            ],
+          );
+        }
 
-      await db3.query(
-        `INSERT INTO student_status_table
+        await db3.query(
+          `INSERT INTO student_status_table
          (student_number, active_curriculum, enrolled_status, year_level_id, active_school_year_id, control_status)
        VALUES (?, ?, ?, ?, ?, ?)`,
-        [student_number, person_data.program, 0, 0, 0, 0],
-      );
+          [student_number, person_data.program, 0, 0, 0, 0],
+        );
 
-      //  Update registration status
-      await db3.query(
-        `UPDATE person_status_table SET student_registration_status = 1 WHERE person_id = ?`,
-        [personIdForStudent + 1],
-      );
+        //  Update registration status
+        await db3.query(
+          `UPDATE person_status_table SET student_registration_status = 1 WHERE person_id = ?`,
+          [personIdForStudent + 1],
+        );
 
-      await db3.query(
-        `
+        await db3.query(
+          `
       INSERT INTO person_table (person_id, student_number, profile_img, campus, academicProgram, classifiedAs, applyingAs, program, program2, program3, yearLevel, last_name, first_name, middle_name, extension, nickname, height, weight, lrnNumber, nolrnNumber, gender, pwdMember, pwdType, pwdId, birthOfDate, age, birthPlace, languageDialectSpoken, citizenship, religion, civilStatus, tribeEthnicGroup, cellphoneNumber, emailAddress, presentStreet, presentBarangay, presentZipCode, presentRegion, presentProvince, presentMunicipality, presentDswdHouseholdNumber, sameAsPresentAddress, permanentStreet, permanentBarangay, permanentZipCode, permanentRegion, permanentProvince, permanentMunicipality, permanentDswdHouseholdNumber, solo_parent, father_deceased, father_family_name, father_given_name, father_middle_name, father_ext, father_nickname, father_education, father_education_level, father_last_school, father_course, father_year_graduated, father_school_address, father_contact, father_occupation, father_employer, father_income, father_email, mother_deceased, mother_family_name, mother_given_name, mother_middle_name, mother_ext, mother_nickname, mother_education, mother_education_level, mother_last_school, mother_course, mother_year_graduated, mother_school_address, mother_contact, mother_occupation, mother_employer, mother_income, mother_email, guardian, guardian_family_name, guardian_given_name, guardian_middle_name, guardian_ext, guardian_nickname, guardian_address, guardian_contact, guardian_email, annual_income, schoolLevel, schoolLastAttended, schoolAddress, courseProgram, honor, generalAverage, yearGraduated, schoolLevel1, schoolLastAttended1, schoolAddress1, courseProgram1, honor1, generalAverage1, yearGraduated1, strand, cough, colds, fever, asthma, faintingSpells, heartDisease, tuberculosis, frequentHeadaches, hernia, chronicCough, headNeckInjury, hiv, highBloodPressure, diabetesMellitus, allergies, cancer, smokingCigarette, alcoholDrinking, hospitalized, hospitalizationDetails, medications, hadCovid, covidDate, vaccine1Brand, vaccine1Date, vaccine2Brand, vaccine2Date, booster1Brand, booster1Date, booster2Brand, booster2Date, chestXray, cbc, urinalysis, otherworkups, symptomsToday, remarks, termsOfAgreement, created_at, current_step)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
-        [
-          personIdForStudent + 1,
+          [
+            personIdForStudent + 1,
+            student_number,
+            studentProfileImg,
+            person_data.campus,
+            person_data.academicProgram,
+            person_data.classifiedAs,
+            person_data.applyingAs,
+            person_data.program,
+            person_data.program2,
+            person_data.program3,
+            person_data.yearLevel,
+            person_data.last_name,
+            person_data.first_name,
+            person_data.middle_name,
+            person_data.extension,
+            person_data.nickname,
+            person_data.height,
+            person_data.weight,
+            person_data.lrnNumber,
+            person_data.nolrnNumber,
+            person_data.gender,
+            person_data.pwdMember,
+            person_data.pwdType,
+            person_data.pwdId,
+            person_data.birthOfDate,
+            person_data.age,
+            person_data.birthPlace,
+            person_data.languageDialectSpoken,
+            person_data.citizenship,
+            person_data.religion,
+            person_data.civilStatus,
+            person_data.tribeEthnicGroup,
+            person_data.cellphoneNumber,
+            person_data.emailAddress,
+            person_data.presentStreet,
+            person_data.presentBarangay,
+            person_data.presentZipCode,
+            person_data.presentRegion,
+            person_data.presentProvince,
+            person_data.presentMunicipality,
+            person_data.presentDswdHouseholdNumber,
+            person_data.sameAsPresentAddress,
+            person_data.permanentStreet,
+            person_data.permanentBarangay,
+            person_data.permanentZipCode,
+            person_data.permanentRegion,
+            person_data.permanentProvince,
+            person_data.permanentMunicipality,
+            person_data.permanentDswdHouseholdNumber,
+            person_data.solo_parent,
+            person_data.father_deceased,
+            person_data.father_family_name,
+            person_data.father_given_name,
+            person_data.father_middle_name,
+            person_data.father_ext,
+            person_data.father_nickname,
+            person_data.father_education,
+            person_data.father_education_level,
+            person_data.father_last_school,
+            person_data.father_course,
+            person_data.father_year_graduated,
+            person_data.father_school_address,
+            person_data.father_contact,
+            person_data.father_occupation,
+            person_data.father_employer,
+            person_data.father_income,
+            person_data.father_email,
+            person_data.mother_deceased,
+            person_data.mother_family_name,
+            person_data.mother_given_name,
+            person_data.mother_middle_name,
+            person_data.mother_ext,
+            person_data.mother_nickname,
+            person_data.mother_education,
+            person_data.mother_education_level,
+            person_data.mother_last_school,
+            person_data.mother_course,
+            person_data.mother_year_graduated,
+            person_data.mother_school_address,
+            person_data.mother_contact,
+            person_data.mother_occupation,
+            person_data.mother_employer,
+            person_data.mother_income,
+            person_data.mother_email,
+            person_data.guardian,
+            person_data.guardian_family_name,
+            person_data.guardian_given_name,
+            person_data.guardian_middle_name,
+            person_data.guardian_ext,
+            person_data.guardian_nickname,
+            person_data.guardian_address,
+            person_data.guardian_contact,
+            person_data.guardian_email,
+            person_data.annual_income,
+            person_data.schoolLevel,
+            person_data.schoolLastAttended,
+            person_data.schoolAddress,
+            person_data.courseProgram,
+            person_data.honor,
+            person_data.generalAverage,
+            person_data.yearGraduated,
+            person_data.schoolLevel1,
+            person_data.schoolLastAttended1,
+            person_data.schoolAddress1,
+            person_data.courseProgram1,
+            person_data.honor1,
+            person_data.generalAverage1,
+            person_data.yearGraduated1,
+            person_data.strand,
+            person_data.cough,
+            person_data.colds,
+            person_data.fever,
+            person_data.asthma,
+            person_data.faintingSpells,
+            person_data.heartDisease,
+            person_data.tuberculosis,
+            person_data.frequentHeadaches,
+            person_data.hernia,
+            person_data.chronicCough,
+            person_data.headNeckInjury,
+            person_data.hiv,
+            person_data.highBloodPressure,
+            person_data.diabetesMellitus,
+            person_data.allergies,
+            person_data.cancer,
+            person_data.smokingCigarette,
+            person_data.alcoholDrinking,
+            person_data.hospitalized,
+            person_data.hospitalizationDetails,
+            person_data.medications,
+            person_data.hadCovid,
+            person_data.covidDate,
+            person_data.vaccine1Brand,
+            person_data.vaccine1Date,
+            person_data.vaccine2Brand,
+            person_data.vaccine2Date,
+            person_data.booster1Brand,
+            person_data.booster1Date,
+            person_data.booster2Brand,
+            person_data.booster2Date,
+            person_data.chestXray,
+            person_data.cbc,
+            person_data.urinalysis,
+            person_data.otherworkups,
+            person_data.symptomsToday,
+            person_data.remarks,
+            person_data.termsOfAgreement,
+            person_data.created_at,
+            person_data.current_step,
+          ],
+        );
+
+        //  Insert login credentials (or update if existing)
+        const [existingUser] = await db3.query(
+          `SELECT * FROM user_accounts WHERE person_id = ?`,
+          [personIdForStudent + 1],
+        );
+
+        if (existingUser.length === 0) {
+          await db3.query(
+            `INSERT INTO user_accounts (person_id, email, password, role, status) VALUES (?, ?, ?, 'student', 1)`,
+            [personIdForStudent + 1, person_data.emailAddress, hashedPassword],
+          );
+        } else {
+          await db3.query(
+            `UPDATE user_accounts SET email = ?, password = ?, role = 'student', status = 1 WHERE person_id = ?`,
+            [person_data.emailAddress, hashedPassword, personIdForStudent + 1],
+          );
+        }
+
+        const qrData = `${process.env.DB_HOST_LOCAL}:5173/student_qr_information/${student_number}`;
+        const qrFilename = `${student_number}_qrcode.png`;
+        const qrPath = path.join(
+          __dirname,
+          "./uploads/QrCodeGenerated",
+          qrFilename,
+        );
+
+        await QRCode.toFile(qrPath, qrData, {
+          color: { dark: "#000", light: "#FFF" },
+          width: 300,
+        });
+
+        //  Emit success result
+        socket.emit("assign-student-number-result", {
+          success: true,
           student_number,
-          studentProfileImg,
-          person_data.campus,
-          person_data.academicProgram,
-          person_data.classifiedAs,
-          person_data.applyingAs,
-          person_data.program,
-          person_data.program2,
-          person_data.program3,
-          person_data.yearLevel,
-          person_data.last_name,
-          person_data.first_name,
-          person_data.middle_name,
-          person_data.extension,
-          person_data.nickname,
-          person_data.height,
-          person_data.weight,
-          person_data.lrnNumber,
-          person_data.nolrnNumber,
-          person_data.gender,
-          person_data.pwdMember,
-          person_data.pwdType,
-          person_data.pwdId,
-          person_data.birthOfDate,
-          person_data.age,
-          person_data.birthPlace,
-          person_data.languageDialectSpoken,
-          person_data.citizenship,
-          person_data.religion,
-          person_data.civilStatus,
-          person_data.tribeEthnicGroup,
-          person_data.cellphoneNumber,
-          person_data.emailAddress,
-          person_data.presentStreet,
-          person_data.presentBarangay,
-          person_data.presentZipCode,
-          person_data.presentRegion,
-          person_data.presentProvince,
-          person_data.presentMunicipality,
-          person_data.presentDswdHouseholdNumber,
-          person_data.sameAsPresentAddress,
-          person_data.permanentStreet,
-          person_data.permanentBarangay,
-          person_data.permanentZipCode,
-          person_data.permanentRegion,
-          person_data.permanentProvince,
-          person_data.permanentMunicipality,
-          person_data.permanentDswdHouseholdNumber,
-          person_data.solo_parent,
-          person_data.father_deceased,
-          person_data.father_family_name,
-          person_data.father_given_name,
-          person_data.father_middle_name,
-          person_data.father_ext,
-          person_data.father_nickname,
-          person_data.father_education,
-          person_data.father_education_level,
-          person_data.father_last_school,
-          person_data.father_course,
-          person_data.father_year_graduated,
-          person_data.father_school_address,
-          person_data.father_contact,
-          person_data.father_occupation,
-          person_data.father_employer,
-          person_data.father_income,
-          person_data.father_email,
-          person_data.mother_deceased,
-          person_data.mother_family_name,
-          person_data.mother_given_name,
-          person_data.mother_middle_name,
-          person_data.mother_ext,
-          person_data.mother_nickname,
-          person_data.mother_education,
-          person_data.mother_education_level,
-          person_data.mother_last_school,
-          person_data.mother_course,
-          person_data.mother_year_graduated,
-          person_data.mother_school_address,
-          person_data.mother_contact,
-          person_data.mother_occupation,
-          person_data.mother_employer,
-          person_data.mother_income,
-          person_data.mother_email,
-          person_data.guardian,
-          person_data.guardian_family_name,
-          person_data.guardian_given_name,
-          person_data.guardian_middle_name,
-          person_data.guardian_ext,
-          person_data.guardian_nickname,
-          person_data.guardian_address,
-          person_data.guardian_contact,
-          person_data.guardian_email,
-          person_data.annual_income,
-          person_data.schoolLevel,
-          person_data.schoolLastAttended,
-          person_data.schoolAddress,
-          person_data.courseProgram,
-          person_data.honor,
-          person_data.generalAverage,
-          person_data.yearGraduated,
-          person_data.schoolLevel1,
-          person_data.schoolLastAttended1,
-          person_data.schoolAddress1,
-          person_data.courseProgram1,
-          person_data.honor1,
-          person_data.generalAverage1,
-          person_data.yearGraduated1,
-          person_data.strand,
-          person_data.cough,
-          person_data.colds,
-          person_data.fever,
-          person_data.asthma,
-          person_data.faintingSpells,
-          person_data.heartDisease,
-          person_data.tuberculosis,
-          person_data.frequentHeadaches,
-          person_data.hernia,
-          person_data.chronicCough,
-          person_data.headNeckInjury,
-          person_data.hiv,
-          person_data.highBloodPressure,
-          person_data.diabetesMellitus,
-          person_data.allergies,
-          person_data.cancer,
-          person_data.smokingCigarette,
-          person_data.alcoholDrinking,
-          person_data.hospitalized,
-          person_data.hospitalizationDetails,
-          person_data.medications,
-          person_data.hadCovid,
-          person_data.covidDate,
-          person_data.vaccine1Brand,
-          person_data.vaccine1Date,
-          person_data.vaccine2Brand,
-          person_data.vaccine2Date,
-          person_data.booster1Brand,
-          person_data.booster1Date,
-          person_data.booster2Brand,
-          person_data.booster2Date,
-          person_data.chestXray,
-          person_data.cbc,
-          person_data.urinalysis,
-          person_data.otherworkups,
-          person_data.symptomsToday,
-          person_data.remarks,
-          person_data.termsOfAgreement,
-          person_data.created_at,
-          person_data.current_step,
-        ],
-      );
+          message: "Student number assigned successfully.",
+        });
 
-      //  Insert login credentials (or update if existing)
-      const [existingUser] = await db3.query(
-        `SELECT * FROM user_accounts WHERE person_id = ?`,
-        [personIdForStudent + 1],
-      );
-
-      if (existingUser.length === 0) {
-        await db3.query(
-          `INSERT INTO user_accounts (person_id, email, password, role, status) VALUES (?, ?, ?, 'student', 1)`,
-          [personIdForStudent + 1, person_data.emailAddress, hashedPassword],
+        //  Fetch company name dynamically
+        const [[company]] = await db.query(
+          "SELECT company_name FROM company_settings WHERE id = 1",
         );
-      } else {
-        await db3.query(
-          `UPDATE user_accounts SET email = ?, password = ?, role = 'student', status = 1 WHERE person_id = ?`,
-          [person_data.emailAddress, hashedPassword, personIdForStudent + 1],
-        );
-      }
 
-      const qrData = `${process.env.DB_HOST_LOCAL}:5173/student_qr_information/${student_number}`;
-      const qrFilename = `${student_number}_qrcode.png`;
-      const qrPath = path.join(
-        __dirname,
-        "./uploads/QrCodeGenerated",
-        qrFilename,
-      );
+        const companyName = company?.company_name || "Enrollment Office";
+        const companyShort = company?.short_term || "";
 
-      await QRCode.toFile(qrPath, qrData, {
-        color: { dark: "#000", light: "#FFF" },
-        width: 300,
-      });
+        //  Send welcome email
+        const transporter = nodemailer.createTransport({
+          service: "gmail",
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+          },
+        });
 
-      //  Emit success result
-      socket.emit("assign-student-number-result", {
-        success: true,
-        student_number,
-        message: "Student number assigned successfully.",
-      });
-
-      //  Fetch company name dynamically
-      const [[company]] = await db.query(
-        "SELECT company_name FROM company_settings WHERE id = 1",
-      );
-
-      const companyName = company?.company_name || "Enrollment Office";
-      const companyShort = company?.short_term || "";
-
-      //  Send welcome email
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
-        },
-      });
-
-      const mailOptions = {
-        from: `"${companyShort} Enrollment Office" <${process.env.EMAIL_USER}>`,
-        to: emailAddress,
-        subject: `� Welcome to ${companyName} - Acceptance Confirmation`,
-        text: `
+        const mailOptions = {
+          from: `"${companyShort} Enrollment Office" <${process.env.EMAIL_USER}>`,
+          to: emailAddress,
+          subject: `� Welcome to ${companyName} - Acceptance Confirmation`,
+          text: `
           Hi, ${first_name} ${middle_name || ""} ${last_name},
 
            Congratulations! You are now officially accepted and part of the ${companyName} community.
@@ -779,152 +784,152 @@ WHERE proctor LIKE ?
           � Click the link below to log in:
           ${process.env.DB_HOST_LOCAL}:5173/login
           `.trim(),
-      };
+        };
 
-      //  Send email (non-blocking)
-      transporter.sendMail(mailOptions).catch(console.error);
+        //  Send email (non-blocking)
+        transporter.sendMail(mailOptions).catch(console.error);
 
-      await db.query(
-        `UPDATE user_accounts SET status = 0 WHERE person_id = ?`,
-        [person_id],
-      );
-    } catch (error) {
-      console.error("Error in assign-student-number:", error);
-      socket.emit("assign-student-number-result", {
-        success: false,
-        message: "Internal server error.",
-      });
-    }
+        await db.query(
+          `UPDATE user_accounts SET status = 0 WHERE person_id = ?`,
+          [person_id],
+        );
+      } catch (error) {
+        console.error("Error in assign-student-number:", error);
+        socket.emit("assign-student-number-result", {
+          success: false,
+          message: "Internal server error.",
+        });
+      }
+    });
   });
-});
 
-// ---------------- Email Sender (same message format as student/faculty/applicant) ----------------
-async function sendResetEmail(to, tempPassword, shortTerm) {
-  try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+  // ---------------- Email Sender (same message format as student/faculty/applicant) ----------------
+  async function sendResetEmail(to, tempPassword, shortTerm) {
+    try {
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
 
-    await transporter.sendMail({
-      from: `"${shortTerm} - Information System" <${process.env.EMAIL_USER}>`,
-      to,
-      subject: "Your Password has Reset",
-      text: `Your new temporary password is: ${tempPassword}\n\nPlease change it after logging in.`,
-    });
+      await transporter.sendMail({
+        from: `"${shortTerm} - Information System" <${process.env.EMAIL_USER}>`,
+        to,
+        subject: "Your Password has Reset",
+        text: `Your new temporary password is: ${tempPassword}\n\nPlease change it after logging in.`,
+      });
 
-    console.log(`${shortTerm} reset email sent to ${to}`);
-  } catch (emailErr) {
-    console.error("Email send error:", emailErr);
-  }
-}
-
-app.post("/forgot-password", async (req, res) => {
-  const { email, identifier } = req.body;
-
-  if (!email || !identifier) {
-    return res.status(400).json({ message: "Email and ID are required" });
+      console.log(`${shortTerm} reset email sent to ${to}`);
+    } catch (emailErr) {
+      console.error("Email send error:", emailErr);
+    }
   }
 
-  const generateTempPassword = () => {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    return Array.from({ length: 8 }, () =>
-      chars.charAt(Math.floor(Math.random() * chars.length))
-    ).join("");
-  };
+  app.post("/forgot-password", async (req, res) => {
+    const { email, identifier } = req.body;
 
-  const newPassword = generateTempPassword();
-  const hashedPassword = await bcrypt.hash(newPassword, 10);
+    if (!email || !identifier) {
+      return res.status(400).json({ message: "Email and ID are required" });
+    }
 
-  try {
-    const [company] = await db.query(
-      "SELECT short_term FROM company_settings WHERE id = 1"
-    );
-    const shortTerm = company?.[0]?.short_term || "Institution";
+    const generateTempPassword = () => {
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      return Array.from({ length: 8 }, () =>
+        chars.charAt(Math.floor(Math.random() * chars.length))
+      ).join("");
+    };
 
-    // =========================
-    // 1?? STUDENT (student_number + email)
-    // =========================
-    const [studentCheck] = await db3.query(
-      `SELECT ua.id 
+    const newPassword = generateTempPassword();
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    try {
+      const [company] = await db.query(
+        "SELECT short_term FROM company_settings WHERE id = 1"
+      );
+      const shortTerm = company?.[0]?.short_term || "Institution";
+
+      // =========================
+      // 1?? STUDENT (student_number + email)
+      // =========================
+      const [studentCheck] = await db3.query(
+        `SELECT ua.id 
        FROM user_accounts ua
        JOIN student_numbering_table snt 
          ON ua.person_id = snt.person_id
        WHERE ua.email = ? AND snt.student_number = ? AND ua.role = 'student'`,
-      [email, identifier]
-    );
-
-    if (studentCheck.length > 0) {
-      await db3.query(
-        "UPDATE user_accounts SET password = ? WHERE id = ?",
-        [hashedPassword, studentCheck[0].id]
+        [email, identifier]
       );
 
-      await sendResetEmail(email, newPassword, shortTerm);
+      if (studentCheck.length > 0) {
+        await db3.query(
+          "UPDATE user_accounts SET password = ? WHERE id = ?",
+          [hashedPassword, studentCheck[0].id]
+        );
 
-      return res.json({
-        message: `${shortTerm} (Student) password reset successfully.`,
-      });
-    }
+        await sendResetEmail(email, newPassword, shortTerm);
 
-    // =========================
-    // 2?? REGISTRAR (employee_id + email)
-    // =========================
-    const [registrarResult] = await db3.query(
-      `UPDATE user_accounts 
+        return res.json({
+          message: `${shortTerm} (Student) password reset successfully.`,
+        });
+      }
+
+      // =========================
+      // 2?? REGISTRAR (employee_id + email)
+      // =========================
+      const [registrarResult] = await db3.query(
+        `UPDATE user_accounts 
        SET password = ? 
        WHERE email = ? AND employee_id = ? AND role = 'registrar'`,
-      [hashedPassword, email, identifier]
-    );
+        [hashedPassword, email, identifier]
+      );
 
-    if (registrarResult.affectedRows > 0) {
-      await sendResetEmail(email, newPassword, shortTerm);
+      if (registrarResult.affectedRows > 0) {
+        await sendResetEmail(email, newPassword, shortTerm);
 
-      return res.json({
-        message: `${shortTerm} (Registrar) password reset successfully.`,
-      });
-    }
+        return res.json({
+          message: `${shortTerm} (Registrar) password reset successfully.`,
+        });
+      }
 
-    // =========================
-    // 3?? FACULTY (employee_id + email)
-    // =========================
-    const [facultyResult] = await db3.query(
-      `UPDATE prof_table 
+      // =========================
+      // 3?? FACULTY (employee_id + email)
+      // =========================
+      const [facultyResult] = await db3.query(
+        `UPDATE prof_table 
        SET password = ? 
        WHERE email = ? AND employee_id = ? AND role = 'faculty'`,
-      [hashedPassword, email, identifier]
-    );
+        [hashedPassword, email, identifier]
+      );
 
-    if (facultyResult.affectedRows > 0) {
-      await sendResetEmail(email, newPassword, shortTerm);
+      if (facultyResult.affectedRows > 0) {
+        await sendResetEmail(email, newPassword, shortTerm);
 
-      return res.json({
-        message: `${shortTerm} (Faculty) password reset successfully.`,
+        return res.json({
+          message: `${shortTerm} (Faculty) password reset successfully.`,
+        });
+      }
+
+      // =========================
+      // ? NOT FOUND
+      // =========================
+      return res.status(404).json({
+        message: `${shortTerm} account not found. Check your credentials.`,
       });
+
+    } catch (err) {
+      console.error("Forgot password error:", err);
+      res.status(500).json({ message: "Internal server error" });
     }
+  });
 
-    // =========================
-    // ? NOT FOUND
-    // =========================
-    return res.status(404).json({
-      message: `${shortTerm} account not found. Check your credentials.`,
-    });
+  app.get("/api/exam-schedule/:applicant_number", async (req, res) => {
+    const { applicant_number } = req.params;
 
-  } catch (err) {
-    console.error("Forgot password error:", err);
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
-
-app.get("/api/exam-schedule/:applicant_number", async (req, res) => {
-  const { applicant_number } = req.params;
-
-  try {
-    const [rows] = await db.query(
-      `
+    try {
+      const [rows] = await db.query(
+        `
       SELECT
         s.day_description AS date_of_exam,
         s.start_time,
@@ -939,35 +944,35 @@ app.get("/api/exam-schedule/:applicant_number", async (req, res) => {
       WHERE ea.applicant_id = ?
       LIMIT 1
     `,
-      [applicant_number],
-    );
+        [applicant_number],
+      );
 
-    if (rows.length === 0) {
-      return res.status(404).json({ message: "No exam schedule found" });
+      if (rows.length === 0) {
+        return res.status(404).json({ message: "No exam schedule found" });
+      }
+
+      res.json(rows[0]);
+    } catch (err) {
+      console.error("Error fetching exam schedule:", err);
+      res.status(500).json({ error: "Database error" });
     }
+  });
 
-    res.json(rows[0]);
-  } catch (err) {
-    console.error("Error fetching exam schedule:", err);
-    res.status(500).json({ error: "Database error" });
-  }
-});
+  app.get("/day_list", async (req, res) => {
+    try {
+      const [results] = await db.query(
+        "SELECT DISTINCT day_description FROM entrance_exam_schedule ORDER BY FIELD(day_description, 'Monday','Tuesday','Wednesday','Thursday','Friday')",
+      );
+      res.json(results);
+    } catch (err) {
+      console.error("Error fetching days:", err);
+      res.status(500).json({ error: "Database error" });
+    }
+  });
 
-app.get("/day_list", async (req, res) => {
-  try {
-    const [results] = await db.query(
-      "SELECT DISTINCT day_description FROM entrance_exam_schedule ORDER BY FIELD(day_description, 'Monday','Tuesday','Wednesday','Thursday','Friday')",
-    );
-    res.json(results);
-  } catch (err) {
-    console.error("Error fetching days:", err);
-    res.status(500).json({ error: "Database error" });
-  }
-});
-
-app.get("/api/interview/applicants-with-number", async (req, res) => {
-  try {
-    const [rows] = await db.query(`
+  app.get("/api/interview/applicants-with-number", async (req, res) => {
+    try {
+      const [rows] = await db.query(`
       SELECT
         p.person_id,
         a.applicant_number,
@@ -987,255 +992,338 @@ app.get("/api/interview/applicants-with-number", async (req, res) => {
         ON a.person_id = p.person_id
       ORDER BY p.last_name, p.first_name
     `);
-    res.json(rows);
-  } catch (err) {
-    console.error(" Error fetching interview applicants:", err);
-    res.status(500).json({ error: "Failed to fetch interview applicants" });
-  }
-});
+      res.json(rows);
+    } catch (err) {
+      console.error(" Error fetching interview applicants:", err);
+      res.status(500).json({ error: "Failed to fetch interview applicants" });
+    }
+  });
 
-app.get("/api/interview/not-emailed-applicants", async (req, res) => {
-  try {
-    const [rows] = await db.query(`
-      SELECT
+  app.get("/api/interview/not-emailed-applicants", async (req, res) => {
+    try {
+
+      // ✅ subjects (dynamic)
+      const [subjects] = await db.query(`
+      SELECT id, name, max_score
+      FROM subjects
+      WHERE is_active = 1
+      ORDER BY id ASC
+    `);
+
+      // ✅ main applicant data
+      const [rows] = await db.query(`
+      SELECT DISTINCT
         p.person_id,
         p.applyingAs,
         p.last_name,
         p.first_name,
-        p.campus,
         p.middle_name,
         p.extension,
         p.emailAddress,
         p.program,
+        p.campus,
         p.created_at,
+
         a.applicant_number,
         SUBSTRING(a.applicant_number, 5, 1) AS middle_code,
+
         ia.schedule_id,
         ia.email_sent,
+
+        -- schedule details
         ies.day_description,
         ies.room_description,
         ies.start_time,
         ies.end_time,
         ies.interviewer,
+
+        -- interview status
         ps.interview_status,
-        --  exam scores
-        ae.English,
-        ae.Science,
-        ae.Filipino,
-        ae.Math,
-        ae.Abstract,
-        ae.final_rating   --  bring in the computed rating
+
+        -- exam results (NO hardcoded subjects anymore)
+        er.id AS exam_result_id,
+        er.total_score,
+        er.percentage,
+        er.final_rating,
+        er.status
+
       FROM interview_applicants ia
+
       LEFT JOIN applicant_numbering_table a
         ON ia.applicant_id = a.applicant_number
+
       LEFT JOIN person_table p
         ON a.person_id = p.person_id
+
       LEFT JOIN interview_exam_schedule ies
         ON ia.schedule_id = ies.schedule_id
+
       LEFT JOIN person_status_table ps
         ON ps.person_id = p.person_id
-      LEFT JOIN admission_exam ae       --  join exam results
-        ON ae.person_id = p.person_id
+
+      LEFT JOIN exam_results er
+        ON p.person_id = er.person_id
+
+      LEFT JOIN exam_applicants ea
+        ON a.applicant_number = ea.applicant_id
+
       WHERE (ia.email_sent = 0 OR ia.email_sent IS NULL)
+
       ORDER BY p.last_name ASC, p.first_name ASC
     `);
 
-    res.json(rows);
-  } catch (err) {
-    console.error(" Error fetching interview not-emailed applicants:", err);
-    res.status(500).send("Server error");
-  }
-});
+      // ✅ exam details (per subject)
+      const [details] = await db.query(`
+      SELECT exam_result_id, subject_id, score
+      FROM exam_result_details
+    `);
 
-app.put("/api/exam/remove_applicant", async (req, res) => {
-  try {
-    const { applicant_id } = req.body;
+      // ✅ merge dynamic subject scores into each applicant
+      const formatted = rows.map(row => {
 
-    if (!applicant_id) {
-      return res.status(400).json({ message: "Missing applicant_id" });
-    }
+        const scores = {};
 
-    // 1� Reset exam_applicants table
-    await db.query(
-      `UPDATE exam_applicants
-       SET schedule_id = NULL, email_sent = 0
-       WHERE applicant_id = ?`,
-      [applicant_id],
-    );
-
-    // 2� Reset person_status_table exam_status
-    await db.query(
-      `UPDATE person_status_table
-       SET exam_status = NULL
-       WHERE applicant_id = ?`,
-      [applicant_id],
-    );
-
-    res.json({ message: "Applicant removed from exam schedule successfully." });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-app.put("/api/interview/remove_applicant", async (req, res) => {
-  try {
-    const { applicant_id } = req.body;
-
-    if (!applicant_id) {
-      return res.status(400).json({ message: "Missing applicant_id" });
-    }
-
-    // 1� Reset interview_applicants table
-    await db.query(
-      `UPDATE interview_applicants
-       SET schedule_id = NULL, email_sent = 0
-       WHERE applicant_id = ?`,
-      [applicant_id],
-    );
-
-    // 2� Reset person_status_table INTERVIEW STATUS
-    await db.query(
-      `UPDATE person_status_table
-       SET interview_status = NULL
-       WHERE applicant_id = ?`,
-      [applicant_id],
-    );
-
-    res.json({ message: "Applicant interview schedule removed successfully." });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-// ================== INTERVIEW SOCKET EVENTS ==================
-io.on("connection", (socket) => {
-  console.log(" New client connected for Interview Scheduling");
-
-  // Assign applicants (single, 40, custom  all handled here)
-  socket.on(
-    "update_interview_schedule",
-    async ({ schedule_id, applicant_numbers }) => {
-      try {
-        if (
-          !Array.isArray(applicant_numbers) ||
-          applicant_numbers.length === 0
-        ) {
-          socket.emit("update_schedule_result", {
-            success: false,
-            error: "No applicants provided.",
-          });
-          return;
-        }
-
-        // � 1. Get schedule info (quota)
-        const [[schedule]] = await db.query(
-          `SELECT room_quota FROM interview_exam_schedule WHERE schedule_id = ?`,
-          [schedule_id],
-        );
-
-        if (!schedule) {
-          socket.emit("update_schedule_result", {
-            success: false,
-            error: "Schedule not found.",
-          });
-          return;
-        }
-
-        // � 2. Get current occupancy
-        const [[{ current_count }]] = await db.query(
-          `SELECT COUNT(*) AS current_count FROM interview_applicants WHERE schedule_id = ?`,
-          [schedule_id],
-        );
-
-        const availableSlots = schedule.room_quota - current_count;
-        if (availableSlots <= 0) {
-          socket.emit("update_schedule_result", {
-            success: false,
-            error: `Schedule is already full (${schedule.room_quota} applicants).`,
-          });
-          return;
-        }
-
-        // � 3. Trim applicant_numbers if more than available slots
-        const toAssign = applicant_numbers.slice(0, availableSlots);
-
-        //  4. Update only those applicants
-        const [results] = await db.query(
-          `UPDATE interview_applicants
-         SET schedule_id = ?
-         WHERE applicant_id IN (?)`,
-          [schedule_id, toAssign],
-        );
-
-        socket.emit("update_schedule_result", {
-          success: true,
-          assigned: toAssign,
-          updated: results.affectedRows,
-          skipped: applicant_numbers.length - toAssign.length,
+        // initialize all subjects
+        subjects.forEach(sub => {
+          scores[sub.id] = 0;
         });
 
-        // � notify all clients
-        io.emit("schedule_updated", { schedule_id });
-      } catch (err) {
-        console.error(" Error updating interview schedule:", err);
-        socket.emit("update_schedule_result", {
-          success: false,
-          error: "Failed to update interview schedule.",
-        });
-      }
-    },
-  );
+        // fill actual scores
+        details
+          .filter(d => d.exam_result_id === row.exam_result_id)
+          .forEach(d => {
+            scores[d.subject_id] = Number(d.score);
+          });
 
-  // Unassign ALL
-  socket.on("unassign_all_from_interview", async ({ schedule_id }) => {
-    try {
-      await db.query(
-        `UPDATE interview_applicants
-         SET schedule_id = NULL
-         WHERE schedule_id = ?`,
-        [schedule_id],
-      );
-      socket.emit("unassign_all_result", {
-        success: true,
-        message: "All applicants unassigned.",
+        // compute total
+        const total = Object.values(scores).reduce((sum, v) => sum + v, 0);
+
+        const maxTotal = subjects.reduce(
+          (sum, s) => sum + Number(s.max_score || 0),
+          0
+        );
+
+        const percentage =
+          row.percentage ??
+          (maxTotal > 0 ? (total / maxTotal) * 100 : 0);
+
+        const final_rating =
+          row.final_rating ??
+          (subjects.length > 0 ? total / subjects.length : 0);
+
+        return {
+          ...row,
+
+          // keep old-style compatibility if frontend still expects it
+          total_score: row.total_score ?? total,
+          percentage,
+          final_rating,
+
+          // NEW dynamic structure
+          scores,
+        };
       });
-      io.emit("schedule_updated", { schedule_id });
+
+      res.json({
+        subjects,
+        data: formatted
+      });
+
     } catch (err) {
-      console.error(" Error unassigning all interview applicants:", err);
-      socket.emit("unassign_all_result", {
-        success: false,
-        error: "Failed to unassign all applicants.",
-      });
+      console.error("Error fetching interview applicants:", err);
+      res.status(500).json({ error: "Failed to fetch interview applicants" });
     }
   });
 
-  function formatTime(timeStr) {
-    if (!timeStr) return "";
-    const [hours, minutes] = timeStr.split(":"); // ignore seconds
-    let h = parseInt(hours, 10);
-    const ampm = h >= 12 ? "PM" : "AM";
-    h = h % 12 || 12; // convert 0 -> 12
-    return `${h}:${minutes} ${ampm}`;
-  }
+  app.put("/api/exam/remove_applicant", async (req, res) => {
+    try {
+      const { applicant_id } = req.body;
 
-  //  Handle sending interview schedule emails
-  //  Handle sending interview schedule emails
-  socket.on(
-    "send_interview_emails",
-    async ({
-      schedule_id,
-      applicant_numbers,
-      subject: finalSubject,
-      senderName,
-      message,
-      user_person_id,
-    }) => {
+      if (!applicant_id) {
+        return res.status(400).json({ message: "Missing applicant_id" });
+      }
+
+      // 1� Reset exam_applicants table
+      await db.query(
+        `UPDATE exam_applicants
+       SET schedule_id = NULL, email_sent = 0
+       WHERE applicant_id = ?`,
+        [applicant_id],
+      );
+
+      // 2� Reset person_status_table exam_status
+      await db.query(
+        `UPDATE person_status_table
+       SET exam_status = NULL
+       WHERE applicant_id = ?`,
+        [applicant_id],
+      );
+
+      res.json({ message: "Applicant removed from exam schedule successfully." });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.put("/api/interview/remove_applicant", async (req, res) => {
+    try {
+      const { applicant_id } = req.body;
+
+      if (!applicant_id) {
+        return res.status(400).json({ message: "Missing applicant_id" });
+      }
+
+      // 1� Reset interview_applicants table
+      await db.query(
+        `UPDATE interview_applicants
+       SET schedule_id = NULL, email_sent = 0
+       WHERE applicant_id = ?`,
+        [applicant_id],
+      );
+
+      // 2� Reset person_status_table INTERVIEW STATUS
+      await db.query(
+        `UPDATE person_status_table
+       SET interview_status = NULL
+       WHERE applicant_id = ?`,
+        [applicant_id],
+      );
+
+      res.json({ message: "Applicant interview schedule removed successfully." });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // ================== INTERVIEW SOCKET EVENTS ==================
+  io.on("connection", (socket) => {
+    console.log(" New client connected for Interview Scheduling");
+
+    // Assign applicants (single, 40, custom  all handled here)
+    socket.on(
+      "update_interview_schedule",
+      async ({ schedule_id, applicant_numbers }) => {
+        try {
+          if (
+            !Array.isArray(applicant_numbers) ||
+            applicant_numbers.length === 0
+          ) {
+            socket.emit("update_schedule_result", {
+              success: false,
+              error: "No applicants provided.",
+            });
+            return;
+          }
+
+          // � 1. Get schedule info (quota)
+          const [[schedule]] = await db.query(
+            `SELECT room_quota FROM interview_exam_schedule WHERE schedule_id = ?`,
+            [schedule_id],
+          );
+
+          if (!schedule) {
+            socket.emit("update_schedule_result", {
+              success: false,
+              error: "Schedule not found.",
+            });
+            return;
+          }
+
+          // � 2. Get current occupancy
+          const [[{ current_count }]] = await db.query(
+            `SELECT COUNT(*) AS current_count FROM interview_applicants WHERE schedule_id = ?`,
+            [schedule_id],
+          );
+
+          const availableSlots = schedule.room_quota - current_count;
+          if (availableSlots <= 0) {
+            socket.emit("update_schedule_result", {
+              success: false,
+              error: `Schedule is already full (${schedule.room_quota} applicants).`,
+            });
+            return;
+          }
+
+          // � 3. Trim applicant_numbers if more than available slots
+          const toAssign = applicant_numbers.slice(0, availableSlots);
+
+          //  4. Update only those applicants
+          const [results] = await db.query(
+            `UPDATE interview_applicants
+         SET schedule_id = ?
+         WHERE applicant_id IN (?)`,
+            [schedule_id, toAssign],
+          );
+
+          socket.emit("update_schedule_result", {
+            success: true,
+            assigned: toAssign,
+            updated: results.affectedRows,
+            skipped: applicant_numbers.length - toAssign.length,
+          });
+
+          // � notify all clients
+          io.emit("schedule_updated", { schedule_id });
+        } catch (err) {
+          console.error(" Error updating interview schedule:", err);
+          socket.emit("update_schedule_result", {
+            success: false,
+            error: "Failed to update interview schedule.",
+          });
+        }
+      },
+    );
+
+    // Unassign ALL
+    socket.on("unassign_all_from_interview", async ({ schedule_id }) => {
       try {
-        //  Fetch applicants linked to the interview schedule
-        const [rows] = await db.query(
-          `SELECT
+        await db.query(
+          `UPDATE interview_applicants
+         SET schedule_id = NULL
+         WHERE schedule_id = ?`,
+          [schedule_id],
+        );
+        socket.emit("unassign_all_result", {
+          success: true,
+          message: "All applicants unassigned.",
+        });
+        io.emit("schedule_updated", { schedule_id });
+      } catch (err) {
+        console.error(" Error unassigning all interview applicants:", err);
+        socket.emit("unassign_all_result", {
+          success: false,
+          error: "Failed to unassign all applicants.",
+        });
+      }
+    });
+
+    function formatTime(timeStr) {
+      if (!timeStr) return "";
+      const [hours, minutes] = timeStr.split(":"); // ignore seconds
+      let h = parseInt(hours, 10);
+      const ampm = h >= 12 ? "PM" : "AM";
+      h = h % 12 || 12; // convert 0 -> 12
+      return `${h}:${minutes} ${ampm}`;
+    }
+
+    //  Handle sending interview schedule emails
+    //  Handle sending interview schedule emails
+    socket.on(
+      "send_interview_emails",
+      async ({
+        schedule_id,
+        applicant_numbers,
+        subject: finalSubject,
+        senderName,
+        message,
+        user_person_id,
+      }) => {
+        try {
+          //  Fetch applicants linked to the interview schedule
+          const [rows] = await db.query(
+            `SELECT
             ia.schedule_id,
             s.day_description,
             s.building_description,
@@ -1262,28 +1350,28 @@ io.on("connection", (socket) => {
             ON dct.dprtmnt_id = dt.dprtmnt_id
           WHERE ia.schedule_id = ?
           AND an.applicant_number IN (?)`,
-          [schedule_id, applicant_numbers],
-        );
+            [schedule_id, applicant_numbers],
+          );
 
-        if (rows.length === 0) {
-          return socket.emit("send_schedule_emails_result", {
-            success: false,
-            error: "No applicants found for this interview schedule.",
-          });
-        }
+          if (rows.length === 0) {
+            return socket.emit("send_schedule_emails_result", {
+              success: false,
+              error: "No applicants found for this interview schedule.",
+            });
+          }
 
-        const [[company]] = await db.query(
-          "SELECT short_term FROM company_settings WHERE id = 1",
-        );
+          const [[company]] = await db.query(
+            "SELECT short_term FROM company_settings WHERE id = 1",
+          );
 
-        const shortTerm = company?.short_term || "EARIST";
+          const shortTerm = company?.short_term || "EARIST";
 
-        const finalSubjectComputed =
-          finalSubject || rows[0]?.dprtmnt_name || "Interview Schedule";
+          const finalSubjectComputed =
+            finalSubject || rows[0]?.dprtmnt_name || "Interview Schedule";
 
-        //  Use db3 (enrollment) �� user_accounts instead of prof
-        const [actorRows] = await db3.query(
-          `SELECT
+          //  Use db3 (enrollment) �� user_accounts instead of prof
+          const [actorRows] = await db3.query(
+            `SELECT
             email AS actor_email,
             role,
             employee_id,
@@ -1293,143 +1381,143 @@ io.on("connection", (socket) => {
           FROM user_accounts
           WHERE person_id = ?
           LIMIT 1`,
-          [user_person_id],
-        );
+            [user_person_id],
+          );
 
-        const actor = actorRows[0] || null;
+          const actor = actorRows[0] || null;
 
-        //  Format: ROLE (EMPLOYEE_ID) - LastName, FirstName MiddleName
-        const actorEmail = actor?.actor_email || "earistmis@gmail.com";
-        const actorName = actor
-          ? `${actor.role.toUpperCase()} (${actor.employee_id || "N/A"}) - ${actor.last_name}, ${actor.first_name}${actor.middle_name ? " " + actor.middle_name : ""}`
-          : "SYSTEM";
+          //  Format: ROLE (EMPLOYEE_ID) - LastName, FirstName MiddleName
+          const actorEmail = actor?.actor_email || "earistmis@gmail.com";
+          const actorName = actor
+            ? `${actor.role.toUpperCase()} (${actor.employee_id || "N/A"}) - ${actor.last_name}, ${actor.first_name}${actor.middle_name ? " " + actor.middle_name : ""}`
+            : "SYSTEM";
 
-        const sent = [];
-        const failed = [];
+          const sent = [];
+          const failed = [];
 
-        const [userEmail] = await db.query(
-          `SELECT sender_name FROM email_templates WHERE employee_id = ?`,
-          [actor?.employee_id || null],
-        );
+          const [userEmail] = await db.query(
+            `SELECT sender_name FROM email_templates WHERE employee_id = ?`,
+            [actor?.employee_id || null],
+          );
 
-        if (userEmail.length === 0) {
-          throw new Error("User not assigned to college email.");
-        }
-
-        const user = userEmail[0];
-
-        const senderAccountMap = {
-          CCS_EMAIL_USER1: {
-            user: process.env.CCS_EMAIL_USER1,
-            pass: process.env.CCS_EMAIL_PASS1,
-          },
-          CCS_EMAIL_USER2: {
-            user: process.env.CCS_EMAIL_USER2,
-            pass: process.env.CCS_EMAIL_PASS2,
-          },
-        };
-
-        const senderAccount = senderAccountMap[user.sender_name] || {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
-        };
-
-        if (!senderAccount.user || !senderAccount.pass) {
-          throw new Error("Email sender account is not configured.");
-        }
-
-        const transporter = nodemailer.createTransport({
-          service: "gmail",
-          auth: senderAccount,
-        });
-
-        for (const row of rows) {
-          if (!row.emailAddress) {
-            failed.push(row.applicant_number);
-            continue;
+          if (userEmail.length === 0) {
+            throw new Error("User not assigned to college email.");
           }
 
-          const formattedStart = formatTime(row.start_time);
-          const formattedEnd = formatTime(row.end_time);
+          const user = userEmail[0];
 
-          const personalizedMsg = message
-            .replace(/{first_name}/g, row.first_name || "")
-            .replace(/{middle_name}/g, row.middle_name || "")
-            .replace(/{last_name}/g, row.last_name || "")
-            .replace(/{applicant_number}/g, row.applicant_number)
-            .replace(/{day}/g, row.day_description)
-            .replace(/{room}/g, row.room_description)
-            .replace(/{start_time}/g, formattedStart)
-            .replace(/{end_time}/g, formattedEnd);
-
-          const mailOptions = {
-            from: `${shortTerm} - ${row.dprtmnt_name} <${senderAccount.user}>`,
-            to: row.emailAddress,
-            subject: finalSubjectComputed,
-            text: personalizedMsg,
+          const senderAccountMap = {
+            CCS_EMAIL_USER1: {
+              user: process.env.CCS_EMAIL_USER1,
+              pass: process.env.CCS_EMAIL_PASS1,
+            },
+            CCS_EMAIL_USER2: {
+              user: process.env.CCS_EMAIL_USER2,
+              pass: process.env.CCS_EMAIL_PASS2,
+            },
           };
 
-          await transporter.sendMail(mailOptions);
+          const senderAccount = senderAccountMap[user.sender_name] || {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+          };
 
-          try {
-            // Mark applicant email sent
-            await db.query(
-              "UPDATE interview_applicants SET email_sent = 1 WHERE applicant_id = ?",
-              [row.applicant_number],
-            );
-
-            // Insert notification log
-            await db.query(
-              `INSERT INTO notifications (type, message, applicant_number, actor_email, actor_name, timestamp)
-           VALUES (?, ?, ?, ?, ?, NOW())`,
-              [
-                "email",
-                `� Interview schedule email sent for Applicant #${row.applicant_number} (Schedule #${row.schedule_id})`,
-                row.applicant_number,
-                actorEmail,
-                actorName,
-              ],
-            );
-
-            sent.push(row.applicant_number);
-          } catch (err) {
-            console.error(
-              ` Failed to send interview email to ${row.emailAddress}:`,
-              err.message,
-            );
-            await db.query(
-              "UPDATE interview_applicants SET email_sent = -1 WHERE applicant_id = ?",
-              [row.applicant_number],
-            );
-            failed.push(row.applicant_number);
+          if (!senderAccount.user || !senderAccount.pass) {
+            throw new Error("Email sender account is not configured.");
           }
+
+          const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: senderAccount,
+          });
+
+          for (const row of rows) {
+            if (!row.emailAddress) {
+              failed.push(row.applicant_number);
+              continue;
+            }
+
+            const formattedStart = formatTime(row.start_time);
+            const formattedEnd = formatTime(row.end_time);
+
+            const personalizedMsg = message
+              .replace(/{first_name}/g, row.first_name || "")
+              .replace(/{middle_name}/g, row.middle_name || "")
+              .replace(/{last_name}/g, row.last_name || "")
+              .replace(/{applicant_number}/g, row.applicant_number)
+              .replace(/{day}/g, row.day_description)
+              .replace(/{room}/g, row.room_description)
+              .replace(/{start_time}/g, formattedStart)
+              .replace(/{end_time}/g, formattedEnd);
+
+            const mailOptions = {
+              from: `${shortTerm} - ${row.dprtmnt_name} <${senderAccount.user}>`,
+              to: row.emailAddress,
+              subject: finalSubjectComputed,
+              text: personalizedMsg,
+            };
+
+            await transporter.sendMail(mailOptions);
+
+            try {
+              // Mark applicant email sent
+              await db.query(
+                "UPDATE interview_applicants SET email_sent = 1 WHERE applicant_id = ?",
+                [row.applicant_number],
+              );
+
+              // Insert notification log
+              await db.query(
+                `INSERT INTO notifications (type, message, applicant_number, actor_email, actor_name, timestamp)
+           VALUES (?, ?, ?, ?, ?, NOW())`,
+                [
+                  "email",
+                  `� Interview schedule email sent for Applicant #${row.applicant_number} (Schedule #${row.schedule_id})`,
+                  row.applicant_number,
+                  actorEmail,
+                  actorName,
+                ],
+              );
+
+              sent.push(row.applicant_number);
+            } catch (err) {
+              console.error(
+                ` Failed to send interview email to ${row.emailAddress}:`,
+                err.message,
+              );
+              await db.query(
+                "UPDATE interview_applicants SET email_sent = -1 WHERE applicant_id = ?",
+                [row.applicant_number],
+              );
+              failed.push(row.applicant_number);
+            }
+          }
+
+          // Emit result to frontend
+          socket.emit("send_schedule_emails_result", {
+            success: true,
+            sent,
+            failed,
+            message: `Interview emails processed: Sent=${sent.length}, Failed=${failed.length}`,
+          });
+
+          // Notify all clients to refresh
+          io.emit("schedule_updated", { schedule_id });
+        } catch (err) {
+          console.error("Error in send_interview_emails:", err);
+          socket.emit("send_schedule_emails_result", {
+            success: false,
+            error: "Server error sending interview emails.",
+          });
         }
+      },
+    );
+  });
 
-        // Emit result to frontend
-        socket.emit("send_schedule_emails_result", {
-          success: true,
-          sent,
-          failed,
-          message: `Interview emails processed: Sent=${sent.length}, Failed=${failed.length}`,
-        });
-
-        // Notify all clients to refresh
-        io.emit("schedule_updated", { schedule_id });
-      } catch (err) {
-        console.error("Error in send_interview_emails:", err);
-        socket.emit("send_schedule_emails_result", {
-          success: false,
-          error: "Server error sending interview emails.",
-        });
-      }
-    },
-  );
-});
-
-// ================== INSERT EXAM SCHEDULE ==================
-app.get("/exam_schedules", async (req, res) => {
-  try {
-    const [rows] = await db.query(`
+  // ================== INSERT EXAM SCHEDULE ==================
+  app.get("/exam_schedules", async (req, res) => {
+    try {
+      const [rows] = await db.query(`
       SELECT
         s.schedule_id,
         s.branch,
@@ -1446,112 +1534,20 @@ app.get("/exam_schedules", async (req, res) => {
       GROUP BY s.schedule_id
       ORDER BY s.schedule_id DESC
     `);
-    res.json(rows);
-  } catch (err) {
-    console.error("Error fetching schedules:", err);
-    res.status(500).json({ error: "Database error" });
-  }
-});
-
-io.on("connection", (socket) => {
-  console.log(" Socket.IO client connected");
-
-  // ENTRANCE EXAM
-  socket.on("update_schedule", async ({ schedule_id, applicant_numbers }) => {
-    try {
-      console.log(schedule_id);
-      if (
-        !schedule_id ||
-        !applicant_numbers ||
-        applicant_numbers.length === 0
-      ) {
-        return socket.emit("update_schedule_result", {
-          success: false,
-          error: "Schedule ID and applicants required.",
-        });
-      }
-
-      //  Get room quota
-      const [[scheduleInfo]] = await db.query(
-        `SELECT room_quota FROM entrance_exam_schedule WHERE schedule_id = ?`,
-        [schedule_id],
-      );
-      if (!scheduleInfo) {
-        return socket.emit("update_schedule_result", {
-          success: false,
-          error: "Schedule not found.",
-        });
-      }
-      const roomQuota = scheduleInfo.room_quota;
-
-      //  Count how many are already assigned
-      const [[{ currentCount }]] = await db.query(
-        `SELECT COUNT(*) AS currentCount FROM exam_applicants WHERE schedule_id = ?`,
-        [schedule_id],
-      );
-
-      // If total would exceed quota, reject
-      if (currentCount + applicant_numbers.length > roomQuota) {
-        return socket.emit("update_schedule_result", {
-          success: false,
-          error: `Room quota exceeded! Capacity: ${roomQuota}, Currently Assigned: ${currentCount}, Trying to add: ${applicant_numbers.length}.`,
-        });
-      }
-
-      const assigned = [];
-      const updated = [];
-      const skipped = [];
-
-      for (const applicant_number of applicant_numbers) {
-        const [check] = await db.query(
-          `SELECT * FROM exam_applicants WHERE applicant_id = ?`,
-          [applicant_number],
-        );
-
-        if (check.length > 0) {
-          if (check[0].schedule_id === schedule_id) {
-            skipped.push(applicant_number); // already in this schedule
-          } else {
-            await db.query(
-              `UPDATE exam_applicants SET schedule_id = ? WHERE applicant_id = ?`,
-              [schedule_id, applicant_number],
-            );
-            updated.push(applicant_number);
-          }
-        } else {
-          await db.query(
-            `INSERT INTO exam_applicants (applicant_id, schedule_id) VALUES (?, ?)`,
-            [applicant_number, schedule_id],
-          );
-          assigned.push(applicant_number);
-        }
-      }
-
-      console.log(" Assigned:", assigned);
-      console.log("� Updated:", updated);
-      console.log("�� Skipped:", skipped);
-
-      socket.emit("update_schedule_result", {
-        success: true,
-        assigned,
-        updated,
-        skipped,
-      });
-    } catch (error) {
-      console.error(" Error assigning schedule:", error);
-      socket.emit("update_schedule_result", {
-        success: false,
-        error: "Failed to assign schedule.",
-      });
+      res.json(rows);
+    } catch (err) {
+      console.error("Error fetching schedules:", err);
+      res.status(500).json({ error: "Database error" });
     }
   });
 
-  // INTERVIEW EXAM
-  socket.on(
-    "update_schedule_for_interview",
-    async ({ schedule_id, applicant_numbers }) => {
+  io.on("connection", (socket) => {
+    console.log(" Socket.IO client connected");
+
+    // ENTRANCE EXAM
+    socket.on("update_schedule", async ({ schedule_id, applicant_numbers }) => {
       try {
-        console.log("For Interview: ", schedule_id);
+        console.log(schedule_id);
         if (
           !schedule_id ||
           !applicant_numbers ||
@@ -1565,7 +1561,7 @@ io.on("connection", (socket) => {
 
         //  Get room quota
         const [[scheduleInfo]] = await db.query(
-          `SELECT room_quota FROM interview_exam_schedule WHERE schedule_id = ?`,
+          `SELECT room_quota FROM entrance_exam_schedule WHERE schedule_id = ?`,
           [schedule_id],
         );
         if (!scheduleInfo) {
@@ -1578,7 +1574,7 @@ io.on("connection", (socket) => {
 
         //  Count how many are already assigned
         const [[{ currentCount }]] = await db.query(
-          `SELECT COUNT(*) AS currentCount FROM interview_applicants WHERE schedule_id = ?`,
+          `SELECT COUNT(*) AS currentCount FROM exam_applicants WHERE schedule_id = ?`,
           [schedule_id],
         );
 
@@ -1596,7 +1592,7 @@ io.on("connection", (socket) => {
 
         for (const applicant_number of applicant_numbers) {
           const [check] = await db.query(
-            `SELECT * FROM interview_applicants WHERE applicant_id = ?`,
+            `SELECT * FROM exam_applicants WHERE applicant_id = ?`,
             [applicant_number],
           );
 
@@ -1605,14 +1601,14 @@ io.on("connection", (socket) => {
               skipped.push(applicant_number); // already in this schedule
             } else {
               await db.query(
-                `UPDATE interview_applicants SET schedule_id = ? WHERE applicant_id = ?`,
+                `UPDATE exam_applicants SET schedule_id = ? WHERE applicant_id = ?`,
                 [schedule_id, applicant_number],
               );
               updated.push(applicant_number);
             }
           } else {
             await db.query(
-              `INSERT INTO interview_applicants (applicant_id, schedule_id) VALUES (?, ?)`,
+              `INSERT INTO exam_applicants (applicant_id, schedule_id) VALUES (?, ?)`,
               [applicant_number, schedule_id],
             );
             assigned.push(applicant_number);
@@ -1636,59 +1632,151 @@ io.on("connection", (socket) => {
           error: "Failed to assign schedule.",
         });
       }
-    },
-  );
+    });
 
-  function formatTime(timeStr) {
-    if (!timeStr) return "";
-    const [hours, minutes] = timeStr.split(":"); // ignore seconds
-    let h = parseInt(hours, 10);
-    const ampm = h >= 12 ? "PM" : "AM";
-    h = h % 12 || 12; // convert 0 -> 12
-    return `${h}:${minutes} ${ampm}`;
-  }
+    // INTERVIEW EXAM
+    socket.on(
+      "update_schedule_for_interview",
+      async ({ schedule_id, applicant_numbers }) => {
+        try {
+          console.log("For Interview: ", schedule_id);
+          if (
+            !schedule_id ||
+            !applicant_numbers ||
+            applicant_numbers.length === 0
+          ) {
+            return socket.emit("update_schedule_result", {
+              success: false,
+              error: "Schedule ID and applicants required.",
+            });
+          }
 
-  socket.on("send_schedule_emails", async (data) => {
-    try {
-      const { schedule_id, user_person_id, subject, message } = data;
+          //  Get room quota
+          const [[scheduleInfo]] = await db.query(
+            `SELECT room_quota FROM interview_exam_schedule WHERE schedule_id = ?`,
+            [schedule_id],
+          );
+          if (!scheduleInfo) {
+            return socket.emit("update_schedule_result", {
+              success: false,
+              error: "Schedule not found.",
+            });
+          }
+          const roomQuota = scheduleInfo.room_quota;
 
-      /* ================================
-         1� Get Actor Info
-      ================================= */
-      const [actorRows] = await db3.query(
-        `SELECT email, role, employee_id, last_name, first_name, middle_name
+          //  Count how many are already assigned
+          const [[{ currentCount }]] = await db.query(
+            `SELECT COUNT(*) AS currentCount FROM interview_applicants WHERE schedule_id = ?`,
+            [schedule_id],
+          );
+
+          // If total would exceed quota, reject
+          if (currentCount + applicant_numbers.length > roomQuota) {
+            return socket.emit("update_schedule_result", {
+              success: false,
+              error: `Room quota exceeded! Capacity: ${roomQuota}, Currently Assigned: ${currentCount}, Trying to add: ${applicant_numbers.length}.`,
+            });
+          }
+
+          const assigned = [];
+          const updated = [];
+          const skipped = [];
+
+          for (const applicant_number of applicant_numbers) {
+            const [check] = await db.query(
+              `SELECT * FROM interview_applicants WHERE applicant_id = ?`,
+              [applicant_number],
+            );
+
+            if (check.length > 0) {
+              if (check[0].schedule_id === schedule_id) {
+                skipped.push(applicant_number); // already in this schedule
+              } else {
+                await db.query(
+                  `UPDATE interview_applicants SET schedule_id = ? WHERE applicant_id = ?`,
+                  [schedule_id, applicant_number],
+                );
+                updated.push(applicant_number);
+              }
+            } else {
+              await db.query(
+                `INSERT INTO interview_applicants (applicant_id, schedule_id) VALUES (?, ?)`,
+                [applicant_number, schedule_id],
+              );
+              assigned.push(applicant_number);
+            }
+          }
+
+          console.log(" Assigned:", assigned);
+          console.log("� Updated:", updated);
+          console.log("�� Skipped:", skipped);
+
+          socket.emit("update_schedule_result", {
+            success: true,
+            assigned,
+            updated,
+            skipped,
+          });
+        } catch (error) {
+          console.error(" Error assigning schedule:", error);
+          socket.emit("update_schedule_result", {
+            success: false,
+            error: "Failed to assign schedule.",
+          });
+        }
+      },
+    );
+
+    function formatTime(timeStr) {
+      if (!timeStr) return "";
+      const [hours, minutes] = timeStr.split(":"); // ignore seconds
+      let h = parseInt(hours, 10);
+      const ampm = h >= 12 ? "PM" : "AM";
+      h = h % 12 || 12; // convert 0 -> 12
+      return `${h}:${minutes} ${ampm}`;
+    }
+
+    socket.on("send_schedule_emails", async (data) => {
+      try {
+        const { schedule_id, user_person_id, subject, message } = data;
+
+        /* ================================
+           1� Get Actor Info
+        ================================= */
+        const [actorRows] = await db3.query(
+          `SELECT email, role, employee_id, last_name, first_name, middle_name
        FROM user_accounts
        WHERE person_id = ? LIMIT 1`,
-        [user_person_id],
-      );
+          [user_person_id],
+        );
 
-      let actorEmail = "earistmis@gmail.com";
-      let actorName = "SYSTEM";
+        let actorEmail = "earistmis@gmail.com";
+        let actorName = "SYSTEM";
 
-      if (actorRows.length > 0) {
-        const u = actorRows[0];
-        actorEmail = u.email || actorEmail;
+        if (actorRows.length > 0) {
+          const u = actorRows[0];
+          actorEmail = u.email || actorEmail;
 
-        actorName = `${(u.role || "").toUpperCase()} (${u.employee_id || ""}) -
+          actorName = `${(u.role || "").toUpperCase()} (${u.employee_id || ""}) -
       ${u.last_name || ""}, ${u.first_name || ""} ${u.middle_name || ""}`.trim();
-      }
+        }
 
-      /* ================================
-         2� Office Name
-      ================================= */
-      const [[office]] = await db.query(
-        "SELECT short_term FROM company_settings WHERE id = 1",
-      );
+        /* ================================
+           2� Office Name
+        ================================= */
+        const [[office]] = await db.query(
+          "SELECT short_term FROM company_settings WHERE id = 1",
+        );
 
-      const shortTerm = office?.short_term || "EARIST";
-      const officeName = `${shortTerm} - Admission Office`;
+        const shortTerm = office?.short_term || "EARIST";
+        const officeName = `${shortTerm} - Admission Office`;
 
-      /* ================================
-         3� Get Applicants
-          FIXED JOIN HERE
-      ================================= */
-      const [rows] = await db.query(
-        `
+        /* ================================
+           3� Get Applicants
+            FIXED JOIN HERE
+        ================================= */
+        const [rows] = await db.query(
+          `
         SELECT
           ea.schedule_id,
 
@@ -1718,217 +1806,217 @@ io.on("connection", (socket) => {
         WHERE ea.schedule_id = ?
         AND (ea.email_sent IS NULL OR ea.email_sent = 0)
         `,
-        [schedule_id],
-      );
+          [schedule_id],
+        );
 
-      if (rows.length === 0) {
-        return socket.emit("send_schedule_emails_result", {
-          success: false,
-          error: "No applicants found for this schedule.",
-        });
-      }
-
-      /* ================================
-         4� Helpers
-      ================================= */
-      const sent = [];
-      const failed = [];
-      const skipped = [];
-
-      const formatTime = (timeStr) => {
-        if (!timeStr) return "";
-        const [h, m] = timeStr.split(":");
-        let hour = parseInt(h);
-        const ampm = hour >= 12 ? "PM" : "AM";
-        hour = hour % 12 || 12;
-        return `${hour}:${m} ${ampm}`;
-      };
-
-      const applyTemplate = (template, row) => {
-        return template
-          .replace(/{first_name}/g, row.first_name || "")
-          .replace(/{last_name}/g, row.last_name || "")
-          .replace(/{applicant_number}/g, row.applicant_number || "")
-          .replace(/{day}/g, row.day || "")
-          .replace(/{room}/g, row.room || "")
-          .replace(/{start_time}/g, formatTime(row.start_time))
-          .replace(/{end_time}/g, formatTime(row.end_time))
-          .replace(/{office}/g, officeName);
-      };
-
-      /* ================================
-         5� Send Email
-      ================================= */
-      const sendEmail = async (row) => {
-        if (!row.emailAddress) {
-          skipped.push(row.applicant_number);
-          return;
+        if (rows.length === 0) {
+          return socket.emit("send_schedule_emails_result", {
+            success: false,
+            error: "No applicants found for this schedule.",
+          });
         }
 
-        const finalMessage = applyTemplate(message, row);
+        /* ================================
+           4� Helpers
+        ================================= */
+        const sent = [];
+        const failed = [];
+        const skipped = [];
 
-        const mailOptions = {
-          from: `"${officeName}" <${process.env.EMAIL_USER}>`,
-          to: row.emailAddress,
-          subject: subject || "Entrance Exam Schedule",
-          text: finalMessage,
+        const formatTime = (timeStr) => {
+          if (!timeStr) return "";
+          const [h, m] = timeStr.split(":");
+          let hour = parseInt(h);
+          const ampm = hour >= 12 ? "PM" : "AM";
+          hour = hour % 12 || 12;
+          return `${hour}:${m} ${ampm}`;
         };
 
-        try {
-          await transporter.sendMail(mailOptions);
+        const applyTemplate = (template, row) => {
+          return template
+            .replace(/{first_name}/g, row.first_name || "")
+            .replace(/{last_name}/g, row.last_name || "")
+            .replace(/{applicant_number}/g, row.applicant_number || "")
+            .replace(/{day}/g, row.day || "")
+            .replace(/{room}/g, row.room || "")
+            .replace(/{start_time}/g, formatTime(row.start_time))
+            .replace(/{end_time}/g, formatTime(row.end_time))
+            .replace(/{office}/g, officeName);
+        };
 
-          await db.query(
-            `UPDATE exam_applicants
+        /* ================================
+           5� Send Email
+        ================================= */
+        const sendEmail = async (row) => {
+          if (!row.emailAddress) {
+            skipped.push(row.applicant_number);
+            return;
+          }
+
+          const finalMessage = applyTemplate(message, row);
+
+          const mailOptions = {
+            from: `"${officeName}" <${process.env.EMAIL_USER}>`,
+            to: row.emailAddress,
+            subject: subject || "Entrance Exam Schedule",
+            text: finalMessage,
+          };
+
+          try {
+            await transporter.sendMail(mailOptions);
+
+            await db.query(
+              `UPDATE exam_applicants
            SET email_sent = 1
            WHERE applicant_id = ?
            AND schedule_id = ?`,
-            [row.applicant_number, row.schedule_id],
-          );
+              [row.applicant_number, row.schedule_id],
+            );
 
-          await db.query(
-            `UPDATE person_status_table
+            await db.query(
+              `UPDATE person_status_table
            SET exam_status = 1
            WHERE person_id = ?`,
-            [row.person_id],
-          );
+              [row.person_id],
+            );
 
-          const logMsg = `� Schedule email sent to Applicant #${row.applicant_number}`;
+            const logMsg = `� Schedule email sent to Applicant #${row.applicant_number}`;
 
-          await db.query(
-            `INSERT INTO notifications
+            await db.query(
+              `INSERT INTO notifications
            (type, message, applicant_number, actor_email, actor_name, timestamp)
            VALUES (?, ?, ?, ?, ?, NOW())`,
-            ["email", logMsg, row.applicant_number, actorEmail, actorName],
-          );
+              ["email", logMsg, row.applicant_number, actorEmail, actorName],
+            );
 
-          sent.push(row.applicant_number);
-        } catch (err) {
-          console.error(" Email failed:", err.message);
-          failed.push(row.applicant_number);
+            sent.push(row.applicant_number);
+          } catch (err) {
+            console.error(" Email failed:", err.message);
+            failed.push(row.applicant_number);
+          }
+        };
+
+        /* ================================
+           6� Batch Sending
+        ================================= */
+        const batchSize = 5;
+        const delayMs = 1000;
+
+        for (let i = 0; i < rows.length; i += batchSize) {
+          const batch = rows.slice(i, i + batchSize);
+          await Promise.all(batch.map(sendEmail));
+
+          if (i + batchSize < rows.length) {
+            await new Promise((r) => setTimeout(r, delayMs));
+          }
         }
-      };
 
-      /* ================================
-         6� Batch Sending
-      ================================= */
-      const batchSize = 5;
-      const delayMs = 1000;
+        /* ================================
+           7� Result
+        ================================= */
+        socket.emit("send_schedule_emails_result", {
+          success: true,
+          sent,
+          failed,
+          skipped,
+          message: `Sent=${sent.length}, Failed=${failed.length}, Skipped=${skipped.length}`,
+        });
 
-      for (let i = 0; i < rows.length; i += batchSize) {
-        const batch = rows.slice(i, i + batchSize);
-        await Promise.all(batch.map(sendEmail));
+        io.emit("schedule_updated", { schedule_id });
+      } catch (err) {
+        console.error("send_schedule_emails ERROR:", err);
 
-        if (i + batchSize < rows.length) {
-          await new Promise((r) => setTimeout(r, delayMs));
-        }
+        socket.emit("send_schedule_emails_result", {
+          success: false,
+          error: "Server error sending emails.",
+        });
       }
-
-      /* ================================
-         7� Result
-      ================================= */
-      socket.emit("send_schedule_emails_result", {
-        success: true,
-        sent,
-        failed,
-        skipped,
-        message: `Sent=${sent.length}, Failed=${failed.length}, Skipped=${skipped.length}`,
-      });
-
-      io.emit("schedule_updated", { schedule_id });
-    } catch (err) {
-      console.error("send_schedule_emails ERROR:", err);
-
-      socket.emit("send_schedule_emails_result", {
-        success: false,
-        error: "Server error sending emails.",
-      });
-    }
+    });
   });
-});
 
-// Get current number of applicants assigned to a schedule
-app.get("/api/exam-schedule-count/:schedule_id", async (req, res) => {
-  const { schedule_id } = req.params;
-  try {
-    const [rows] = await db.query(
-      `SELECT COUNT(*) AS count
+  // Get current number of applicants assigned to a schedule
+  app.get("/api/exam-schedule-count/:schedule_id", async (req, res) => {
+    const { schedule_id } = req.params;
+    try {
+      const [rows] = await db.query(
+        `SELECT COUNT(*) AS count
        FROM exam_applicants
        WHERE schedule_id = ?`,
-      [schedule_id],
-    );
-    res.json({ count: rows[0].count });
-  } catch (err) {
-    console.error("Error fetching schedule count:", err);
-    res.status(500).json({ error: "Database error" });
-  }
-});
+        [schedule_id],
+      );
+      res.json({ count: rows[0].count });
+    } catch (err) {
+      console.error("Error fetching schedule count:", err);
+      res.status(500).json({ error: "Database error" });
+    }
+  });
 
-//READ ENROLLED USERS (UPDATED!)
-app.get("/enrolled_users", async (req, res) => {
-  try {
-    const query = "SELECT * FROM user_accounts";
+  //READ ENROLLED USERS (UPDATED!)
+  app.get("/enrolled_users", async (req, res) => {
+    try {
+      const query = "SELECT * FROM user_accounts";
 
-    const [result] = await db3.query(query);
-    res.status(200).send(result);
-  } catch (error) {
-    res.status(500).send({ message: "Error Fetching data from the server" });
-  }
-});
+      const [result] = await db3.query(query);
+      res.status(200).send(result);
+    } catch (error) {
+      res.status(500).send({ message: "Error Fetching data from the server" });
+    }
+  });
 
-// ------------------------- DEPARTMENT PANEL -------------------------------- //
+  // ------------------------- DEPARTMENT PANEL -------------------------------- //
 
-// -------------------------------- CURRICULUM PANEL ------------------------------------ //
+  // -------------------------------- CURRICULUM PANEL ------------------------------------ //
 
-app.put("/update_program_units/:id", async (req, res) => {
-  const { id } = req.params;
-  const { lec_unit, lab_unit, course_unit } = req.body;
+  app.put("/update_program_units/:id", async (req, res) => {
+    const { id } = req.params;
+    const { lec_unit, lab_unit, course_unit } = req.body;
 
-  try {
-    const [result] = await db3.query(
-      `UPDATE program_tagging_table SET
+    try {
+      const [result] = await db3.query(
+        `UPDATE program_tagging_table SET
         lec_unit = ?,
         lab_unit = ?,
         course_unit = ?
        WHERE program_tagging_id = ?`,
-      [lec_unit, lab_unit, course_unit, id],
-    );
+        [lec_unit, lab_unit, course_unit, id],
+      );
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Tagging not found" });
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: "Tagging not found" });
+      }
+
+      res.json({ message: "Program units updated" });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Update failed" });
     }
+  });
 
-    res.json({ message: "Program units updated" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Update failed" });
-  }
-});
+  app.get("/get_courses_by_curriculum/:curriculum_id", async (req, res) => {
+    const { curriculum_id } = req.params;
 
-app.get("/get_courses_by_curriculum/:curriculum_id", async (req, res) => {
-  const { curriculum_id } = req.params;
-
-  const query = `
+    const query = `
     SELECT c.*
     FROM program_tagging_table pt
     INNER JOIN course_table c ON pt.course_id = c.course_id
     WHERE pt.curriculum_id = ?
   `;
 
-  try {
-    const [result] = await db3.query(query, [curriculum_id]);
-    res.status(200).json(result);
-  } catch (err) {
-    console.error("Database error:", err);
-    res.status(500).json({
-      error: "Failed to retrieve courses",
-      details: err.message,
-    });
-  }
-});
+    try {
+      const [result] = await db3.query(query, [curriculum_id]);
+      res.status(200).json(result);
+    } catch (err) {
+      console.error("Database error:", err);
+      res.status(500).json({
+        error: "Failed to retrieve courses",
+        details: err.message,
+      });
+    }
+  });
 
-// COURSE TAGGING LIST (UPDATED!)
-app.get("/get_course", async (req, res) => {
-  const getCourseQuery = `
+  // COURSE TAGGING LIST (UPDATED!)
+  app.get("/get_course", async (req, res) => {
+    const getCourseQuery = `
     SELECT
       yl.*, st.*, c.*
     FROM program_tagging_table pt
@@ -1937,57 +2025,57 @@ app.get("/get_course", async (req, res) => {
     INNER JOIN course_table c ON pt.course_id = c.course_id
   `;
 
-  try {
-    const [results] = await db3.query(getCourseQuery);
-    res.status(200).json(results);
-  } catch (err) {
-    console.error("Database error:", err);
-    res.status(500).json({
-      error: "Failed to retrieve course tagging list",
-      details: err.message,
-    });
-  }
-});
+    try {
+      const [results] = await db3.query(getCourseQuery);
+      res.status(200).json(results);
+    } catch (err) {
+      console.error("Database error:", err);
+      res.status(500).json({
+        error: "Failed to retrieve course tagging list",
+        details: err.message,
+      });
+    }
+  });
 
-// YEAR LEVEL PANEL (UPDATED!)
-app.post("/years_level", async (req, res) => {
-  const { year_level_description, level_type } = req.body;
+  // YEAR LEVEL PANEL (UPDATED!)
+  app.post("/years_level", async (req, res) => {
+    const { year_level_description, level_type } = req.body;
 
-  if (!year_level_description) {
-    return res
-      .status(400)
-      .json({ error: "year_level_description is required" });
-  }
+    if (!year_level_description) {
+      return res
+        .status(400)
+        .json({ error: "year_level_description is required" });
+    }
 
-  const query =
-    "INSERT INTO year_level_table (year_level_description, level_type) VALUES (?, ?)";
+    const query =
+      "INSERT INTO year_level_table (year_level_description, level_type) VALUES (?, ?)";
 
-  try {
-    const [result] = await db3.query(query, [
-      year_level_description,
-      level_type || "year", // fallback
-    ]);
+    try {
+      const [result] = await db3.query(query, [
+        year_level_description,
+        level_type || "year", // fallback
+      ]);
 
-    res.status(201).json({
-      year_level_id: result.insertId,
-      year_level_description,
-      level_type,
-    });
-  } catch (err) {
-    console.error("Insert error:", err);
-    res.status(500).json({ error: "Insert failed", details: err.message });
-  }
-});
+      res.status(201).json({
+        year_level_id: result.insertId,
+        year_level_description,
+        level_type,
+      });
+    } catch (err) {
+      console.error("Insert error:", err);
+      res.status(500).json({ error: "Insert failed", details: err.message });
+    }
+  });
 
-// ROOM LIST (UPDATED!)
-app.get("/get_room", async (req, res) => {
-  const { department_id } = req.query;
+  // ROOM LIST (UPDATED!)
+  app.get("/get_room", async (req, res) => {
+    const { department_id } = req.query;
 
-  if (!department_id) {
-    return res.status(400).json({ error: "Department ID is required" });
-  }
+    if (!department_id) {
+      return res.status(400).json({ error: "Department ID is required" });
+    }
 
-  const getRoomQuery = `
+    const getRoomQuery = `
       SELECT r.room_id, r.room_description, d.dprtmnt_name
       FROM room_table r
       INNER JOIN dprtmnt_room_table drt ON r.room_id = drt.room_id
@@ -1995,34 +2083,34 @@ app.get("/get_room", async (req, res) => {
       WHERE drt.dprtmnt_id = ?
   `;
 
-  try {
-    const [result] = await db3.query(getRoomQuery, [department_id]);
-    res.status(200).json(result);
-  } catch (err) {
-    console.error("Error fetching rooms:", err);
-    res
-      .status(500)
-      .json({ error: "Failed to fetch rooms", details: err.message });
-  }
-});
-
-
-// GET ENROLLED STUDENTS (UPDATED!)
-app.get(
-  "/get_enrolled_students/:subject_id/:department_section_id/:active_school_year_id",
-  async (req, res) => {
-    const { subject_id, department_section_id, active_school_year_id } =
-      req.params;
-
-    // Validate the inputs
-    if (!subject_id || !department_section_id || !active_school_year_id) {
-      return res.status(400).json({
-        message:
-          "Subject ID, Department Section ID, and Active School Year ID are required.",
-      });
+    try {
+      const [result] = await db3.query(getRoomQuery, [department_id]);
+      res.status(200).json(result);
+    } catch (err) {
+      console.error("Error fetching rooms:", err);
+      res
+        .status(500)
+        .json({ error: "Failed to fetch rooms", details: err.message });
     }
+  });
 
-    const filterStudents = `
+
+  // GET ENROLLED STUDENTS (UPDATED!)
+  app.get(
+    "/get_enrolled_students/:subject_id/:department_section_id/:active_school_year_id",
+    async (req, res) => {
+      const { subject_id, department_section_id, active_school_year_id } =
+        req.params;
+
+      // Validate the inputs
+      if (!subject_id || !department_section_id || !active_school_year_id) {
+        return res.status(400).json({
+          message:
+            "Subject ID, Department Section ID, and Active School Year ID are required.",
+        });
+      }
+
+      const filterStudents = `
   SELECT
     person_table.*,
     enrolled_subject.*,
@@ -2077,49 +2165,49 @@ app.get(
 
 `;
 
-    try {
-      // Execute the query using promise-based `execute` method
-      const [result] = await db3.execute(filterStudents, [
-        subject_id,
-        department_section_id,
-        active_school_year_id,
-      ]);
+      try {
+        // Execute the query using promise-based `execute` method
+        const [result] = await db3.execute(filterStudents, [
+          subject_id,
+          department_section_id,
+          active_school_year_id,
+        ]);
 
-      // Check if no students were found
-      if (result.length === 0) {
-        return res.status(404).json({
-          message: "No students found for this subject-section combination.",
+        // Check if no students were found
+        if (result.length === 0) {
+          return res.status(404).json({
+            message: "No students found for this subject-section combination.",
+          });
+        }
+
+        // Send the response with the result
+        res.json({
+          totalStudents: result.length,
+          students: result,
+        });
+      } catch (err) {
+        console.error("Query failed:", err);
+        return res
+          .status(500)
+          .json({ message: "Server error while fetching students." });
+      }
+    },
+  );
+
+  app.get(
+    "/get_subject_info/:subject_id/:department_section_id/:active_school_year_id",
+    async (req, res) => {
+      const { subject_id, department_section_id, active_school_year_id } =
+        req.params;
+
+      if (!subject_id || !department_section_id || !active_school_year_id) {
+        return res.status(400).json({
+          message:
+            "Subject ID, Department Section ID, and School Year ID are required.",
         });
       }
 
-      // Send the response with the result
-      res.json({
-        totalStudents: result.length,
-        students: result,
-      });
-    } catch (err) {
-      console.error("Query failed:", err);
-      return res
-        .status(500)
-        .json({ message: "Server error while fetching students." });
-    }
-  },
-);
-
-app.get(
-  "/get_subject_info/:subject_id/:department_section_id/:active_school_year_id",
-  async (req, res) => {
-    const { subject_id, department_section_id, active_school_year_id } =
-      req.params;
-
-    if (!subject_id || !department_section_id || !active_school_year_id) {
-      return res.status(400).json({
-        message:
-          "Subject ID, Department Section ID, and School Year ID are required.",
-      });
-    }
-
-    const sectionInfoQuery = `
+      const sectionInfoQuery = `
   SELECT
     section_table.description AS section_description,
     course_table.course_code,
@@ -2162,35 +2250,35 @@ app.get(
   LIMIT 1;
 `;
 
-    try {
-      const [result] = await db3.execute(sectionInfoQuery, [
-        subject_id,
-        department_section_id,
-        active_school_year_id,
-      ]);
+      try {
+        const [result] = await db3.execute(sectionInfoQuery, [
+          subject_id,
+          department_section_id,
+          active_school_year_id,
+        ]);
 
-      if (result.length === 0) {
-        return res
-          .status(404)
-          .json({ message: "No section information found for this mapping." });
+        if (result.length === 0) {
+          return res
+            .status(404)
+            .json({ message: "No section information found for this mapping." });
+        }
+
+        res.json({ sectionInfo: result[0] });
+      } catch (err) {
+        console.error("Section info query error:", err);
+        res
+          .status(500)
+          .json({ message: "Server error while fetching section info." });
       }
+    },
+  );
 
-      res.json({ sectionInfo: result[0] });
-    } catch (err) {
-      console.error("Section info query error:", err);
-      res
-        .status(500)
-        .json({ message: "Server error while fetching section info." });
-    }
-  },
-);
-
-app.get(
-  "/get_class_details/:selectedActiveSchoolYear/:profID",
-  async (req, res) => {
-    const { selectedActiveSchoolYear, profID } = req.params;
-    try {
-      const query = `
+  app.get(
+    "/get_class_details/:selectedActiveSchoolYear/:profID",
+    async (req, res) => {
+      const { selectedActiveSchoolYear, profID } = req.params;
+      try {
+        const query = `
     SELECT
         cst.course_id,
         cst.course_unit,
@@ -2224,25 +2312,25 @@ app.get(
         WHERE tt.school_year_id = ? AND tt.professor_id = ?
       GROUP BY cst.course_id, cst.course_description, cst.course_code, pt.program_code, st.description;
     `;
-      const [result] = await db3.query(query, [
-        selectedActiveSchoolYear,
-        profID,
-      ]);
-      console.log(result);
-      res.json(result);
-    } catch (err) {
-      console.error("Server Error: ", err);
-      res.status(500).send({ message: "Internal Error", err });
-    }
-  },
-);
+        const [result] = await db3.query(query, [
+          selectedActiveSchoolYear,
+          profID,
+        ]);
+        console.log(result);
+        res.json(result);
+      } catch (err) {
+        console.error("Server Error: ", err);
+        res.status(500).send({ message: "Internal Error", err });
+      }
+    },
+  );
 
-app.get(
-  "/get_student_list/:course_id/:department_section_id/:school_year_id",
-  async (req, res) => {
-    const { course_id, department_section_id, school_year_id } = req.params;
-    try {
-      const query = `
+  app.get(
+    "/get_student_list/:course_id/:department_section_id/:school_year_id",
+    async (req, res) => {
+      const { course_id, department_section_id, school_year_id } = req.params;
+      try {
+        const query = `
     SELECT es.id as enrolled_id,snt.student_number,pst.first_name, pst.middle_name, pst.last_name, pt.program_code, st.description AS section_description, ct.course_description, ct.course_code FROM enrolled_subject AS es
       INNER JOIN student_numbering_table AS snt ON es.student_number = snt.student_number
       INNER JOIN person_table AS pst ON snt.person_id = pst.person_id
@@ -2254,30 +2342,30 @@ app.get(
       INNER JOIN active_school_year_table AS sy ON es.active_school_year_id = sy.id
     WHERE es.course_id = ? AND es.department_section_id = ? AND es.active_school_year_id = ?
     `;
-      const [result] = await db3.query(query, [
-        course_id,
-        department_section_id,
-        school_year_id,
-      ]);
-      console.log(result);
-      res.json(result);
-    } catch (err) {
-      console.error("Server Error: ", err);
-      res.status(500).send({ message: "Internal Error", err });
+        const [result] = await db3.query(query, [
+          course_id,
+          department_section_id,
+          school_year_id,
+        ]);
+        console.log(result);
+        res.json(result);
+      } catch (err) {
+        console.error("Server Error: ", err);
+        res.status(500).send({ message: "Internal Error", err });
+      }
+    },
+  );
+
+  // PROFESSOR LIST (UPDATED!)
+  app.get("/get_prof", async (req, res) => {
+    const { department_id } = req.query;
+
+    // Validate the input
+    if (!department_id) {
+      return res.status(400).json({ message: "Department ID is required." });
     }
-  },
-);
 
-// PROFESSOR LIST (UPDATED!)
-app.get("/get_prof", async (req, res) => {
-  const { department_id } = req.query;
-
-  // Validate the input
-  if (!department_id) {
-    return res.status(400).json({ message: "Department ID is required." });
-  }
-
-  const getProfQuery = `
+    const getProfQuery = `
   SELECT p.*, d.dprtmnt_name
   FROM prof_table p
   INNER JOIN dprtmnt_profs_table dpt ON p.prof_id = dpt.prof_id
@@ -2285,96 +2373,96 @@ app.get("/get_prof", async (req, res) => {
   WHERE dpt.dprtmnt_id = ?
   `;
 
-  try {
-    // Execute the query using promise-based `execute` method
-    const [result] = await db3.execute(getProfQuery, [department_id]);
+    try {
+      // Execute the query using promise-based `execute` method
+      const [result] = await db3.execute(getProfQuery, [department_id]);
 
-    // Send the response with the result
-    res.status(200).json(result);
-  } catch (err) {
-    console.error("Error fetching professors:", err);
-    return res
-      .status(500)
-      .json({ message: "Server error while fetching professors." });
-  }
-});
+      // Send the response with the result
+      res.status(200).json(result);
+    } catch (err) {
+      console.error("Error fetching professors:", err);
+      return res
+        .status(500)
+        .json({ message: "Server error while fetching professors." });
+    }
+  });
 
-// prof filter
-app.get("/prof_list/:dprtmnt_id", async (req, res) => {
-  const { dprtmnt_id } = req.params;
+  // prof filter
+  app.get("/prof_list/:dprtmnt_id", async (req, res) => {
+    const { dprtmnt_id } = req.params;
 
-  try {
-    const query = `SELECT pt.* FROM dprtmnt_profs_table as dpt
+    try {
+      const query = `SELECT pt.* FROM dprtmnt_profs_table as dpt
                   INNER JOIN prof_table as pt
                   ON dpt.prof_id = pt.prof_id
                   INNER JOIN dprtmnt_table as dt
                   ON dt.dprtmnt_id = dpt.dprtmnt_id
                   WHERE dpt.dprtmnt_id = ? `;
-    const [results] = await db3.query(query, [dprtmnt_id]);
-    res.status(200).send(results);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send(error);
-  }
-});
+      const [results] = await db3.query(query, [dprtmnt_id]);
+      res.status(200).send(results);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send(error);
+    }
+  });
 
-app.get("/room_list/:dprtmnt_id", async (req, res) => {
-  const { dprtmnt_id } = req.params;
+  app.get("/room_list/:dprtmnt_id", async (req, res) => {
+    const { dprtmnt_id } = req.params;
 
-  try {
-    const query = `SELECT rt.* FROM dprtmnt_room_table as drt
+    try {
+      const query = `SELECT rt.* FROM dprtmnt_room_table as drt
                   INNER JOIN room_table as rt
                   ON drt.room_id = rt.room_id
                   INNER JOIN dprtmnt_table as dt
                   ON dt.dprtmnt_id = drt.dprtmnt_id
                   WHERE drt.dprtmnt_id = ? `;
-    const [results] = await db3.query(query, [dprtmnt_id]);
-    res.status(200).send(results);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send(error);
-  }
-});
+      const [results] = await db3.query(query, [dprtmnt_id]);
+      res.status(200).send(results);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send(error);
+    }
+  });
 
-app.get("/schedule-plotting/day_list", async (req, res) => {
-  try {
-    const query =
-      "SELECT rdt.id AS day_id, rdt.description AS day_description FROM room_day_table AS rdt";
-    const [result] = await db3.query(query);
-    res.status(200).send(result);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send(error);
-  }
-});
+  app.get("/schedule-plotting/day_list", async (req, res) => {
+    try {
+      const query =
+        "SELECT rdt.id AS day_id, rdt.description AS day_description FROM room_day_table AS rdt";
+      const [result] = await db3.query(query);
+      res.status(200).send(result);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send(error);
+    }
+  });
 
-app.delete("/api/delete/schedule/:id", async (req, res) => {
-  const { id } = req.params;
+  app.delete("/api/delete/schedule/:id", async (req, res) => {
+    const { id } = req.params;
 
-  try {
-    const deleteQuery = `DELETE FROM time_table WHERE id = ?`;
-    const [result] = await db3.execute(deleteQuery, [id]);
+    try {
+      const deleteQuery = `DELETE FROM time_table WHERE id = ?`;
+      const [result] = await db3.execute(deleteQuery, [id]);
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Schedule not found." });
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: "Schedule not found." });
+      }
+
+      res.json({ message: "Schedule deleted successfully." });
+    } catch (error) {
+      console.error("Error deleting schedule:", error);
+      res.status(500).json({ error: "Database error while deleting schedule." });
+    }
+  });
+
+  //SCHEDULE CHECKER
+  app.post("/api/check-subject", async (req, res) => {
+    const { section_id, school_year_id, subject_id, day_of_week } = req.body;
+
+    if (!school_year_id || !subject_id || !day_of_week) {
+      return res.status(400).json({ error: "Missing required fields" });
     }
 
-    res.json({ message: "Schedule deleted successfully." });
-  } catch (error) {
-    console.error("Error deleting schedule:", error);
-    res.status(500).json({ error: "Database error while deleting schedule." });
-  }
-});
-
-//SCHEDULE CHECKER
-app.post("/api/check-subject", async (req, res) => {
-  const { section_id, school_year_id, subject_id, day_of_week } = req.body;
-
-  if (!school_year_id || !subject_id || !day_of_week) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
-
-  const query = `
+    const query = `
     SELECT * FROM time_table
     WHERE department_section_id = ?
       AND school_year_id = ?
@@ -2382,57 +2470,57 @@ app.post("/api/check-subject", async (req, res) => {
       AND room_day = ?
   `;
 
-  try {
-    const [result] = await db3.query(query, [
+    try {
+      const [result] = await db3.query(query, [
+        section_id,
+        school_year_id,
+        subject_id,
+        day_of_week,
+      ]);
+
+      if (result.length > 0) {
+        return res.json({ exists: true });
+      } else {
+        return res.json({ exists: false });
+      }
+    } catch (error) {
+      console.error("Database query error:", error);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  //HELPER FUNCTION
+  function timeToMinutes(timeStr) {
+    const parts = timeStr.trim().split(" ");
+    let [hours, minutes] = parts[0].split(":").map(Number);
+    const modifier = parts[1] ? parts[1].toUpperCase() : null;
+
+    if (modifier) {
+      if (modifier === "PM" && hours !== 12) hours += 12;
+      if (modifier === "AM" && hours === 12) hours = 0;
+    }
+
+    return hours * 60 + minutes;
+  }
+
+  //CHECK CONFLICT
+  app.post("/api/check-conflict", async (req, res) => {
+    const {
+      day,
+      start_time,
+      end_time,
       section_id,
       school_year_id,
+      prof_id,
+      room_id,
       subject_id,
-      day_of_week,
-    ]);
+    } = req.body;
 
-    if (result.length > 0) {
-      return res.json({ exists: true });
-    } else {
-      return res.json({ exists: false });
-    }
-  } catch (error) {
-    console.error("Database query error:", error);
-    return res.status(500).json({ error: "Internal server error" });
-  }
-});
+    try {
+      const start_time_m = timeToMinutes(start_time);
+      const end_time_m = timeToMinutes(end_time);
 
-//HELPER FUNCTION
-function timeToMinutes(timeStr) {
-  const parts = timeStr.trim().split(" ");
-  let [hours, minutes] = parts[0].split(":").map(Number);
-  const modifier = parts[1] ? parts[1].toUpperCase() : null;
-
-  if (modifier) {
-    if (modifier === "PM" && hours !== 12) hours += 12;
-    if (modifier === "AM" && hours === 12) hours = 0;
-  }
-
-  return hours * 60 + minutes;
-}
-
-//CHECK CONFLICT
-app.post("/api/check-conflict", async (req, res) => {
-  const {
-    day,
-    start_time,
-    end_time,
-    section_id,
-    school_year_id,
-    prof_id,
-    room_id,
-    subject_id,
-  } = req.body;
-
-  try {
-    const start_time_m = timeToMinutes(start_time);
-    const end_time_m = timeToMinutes(end_time);
-
-    const countQuery = `
+      const countQuery = `
       SELECT COUNT(*) AS subject_count
       FROM time_table
       WHERE department_section_id = ?
@@ -2441,23 +2529,23 @@ app.post("/api/check-conflict", async (req, res) => {
         AND department_room_id = ?
         AND course_id = ?
     `;
-    const [countResult] = await db3.query(countQuery, [
-      section_id,
-      school_year_id,
-      prof_id,
-      room_id,
-      subject_id,
-    ]);
+      const [countResult] = await db3.query(countQuery, [
+        section_id,
+        school_year_id,
+        prof_id,
+        room_id,
+        subject_id,
+      ]);
 
-    if (countResult[0].subject_count >= 2) {
-      return res.status(409).json({
-        conflict: true,
-        message:
-          "This subject is already assigned twice for the same section, room, school year, and professor.",
-      });
-    }
+      if (countResult[0].subject_count >= 2) {
+        return res.status(409).json({
+          conflict: true,
+          message:
+            "This subject is already assigned twice for the same section, room, school year, and professor.",
+        });
+      }
 
-    const query = `
+      const query = `
       SELECT * FROM time_table
       WHERE department_section_id = ?
         AND school_year_id = ?
@@ -2465,23 +2553,23 @@ app.post("/api/check-conflict", async (req, res) => {
         AND room_day = ?
     `;
 
-    const [subjectResult] = await db3.query(query, [
-      section_id,
-      school_year_id,
-      subject_id,
-      day,
-    ]);
+      const [subjectResult] = await db3.query(query, [
+        section_id,
+        school_year_id,
+        subject_id,
+        day,
+      ]);
 
-    if (subjectResult.length > 0) {
-      return res.status(409).json({
-        conflict: true,
-        message:
-          "This subject is already assigned in this section and school year on the same day.",
-      });
-    }
+      if (subjectResult.length > 0) {
+        return res.status(409).json({
+          conflict: true,
+          message:
+            "This subject is already assigned in this section and school year on the same day.",
+        });
+      }
 
-    // Check for time conflicts (prof, section, room)
-    const checkTimeQuery = `
+      // Check for time conflicts (prof, section, room)
+      const checkTimeQuery = `
       SELECT * FROM time_table
       WHERE room_day = ?
         AND school_year_id = ?
@@ -2504,59 +2592,118 @@ app.post("/api/check-conflict", async (req, res) => {
         )
     `;
 
-    const [timeResult] = await db3.query(checkTimeQuery, [
-      day,
-      school_year_id,
-      prof_id,
-      section_id,
-      room_id,
-      start_time_m,
-      start_time_m,
-      end_time_m,
-      end_time_m,
-      start_time_m,
-      end_time_m,
-      start_time_m,
-      end_time_m,
-      start_time_m,
-      end_time_m,
-    ]);
+      const [timeResult] = await db3.query(checkTimeQuery, [
+        day,
+        school_year_id,
+        prof_id,
+        section_id,
+        room_id,
+        start_time_m,
+        start_time_m,
+        end_time_m,
+        end_time_m,
+        start_time_m,
+        end_time_m,
+        start_time_m,
+        end_time_m,
+        start_time_m,
+        end_time_m,
+      ]);
 
-    if (timeResult.length > 0) {
-      return res.status(409).json({
-        conflict: true,
-        message: "Schedule conflict detected! Please choose a different time.",
+      if (timeResult.length > 0) {
+        return res.status(409).json({
+          conflict: true,
+          message: "Schedule conflict detected! Please choose a different time.",
+        });
+      }
+
+      return res
+        .status(200)
+        .json({ conflict: false, message: "Schedule is available." });
+    } catch (error) {
+      console.error("Database query error:", error);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  //  Check conflict API
+  app.post("/api/check-time", async (req, res) => {
+    const { start_time, end_time } = req.body;
+
+    try {
+      let startMinutes = timeToMinutes(start_time);
+      let endMinutes = timeToMinutes(end_time);
+      const earliest = timeToMinutes("7:00 AM");
+      const latest = timeToMinutes("9:00 PM");
+
+      console.log({
+        start_time,
+        end_time,
+        startMinutes,
+        endMinutes,
+        earliest,
+        latest,
       });
+
+      if (endMinutes <= startMinutes) {
+        return res.status(409).json({
+          conflict: true,
+          message: "End time must be later than start time (same day only).",
+        });
+      }
+
+      //  Check validity
+      if (startMinutes < earliest || endMinutes > latest) {
+        return res.status(409).json({
+          conflict: true,
+          message: "Time must be between 7:00 AM and 9:00 PM (same day).",
+        });
+      }
+
+      return res.status(200).json({
+        conflict: false,
+        message: "Valid schedule time",
+      });
+    } catch (err) {
+      console.error("Error checking conflict:", err);
+      return res
+        .status(500)
+        .json({ error: "Server error while checking conflict" });
+    }
+  });
+
+  //  Insert schedule API
+  app.post("/api/insert-schedule", async (req, res) => {
+    const {
+      day,
+      start_time,
+      end_time,
+      section_id,
+      subject_id,
+      prof_id,
+      room_id,
+      school_year_id,
+      ishonorarium,
+    } = req.body;
+
+    if (
+      !day ||
+      !start_time ||
+      !end_time ||
+      !school_year_id ||
+      !prof_id ||
+      !room_id ||
+      !subject_id
+    ) {
+      return res.status(400).json({ error: "Missing required fields" });
     }
 
-    return res
-      .status(200)
-      .json({ conflict: false, message: "Schedule is available." });
-  } catch (error) {
-    console.error("Database query error:", error);
-    return res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-//  Check conflict API
-app.post("/api/check-time", async (req, res) => {
-  const { start_time, end_time } = req.body;
-
-  try {
     let startMinutes = timeToMinutes(start_time);
     let endMinutes = timeToMinutes(end_time);
     const earliest = timeToMinutes("7:00 AM");
     const latest = timeToMinutes("9:00 PM");
 
-    console.log({
-      start_time,
-      end_time,
-      startMinutes,
-      endMinutes,
-      earliest,
-      latest,
-    });
-
+    // Validate times
     if (endMinutes <= startMinutes) {
       return res.status(409).json({
         conflict: true,
@@ -2564,7 +2711,6 @@ app.post("/api/check-time", async (req, res) => {
       });
     }
 
-    //  Check validity
     if (startMinutes < earliest || endMinutes > latest) {
       return res.status(409).json({
         conflict: true,
@@ -2572,66 +2718,8 @@ app.post("/api/check-time", async (req, res) => {
       });
     }
 
-    return res.status(200).json({
-      conflict: false,
-      message: "Valid schedule time",
-    });
-  } catch (err) {
-    console.error("Error checking conflict:", err);
-    return res
-      .status(500)
-      .json({ error: "Server error while checking conflict" });
-  }
-});
-
-//  Insert schedule API
-app.post("/api/insert-schedule", async (req, res) => {
-  const {
-    day,
-    start_time,
-    end_time,
-    section_id,
-    subject_id,
-    prof_id,
-    room_id,
-    school_year_id,
-    ishonorarium,
-  } = req.body;
-
-  if (
-    !day ||
-    !start_time ||
-    !end_time ||
-    !school_year_id ||
-    !prof_id ||
-    !room_id ||
-    !subject_id
-  ) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
-
-  let startMinutes = timeToMinutes(start_time);
-  let endMinutes = timeToMinutes(end_time);
-  const earliest = timeToMinutes("7:00 AM");
-  const latest = timeToMinutes("9:00 PM");
-
-  // Validate times
-  if (endMinutes <= startMinutes) {
-    return res.status(409).json({
-      conflict: true,
-      message: "End time must be later than start time (same day only).",
-    });
-  }
-
-  if (startMinutes < earliest || endMinutes > latest) {
-    return res.status(409).json({
-      conflict: true,
-      message: "Time must be between 7:00 AM and 9:00 PM (same day).",
-    });
-  }
-
-  try {
-    const query = `
+    try {
+      const query = `
       SELECT * FROM time_table
       WHERE department_section_id = ?
         AND school_year_id = ?
@@ -2639,23 +2727,23 @@ app.post("/api/insert-schedule", async (req, res) => {
         AND room_day = ?
     `;
 
-    const [subjectResult] = await db3.query(query, [
-      section_id,
-      school_year_id,
-      subject_id,
-      day,
-    ]);
+      const [subjectResult] = await db3.query(query, [
+        section_id,
+        school_year_id,
+        subject_id,
+        day,
+      ]);
 
-    if (subjectResult.length > 0) {
-      return res.status(409).json({
-        conflict: true,
-        message:
-          "This subject is already assigned in this section and school year on the same day.",
-      });
-    }
+      if (subjectResult.length > 0) {
+        return res.status(409).json({
+          conflict: true,
+          message:
+            "This subject is already assigned in this section and school year on the same day.",
+        });
+      }
 
-    // Check for time conflicts (prof, section, room)
-    const checkTimeQuery = `
+      // Check for time conflicts (prof, section, room)
+      const checkTimeQuery = `
       SELECT * FROM time_table
       WHERE room_day = ?
         AND school_year_id = ?
@@ -2678,61 +2766,61 @@ app.post("/api/insert-schedule", async (req, res) => {
         )
     `;
 
-    const [timeResult] = await db3.query(checkTimeQuery, [
-      day,
-      school_year_id,
-      prof_id,
-      section_id,
-      room_id,
-      startMinutes,
-      startMinutes,
-      endMinutes,
-      endMinutes,
-      startMinutes,
-      endMinutes,
-      startMinutes,
-      endMinutes,
-      startMinutes,
-      endMinutes,
-    ]);
+      const [timeResult] = await db3.query(checkTimeQuery, [
+        day,
+        school_year_id,
+        prof_id,
+        section_id,
+        room_id,
+        startMinutes,
+        startMinutes,
+        endMinutes,
+        endMinutes,
+        startMinutes,
+        endMinutes,
+        startMinutes,
+        endMinutes,
+        startMinutes,
+        endMinutes,
+      ]);
 
-    if (timeResult.length > 0) {
-      return res.status(409).json({
-        conflict: true,
-        message: "Schedule conflict detected! Please choose a different time.",
-      });
-    }
+      if (timeResult.length > 0) {
+        return res.status(409).json({
+          conflict: true,
+          message: "Schedule conflict detected! Please choose a different time.",
+        });
+      }
 
-    // Insert schedule
-    const insertQuery = `
+      // Insert schedule
+      const insertQuery = `
       INSERT INTO time_table
       (room_day, school_time_start, school_time_end, department_section_id, course_id, ishonorarium, professor_id, department_room_id, school_year_id)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    await db3.query(insertQuery, [
-      day,
-      start_time,
-      end_time,
-      section_id,
-      subject_id,
-      ishonorarium,
-      prof_id,
-      room_id,
-      school_year_id,
-    ]);
+      await db3.query(insertQuery, [
+        day,
+        start_time,
+        end_time,
+        section_id,
+        subject_id,
+        ishonorarium,
+        prof_id,
+        room_id,
+        school_year_id,
+      ]);
 
-    res.status(200).json({ message: "Schedule inserted successfully" });
-  } catch (error) {
-    console.error("Error inserting schedule:", error);
-    res.status(500).json({ error: "Failed to insert schedule" });
-  }
-});
+      res.status(200).json({ message: "Schedule inserted successfully" });
+    } catch (error) {
+      console.error("Error inserting schedule:", error);
+      res.status(500).json({ error: "Failed to insert schedule" });
+    }
+  });
 
-// GET STUDENTS THAT HAVE NO STUDENT NUMBER (UPDATED!)
-app.get("/api/persons", async (req, res) => {
-  try {
-    // STEP 1: Get all eligible persons (from ENROLLMENT DB)
-    const [persons] = await db.execute(`
+  // GET STUDENTS THAT HAVE NO STUDENT NUMBER (UPDATED!)
+  app.get("/api/persons", async (req, res) => {
+    try {
+      // STEP 1: Get all eligible persons (from ENROLLMENT DB)
+      const [persons] = await db.execute(`
       SELECT p.*
       FROM admission.person_table p
       JOIN admission.person_status_table ps ON p.person_id = ps.person_id
@@ -2740,59 +2828,59 @@ app.get("/api/persons", async (req, res) => {
       AND p.person_id NOT IN (SELECT person_id FROM enrollment.student_numbering_table)
     `);
 
-    if (persons.length === 0) return res.json([]);
+      if (persons.length === 0) return res.json([]);
 
-    const personIds = persons.map((p) => p.person_id);
+      const personIds = persons.map((p) => p.person_id);
 
-    // STEP 2: Get all applicant numbers for those person_ids (from ADMISSION DB)
-    const [applicantNumbers] = await db.query(
-      `
+      // STEP 2: Get all applicant numbers for those person_ids (from ADMISSION DB)
+      const [applicantNumbers] = await db.query(
+        `
       SELECT applicant_number, person_id
       FROM applicant_numbering_table
       WHERE person_id IN (?)
     `,
-      [personIds],
-    );
+        [personIds],
+      );
 
-    // Create a quick lookup map
-    const applicantMap = {};
-    for (let row of applicantNumbers) {
-      applicantMap[row.person_id] = row.applicant_number;
+      // Create a quick lookup map
+      const applicantMap = {};
+      for (let row of applicantNumbers) {
+        applicantMap[row.person_id] = row.applicant_number;
+      }
+
+      // STEP 3: Merge applicant_number into each person object
+      const merged = persons.map((person) => ({
+        ...person,
+        applicant_number: applicantMap[person.person_id] || null,
+      }));
+
+      res.json(merged);
+    } catch (err) {
+      console.error(" Error merging person + applicant ID:", err);
+      res.status(500).send("Server error");
     }
+  });
 
-    // STEP 3: Merge applicant_number into each person object
-    const merged = persons.map((person) => ({
-      ...person,
-      applicant_number: applicantMap[person.person_id] || null,
-    }));
+  let lastSeenId = 0;
 
-    res.json(merged);
-  } catch (err) {
-    console.error(" Error merging person + applicant ID:", err);
-    res.status(500).send("Server error");
-  }
-});
+  // GET /api/proctor-applicants
+  app.get("/api/proctor-applicants", async (req, res) => {
+    const { query, schedule_id } = req.query;
 
-let lastSeenId = 0;
-
-// GET /api/proctor-applicants
-app.get("/api/proctor-applicants", async (req, res) => {
-  const { query, schedule_id } = req.query;
-
-  try {
-    // Use db (admission) instead of db3 (enrollment)
-    const [schedules] = await db.query(
-      `SELECT * FROM entrance_exam_schedule
+    try {
+      // Use db (admission) instead of db3 (enrollment)
+      const [schedules] = await db.query(
+        `SELECT * FROM entrance_exam_schedule
        WHERE proctor LIKE ? ${schedule_id ? "AND schedule_id = ?" : ""}`,
-      schedule_id ? [`%${query}%`, schedule_id] : [`%${query}%`],
-    );
+        schedule_id ? [`%${query}%`, schedule_id] : [`%${query}%`],
+      );
 
-    if (schedules.length === 0) return res.json([]);
+      if (schedules.length === 0) return res.json([]);
 
-    const results = await Promise.all(
-      schedules.map(async (schedule) => {
-        const [applicants] = await db.query(
-          `SELECT ea.applicant_id, ea.schedule_id, ea.email_sent, ant.applicant_number,
+      const results = await Promise.all(
+        schedules.map(async (schedule) => {
+          const [applicants] = await db.query(
+            `SELECT ea.applicant_id, ea.schedule_id, ea.email_sent, ant.applicant_number,
                   pt.last_name, pt.first_name, pt.middle_name, pt.program,
                   s.building_description, s.room_description
            FROM exam_applicants ea
@@ -2800,88 +2888,88 @@ app.get("/api/proctor-applicants", async (req, res) => {
            JOIN person_table pt ON pt.person_id = ant.person_id
            JOIN entrance_exam_schedule s ON s.schedule_id = ea.schedule_id
            WHERE ea.schedule_id = ?`,
-          [schedule.schedule_id],
-        );
+            [schedule.schedule_id],
+          );
 
-        return { schedule, applicants };
-      }),
-    );
+          return { schedule, applicants };
+        }),
+      );
 
-    res.json(results);
-  } catch (err) {
-    console.error("Error fetching proctor applicants:", err);
-    res.status(500).json({ error: "Database error" });
-  }
-});
+      res.json(results);
+    } catch (err) {
+      console.error("Error fetching proctor applicants:", err);
+      res.status(500).json({ error: "Database error" });
+    }
+  });
 
-//  Updates year_level_id for a student
-app.put("/api/update-student-year", async (req, res) => {
-  const { student_number, year_level_id } = req.body;
+  //  Updates year_level_id for a student
+  app.put("/api/update-student-year", async (req, res) => {
+    const { student_number, year_level_id } = req.body;
 
-  if (!student_number || !year_level_id) {
-    return res
-      .status(400)
-      .json({ error: "Missing student_number or year_level_id" });
-  }
-
-  try {
-    const sql = `UPDATE student_status_table SET year_level_id = ? WHERE student_number = ?`;
-    const [result] = await db3.query(sql, [year_level_id, student_number]);
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Student not found" });
+    if (!student_number || !year_level_id) {
+      return res
+        .status(400)
+        .json({ error: "Missing student_number or year_level_id" });
     }
 
-    res.status(200).json({ message: "Year level updated successfully" });
-  } catch (err) {
-    console.error("Error updating year level:", err);
-    res.status(500).json({ error: "Database error" });
-  }
-});
+    try {
+      const sql = `UPDATE student_status_table SET year_level_id = ? WHERE student_number = ?`;
+      const [result] = await db3.query(sql, [year_level_id, student_number]);
 
-// (UPDATED!)
-app.get("/check-new", async (req, res) => {
-  try {
-    const [results] = await db3.query(
-      "SELECT * FROM enrolled_subject ORDER BY id DESC LIMIT 1",
-    );
-
-    if (results.length > 0) {
-      const latest = results[0];
-      const isNew = latest.id > lastSeenId;
-      if (isNew) {
-        lastSeenId = latest.id;
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: "Student not found" });
       }
-      res.json({ newData: isNew, data: latest });
-    } else {
-      res.json({ newData: false });
+
+      res.status(200).json({ message: "Year level updated successfully" });
+    } catch (err) {
+      console.error("Error updating year level:", err);
+      res.status(500).json({ error: "Database error" });
     }
-  } catch (err) {
-    return res.status(500).json({ error: err });
-  }
-});
+  });
 
-// (UPDATED!)
+  // (UPDATED!)
+  app.get("/check-new", async (req, res) => {
+    try {
+      const [results] = await db3.query(
+        "SELECT * FROM enrolled_subject ORDER BY id DESC LIMIT 1",
+      );
 
-app.get("/api/slot-monitoring-sections", async (req, res) => {
-  const { departmentId, courseId, programId, yearId, semesterId, campus } =
-    req.query;
+      if (results.length > 0) {
+        const latest = results[0];
+        const isNew = latest.id > lastSeenId;
+        if (isNew) {
+          lastSeenId = latest.id;
+        }
+        res.json({ newData: isNew, data: latest });
+      } else {
+        res.json({ newData: false });
+      }
+    } catch (err) {
+      return res.status(500).json({ error: err });
+    }
+  });
 
-  if (
-    !departmentId ||
-    !courseId ||
-    !programId ||
-    !yearId ||
-    !semesterId ||
-    !campus
-  ) {
-    return res.status(400).json({
-      error:
-        "departmentId, courseId, programId, yearId, semesterId, and campus are required",
-    });
-  }
+  // (UPDATED!)
 
-  const query = `
+  app.get("/api/slot-monitoring-sections", async (req, res) => {
+    const { departmentId, courseId, programId, yearId, semesterId, campus } =
+      req.query;
+
+    if (
+      !departmentId ||
+      !courseId ||
+      !programId ||
+      !yearId ||
+      !semesterId ||
+      !campus
+    ) {
+      return res.status(400).json({
+        error:
+          "departmentId, courseId, programId, yearId, semesterId, and campus are required",
+      });
+    }
+
+    const query = `
     SELECT
       dst.id AS department_section_id,
       ct.curriculum_id,
@@ -2917,41 +3005,41 @@ app.get("/api/slot-monitoring-sections", async (req, res) => {
     ORDER BY st.description ASC
   `;
 
-  try {
-    const [rows] = await db3.query(query, [
-      departmentId,
-      courseId,
-      programId,
-      yearId,
-      semesterId,
-      campus,
-    ]);
-    return res.status(200).json(rows);
-  } catch (err) {
-    console.error("Error fetching slot monitoring sections:", err);
-    return res.status(500).json({
-      error: "Database error",
-      details: err.message,
-    });
-  }
-});
+    try {
+      const [rows] = await db3.query(query, [
+        departmentId,
+        courseId,
+        programId,
+        yearId,
+        semesterId,
+        campus,
+      ]);
+      return res.status(200).json(rows);
+    } catch (err) {
+      console.error("Error fetching slot monitoring sections:", err);
+      return res.status(500).json({
+        error: "Database error",
+        details: err.message,
+      });
+    }
+  });
 
-app.post("/api/slot-monitoring-enrolled-count", async (req, res) => {
-  const { curriculumId, sectionIds, activeSchoolYearId, courseId } = req.body;
+  app.post("/api/slot-monitoring-enrolled-count", async (req, res) => {
+    const { curriculumId, sectionIds, activeSchoolYearId, courseId } = req.body;
 
-  if (!curriculumId || !activeSchoolYearId || !courseId) {
-    return res.status(400).json({
-      error: "curriculumId, activeSchoolYearId, and courseId are required",
-    });
-  }
+    if (!curriculumId || !activeSchoolYearId || !courseId) {
+      return res.status(400).json({
+        error: "curriculumId, activeSchoolYearId, and courseId are required",
+      });
+    }
 
-  if (!Array.isArray(sectionIds) || sectionIds.length === 0) {
-    return res.status(200).json([]);
-  }
+    if (!Array.isArray(sectionIds) || sectionIds.length === 0) {
+      return res.status(200).json([]);
+    }
 
-  const sectionPlaceholders = sectionIds.map(() => "?").join(", ");
+    const sectionPlaceholders = sectionIds.map(() => "?").join(", ");
 
-  const query = `
+    const query = `
     SELECT
       es.department_section_id,
       COUNT(es.student_number) AS enrolled_student
@@ -2965,147 +3053,147 @@ app.post("/api/slot-monitoring-enrolled-count", async (req, res) => {
     GROUP BY es.department_section_id
   `;
 
-  try {
-    const params = [curriculumId, ...sectionIds, activeSchoolYearId, courseId];
-    const [rows] = await db3.query(query, params);
-    console.log("Enrolled counts:", rows);
-    return res.status(200).json(rows);
-  } catch (err) {
-    console.error("Error fetching slot monitoring enrolled counts:", err);
-    return res.status(500).json({
-      error: "Database error",
-      details: err.message,
-    });
-  }
-});
-
-app.put(
-  "/api/slot-monitoring-sections/:departmentSectionId/max-slots",
-  async (req, res) => {
-    const { departmentSectionId } = req.params;
-    const { max_slots } = req.body;
-
-    const parsedSlots = Number(max_slots);
-
-    if (!departmentSectionId || Number.isNaN(parsedSlots) || parsedSlots < 0) {
-      return res.status(400).json({
-        error:
-          "departmentSectionId is required and max_slots must be a non-negative number",
-      });
-    }
-
     try {
-      const [result] = await db3.query(
-        "UPDATE dprtmnt_section_table SET max_slots = ? WHERE id = ?",
-        [parsedSlots, departmentSectionId],
-      );
-
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ error: "Department section not found" });
-      }
-
-      return res
-        .status(200)
-        .json({ message: "Max slots updated successfully" });
+      const params = [curriculumId, ...sectionIds, activeSchoolYearId, courseId];
+      const [rows] = await db3.query(query, params);
+      console.log("Enrolled counts:", rows);
+      return res.status(200).json(rows);
     } catch (err) {
-      console.error("Error updating slot monitoring max slots:", err);
+      console.error("Error fetching slot monitoring enrolled counts:", err);
       return res.status(500).json({
         error: "Database error",
         details: err.message,
       });
     }
-  },
-);
+  });
 
-// Express route (UPDATED!)
+  app.put(
+    "/api/slot-monitoring-sections/:departmentSectionId/max-slots",
+    async (req, res) => {
+      const { departmentSectionId } = req.params;
+      const { max_slots } = req.body;
 
-///////---------------------------- DUPLICATE ----------------------------//////////
-app.get("/departments", async (req, res) => {
-  const sql = "SELECT dprtmnt_id, dprtmnt_code FROM dprtmnt_table";
+      const parsedSlots = Number(max_slots);
 
-  try {
-    const [result] = await db3.query(sql);
-    res.json(result);
-  } catch (err) {
-    console.error("Error fetching departments:", err);
-    return res.status(500).json({ error: err.message });
-  }
-});
+      if (!departmentSectionId || Number.isNaN(parsedSlots) || parsedSlots < 0) {
+        return res.status(400).json({
+          error:
+            "departmentSectionId is required and max_slots must be a non-negative number",
+        });
+      }
 
-// Count how many students enrolled per subject for a selected section (UPDATED!)
+      try {
+        const [result] = await db3.query(
+          "UPDATE dprtmnt_section_table SET max_slots = ? WHERE id = ?",
+          [parsedSlots, departmentSectionId],
+        );
 
-// Get user by person_id (UPDATED!)
-app.get("/api/user/:person_id", async (req, res) => {
-  const { person_id } = req.params;
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ error: "Department section not found" });
+        }
 
-  try {
-    const sql = "SELECT profile_img FROM person_table WHERE person_id = ?";
-    const [results] = await db3.query(sql, [person_id]);
+        return res
+          .status(200)
+          .json({ message: "Max slots updated successfully" });
+      } catch (err) {
+        console.error("Error updating slot monitoring max slots:", err);
+        return res.status(500).json({
+          error: "Database error",
+          details: err.message,
+        });
+      }
+    },
+  );
 
-    if (results.length === 0) {
-      return res.status(404).send("User not found");
-    }
+  // Express route (UPDATED!)
 
-    res.json(results[0]);
-  } catch (err) {
-    console.error("Database error:", err);
-    return res.status(500).send("Database error");
-  }
-});
-
-// GET GRADING PERIOD (UPDATED!)
-app.get("/get-grading-period", async (req, res) => {
-  try {
-    const sql = "SELECT * FROM period_status";
-    const [result] = await db3.query(sql);
-
-    res.json(result);
-  } catch (err) {
-    console.error("Database error:", err);
-    return res.status(500).send("Error fetching data");
-  }
-});
-
-// ACTIVATOR API OF GRADING PERIOD (UPDATED!)
-app.post("/grade_period_activate/:id", async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const sql1 = "UPDATE period_status SET status = 0";
-    await db3.query(sql1);
-
-    const sql2 = "UPDATE period_status SET status = 1 WHERE id = ?";
-    await db3.query(sql2, [id]);
-
-    res.status(200).json({ message: "Grading period activated successfully" });
-  } catch (error) {
-    res.status(500).json({ error: "Failed to activate grading period" });
-  }
-});
-
-app.get("/designation_list", async (req, res) => {
-  const query = "SELECT * FROM course_table WHERE office_duty = 1;";
-
-  try {
-    const [result] = await db3.query(query);
-    res.status(200).json(result);
-  } catch (err) {
-    console.error("Query error:", err);
-    res.status(500).json({
-      error: "Query failed",
-      details: err.message,
-    });
-  }
-});
-
-// UPDATE()
-app.get(
-  "/handle_section_of/:userID/:selectedCourse/:selectedActiveSchoolYear",
-  async (req, res) => {
-    const { userID, selectedCourse, selectedActiveSchoolYear } = req.params;
+  ///////---------------------------- DUPLICATE ----------------------------//////////
+  app.get("/departments", async (req, res) => {
+    const sql = "SELECT dprtmnt_id, dprtmnt_code FROM dprtmnt_table";
 
     try {
-      const sql = `
+      const [result] = await db3.query(sql);
+      res.json(result);
+    } catch (err) {
+      console.error("Error fetching departments:", err);
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Count how many students enrolled per subject for a selected section (UPDATED!)
+
+  // Get user by person_id (UPDATED!)
+  app.get("/api/user/:person_id", async (req, res) => {
+    const { person_id } = req.params;
+
+    try {
+      const sql = "SELECT profile_img FROM person_table WHERE person_id = ?";
+      const [results] = await db3.query(sql, [person_id]);
+
+      if (results.length === 0) {
+        return res.status(404).send("User not found");
+      }
+
+      res.json(results[0]);
+    } catch (err) {
+      console.error("Database error:", err);
+      return res.status(500).send("Database error");
+    }
+  });
+
+  // GET GRADING PERIOD (UPDATED!)
+  app.get("/get-grading-period", async (req, res) => {
+    try {
+      const sql = "SELECT * FROM period_status";
+      const [result] = await db3.query(sql);
+
+      res.json(result);
+    } catch (err) {
+      console.error("Database error:", err);
+      return res.status(500).send("Error fetching data");
+    }
+  });
+
+  // ACTIVATOR API OF GRADING PERIOD (UPDATED!)
+  app.post("/grade_period_activate/:id", async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      const sql1 = "UPDATE period_status SET status = 0";
+      await db3.query(sql1);
+
+      const sql2 = "UPDATE period_status SET status = 1 WHERE id = ?";
+      await db3.query(sql2, [id]);
+
+      res.status(200).json({ message: "Grading period activated successfully" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to activate grading period" });
+    }
+  });
+
+  app.get("/designation_list", async (req, res) => {
+    const query = "SELECT * FROM course_table WHERE office_duty = 1;";
+
+    try {
+      const [result] = await db3.query(query);
+      res.status(200).json(result);
+    } catch (err) {
+      console.error("Query error:", err);
+      res.status(500).json({
+        error: "Query failed",
+        details: err.message,
+      });
+    }
+  });
+
+  // UPDATE()
+  app.get(
+    "/handle_section_of/:userID/:selectedCourse/:selectedActiveSchoolYear",
+    async (req, res) => {
+      const { userID, selectedCourse, selectedActiveSchoolYear } = req.params;
+
+      try {
+        const sql = `
     SELECT tt.department_section_id, ptbl.program_code, st.description AS section_description FROM time_table AS tt
       INNER JOIN prof_table AS pt ON tt.professor_id = pt.prof_id
       INNER JOIN dprtmnt_section_table AS dst ON tt.department_section_id = dst.id
@@ -3117,25 +3205,25 @@ app.get(
     WHERE pt.person_id = ? AND tt.course_id = ? AND sy.id = ? GROUP BY tt.department_section_id
     ORDER BY section_description
     `;
-      const [result] = await db3.query(sql, [
-        userID,
-        selectedCourse,
-        selectedActiveSchoolYear,
-      ]);
-      res.json(result);
-    } catch (err) {
-      console.error("Server Error: ", err);
-      res.status(500).send({ message: "Internal Error", err });
-    }
-  },
-);
+        const [result] = await db3.query(sql, [
+          userID,
+          selectedCourse,
+          selectedActiveSchoolYear,
+        ]);
+        res.json(result);
+      } catch (err) {
+        console.error("Server Error: ", err);
+        res.status(500).send({ message: "Internal Error", err });
+      }
+    },
+  );
 
-// UPDATE ()
-app.get("/course_assigned_to/:userID", async (req, res) => {
-  const { userID } = req.params;
+  // UPDATE ()
+  app.get("/course_assigned_to/:userID", async (req, res) => {
+    const { userID } = req.params;
 
-  try {
-    const sql = `
+    try {
+      const sql = `
     SELECT DISTINCT tt.course_id, ct.course_description, ct.course_code, yt.year_id, st.semester_id FROM time_table AS tt
       INNER JOIN course_table AS ct ON tt.course_id = ct.course_id
       INNER JOIN prof_table AS pt ON tt.professor_id = pt.prof_id
@@ -3144,22 +3232,22 @@ app.get("/course_assigned_to/:userID", async (req, res) => {
       INNER JOIN semester_table AS st ON sy.semester_id = st.semester_id
     WHERE pt.person_id = ? AND ct.office_duty = 0 AND sy.astatus = 1
     `;
-    const [result] = await db3.query(sql, [userID]);
-    res.json(result);
-  } catch (err) {
-    console.error("Server Error: ", err);
-    res.status(500).send({ message: "Internal Error", err });
-  }
-});
+      const [result] = await db3.query(sql, [userID]);
+      res.json(result);
+    } catch (err) {
+      console.error("Server Error: ", err);
+      res.status(500).send({ message: "Internal Error", err });
+    }
+  });
 
-// UPDATE ()
-app.get(
-  "/course_assigned_to/:userID/:selectedSchoolYear/:selectedSchoolSemester",
-  async (req, res) => {
-    const { userID, selectedSchoolYear, selectedSchoolSemester } = req.params;
+  // UPDATE ()
+  app.get(
+    "/course_assigned_to/:userID/:selectedSchoolYear/:selectedSchoolSemester",
+    async (req, res) => {
+      const { userID, selectedSchoolYear, selectedSchoolSemester } = req.params;
 
-    try {
-      const sql = `
+      try {
+        const sql = `
     SELECT DISTINCT tt.course_id, ct.course_description, ct.course_code, yt.year_id, st.semester_id FROM time_table AS tt
       INNER JOIN course_table AS ct ON tt.course_id = ct.course_id
       INNER JOIN prof_table AS pt ON tt.professor_id = pt.prof_id
@@ -3168,25 +3256,25 @@ app.get(
       INNER JOIN semester_table AS st ON sy.semester_id = st.semester_id
     WHERE pt.person_id = ? AND ct.office_duty = 0 AND sy.year_id = ? AND sy.semester_id = ?
     `;
-      const [result] = await db3.query(sql, [
-        userID,
-        selectedSchoolYear,
-        selectedSchoolSemester,
-      ]);
-      res.json(result);
-    } catch (err) {
-      console.error("Server Error: ", err);
-      res.status(500).send({ message: "Internal Error", err });
-    }
-  },
-);
+        const [result] = await db3.query(sql, [
+          userID,
+          selectedSchoolYear,
+          selectedSchoolSemester,
+        ]);
+        res.json(result);
+      } catch (err) {
+        console.error("Server Error: ", err);
+        res.status(500).send({ message: "Internal Error", err });
+      }
+    },
+  );
 
-app.get(
-  "/get_selecterd_year/:selectedSchoolYear/:selectedSchoolSemester",
-  async (req, res) => {
-    const { selectedSchoolYear, selectedSchoolSemester } = req.params;
-    try {
-      const query = `
+  app.get(
+    "/get_selecterd_year/:selectedSchoolYear/:selectedSchoolSemester",
+    async (req, res) => {
+      const { selectedSchoolYear, selectedSchoolSemester } = req.params;
+      try {
+        const query = `
     SELECT
     asyt.id AS school_year_id
   FROM active_school_year_table AS asyt
@@ -3194,35 +3282,35 @@ app.get(
     INNER JOIN semester_table AS st ON asyt.semester_id = st.semester_id
   WHERE yt.year_id = ? AND st.semester_id = ?
     `;
-      const [result] = await db3.query(query, [
-        selectedSchoolYear,
-        selectedSchoolSemester,
-      ]);
-      console.log(result);
-      res.json(result);
-    } catch (err) {
-      console.error("Server Error: ", err);
-      res.status(500).send({ message: "Internal Error", err });
-    }
-  },
-);
-
-app.get(
-  "/enrolled_student_list/:userID/:selectedCourse/:department_section_id/:activeSchoolYear",
-  async (req, res) => {
-    const { userID, selectedCourse, department_section_id, activeSchoolYear } =
-      req.params;
-
-    try {
-      const [rows] = await db3.query(
-        "SELECT status FROM period_status WHERE description = 'Final Grading Period'",
-      );
-
-      if (!rows.length || rows[0].status !== 1) {
-        return res.status(403).json({ message: "Grades not available yet" });
+        const [result] = await db3.query(query, [
+          selectedSchoolYear,
+          selectedSchoolSemester,
+        ]);
+        console.log(result);
+        res.json(result);
+      } catch (err) {
+        console.error("Server Error: ", err);
+        res.status(500).send({ message: "Internal Error", err });
       }
+    },
+  );
 
-      const sql = `
+  app.get(
+    "/enrolled_student_list/:userID/:selectedCourse/:department_section_id/:activeSchoolYear",
+    async (req, res) => {
+      const { userID, selectedCourse, department_section_id, activeSchoolYear } =
+        req.params;
+
+      try {
+        const [rows] = await db3.query(
+          "SELECT status FROM period_status WHERE description = 'Final Grading Period'",
+        );
+
+        if (!rows.length || rows[0].status !== 1) {
+          return res.status(403).json({ message: "Grades not available yet" });
+        }
+
+        const sql = `
       SELECT DISTINCT
         es.student_number,
         ptbl.last_name,
@@ -3266,128 +3354,128 @@ app.get(
       WHERE pt.person_id = ? AND es.course_id = ? AND es.department_section_id = ? AND es.active_school_year_id = ?
     `;
 
-      const [result] = await db3.query(sql, [
-        userID,
-        selectedCourse,
-        department_section_id,
-        activeSchoolYear,
-      ]);
-      res.json(result);
-      console.log(result);
-    } catch (err) {
-      console.error("Server Error: ", err);
-      res.status(500).send({ message: "Internal Error", err });
-    }
-  },
-);
+        const [result] = await db3.query(sql, [
+          userID,
+          selectedCourse,
+          department_section_id,
+          activeSchoolYear,
+        ]);
+        res.json(result);
+        console.log(result);
+      } catch (err) {
+        console.error("Server Error: ", err);
+        res.status(500).send({ message: "Internal Error", err });
+      }
+    },
+  );
 
-function getFormattedTimestamp() {
-  const now = new Date();
+  function getFormattedTimestamp() {
+    const now = new Date();
 
-  let month = now.getMonth() + 1; // Months start at 0
-  let day = now.getDate();
-  let year = now.getFullYear();
+    let month = now.getMonth() + 1; // Months start at 0
+    let day = now.getDate();
+    let year = now.getFullYear();
 
-  let hours = now.getHours();
-  const minutes = now.getMinutes();
-  const seconds = now.getSeconds();
+    let hours = now.getHours();
+    const minutes = now.getMinutes();
+    const seconds = now.getSeconds();
 
-  const ampm = hours >= 12 ? "PM" : "AM";
-  hours = hours % 12;
-  hours = hours ? hours : 12; // hour '0' should be '12'
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    hours = hours ? hours : 12; // hour '0' should be '12'
 
-  // Add leading zeros
-  const mm = month < 10 ? "0" + month : month;
-  const dd = day < 10 ? "0" + day : day;
-  const hh = hours < 10 ? "0" + hours : hours;
-  const min = minutes < 10 ? "0" + minutes : minutes;
-  const ss = seconds < 10 ? "0" + seconds : seconds;
+    // Add leading zeros
+    const mm = month < 10 ? "0" + month : month;
+    const dd = day < 10 ? "0" + day : day;
+    const hh = hours < 10 ? "0" + hours : hours;
+    const min = minutes < 10 ? "0" + minutes : minutes;
+    const ss = seconds < 10 ? "0" + seconds : seconds;
 
-  return `${mm}/${dd}/${year} ${hh}:${min}:${ss} ${ampm}`;
-}
+    return `${mm}/${dd}/${year} ${hh}:${min}:${ss} ${ampm}`;
+  }
 
-app.put("/add_grades", async (req, res) => {
-  const {
-    midterm,
-    finals,
-    final_grade,
-    en_remarks,
-    student_number,
-    subject_id,
-  } = req.body;
-  console.log("Received data:", {
-    midterm,
-    finals,
-    final_grade,
-    en_remarks,
-    student_number,
-    subject_id,
-  });
+  app.put("/add_grades", async (req, res) => {
+    const {
+      midterm,
+      finals,
+      final_grade,
+      en_remarks,
+      student_number,
+      subject_id,
+    } = req.body;
+    console.log("Received data:", {
+      midterm,
+      finals,
+      final_grade,
+      en_remarks,
+      student_number,
+      subject_id,
+    });
 
-  try {
-    const [rows] = await db3.execute(
-      `SELECT id, description, status FROM period_status WHERE id = 3`,
-    );
-    if (!rows.length || rows[0].status !== 1) {
-      return res
-        .status(400)
-        .json({ message: "The uploading of grades is still not open." });
-    }
+    try {
+      const [rows] = await db3.execute(
+        `SELECT id, description, status FROM period_status WHERE id = 3`,
+      );
+      if (!rows.length || rows[0].status !== 1) {
+        return res
+          .status(400)
+          .json({ message: "The uploading of grades is still not open." });
+      }
 
-    const isIncomplete =
-      String(midterm).toLowerCase() === "inc" ||
-      String(midterm).toLowerCase() === "incomplete" ||
-      String(finals).toLowerCase() === "inc" ||
-      String(finals).toLowerCase() === "incomplete";
+      const isIncomplete =
+        String(midterm).toLowerCase() === "inc" ||
+        String(midterm).toLowerCase() === "incomplete" ||
+        String(finals).toLowerCase() === "inc" ||
+        String(finals).toLowerCase() === "incomplete";
 
-    if (isIncomplete) {
-      const [result] = await db3.execute(
-        `UPDATE enrolled_subject
+      if (isIncomplete) {
+        const [result] = await db3.execute(
+          `UPDATE enrolled_subject
         SET midterm = ?, finals = ? , final_grade= "0.00", grades_status = 'INC', en_remarks = 3
         WHERE student_number = ? AND course_id = ?`,
-        [midterm, finals, student_number, subject_id],
+          [midterm, finals, student_number, subject_id],
+        );
+
+        return result.affectedRows > 0
+          ? res
+            .status(200)
+            .json({ message: "Grades marked as INC successfully!" })
+          : res
+            .status(404)
+            .json({ message: "No matching record found to update." });
+      }
+
+      const [result] = await db3.execute(
+        `UPDATE enrolled_subject
+      SET midterm = ?, finals = ?, final_grade = ?, grades_status = ?, en_remarks = ?
+      WHERE student_number = ? AND course_id = ?`,
+        [
+          midterm,
+          finals,
+          final_grade,
+          final_grade,
+          en_remarks,
+          student_number,
+          subject_id,
+        ],
       );
 
       return result.affectedRows > 0
-        ? res
-          .status(200)
-          .json({ message: "Grades marked as INC successfully!" })
+        ? res.status(200).json({ message: "Grades updated successfully!" })
         : res
           .status(404)
           .json({ message: "No matching record found to update." });
+    } catch (err) {
+      console.error("Failed to update grades:", err);
+      return res.status(500).json({ message: "Server error" });
     }
+  });
 
-    const [result] = await db3.execute(
-      `UPDATE enrolled_subject
-      SET midterm = ?, finals = ?, final_grade = ?, grades_status = ?, en_remarks = ?
-      WHERE student_number = ? AND course_id = ?`,
-      [
-        midterm,
-        finals,
-        final_grade,
-        final_grade,
-        en_remarks,
-        student_number,
-        subject_id,
-      ],
-    );
+  // API ROOM SCHEDULE
+  app.get("/get_room/:profID/:roomID", async (req, res) => {
+    const { profID, roomID } = req.params;
 
-    return result.affectedRows > 0
-      ? res.status(200).json({ message: "Grades updated successfully!" })
-      : res
-        .status(404)
-        .json({ message: "No matching record found to update." });
-  } catch (err) {
-    console.error("Failed to update grades:", err);
-    return res.status(500).json({ message: "Server error" });
-  }
-});
-
-// API ROOM SCHEDULE
-app.get("/get_room/:profID/:roomID", async (req, res) => {
-  const { profID, roomID } = req.params;
-
-  const query = `
+    const query = `
     SELECT
       t.room_day,
       d.description as day,
@@ -3401,39 +3489,39 @@ app.get("/get_room/:profID/:roomID", async (req, res) => {
     INNER JOIN active_school_year_table asy ON t.school_year_id = asy.id
     WHERE t.professor_id = ? AND t.department_room_id = ? AND asy.astatus = 1
   `;
-  try {
-    const [result] = await db3.query(query, [profID, roomID]);
-    res.json(result);
-  } catch (error) {
-    console.log(error);
-    res.status(500).send({ message: "ERROR:", error });
-  }
-});
-
-app.delete("/upload/:id", async (req, res) => {
-  const { id } = req.params;
-  const query = "DELETE FROM requirement_uploads WHERE upload_id = ?";
-
-  try {
-    const [result] = await db.execute(query, [id]);
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Requirement not found" });
+    try {
+      const [result] = await db3.query(query, [profID, roomID]);
+      res.json(result);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({ message: "ERROR:", error });
     }
+  });
 
-    res.status(200).json({ message: "Requirement deleted successfully" });
-  } catch (err) {
-    console.error("Delete error:", err);
-    res.status(500).json({ error: "Failed to delete requirement" });
-  }
-});
+  app.delete("/upload/:id", async (req, res) => {
+    const { id } = req.params;
+    const query = "DELETE FROM requirement_uploads WHERE upload_id = ?";
 
-app.get("/api/professor-schedule/:profId", async (req, res) => {
-  const profId = req.params.profId;
+    try {
+      const [result] = await db.execute(query, [id]);
 
-  try {
-    const [results] = await db3.execute(
-      `
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: "Requirement not found" });
+      }
+
+      res.status(200).json({ message: "Requirement deleted successfully" });
+    } catch (err) {
+      console.error("Delete error:", err);
+      res.status(500).json({ error: "Failed to delete requirement" });
+    }
+  });
+
+  app.get("/api/professor-schedule/:profId", async (req, res) => {
+    const profId = req.params.profId;
+
+    try {
+      const [results] = await db3.execute(
+        `
       SELECT
         t.room_day,
         d.description as day_description,
@@ -3458,45 +3546,45 @@ app.get("/api/professor-schedule/:profId", async (req, res) => {
       LEFT JOIN course_table AS cst ON t.course_id = cst.course_id
       WHERE t.professor_id = ? AND asy.astatus = 1;
     `,
-      [profId],
-    );
+        [profId],
+      );
 
-    res.json(results);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("DB Error");
-  }
-});
+      res.json(results);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("DB Error");
+    }
+  });
 
-// EXAM API ENDPOINTS
+  // EXAM API ENDPOINTS
 
-app.post("/applicant_schedule", async (req, res) => {
-  const { applicant_id, exam_id } = req.body;
+  app.post("/applicant_schedule", async (req, res) => {
+    const { applicant_id, exam_id } = req.body;
 
-  if (!applicant_id || !exam_id) {
-    return res
-      .status(400)
-      .json({ error: "Applicant ID and Exam ID are required." });
-  }
+    if (!applicant_id || !exam_id) {
+      return res
+        .status(400)
+        .json({ error: "Applicant ID and Exam ID are required." });
+    }
 
-  const query = `INSERT INTO exam_applicants (applicant_id, schedule_id) VALUES (?, ?)`;
+    const query = `INSERT INTO exam_applicants (applicant_id, schedule_id) VALUES (?, ?)`;
 
-  try {
-    const [result] = await db.query(query, [applicant_id, exam_id]);
-    res.json({
-      message: "Applicant scheduled successfully",
-      insertId: result.insertId,
-    });
-  } catch (err) {
-    console.error("Database error adding applicant to schedule:", err);
-    res
-      .status(500)
-      .json({ error: "Database error adding applicant to schedule" });
-  }
-});
+    try {
+      const [result] = await db.query(query, [applicant_id, exam_id]);
+      res.json({
+        message: "Applicant scheduled successfully",
+        insertId: result.insertId,
+      });
+    } catch (err) {
+      console.error("Database error adding applicant to schedule:", err);
+      res
+        .status(500)
+        .json({ error: "Database error adding applicant to schedule" });
+    }
+  });
 
-app.get("/get_applicant_schedule", async (req, res) => {
-  const query = `
+  app.get("/get_applicant_schedule", async (req, res) => {
+    const query = `
     SELECT *
     FROM person_status_table
     WHERE exam_status = 0
@@ -3506,37 +3594,37 @@ app.get("/get_applicant_schedule", async (req, res) => {
       )
   `;
 
-  try {
-    const [results] = await db.query(query);
-    res.json(results);
-  } catch (err) {
-    console.error("Database error fetching unscheduled applicants:", err);
-    res
-      .status(500)
-      .json({ error: "Database error fetching unscheduled applicants" });
-  }
-});
+    try {
+      const [results] = await db.query(query);
+      res.json(results);
+    } catch (err) {
+      console.error("Database error fetching unscheduled applicants:", err);
+      res
+        .status(500)
+        .json({ error: "Database error fetching unscheduled applicants" });
+    }
+  });
 
-app.get("/slot_count/:exam_id", async (req, res) => {
-  const exam_id = req.params.exam_id;
-  const sql = `SELECT COUNT(*) AS count FROM exam_applicants WHERE schedule_id = ?`;
+  app.get("/slot_count/:exam_id", async (req, res) => {
+    const exam_id = req.params.exam_id;
+    const sql = `SELECT COUNT(*) AS count FROM exam_applicants WHERE schedule_id = ?`;
 
-  try {
-    const [results] = await db.query(sql, [exam_id]);
-    res.json({ occupied: results[0].count });
-  } catch (err) {
-    console.error("Database error getting slot count:", err);
-    res.status(500).json({ error: "Database error getting slot count" });
-  }
-});
+    try {
+      const [results] = await db.query(sql, [exam_id]);
+      res.json({ occupied: results[0].count });
+    } catch (err) {
+      console.error("Database error getting slot count:", err);
+      res.status(500).json({ error: "Database error getting slot count" });
+    }
+  });
 
-// GET person details by person_id including program and student_number
-app.get("/api/person/:id", async (req, res) => {
-  const { id } = req.params;
+  // GET person details by person_id including program and student_number
+  app.get("/api/person/:id", async (req, res) => {
+    const { id } = req.params;
 
-  try {
-    const [rows] = await db.execute(
-      `
+    try {
+      const [rows] = await db.execute(
+        `
       SELECT
         p.*,
         st.student_number,
@@ -3549,26 +3637,26 @@ app.get("/api/person/:id", async (req, res) => {
       LEFT JOIN program_table AS pt ON pt.program_id = ct.program_id
       WHERE p.person_id = ?
     `,
-      [id],
-    );
+        [id],
+      );
 
-    if (rows.length === 0) {
-      return res.status(404).json({ message: "Person not found" });
+      if (rows.length === 0) {
+        return res.status(404).json({ message: "Person not found" });
+      }
+
+      res.json(rows[0]); //  Send single merged result
+    } catch (err) {
+      console.error("Error fetching person details:", err);
+      res.status(500).json({ error: "Internal Server Error" });
     }
+  });
 
-    res.json(rows[0]); //  Send single merged result
-  } catch (err) {
-    console.error("Error fetching person details:", err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
+  // Program Display
+  app.get("/class_roster/ccs/:id", async (req, res) => {
+    const { id } = req.params;
 
-// Program Display
-app.get("/class_roster/ccs/:id", async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const query = `
+    try {
+      const query = `
       SELECT
         dct.dprtmnt_id, dt.dprtmnt_name, dt.dprtmnt_code,
         pt.program_id, pt.program_description, pt.program_code,
@@ -3581,44 +3669,44 @@ app.get("/class_roster/ccs/:id", async (req, res) => {
       WHERE dct.dprtmnt_id = ?;
     `;
 
-    const [programRows] = await db3.execute(query, [id]);
+      const [programRows] = await db3.execute(query, [id]);
 
-    if (programRows.length === 0) {
-      return res.json([]); // empty array instead of error
+      if (programRows.length === 0) {
+        return res.json([]); // empty array instead of error
+      }
+
+      res.json(programRows);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      res.status(500).json({ error: "Internal Server Error" });
     }
+  });
 
-    res.json(programRows);
-  } catch (err) {
-    console.error("Error fetching data:", err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-// Curriculum Section
-app.get("/class_roster/:cID", async (req, res) => {
-  const { cID } = req.params;
-  try {
-    const query = `
+  // Curriculum Section
+  app.get("/class_roster/:cID", async (req, res) => {
+    const { cID } = req.params;
+    try {
+      const query = `
       SELECT ct.curriculum_id, st.description, dst.id from dprtmnt_section_table AS dst
         INNER JOIN curriculum_table AS ct ON dst.curriculum_id = ct.curriculum_id
         INNER JOIN section_table AS st ON dst.section_id = st.id
       WHERE ct.curriculum_id = ?;
     `;
 
-    const [sectionList] = await db3.execute(query, [cID]);
+      const [sectionList] = await db3.execute(query, [cID]);
 
-    res.json(sectionList);
-  } catch (err) {
-    console.error("Error fetching data:", err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
+      res.json(sectionList);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
 
-// prof list base dun curriculum id tsaka sa section id
-app.get("/class_roster/:cID/:dstID", async (req, res) => {
-  const { cID, dstID } = req.params;
-  try {
-    const query = `
+  // prof list base dun curriculum id tsaka sa section id
+  app.get("/class_roster/:cID/:dstID", async (req, res) => {
+    const { cID, dstID } = req.params;
+    try {
+      const query = `
     SELECT DISTINCT cst.course_id, pft.prof_id, tt.department_section_id, pft.fname, pft.lname, pft.mname, cst.course_description, cst.course_code, st.description AS section_description, pgt.program_code FROM time_table AS tt
       INNER JOIN dprtmnt_section_table AS dst ON tt.department_section_id = dst.id
       INNER JOIN curriculum_table AS cmt ON dst.curriculum_id = cmt.curriculum_id
@@ -3629,23 +3717,23 @@ app.get("/class_roster/:cID/:dstID", async (req, res) => {
       INNER JOIN active_school_year_table AS asyt ON tt.school_year_id = asyt.id
     WHERE dst.curriculum_id = ? AND tt.department_section_id = ? AND asyt.astatus = 1
     `;
-    const [profList] = await db3.execute(query, [cID, dstID]);
+      const [profList] = await db3.execute(query, [cID, dstID]);
 
-    console.log(profList);
-    res.json(profList);
-  } catch (err) {
-    console.error("Error fetching data:", err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
+      console.log(profList);
+      res.json(profList);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
 
-// Student Information
-app.get(
-  "/class_roster/student_info/:cID/:dstID/:courseID/:professorID",
-  async (req, res) => {
-    const { cID, dstID, courseID, professorID } = req.params;
-    try {
-      const query = `
+  // Student Information
+  app.get(
+    "/class_roster/student_info/:cID/:dstID/:courseID/:professorID",
+    async (req, res) => {
+      const { cID, dstID, courseID, professorID } = req.params;
+      try {
+        const query = `
     SELECT DISTINCT
       es.student_number,
       pst.first_name, pst.middle_name, pst.last_name,
@@ -3663,28 +3751,28 @@ app.get(
     WHERE es.curriculum_id = ? AND es.department_section_id = ? AND asyt.astatus = 1 AND es.course_id = ? AND tt.professor_id = ? ORDER BY pst.last_name
     `;
 
-      const [studentList] = await db3.execute(query, [
-        cID,
-        dstID,
-        courseID,
-        professorID,
-      ]);
-      console.log(studentList);
-      res.json(studentList);
-    } catch (err) {
-      console.error("Error fetching data:", err);
-      res.status(500).json({ error: "Internal Server Error", err });
-    }
-  },
-);
+        const [studentList] = await db3.execute(query, [
+          cID,
+          dstID,
+          courseID,
+          professorID,
+        ]);
+        console.log(studentList);
+        res.json(studentList);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        res.status(500).json({ error: "Internal Server Error", err });
+      }
+    },
+  );
 
-// Class Information
-app.get(
-  "/class_roster/classinfo/:cID/:dstID/:courseID/:professorID",
-  async (req, res) => {
-    const { cID, dstID, courseID, professorID } = req.params;
-    try {
-      const query = `
+  // Class Information
+  app.get(
+    "/class_roster/classinfo/:cID/:dstID/:courseID/:professorID",
+    async (req, res) => {
+      const { cID, dstID, courseID, professorID } = req.params;
+      try {
+        const query = `
     SELECT DISTINCT
       st.description AS section_Description,
       pft.fname, pft.mname, pft.lname, pft.prof_id,
@@ -3712,28 +3800,28 @@ app.get(
     WHERE es.curriculum_id = ? AND es.department_section_id = ? AND asyt.astatus = 1 AND es.course_id = ? AND tt.professor_id = ?
     `;
 
-      const [class_data] = await db3.execute(query, [
-        cID,
-        dstID,
-        courseID,
-        professorID,
-      ]);
-      console.log(class_data);
-      res.json(class_data);
-    } catch (err) {
-      console.error("Error fetching data:", err);
-      res.status(500).json({ error: "Internal Server Error", err });
-    }
-  },
-);
+        const [class_data] = await db3.execute(query, [
+          cID,
+          dstID,
+          courseID,
+          professorID,
+        ]);
+        console.log(class_data);
+        res.json(class_data);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        res.status(500).json({ error: "Internal Server Error", err });
+      }
+    },
+  );
 
-app.get(
-  "/statistics/student_count/department/:dprtmnt_id",
-  async (req, res) => {
-    const { dprtmnt_id } = req.params;
+  app.get(
+    "/statistics/student_count/department/:dprtmnt_id",
+    async (req, res) => {
+      const { dprtmnt_id } = req.params;
 
-    try {
-      const query = `
+      try {
+        const query = `
       SELECT COUNT(DISTINCT es.student_number) AS student_count
       FROM enrolled_subject AS es
       INNER JOIN curriculum_table AS ct ON es.curriculum_id = ct.curriculum_id
@@ -3748,52 +3836,52 @@ app.get(
         AND sst.enrolled_status = 1
     `;
 
-      const [rows] = await db3.execute(query, [dprtmnt_id]);
-      res.json({ count: rows[0]?.student_count || 0 });
-    } catch (err) {
-      console.error("Error fetching total student count by department:", err);
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  },
-);
+        const [rows] = await db3.execute(query, [dprtmnt_id]);
+        res.json({ count: rows[0]?.student_count || 0 });
+      } catch (err) {
+        console.error("Error fetching total student count by department:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+      }
+    },
+  );
 
-app.get("/api/departments/:dprtmnt_id", async (req, res) => {
-  const { dprtmnt_id } = req.params;
-  console.log(dprtmnt_id);
-  try {
-    const [departments] = await db3.execute(
-      `
+  app.get("/api/departments/:dprtmnt_id", async (req, res) => {
+    const { dprtmnt_id } = req.params;
+    console.log(dprtmnt_id);
+    try {
+      const [departments] = await db3.execute(
+        `
       SELECT dt.dprtmnt_id, dt.dprtmnt_name, dt.dprtmnt_code FROM dprtmnt_table AS dt WHERE dt.dprtmnt_id = ?
     `,
-      [dprtmnt_id],
-    );
-    res.json(departments);
-  } catch (err) {
-    console.error("Error fetching departments:", err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
+        [dprtmnt_id],
+      );
+      res.json(departments);
+    } catch (err) {
+      console.error("Error fetching departments:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
 
-app.get("/api/departments", async (req, res) => {
-  try {
-    const [departments] = await db3.execute(`
+  app.get("/api/departments", async (req, res) => {
+    try {
+      const [departments] = await db3.execute(`
       SELECT dt.dprtmnt_id, dt.dprtmnt_name, dt.dprtmnt_code FROM dprtmnt_table AS dt
     `);
-    res.json(departments);
-  } catch (err) {
-    console.error("Error fetching departments:", err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
+      res.json(departments);
+    } catch (err) {
+      console.error("Error fetching departments:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
 
-// NEW ENDPOINT: All Year Levels Count
-app.get(
-  "/statistics/student_count/department/:dprtmnt_id/by_year_level",
-  async (req, res) => {
-    const { dprtmnt_id } = req.params;
+  // NEW ENDPOINT: All Year Levels Count
+  app.get(
+    "/statistics/student_count/department/:dprtmnt_id/by_year_level",
+    async (req, res) => {
+      const { dprtmnt_id } = req.params;
 
-    try {
-      const query = `
+      try {
+        const query = `
       SELECT ylt.year_level_id, ylt.year_level_description, COUNT(DISTINCT es.student_number) AS student_count
       FROM enrolled_subject AS es
       INNER JOIN curriculum_table AS ct ON es.curriculum_id = ct.curriculum_id
@@ -3809,31 +3897,31 @@ app.get(
       ORDER BY ylt.year_level_id ASC;
     `;
 
-      const [rows] = await db3.execute(query, [dprtmnt_id]);
-      res.json(rows); // [{ year_level_id: 1, year_level_description: "1st Year", student_count: 123 }, ...]
-    } catch (err) {
-      console.error("Error fetching year-level counts:", err);
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  },
-);
+        const [rows] = await db3.execute(query, [dprtmnt_id]);
+        res.json(rows); // [{ year_level_id: 1, year_level_description: "1st Year", student_count: 123 }, ...]
+      } catch (err) {
+        console.error("Error fetching year-level counts:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+      }
+    },
+  );
 
-// 09/06/2025 UPDATE - FIXED: search by EMAIL not student_number
-app.post("/forgot-password-student", async (req, res) => {
-  try {
-    const { search } = req.body;
+  // 09/06/2025 UPDATE - FIXED: search by EMAIL not student_number
+  app.post("/forgot-password-student", async (req, res) => {
+    try {
+      const { search } = req.body;
 
-    if (!search) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Missing search value" });
-    }
+      if (!search) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Missing search value" });
+      }
 
-    const like = `%${search}%`;
+      const like = `%${search}%`;
 
-    // � Allow reset via: student_number, name, person email, or user_accounts email
-    const [rows] = await db3.query(
-      `SELECT ua.email
+      // � Allow reset via: student_number, name, person email, or user_accounts email
+      const [rows] = await db3.query(
+        `SELECT ua.email
        FROM user_accounts ua
        JOIN person_table pt ON ua.person_id = pt.person_id
        WHERE ua.role = 'student'
@@ -3847,81 +3935,81 @@ app.post("/forgot-password-student", async (req, res) => {
             OR CONCAT(pt.first_name, ' ', pt.last_name) LIKE ?
          )
        LIMIT 1`,
-      [like, like, like, like, like, like, like],
-    );
+        [like, like, like, like, like, like, like],
+      );
 
-    if (rows.length === 0) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Student not found." });
-    }
+      if (rows.length === 0) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Student not found." });
+      }
 
-    const email = rows[0].email;
-    if (!email) {
-      return res.status(400).json({
-        success: false,
-        message: "No valid email found for this student.",
+      const email = rows[0].email;
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          message: "No valid email found for this student.",
+        });
+      }
+
+      //  Fetch short term from company settings
+      const [settings] = await db.query(
+        "SELECT short_term FROM company_settings WHERE id = 1",
+      );
+      const shortTerm = settings[0]?.short_term || "Institution";
+
+      //  Generate new 8-letter password
+      const newPassword = Array.from({ length: 8 }, () =>
+        String.fromCharCode(Math.floor(Math.random() * 26) + 65),
+      ).join("");
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      //  Update student password
+      await db3.query("UPDATE user_accounts SET password = ? WHERE email = ?", [
+        hashedPassword,
+        email,
+      ]);
+
+      //  Send email
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
       });
+
+      await transporter.sendMail({
+        from: `"${shortTerm} - Information System" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: "Your Password has Reset",
+        text: `Your new temporary password is: ${newPassword}\n\nPlease change it after logging in.`,
+      });
+
+      res.json({
+        success: true,
+        message: "Password reset successfully. Check email for the new password.",
+      });
+    } catch (error) {
+      console.error("Reset error:", error);
+      res.status(500).json({ success: false, message: "Internal server error." });
     }
+  });
 
-    //  Fetch short term from company settings
-    const [settings] = await db.query(
-      "SELECT short_term FROM company_settings WHERE id = 1",
-    );
-    const shortTerm = settings[0]?.short_term || "Institution";
+  /* Student Dashboard */
+  //GET All Needed Student Personl Data
 
-    //  Generate new 8-letter password
-    const newPassword = Array.from({ length: 8 }, () =>
-      String.fromCharCode(Math.floor(Math.random() * 26) + 65),
-    ).join("");
+  //COUNT the Total Number of Courses the Student Enrolled
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+  //GET All Needed Student Academic Data (Program, etc...)
+  app.get("/api/student_details/:id", async (req, res) => {
+    const { id } = req.params;
 
-    //  Update student password
-    await db3.query("UPDATE user_accounts SET password = ? WHERE email = ?", [
-      hashedPassword,
-      email,
-    ]);
-
-    //  Send email
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
-    await transporter.sendMail({
-      from: `"${shortTerm} - Information System" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: "Your Password has Reset",
-      text: `Your new temporary password is: ${newPassword}\n\nPlease change it after logging in.`,
-    });
-
-    res.json({
-      success: true,
-      message: "Password reset successfully. Check email for the new password.",
-    });
-  } catch (error) {
-    console.error("Reset error:", error);
-    res.status(500).json({ success: false, message: "Internal server error." });
-  }
-});
-
-/* Student Dashboard */
-//GET All Needed Student Personl Data
-
-//COUNT the Total Number of Courses the Student Enrolled
-
-//GET All Needed Student Academic Data (Program, etc...)
-app.get("/api/student_details/:id", async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    console.log("Fetching student details for person_id:", id);
-    const [rows] = await db3.execute(
-      `
+    try {
+      console.log("Fetching student details for person_id:", id);
+      const [rows] = await db3.execute(
+        `
     SELECT DISTINCT
       IFNULL(pgt.program_description, 'Not Currently Enrolled') AS program_description,
       IFNULL(st.description, 'Not Currently Enrolled') AS section_description,
@@ -3938,31 +4026,31 @@ app.get("/api/student_details/:id", async (req, res) => {
       INNER JOIN year_level_table AS ylt ON sst.year_level_id = ylt.year_level_id
       INNER JOIN active_school_year_table AS sy ON sst.active_school_year_id = sy.id
     WHERE pt.person_id = ?`,
-      [id],
-    );
+        [id],
+      );
 
-    if (rows.length === 0) {
-      return res.status(404).json({ error: "Person not found" });
+      if (rows.length === 0) {
+        return res.status(404).json({ error: "Person not found" });
+      }
+
+      res.json(rows[0]);
+    } catch (error) {
+      console.error("Error fetching person:", error);
+      res.status(500).json({ error: "Database error" });
     }
+  });
 
-    res.json(rows[0]);
-  } catch (error) {
-    console.error("Error fetching person:", error);
-    res.status(500).json({ error: "Database error" });
-  }
-});
-
-/* Student Schedule */
-//GET Student Current Assigned Schedule
+  /* Student Schedule */
+  //GET Student Current Assigned Schedule
 
 
 
 
-app.get("/api/get/all_schedule/:roomID", async (req, res) => {
-  const { roomID } = req.params;
+  app.get("/api/get/all_schedule/:roomID", async (req, res) => {
+    const { roomID } = req.params;
 
-  try {
-    const scheduleQuery = `
+    try {
+      const scheduleQuery = `
       SELECT
         tt.id,
         tt.room_day,
@@ -3995,50 +4083,50 @@ app.get("/api/get/all_schedule/:roomID", async (req, res) => {
         LEFT JOIN semester_table AS smt ON sy.semester_id = smt.semester_id
       WHERE (rmt.room_id = ? OR tt.department_room_id IS NULL) AND sy.astatus = 1;
     `;
-    const [schedule] = await db3.execute(scheduleQuery, [roomID]);
+      const [schedule] = await db3.execute(scheduleQuery, [roomID]);
 
-    if (schedule.length === 0) {
-      return res.status(404).json({ error: "Schedule not found" });
+      if (schedule.length === 0) {
+        return res.status(404).json({ error: "Schedule not found" });
+      }
+
+      res.json(schedule);
+    } catch (error) {
+      console.error("Error fetching person:", error);
+      res.status(500).json({ error: "Database error" });
+    }
+  });
+
+  app.post("/api/insert-schedule-designation", async (req, res) => {
+    const { day, start_time, end_time, subject_id, prof_id, school_year_id } =
+      req.body;
+
+    if (!day || !start_time || !end_time || !school_year_id || !prof_id) {
+      return res.status(400).json({ error: "Missing required fields" });
     }
 
-    res.json(schedule);
-  } catch (error) {
-    console.error("Error fetching person:", error);
-    res.status(500).json({ error: "Database error" });
-  }
-});
+    let startMinutes = timeToMinutes(start_time);
+    let endMinutes = timeToMinutes(end_time);
+    const earliest = timeToMinutes("7:00 AM");
+    const latest = timeToMinutes("9:00 PM");
 
-app.post("/api/insert-schedule-designation", async (req, res) => {
-  const { day, start_time, end_time, subject_id, prof_id, school_year_id } =
-    req.body;
+    // Validate times
+    if (endMinutes <= startMinutes) {
+      return res.status(409).json({
+        conflict: true,
+        message: "End time must be later than start time (same day only).",
+      });
+    }
 
-  if (!day || !start_time || !end_time || !school_year_id || !prof_id) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
+    if (startMinutes < earliest || endMinutes > latest) {
+      return res.status(409).json({
+        conflict: true,
+        message: "Time must be between 7:00 AM and 9:00 PM (same day).",
+      });
+    }
 
-  let startMinutes = timeToMinutes(start_time);
-  let endMinutes = timeToMinutes(end_time);
-  const earliest = timeToMinutes("7:00 AM");
-  const latest = timeToMinutes("9:00 PM");
-
-  // Validate times
-  if (endMinutes <= startMinutes) {
-    return res.status(409).json({
-      conflict: true,
-      message: "End time must be later than start time (same day only).",
-    });
-  }
-
-  if (startMinutes < earliest || endMinutes > latest) {
-    return res.status(409).json({
-      conflict: true,
-      message: "Time must be between 7:00 AM and 9:00 PM (same day).",
-    });
-  }
-
-  try {
-    // Check for time conflicts (prof, section, room)
-    const checkTimeQuery = `
+    try {
+      // Check for time conflicts (prof, section, room)
+      const checkTimeQuery = `
       SELECT * FROM time_table
       WHERE room_day = ?
         AND school_year_id = ?
@@ -4061,94 +4149,94 @@ app.post("/api/insert-schedule-designation", async (req, res) => {
         )
     `;
 
-    const [timeResult] = await db3.query(checkTimeQuery, [
-      day,
-      school_year_id,
-      prof_id,
-      startMinutes,
-      startMinutes,
-      endMinutes,
-      endMinutes,
-      startMinutes,
-      endMinutes,
-      startMinutes,
-      endMinutes,
-      startMinutes,
-      endMinutes,
-      startMinutes,
-      endMinutes,
-      startMinutes,
-      endMinutes,
-    ]);
+      const [timeResult] = await db3.query(checkTimeQuery, [
+        day,
+        school_year_id,
+        prof_id,
+        startMinutes,
+        startMinutes,
+        endMinutes,
+        endMinutes,
+        startMinutes,
+        endMinutes,
+        startMinutes,
+        endMinutes,
+        startMinutes,
+        endMinutes,
+        startMinutes,
+        endMinutes,
+        startMinutes,
+        endMinutes,
+      ]);
 
-    if (timeResult.length > 0) {
-      return res.status(409).json({
-        conflict: true,
-        message: "Schedule conflict detected! Please choose a different time.",
-      });
-    }
+      if (timeResult.length > 0) {
+        return res.status(409).json({
+          conflict: true,
+          message: "Schedule conflict detected! Please choose a different time.",
+        });
+      }
 
-    // Insert schedule
-    const insertQuery = `
+      // Insert schedule
+      const insertQuery = `
       INSERT INTO time_table
       (room_day, school_time_start, school_time_end, department_section_id, course_id, professor_id, department_room_id, school_year_id)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    await db3.query(insertQuery, [
-      day,
-      start_time,
-      end_time,
-      null,
-      subject_id,
-      prof_id,
-      null,
-      school_year_id,
-    ]);
+      await db3.query(insertQuery, [
+        day,
+        start_time,
+        end_time,
+        null,
+        subject_id,
+        prof_id,
+        null,
+        school_year_id,
+      ]);
 
-    res.status(200).json({ message: "Schedule inserted successfully" });
-  } catch (error) {
-    console.error("Error inserting schedule:", error);
-    res.status(500).json({ error: "Failed to insert schedule" });
-  }
-});
+      res.status(200).json({ message: "Schedule inserted successfully" });
+    } catch (error) {
+      console.error("Error inserting schedule:", error);
+      res.status(500).json({ error: "Failed to insert schedule" });
+    }
+  });
 
-app.delete("/api/delete/schedule/:scheduleId", async (req, res) => {
-  const { scheduleId } = req.params;
-  console.log("Room Id: ", scheduleId);
+  app.delete("/api/delete/schedule/:scheduleId", async (req, res) => {
+    const { scheduleId } = req.params;
+    console.log("Room Id: ", scheduleId);
 
-  try {
-    const deleteQuery = `DELETE FROM time_table WHERE id = ?`;
-    const [result] = await db3.execute(deleteQuery, [scheduleId]);
+    try {
+      const deleteQuery = `DELETE FROM time_table WHERE id = ?`;
+      const [result] = await db3.execute(deleteQuery, [scheduleId]);
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Schedule not found." });
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: "Schedule not found." });
+      }
+
+      res.json({ message: "Schedule deleted successfully." });
+    } catch (error) {
+      console.error("Error deleting schedule:", error);
+      res.status(500).json({ error: "Database error while deleting schedule." });
+    }
+  });
+
+  function timeToMinutes(timeStr) {
+    const parts = timeStr.trim().split(" ");
+    let [hours, minutes] = parts[0].split(":").map(Number);
+    const modifier = parts[1] ? parts[1].toUpperCase() : null;
+
+    if (modifier) {
+      if (modifier === "PM" && hours !== 12) hours += 12;
+      if (modifier === "AM" && hours === 12) hours = 0;
     }
 
-    res.json({ message: "Schedule deleted successfully." });
-  } catch (error) {
-    console.error("Error deleting schedule:", error);
-    res.status(500).json({ error: "Database error while deleting schedule." });
-  }
-});
-
-function timeToMinutes(timeStr) {
-  const parts = timeStr.trim().split(" ");
-  let [hours, minutes] = parts[0].split(":").map(Number);
-  const modifier = parts[1] ? parts[1].toUpperCase() : null;
-
-  if (modifier) {
-    if (modifier === "PM" && hours !== 12) hours += 12;
-    if (modifier === "AM" && hours === 12) hours = 0;
+    return hours * 60 + minutes;
   }
 
-  return hours * 60 + minutes;
-}
+  app.get("/program_list/:dprtmnt_id", async (req, res) => {
+    const { dprtmnt_id } = req.params;
 
-app.get("/program_list/:dprtmnt_id", async (req, res) => {
-  const { dprtmnt_id } = req.params;
-
-  try {
-    const query = `
+    try {
+      const query = `
       SELECT pt.program_id, pt.program_description, pt.program_code, pt.major
       FROM dprtmnt_curriculum_table AS dct
       INNER JOIN curriculum_table AS ct ON dct.curriculum_id = ct.curriculum_id
@@ -4156,17 +4244,17 @@ app.get("/program_list/:dprtmnt_id", async (req, res) => {
       WHERE dct.dprtmnt_id = ?;
     `;
 
-    const [results] = await db3.query(query, [dprtmnt_id]);
-    res.status(200).send(results);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send(error);
-  }
-});
+      const [results] = await db3.query(query, [dprtmnt_id]);
+      res.status(200).send(results);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send(error);
+    }
+  });
 
-app.get("/api/person_with_applicant/:person_id", (req, res) => {
-  const personId = req.params.person_id;
-  const sql = `
+  app.get("/api/person_with_applicant/:person_id", (req, res) => {
+    const personId = req.params.person_id;
+    const sql = `
     SELECT
       p.*,
       an.applicant_number,
@@ -4180,20 +4268,20 @@ app.get("/api/person_with_applicant/:person_id", (req, res) => {
     WHERE p.person_id = ?
     LIMIT 1
   `;
-  db.query(sql, [personId], (err, results) => {
-    if (err) {
-      console.error("person_with_applicant SQL error:", err);
-      return res.status(500).json({ error: err.message });
-    }
-    if (!results[0]) return res.status(404).json({ error: "Person not found" });
-    res.json(results[0]);
+    db.query(sql, [personId], (err, results) => {
+      if (err) {
+        console.error("person_with_applicant SQL error:", err);
+        return res.status(500).json({ error: err.message });
+      }
+      if (!results[0]) return res.status(404).json({ error: "Person not found" });
+      res.json(results[0]);
+    });
   });
-});
 
-app.get("/api/person_with_applicant/:id", (req, res) => {
-  const id = req.params.id;
+  app.get("/api/person_with_applicant/:id", (req, res) => {
+    const id = req.params.id;
 
-  const sql = `
+    const sql = `
     SELECT
       p.*,
       an.applicant_number,
@@ -4207,104 +4295,104 @@ app.get("/api/person_with_applicant/:id", (req, res) => {
     LIMIT 1
   `;
 
-  // bind the same param twice so the endpoint accepts either numeric person_id or applicant_number
-  db.query(sql, [id, id], (err, results) => {
-    if (err) {
-      console.error("person_with_applicant SQL error:", err);
-      return res.status(500).json({ error: err.message });
-    }
-    if (!results[0]) return res.status(404).json({ error: "Person not found" });
-    res.json(results[0]);
+    // bind the same param twice so the endpoint accepts either numeric person_id or applicant_number
+    db.query(sql, [id, id], (err, results) => {
+      if (err) {
+        console.error("person_with_applicant SQL error:", err);
+        return res.status(500).json({ error: err.message });
+      }
+      if (!results[0]) return res.status(404).json({ error: "Person not found" });
+      res.json(results[0]);
+    });
   });
-});
 
-app.get("/api/person_status_by_applicant/:applicant_number", (req, res) => {
-  const applicantNumber = req.params.applicant_number;
-  const sql = `
+  app.get("/api/person_status_by_applicant/:applicant_number", (req, res) => {
+    const applicantNumber = req.params.applicant_number;
+    const sql = `
     SELECT ps.*
     FROM person_status_table ps
     JOIN applicant_numbering_table an ON an.person_id = ps.person_id
     WHERE an.applicant_number = ?
     LIMIT 1
   `;
-  db.query(sql, [applicantNumber], (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(results[0] || null);
+    db.query(sql, [applicantNumber], (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(results[0] || null);
+    });
   });
-});
 
-app.get("/api/requirements/status/:person_id", async (req, res) => {
-  const { person_id } = req.params;
+  app.get("/api/requirements/status/:person_id", async (req, res) => {
+    const { person_id } = req.params;
 
-  try {
-    // 1 Get applicant type from person_table.applyingAs
-    const [[person]] = await db.query(
-      `
+    try {
+      // 1 Get applicant type from person_table.applyingAs
+      const [[person]] = await db.query(
+        `
       SELECT applyingAs
       FROM person_table
       WHERE person_id = ?
       `,
-      [person_id]
-    );
+        [person_id]
+      );
 
-    if (!person) {
-      return res.status(404).json({
-        error: "Person not found",
-      });
-    }
+      if (!person) {
+        return res.status(404).json({
+          error: "Person not found",
+        });
+      }
 
-    const applyingAs = String(person.applyingAs);
+      const applyingAs = String(person.applyingAs);
 
-    // 2 Get required requirements for this applicant type
-    const [required] = await db.query(
-      `
+      // 2 Get required requirements for this applicant type
+      const [required] = await db.query(
+        `
       SELECT id, description, category
       FROM requirements_table
       WHERE (applicant_type = ? OR applicant_type = '0' OR applicant_type = 0 OR applicant_type = 'All')
         AND is_optional = 0
       `,
-      [applyingAs]
-    );
+        [applyingAs]
+      );
 
-    // 3 Get uploaded requirements
-    const [uploaded] = await db.query(
-      `
+      // 3 Get uploaded requirements
+      const [uploaded] = await db.query(
+        `
       SELECT requirements_id
       FROM requirement_uploads
       WHERE person_id = ?
       AND document_status = 'Approved'
       `,
-      [person_id]
-    );
+        [person_id]
+      );
 
-    const uploadedIds = uploaded.map((r) => r.requirements_id);
+      const uploadedIds = uploaded.map((r) => r.requirements_id);
 
-    // 4 Check missing requirements
-    const missing = required.filter(
-      (req) => !uploadedIds.includes(req.id)
-    );
+      // 4 Check missing requirements
+      const missing = required.filter(
+        (req) => !uploadedIds.includes(req.id)
+      );
 
-    res.json({
-      required_count: required.length,
-      uploaded_count: uploaded.length,
-      missing_requirements: missing,
-      completed: missing.length === 0,
-    });
+      res.json({
+        required_count: required.length,
+        uploaded_count: uploaded.length,
+        missing_requirements: missing,
+        completed: missing.length === 0,
+      });
 
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      error: "Failed to check requirements",
-    });
-  }
-});
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({
+        error: "Failed to check requirements",
+      });
+    }
+  });
 
 
-app.get("/api/applied_program/:dprtmnt_id", async (req, res) => {
-  const { dprtmnt_id } = req.params;
-  try {
-    const [rows] = await db3.execute(
-      `
+  app.get("/api/applied_program/:dprtmnt_id", async (req, res) => {
+    const { dprtmnt_id } = req.params;
+    try {
+      const [rows] = await db3.execute(
+        `
       SELECT
         ct.curriculum_id,
         ct.year_id,
@@ -4325,29 +4413,29 @@ app.get("/api/applied_program/:dprtmnt_id", async (req, res) => {
       WHERE d.dprtmnt_id = ? AND ct.lock_status = 1
 
     `,
-      [dprtmnt_id],
-    );  
+        [dprtmnt_id],
+      );
 
-    if (rows.length === 0) {
-      return res.status(404).json({ error: "No curriculum data found" });
+      if (rows.length === 0) {
+        return res.status(404).json({ error: "No curriculum data found" });
+      }
+
+      res.json(rows);
+    } catch (error) {
+      console.error("Error fetching curriculum data:", error);
+      res.status(500).json({ error: "Database error" });
     }
+  });
 
-    res.json(rows);
-  } catch (error) {
-    console.error("Error fetching curriculum data:", error);
-    res.status(500).json({ error: "Database error" });
-  }
-});
+  app.get("/api/person_data/:person_id/:role", async (req, res) => {
+    try {
+      const { person_id, role } = req.params;
+      let userData;
 
-app.get("/api/person_data/:person_id/:role", async (req, res) => {
-  try {
-    const { person_id, role } = req.params;
-    let userData;
-
-    if (role === "registrar") {
-      //  Fetch registrar info directly from user_accounts (db3)
-      const [rows] = await db3.query(
-        `SELECT
+      if (role === "registrar") {
+        //  Fetch registrar info directly from user_accounts (db3)
+        const [rows] = await db3.query(
+          `SELECT
            ua.person_id,
            ua.profile_picture AS profile_image,
            ua.first_name AS fname,
@@ -4362,12 +4450,12 @@ app.get("/api/person_data/:person_id/:role", async (req, res) => {
          FROM user_accounts AS ua
          LEFT JOIN dprtmnt_table AS dt ON ua.dprtmnt_id = dt.dprtmnt_id 
          WHERE ua.person_id = ? AND ua.role = 'registrar'`,
-        [person_id],
-      );
-      userData = rows[0];
-    } else if (role === "faculty") {
-      const [rows] = await db3.query(
-        `SELECT
+          [person_id],
+        );
+        userData = rows[0];
+      } else if (role === "faculty") {
+        const [rows] = await db3.query(
+          `SELECT
            pt.person_id,
            pt.employee_id,
            pt.profile_image,
@@ -4382,12 +4470,12 @@ app.get("/api/person_data/:person_id/:role", async (req, res) => {
          LEFT JOIN dprtmnt_profs_table AS dpt ON pt.prof_id = dpt.prof_id
          LEFT JOIN dprtmnt_table AS dt ON dpt.dprtmnt_id = dpt.dprtmnt_id
          WHERE pt.person_id = ?`,
-        [person_id],
-      );
-      userData = rows[0];
-    } else if (role === "student") {
-      const [rows] = await db3.query(
-        `SELECT
+          [person_id],
+        );
+        userData = rows[0];
+      } else if (role === "student") {
+        const [rows] = await db3.query(
+          `SELECT
            pt.person_id,
            pt.profile_img AS profile_image,
            pt.first_name AS fname,
@@ -4402,12 +4490,12 @@ app.get("/api/person_data/:person_id/:role", async (req, res) => {
          INNER JOIN student_numbering_table AS snt 
            ON snt.person_id = pt.person_id
          WHERE pt.person_id = ? AND ua.role = 'student'`,
-        [person_id],
-      );
-      userData = rows[0];
-    } else if (role === "applicant") {
-      const [rows] = await db.query(
-        `SELECT
+          [person_id],
+        );
+        userData = rows[0];
+      } else if (role === "applicant") {
+        const [rows] = await db.query(
+          `SELECT
            p.person_id,
            p.profile_img AS profile_image,
            p.first_name AS fname,
@@ -4422,32 +4510,32 @@ app.get("/api/person_data/:person_id/:role", async (req, res) => {
          INNER JOIN applicant_numbering_table AS ant
          ON p.person_id =  ant.person_id
          WHERE p.person_id = ? AND ua.role = ?`,
-        [person_id, role],
-      );
-      userData = rows[0];
-    } else {
-      return res.status(400).send({ message: "Invalid role provided" });
+          [person_id, role],
+        );
+        userData = rows[0];
+      } else {
+        return res.status(400).send({ message: "Invalid role provided" });
+      }
+
+      if (!userData) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      res.json(userData);
+    } catch (err) {
+      console.error(" Error fetching person data:", err);
+      res.status(500).json({ error: "Internal Server Error" });
     }
+  });
 
-    if (!userData) {
-      return res.status(404).json({ error: "User not found" });
-    }
+  app.get(
+    "/api/applicant-interview-schedule/:applicantNumber",
+    async (req, res) => {
+      const { applicantNumber } = req.params;
 
-    res.json(userData);
-  } catch (err) {
-    console.error(" Error fetching person data:", err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-app.get(
-  "/api/applicant-interview-schedule/:applicantNumber",
-  async (req, res) => {
-    const { applicantNumber } = req.params;
-
-    try {
-      const [rows] = await db.query(
-        `
+      try {
+        const [rows] = await db.query(
+          `
       SELECT
         ies.schedule_id,
         ies.day_description,
@@ -4467,46 +4555,46 @@ app.get(
       WHERE ia.applicant_id = ?
       LIMIT 1
       `,
-        [applicantNumber],
+          [applicantNumber],
+        );
+
+        if (rows.length > 0) {
+          res.json(rows[0]);
+        } else {
+          res
+            .status(404)
+            .json({ message: "No interview schedule found for this applicant" });
+        }
+      } catch (err) {
+        console.error(" Error fetching interview schedule:", err);
+        res
+          .status(500)
+          .json({ message: "Server error fetching interview schedule" });
+      }
+    },
+  );
+  app.get("/api/interview_applicants/:applicantId", async (req, res) => {
+    try {
+      const { applicantId } = req.params;
+      const [rows] = await db.query(
+        "SELECT status FROM interview_applicants WHERE applicant_id = ? ORDER BY id DESC LIMIT 1",
+        [applicantId],
       );
 
-      if (rows.length > 0) {
-        res.json(rows[0]);
-      } else {
-        res
-          .status(404)
-          .json({ message: "No interview schedule found for this applicant" });
+      if (rows.length === 0) {
+        return res.json({ status: null });
       }
+      res.json(rows[0]);
     } catch (err) {
-      console.error(" Error fetching interview schedule:", err);
-      res
-        .status(500)
-        .json({ message: "Server error fetching interview schedule" });
+      console.error(" Error fetching interview applicant status:", err);
+      res.status(500).send("Server error");
     }
-  },
-);
-app.get("/api/interview_applicants/:applicantId", async (req, res) => {
-  try {
-    const { applicantId } = req.params;
-    const [rows] = await db.query(
-      "SELECT status FROM interview_applicants WHERE applicant_id = ? ORDER BY id DESC LIMIT 1",
-      [applicantId],
-    );
+  });
 
-    if (rows.length === 0) {
-      return res.json({ status: null });
-    }
-    res.json(rows[0]);
-  } catch (err) {
-    console.error(" Error fetching interview applicant status:", err);
-    res.status(500).send("Server error");
-  }
-});
-
-// 09/16/2025
-app.get("/api/student_number", async (req, res) => {
-  try {
-    const [rows] = await db3.execute(`
+  // 09/16/2025
+  app.get("/api/student_number", async (req, res) => {
+    try {
+      const [rows] = await db3.execute(`
       SELECT DISTINCT
         snt.student_number,
         pst.campus,
@@ -4541,21 +4629,21 @@ app.get("/api/student_number", async (req, res) => {
         INNER JOIN dprtmnt_table AS dpt ON dct.dprtmnt_id = dpt.dprtmnt_id;
     `);
 
-    if (rows.length === 0) {
-      return res.status(404).json({ error: "No student data found" });
+      if (rows.length === 0) {
+        return res.status(404).json({ error: "No student data found" });
+      }
+
+      res.json(rows);
+    } catch (error) {
+      console.error("Error fetching curriculum data:", error);
+      res.status(500).json({ error: "Database error" });
     }
+  });
 
-    res.json(rows);
-  } catch (error) {
-    console.error("Error fetching curriculum data:", error);
-    res.status(500).json({ error: "Database error" });
-  }
-});
-
-app.get("/get_class_details/:userID", async (req, res) => {
-  const { userID } = req.params;
-  try {
-    const query = `
+  app.get("/get_class_details/:userID", async (req, res) => {
+    const { userID } = req.params;
+    try {
+      const query = `
       SELECT
         snt.student_number,
         es.status,
@@ -4606,32 +4694,32 @@ app.get("/get_class_details/:userID", async (req, res) => {
       LEFT JOIN year_level_table AS yrlt ON sst.year_level_id = yrlt.year_level_id
     WHERE tt.professor_id = ?
     `;
-    const [result] = await db3.query(query, [userID]);
-    console.log(result);
-    res.json(result);
-  } catch (err) {
-    console.error("Server Error: ", err);
-    res.status(500).send({ message: "Internal Error", err });
-  }
-});
+      const [result] = await db3.query(query, [userID]);
+      console.log(result);
+      res.json(result);
+    } catch (err) {
+      console.error("Server Error: ", err);
+      res.status(500).send({ message: "Internal Error", err });
+    }
+  });
 
-app.get(
-  "/api/section_assigned_to/:userID/:selectedSchoolYear/:selectedSchoolSemester",
-  async (req, res) => {
-    const { userID, selectedSchoolYear, selectedSchoolSemester } = req.params;
-    try {
-      const [schoolYearRows] = await db3.execute(
-        "SELECT id FROM active_school_year_table WHERE year_id = ? AND semester_id = ?",
-        [selectedSchoolYear, selectedSchoolSemester],
-      );
-      if (schoolYearRows.length === 0) {
-        return res.status(404).json({ error: "Active school year not found" });
-      }
+  app.get(
+    "/api/section_assigned_to/:userID/:selectedSchoolYear/:selectedSchoolSemester",
+    async (req, res) => {
+      const { userID, selectedSchoolYear, selectedSchoolSemester } = req.params;
+      try {
+        const [schoolYearRows] = await db3.execute(
+          "SELECT id FROM active_school_year_table WHERE year_id = ? AND semester_id = ?",
+          [selectedSchoolYear, selectedSchoolSemester],
+        );
+        if (schoolYearRows.length === 0) {
+          return res.status(404).json({ error: "Active school year not found" });
+        }
 
-      const selectedActiveSchoolYear = schoolYearRows[0].id;
+        const selectedActiveSchoolYear = schoolYearRows[0].id;
 
-      const [rows] = await db3.execute(
-        `
+        const [rows] = await db3.execute(
+          `
       SELECT DISTINCT
 		st.id AS section_id,
         st.description AS section_description,
@@ -4646,29 +4734,29 @@ app.get(
       INNER JOIN prof_table AS pft ON t.professor_id = pft.prof_id
       WHERE pft.person_id = ? AND t.school_year_id = ?
     `,
-        [userID, selectedActiveSchoolYear],
-      );
+          [userID, selectedActiveSchoolYear],
+        );
 
-      if (rows.length === 0) {
-        return res.status(404).json({ error: "No Section data found" });
+        if (rows.length === 0) {
+          return res.status(404).json({ error: "No Section data found" });
+        }
+
+        res.json(rows);
+      } catch (error) {
+        console.error("Error fetching curriculum data:", error);
+        res.status(500).json({ error: "Database error" });
       }
+    },
+  );
 
-      res.json(rows);
-    } catch (error) {
-      console.error("Error fetching curriculum data:", error);
-      res.status(500).json({ error: "Database error" });
-    }
-  },
-);
+  app.get(
+    "/api/section_assigned_to/:userID/:courseID/:yearID/:semesterID",
+    async (req, res) => {
+      const { userID, courseID, yearID, semesterID } = req.params;
 
-app.get(
-  "/api/section_assigned_to/:userID/:courseID/:yearID/:semesterID",
-  async (req, res) => {
-    const { userID, courseID, yearID, semesterID } = req.params;
-
-    try {
-      const [rows] = await db3.execute(
-        `
+      try {
+        const [rows] = await db3.execute(
+          `
       SELECT DISTINCT
         t.department_section_id,
         st.description AS section_description,
@@ -4685,48 +4773,48 @@ app.get(
       AND asy.year_id = ?
       AND asy.semester_id = ?
     `,
-        [userID, courseID, yearID, semesterID],
+          [userID, courseID, yearID, semesterID],
+        );
+
+        res.json(rows);
+      } catch (error) {
+        console.Error("Error:", error);
+        res.status(500).json({ error: "Database Error" });
+      }
+    },
+  );
+
+  //  Mark applicant as emailed (action = 1)
+  app.put("/api/interview_applicants/:applicant_id/action", async (req, res) => {
+    const { applicant_id } = req.params;
+
+    try {
+      const [result] = await db.execute(
+        "UPDATE admission.interview_applicants SET action = 1, email_sent = 1 WHERE applicant_id = ?",
+        [applicant_id],
       );
 
-      res.json(rows);
-    } catch (error) {
-      console.Error("Error:", error);
-      res.status(500).json({ error: "Database Error" });
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: "Applicant not found" });
+      }
+
+      res.json({ success: true, message: "Applicant marked as emailed" });
+    } catch (err) {
+      console.error(" Error updating action:", err);
+      res.status(500).json({ success: false, message: "Server error" });
     }
-  },
-);
+  });
 
-//  Mark applicant as emailed (action = 1)
-app.put("/api/interview_applicants/:applicant_id/action", async (req, res) => {
-  const { applicant_id } = req.params;
+  app.post("/api/send-email", async (req, res) => {
+    const { to, subject, html, senderName, user_person_id } = req.body;
 
-  try {
-    const [result] = await db.execute(
-      "UPDATE admission.interview_applicants SET action = 1, email_sent = 1 WHERE applicant_id = ?",
-      [applicant_id],
-    );
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Applicant not found" });
+    if (!to || !subject || !html) {
+      return res.status(400).json({ message: "Missing email fields" });
     }
 
-    res.json({ success: true, message: "Applicant marked as emailed" });
-  } catch (err) {
-    console.error(" Error updating action:", err);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-});
-
-app.post("/api/send-email", async (req, res) => {
-  const { to, subject, html, senderName, user_person_id } = req.body;
-
-  if (!to || !subject || !html) {
-    return res.status(400).json({ message: "Missing email fields" });
-  }
-
-  try {
-    const [actorRows] = await db3.query(
-      `SELECT
+    try {
+      const [actorRows] = await db3.query(
+        `SELECT
         role,
         employee_id,
         last_name,
@@ -4735,109 +4823,109 @@ app.post("/api/send-email", async (req, res) => {
       FROM user_accounts
       WHERE person_id = ?
       LIMIT 1`,
-      [user_person_id],
-    );
+        [user_person_id],
+      );
 
-    const actor = actorRows[0];
-    console.log("actor", actor);
-    if (!actor) {
-      return res.status(404).json({ message: "User account not found" });
-    }
+      const actor = actorRows[0];
+      console.log("actor", actor);
+      if (!actor) {
+        return res.status(404).json({ message: "User account not found" });
+      }
 
-    const [[company]] = await db.query(
-      "SELECT short_term FROM company_settings WHERE id = 1",
-    );
+      const [[company]] = await db.query(
+        "SELECT short_term FROM company_settings WHERE id = 1",
+      );
 
-    const shortTerm = company?.short_term || "EARIST";
+      const shortTerm = company?.short_term || "EARIST";
 
-    const [userEmailRows] = await db.query(
-      `SELECT sender_name, department_id 
+      const [userEmailRows] = await db.query(
+        `SELECT sender_name, department_id 
        FROM email_templates 
        WHERE employee_id = ?`,
-      [actor.employee_id],
-    );
+        [actor.employee_id],
+      );
 
-    const templateRow = userEmailRows[0];
+      const templateRow = userEmailRows[0];
 
-    if (!templateRow) {
-      return res.status(404).json({ message: "Email template not found" });
-    }
+      if (!templateRow) {
+        return res.status(404).json({ message: "Email template not found" });
+      }
 
-    const senderAccountKey = templateRow.sender_name || senderName;
+      const senderAccountKey = templateRow.sender_name || senderName;
 
-    const [depRows] = await db3.query(
-      `SELECT dprtmnt_name 
+      const [depRows] = await db3.query(
+        `SELECT dprtmnt_name 
        FROM dprtmnt_table 
        WHERE dprtmnt_id = ?`,
-      [templateRow.department_id],
-    );
+        [templateRow.department_id],
+      );
 
-    const depName = depRows.length > 0 ? depRows[0].dprtmnt_name : "Department";
+      const depName = depRows.length > 0 ? depRows[0].dprtmnt_name : "Department";
 
-    const senderAccountMap = {
-      CCS_EMAIL_USER1: {
-        user: process.env.CCS_EMAIL_USER1,
-        pass: process.env.CCS_EMAIL_PASS1,
-      },
-      CCS_EMAIL_USER2: {
-        user: process.env.CCS_EMAIL_USER2,
-        pass: process.env.CCS_EMAIL_PASS2,
-      },
-    };
+      const senderAccountMap = {
+        CCS_EMAIL_USER1: {
+          user: process.env.CCS_EMAIL_USER1,
+          pass: process.env.CCS_EMAIL_PASS1,
+        },
+        CCS_EMAIL_USER2: {
+          user: process.env.CCS_EMAIL_USER2,
+          pass: process.env.CCS_EMAIL_PASS2,
+        },
+      };
 
-    const senderAccount = senderAccountMap[senderAccountKey] || {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    };
+      const senderAccount = senderAccountMap[senderAccountKey] || {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      };
 
-    if (!senderAccount.user || !senderAccount.pass) {
-      throw new Error("Email sender account is not configured.");
+      if (!senderAccount.user || !senderAccount.pass) {
+        throw new Error("Email sender account is not configured.");
+      }
+
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: senderAccount,
+      });
+
+      const [applicantPersonRows] = await db.query(
+        `SELECT person_id FROM person_table WHERE emailAddress = ?`,
+        [to],
+      );
+
+      const personIds = applicantPersonRows.map((row) => row.person_id);
+
+      await db.query(
+        `UPDATE person_status_table SET interview_status = 1 WHERE person_id = ?`,
+        [personIds],
+      );
+
+      await transporter.sendMail({
+        from: `${shortTerm} - ${depName} <${senderAccount.user}>`,
+        to,
+        subject,
+        html,
+      });
+
+      res.json({ success: true, message: "Email sent successfully" });
+    } catch (err) {
+      console.error(" Error sending email:", err);
+      res.status(500).json({ success: false, message: "Failed to send email" });
     }
+  });
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: senderAccount,
-    });
+  app.put("/api/interview_applicants/accept-top", async (req, res) => {
+    const { count, dprtmnt_id } = req.body;
 
-    const [applicantPersonRows] = await db.query(
-      `SELECT person_id FROM person_table WHERE emailAddress = ?`,
-      [to],
-    );
+    // Validate inputs
+    if (!count || isNaN(count) || count <= 0)
+      return res.status(400).json({ message: "Invalid count" });
+    if (!dprtmnt_id)
+      return res.status(400).json({ message: "Missing department ID" });
 
-    const personIds = applicantPersonRows.map((row) => row.person_id);
-
-    await db.query(
-      `UPDATE person_status_table SET interview_status = 1 WHERE person_id = ?`,
-      [personIds],
-    );
-
-    await transporter.sendMail({
-      from: `${shortTerm} - ${depName} <${senderAccount.user}>`,
-      to,
-      subject,
-      html,
-    });
-
-    res.json({ success: true, message: "Email sent successfully" });
-  } catch (err) {
-    console.error(" Error sending email:", err);
-    res.status(500).json({ success: false, message: "Failed to send email" });
-  }
-});
-
-app.put("/api/interview_applicants/accept-top", async (req, res) => {
-  const { count, dprtmnt_id } = req.body;
-
-  // Validate inputs
-  if (!count || isNaN(count) || count <= 0)
-    return res.status(400).json({ message: "Invalid count" });
-  if (!dprtmnt_id)
-    return res.status(400).json({ message: "Missing department ID" });
-
-  try {
-    // 1� Select top applicants from Waiting List
-    const [rows] = await db3.query(
-      `SELECT ps.applicant_id
+    try {
+      // 1� Select top applicants from Waiting List
+      const [rows] = await db3.query(
+        `SELECT ps.applicant_id
        FROM admission.person_status_table ps
        JOIN admission.interview_applicants ia ON ia.applicant_id = ps.applicant_id
        JOIN admission.applicant_numbering_table ant ON ant.applicant_number = ps.applicant_id
@@ -4846,38 +4934,38 @@ app.put("/api/interview_applicants/accept-top", async (req, res) => {
        WHERE ia.status = 'Waiting List' AND dct.dprtmnt_id = ?
        ORDER BY ((ps.qualifying_result + ps.interview_result)/2) DESC
        LIMIT ?`,
-      [Number(dprtmnt_id), Number(count)],
-    );
+        [Number(dprtmnt_id), Number(count)],
+      );
 
-    if (!rows.length)
-      return res
-        .status(404)
-        .json({ message: "No Waiting List applicants found" });
+      if (!rows.length)
+        return res
+          .status(404)
+          .json({ message: "No Waiting List applicants found" });
 
-    const ids = rows.map((r) => r.applicant_id);
+      const ids = rows.map((r) => r.applicant_id);
 
-    // 2� Update their status to Accepted
-    const [updateResult] = await db3.query(
-      `UPDATE admission.interview_applicants
+      // 2� Update their status to Accepted
+      const [updateResult] = await db3.query(
+        `UPDATE admission.interview_applicants
        SET status = 'Accepted'
        WHERE applicant_id IN (?)`,
-      [ids],
-    );
+        [ids],
+      );
 
-    res.json({
-      message: `Updated ${ids.length} applicants to Accepted in department ${dprtmnt_id}`,
-      updated: ids,
-    });
-  } catch (err) {
-    console.error("Error accepting top applicants:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
+      res.json({
+        message: `Updated ${ids.length} applicants to Accepted in department ${dprtmnt_id}`,
+        updated: ids,
+      });
+    } catch (err) {
+      console.error("Error accepting top applicants:", err);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
 
-app.get("/api/college/persons", async (req, res) => {
-  try {
-    // STEP 1: Get all eligible persons (from ENROLLMENT DB)
-    const [persons] = await db.execute(`
+  app.get("/api/college/persons", async (req, res) => {
+    try {
+      // STEP 1: Get all eligible persons (from ENROLLMENT DB)
+      const [persons] = await db.execute(`
       SELECT p.*, SUBSTRING(a.applicant_number, 5, 1) AS middle_code, pt.*
       FROM admission.person_table p
       JOIN admission.person_status_table ps ON p.person_id = ps.person_id
@@ -4893,105 +4981,105 @@ app.get("/api/college/persons", async (req, res) => {
       )
     `);
 
-    if (persons.length === 0) return res.json([]);
+      if (persons.length === 0) return res.json([]);
 
-    const personIds = persons.map((p) => p.person_id);
+      const personIds = persons.map((p) => p.person_id);
 
-    // STEP 2: Get all applicant numbers for those person_ids (from ADMISSION DB)
-    const [applicantNumbers] = await db.query(
-      `
+      // STEP 2: Get all applicant numbers for those person_ids (from ADMISSION DB)
+      const [applicantNumbers] = await db.query(
+        `
       SELECT applicant_number, person_id
       FROM applicant_numbering_table
       WHERE person_id IN (?)
     `,
-      [personIds],
-    );
-
-    // Create a quick lookup map
-    const applicantMap = {};
-    for (let row of applicantNumbers) {
-      applicantMap[row.person_id] = row.applicant_number;
-    }
-
-    // STEP 3: Merge applicant_number into each person object
-    const merged = persons.map((person) => ({
-      ...person,
-      applicant_number: applicantMap[person.person_id] || null,
-    }));
-
-    res.json(merged);
-  } catch (err) {
-    console.error(" Error merging person + applicant ID:", err);
-    res.status(500).send("Server error");
-  }
-});
-
-app.put(
-  "/api/update_profile_image/:person_id",
-  profileUpload.single("profileImage"),
-  async (req, res) => {
-    const { person_id } = req.params;
-    if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded" });
-    }
-
-    const filename = req.file.filename;
-
-    try {
-      // Update DB (set filename to the same name we saved)
-      const [result] = await db3.query(
-        "UPDATE prof_table SET profile_image = ? WHERE person_id = ?",
-        [filename, person_id],
+        [personIds],
       );
 
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ error: "Person not found" });
+      // Create a quick lookup map
+      const applicantMap = {};
+      for (let row of applicantNumbers) {
+        applicantMap[row.person_id] = row.applicant_number;
       }
 
-      res.json({
-        message: " Profile image updated successfully",
-        filename,
-      });
+      // STEP 3: Merge applicant_number into each person object
+      const merged = persons.map((person) => ({
+        ...person,
+        applicant_number: applicantMap[person.person_id] || null,
+      }));
+
+      res.json(merged);
     } catch (err) {
-      console.error(" DB Error:", err);
-      res.status(500).json({ error: "Database update failed" });
+      console.error(" Error merging person + applicant ID:", err);
+      res.status(500).send("Server error");
     }
-  },
-);
+  });
 
-// --------------------------------- FOR MIGRATION DATA PANEL
+  app.put(
+    "/api/update_profile_image/:person_id",
+    profileUpload.single("profileImage"),
+    async (req, res) => {
+      const { person_id } = req.params;
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
 
-// � Get interviewer schedules + applicants
-app.get("/api/interviewers", async (req, res) => {
-  const { query = "", schedule } = req.query;
+      const filename = req.file.filename;
 
-  try {
-    const scheduleParams = [];
-    const scheduleWhere = [];
+      try {
+        // Update DB (set filename to the same name we saved)
+        const [result] = await db3.query(
+          "UPDATE prof_table SET profile_image = ? WHERE person_id = ?",
+          [filename, person_id],
+        );
 
-    if (schedule) {
-      scheduleWhere.push("schedule_id = ?");
-      scheduleParams.push(schedule);
-    } else {
-      scheduleWhere.push("interviewer LIKE ?");
-      scheduleParams.push(`%${query}%`);
-    }
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ error: "Person not found" });
+        }
 
-    // 1. Find schedules by clicked schedule id, or by interviewer search text.
-    const [schedules] = await db.query(
-      `SELECT * FROM interview_exam_schedule WHERE ${scheduleWhere.join(" AND ")}`,
-      scheduleParams,
-    );
+        res.json({
+          message: " Profile image updated successfully",
+          filename,
+        });
+      } catch (err) {
+        console.error(" DB Error:", err);
+        res.status(500).json({ error: "Database update failed" });
+      }
+    },
+  );
 
-    if (schedules.length === 0) {
-      return res.json([]);
-    }
+  // --------------------------------- FOR MIGRATION DATA PANEL
 
-    // 2. For each schedule, attach applicants
-    const results = await Promise.all(
-      schedules.map(async (sched) => {
-        const [applicants] = await db.query(
-          `
+  // � Get interviewer schedules + applicants
+  app.get("/api/interviewers", async (req, res) => {
+    const { query = "", schedule } = req.query;
+
+    try {
+      const scheduleParams = [];
+      const scheduleWhere = [];
+
+      if (schedule) {
+        scheduleWhere.push("schedule_id = ?");
+        scheduleParams.push(schedule);
+      } else {
+        scheduleWhere.push("interviewer LIKE ?");
+        scheduleParams.push(`%${query}%`);
+      }
+
+      // 1. Find schedules by clicked schedule id, or by interviewer search text.
+      const [schedules] = await db.query(
+        `SELECT * FROM interview_exam_schedule WHERE ${scheduleWhere.join(" AND ")}`,
+        scheduleParams,
+      );
+
+      if (schedules.length === 0) {
+        return res.json([]);
+      }
+
+      // 2. For each schedule, attach applicants
+      const results = await Promise.all(
+        schedules.map(async (sched) => {
+          const [applicants] = await db.query(
+            `
           SELECT
             ia.applicant_id AS applicant_number,
             ia.email_sent,
@@ -5016,50 +5104,50 @@ app.get("/api/interviewers", async (req, res) => {
             ON ia.schedule_id = s.schedule_id
           WHERE ia.schedule_id = ?
           `,
-          [sched.schedule_id],
-        );
+            [sched.schedule_id],
+          );
 
-        return { schedule: sched, applicants };
-      }),
-    );
+          return { schedule: sched, applicants };
+        }),
+      );
 
-    res.json(results);
-  } catch (err) {
-    console.error(" Error in /api/interviewers:", err);
-    res.status(500).send("Server error");
-  }
-});
+      res.json(results);
+    } catch (err) {
+      console.error(" Error in /api/interviewers:", err);
+      res.status(500).send("Server error");
+    }
+  });
 
-// 09/26/2025
+  // 09/26/2025
 
-// GET person details by student_number (Enrollment DB)
-app.get("/api/person_id/:student_number", async (req, res) => {
-  try {
-    const [rows] = await db3.query(
-      `SELECT
+  // GET person details by student_number (Enrollment DB)
+  app.get("/api/person_id/:student_number", async (req, res) => {
+    try {
+      const [rows] = await db3.query(
+        `SELECT
          p.*,
          sn.student_number
        FROM student_numbering_table sn
        JOIN person_table p ON p.person_id = sn.person_id
        WHERE sn.student_number = ?`,
-      [req.params.student_number],
-    );
+        [req.params.student_number],
+      );
 
-    if (!rows.length) {
-      return res.status(404).json({ message: "Person not found" });
+      if (!rows.length) {
+        return res.status(404).json({ message: "Person not found" });
+      }
+
+      res.json(rows[0]); //  full person data + student_number
+    } catch (err) {
+      console.error("Error fetching person by student_number:", err);
+      res.status(500).json({ message: "Server error" });
     }
+  });
 
-    res.json(rows[0]); //  full person data + student_number
-  } catch (err) {
-    console.error("Error fetching person by student_number:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-//  NEW: Get persons (Enrollment DB) with student_number
-app.get("/api/enrollment_upload_documents", async (req, res) => {
-  try {
-    const [persons] = await db3.query(`
+  //  NEW: Get persons (Enrollment DB) with student_number
+  app.get("/api/enrollment_upload_documents", async (req, res) => {
+    try {
+      const [persons] = await db3.query(`
       SELECT
         p.person_id,
         p.first_name,
@@ -5074,113 +5162,113 @@ app.get("/api/enrollment_upload_documents", async (req, res) => {
       LEFT JOIN student_numbering_table sn ON p.person_id = sn.person_id
     `);
 
-    res.status(200).json(persons);
-  } catch (error) {
-    console.error(" Error fetching enrollment upload documents:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
-
-//  Get person by person_id (Enrollment DB)
-app.get("/api/enrollment_person/:person_id", async (req, res) => {
-  try {
-    const [rows] = await db3.query(
-      `SELECT * FROM person_table WHERE person_id = ?`,
-      [req.params.person_id],
-    );
-
-    if (!rows.length) {
-      return res.status(404).json({ message: "Person not found" });
+      res.status(200).json(persons);
+    } catch (error) {
+      console.error(" Error fetching enrollment upload documents:", error);
+      res.status(500).json({ message: "Internal Server Error" });
     }
+  });
 
-    res.json(rows[0]);
-  } catch (err) {
-    console.error("Error fetching enrollment person:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
+  //  Get person by person_id (Enrollment DB)
+  app.get("/api/enrollment_person/:person_id", async (req, res) => {
+    try {
+      const [rows] = await db3.query(
+        `SELECT * FROM person_table WHERE person_id = ?`,
+        [req.params.person_id],
+      );
 
-//  Update person (Enrollment DB) safely
-app.put("/api/enrollment_person/:id", async (req, res) => {
-  try {
+      if (!rows.length) {
+        return res.status(404).json({ message: "Person not found" });
+      }
+
+      res.json(rows[0]);
+    } catch (err) {
+      console.error("Error fetching enrollment person:", err);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  //  Update person (Enrollment DB) safely
+  app.put("/api/enrollment_person/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+
+      // Remove person_id from payload
+      delete updates.person_id;
+
+      // If nothing left, just skip
+      const fields = Object.keys(updates);
+      if (fields.length === 0) {
+        return res.json({ message: "No valid fields to update, skipping." });
+      }
+
+      // Build SET clause dynamically
+      const setClause = fields.map((field) => `${field} = ?`).join(", ");
+      const values = fields.map((field) => updates[field]);
+
+      await db3.query(
+        `UPDATE person_table SET ${setClause} WHERE person_id = ?`,
+        [...values, id],
+      );
+
+      res.json({ message: "Enrollment person updated successfully" });
+    } catch (err) {
+      console.error(" Error updating enrollment person:", err);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.get("/api/student-person-data/:id", async (req, res) => {
     const { id } = req.params;
-    const updates = req.body;
+    console.log("id: ");
 
-    // Remove person_id from payload
-    delete updates.person_id;
-
-    // If nothing left, just skip
-    const fields = Object.keys(updates);
-    if (fields.length === 0) {
-      return res.json({ message: "No valid fields to update, skipping." });
-    }
-
-    // Build SET clause dynamically
-    const setClause = fields.map((field) => `${field} = ?`).join(", ");
-    const values = fields.map((field) => updates[field]);
-
-    await db3.query(
-      `UPDATE person_table SET ${setClause} WHERE person_id = ?`,
-      [...values, id],
-    );
-
-    res.json({ message: "Enrollment person updated successfully" });
-  } catch (err) {
-    console.error(" Error updating enrollment person:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-app.get("/api/student-person-data/:id", async (req, res) => {
-  const { id } = req.params;
-  console.log("id: ");
-
-  try {
-    const [rows] = await db3.query(
-      `SELECT snt.student_number, pt.* FROM student_numbering_table AS snt
+    try {
+      const [rows] = await db3.query(
+        `SELECT snt.student_number, pt.* FROM student_numbering_table AS snt
       LEFT JOIN person_table AS pt ON snt.person_id = pt.person_id
       WHERE pt.person_id = ?`,
-      [id],
-    );
+        [id],
+      );
 
-    if (rows.length === 0) {
-      return res.status(404).json({ error: "Person not found" });
+      if (rows.length === 0) {
+        return res.status(404).json({ error: "Person not found" });
+      }
+
+      res.json(rows[0]);
+      console.log("Person Data: ", rows[0]);
+    } catch (err) {
+      console.error("Error fetching person data:", err);
+      res.status(500).json({ error: "Database error" });
     }
+  });
 
-    res.json(rows[0]);
-    console.log("Person Data: ", rows[0]);
-  } catch (err) {
-    console.error("Error fetching person data:", err);
-    res.status(500).json({ error: "Database error" });
-  }
-});
+  // Add near your other GET routes in server.js
 
-// Add near your other GET routes in server.js
-
-// Get person_id by applicant_number
-app.get("/api/person-by-applicant/:applicant_number", async (req, res) => {
-  const { applicant_number } = req.params;
-  try {
-    const [rows] = await db.query(
-      "SELECT person_id FROM applicant_numbering_table WHERE applicant_number = ? LIMIT 1",
-      [applicant_number],
-    );
-    if (!rows.length)
-      return res.status(404).json({ message: "Applicant not found" });
-    res.json({ person_id: rows[0].person_id });
-  } catch (err) {
-    console.error("Error fetching person by applicant:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
+  // Get person_id by applicant_number
+  app.get("/api/person-by-applicant/:applicant_number", async (req, res) => {
+    const { applicant_number } = req.params;
+    try {
+      const [rows] = await db.query(
+        "SELECT person_id FROM applicant_numbering_table WHERE applicant_number = ? LIMIT 1",
+        [applicant_number],
+      );
+      if (!rows.length)
+        return res.status(404).json({ message: "Applicant not found" });
+      res.json({ person_id: rows[0].person_id });
+    } catch (err) {
+      console.error("Error fetching person by applicant:", err);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
 
 
-app.get("/api/document_status/:applicant_number", async (req, res) => {
-  const { applicant_number } = req.params;
+  app.get("/api/document_status/:applicant_number", async (req, res) => {
+    const { applicant_number } = req.params;
 
-  try {
-    const [rows] = await db.query(
-      `SELECT
+    try {
+      const [rows] = await db.query(
+        `SELECT
          ru.document_status     AS upload_document_status,
          rt.id                  AS requirement_id,
          ua.email               AS evaluator_email,
@@ -5201,175 +5289,175 @@ app.get("/api/document_status/:applicant_number", async (req, res) => {
        WHERE ant.applicant_number = ?
          AND rt.is_verifiable = 1
        ORDER BY ru.created_at DESC`,
-      [applicant_number],
-    );
+        [applicant_number],
+      );
 
-    // 🟥 If no uploads found
-    if (!rows || rows.length === 0) {
+      // 🟥 If no uploads found
+      if (!rows || rows.length === 0) {
+        return res.json({
+          document_status: "On Process",
+          evaluator: null,
+        });
+      }
+
+      const statuses = rows.map((r) => r.upload_document_status);
+      const latest = rows[0];
+
+      // 🟡 Determine final document status
+      let finalStatus = "On Process";
+      if (statuses.every((s) => s === "Disapproved / Program Closed")) {
+        finalStatus = "Disapproved / Program Closed";
+      } else if (statuses.every((s) => s === "Documents Verified & ECAT")) {
+        finalStatus = "Documents Verified & ECAT";
+      }
+
+      // 🟢 Build evaluator display name with employee ID
+      // 🟢 Build evaluator display name with employee ID (no HTML tags)
+      let actorEmail = null;
+      let actorName = "Unknown - System";
+
+      if (latest?.evaluator_email) {
+        const role = latest.evaluator_role?.toUpperCase() || "UNKNOWN";
+        const empId = latest.evaluator_employee_id
+          ? `(${latest.evaluator_employee_id})`
+          : "";
+        const lname = latest.evaluator_lname || "";
+        const fname = latest.evaluator_fname || "";
+        const mname = latest.evaluator_mname || "";
+
+        actorEmail = latest.evaluator_email;
+        actorName = `${role} ${empId} - ${lname}, ${fname} ${mname}`.trim();
+        latest.evaluator_display = `BY: ${actorName} (${actorEmail})`;
+      } else {
+        latest.evaluator_display = `BY: Unknown - System`;
+      }
+
+      // � Create notification message
+      const message = `�️ Document status for Applicant #${applicant_number} set to "${finalStatus}"`;
+
+      // // 💾 Insert notification (only if there's evaluator info)
+      // await db.query(
+      //   `INSERT INTO notifications (type, message, applicant_number, actor_email, actor_name)
+      //    VALUES (?, ?, ?, ?, ?)`,
+      //   ['update', message, applicant_number, actorEmail, actorName]
+      // );
+
+      // // 📢 Emit notification via socket.io
+      // io.emit('notification', {
+      //   type: 'update',
+      //   message,
+      //   applicant_number,
+      //   actor_email: actorEmail,
+      //   actor_name: actorName,
+      //   timestamp: new Date().toISOString()
+      // });
+
       return res.json({
-        document_status: "On Process",
-        evaluator: null,
+        document_status: finalStatus,
+        evaluator: latest,
       });
+    } catch (err) {
+      console.error(" Error fetching document status:", err);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  });
+
+
+  app.put("/api/document_status/:applicant_number", async (req, res) => {
+    const { applicant_number } = req.params;
+    const { document_status, user_id } = req.body;
+
+    if (!document_status || !user_id) {
+      return res
+        .status(400)
+        .json({ message: "document_status and user_id are required." });
     }
 
-    const statuses = rows.map((r) => r.upload_document_status);
-    const latest = rows[0];
-
-    // 🟡 Determine final document status
-    let finalStatus = "On Process";
-    if (statuses.every((s) => s === "Disapproved / Program Closed")) {
-      finalStatus = "Disapproved / Program Closed";
-    } else if (statuses.every((s) => s === "Documents Verified & ECAT")) {
-      finalStatus = "Documents Verified & ECAT";
-    }
-
-    // 🟢 Build evaluator display name with employee ID
-    // 🟢 Build evaluator display name with employee ID (no HTML tags)
-    let actorEmail = null;
-    let actorName = "Unknown - System";
-
-    if (latest?.evaluator_email) {
-      const role = latest.evaluator_role?.toUpperCase() || "UNKNOWN";
-      const empId = latest.evaluator_employee_id
-        ? `(${latest.evaluator_employee_id})`
-        : "";
-      const lname = latest.evaluator_lname || "";
-      const fname = latest.evaluator_fname || "";
-      const mname = latest.evaluator_mname || "";
-
-      actorEmail = latest.evaluator_email;
-      actorName = `${role} ${empId} - ${lname}, ${fname} ${mname}`.trim();
-      latest.evaluator_display = `BY: ${actorName} (${actorEmail})`;
-    } else {
-      latest.evaluator_display = `BY: Unknown - System`;
-    }
-
-    // � Create notification message
-    const message = `�️ Document status for Applicant #${applicant_number} set to "${finalStatus}"`;
-
-    // // 💾 Insert notification (only if there's evaluator info)
-    // await db.query(
-    //   `INSERT INTO notifications (type, message, applicant_number, actor_email, actor_name)
-    //    VALUES (?, ?, ?, ?, ?)`,
-    //   ['update', message, applicant_number, actorEmail, actorName]
-    // );
-
-    // // 📢 Emit notification via socket.io
-    // io.emit('notification', {
-    //   type: 'update',
-    //   message,
-    //   applicant_number,
-    //   actor_email: actorEmail,
-    //   actor_name: actorName,
-    //   timestamp: new Date().toISOString()
-    // });
-
-    return res.json({
-      document_status: finalStatus,
-      evaluator: latest,
-    });
-  } catch (err) {
-    console.error(" Error fetching document status:", err);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
-
-
-app.put("/api/document_status/:applicant_number", async (req, res) => {
-  const { applicant_number } = req.params;
-  const { document_status, user_id } = req.body;
-
-  if (!document_status || !user_id) {
-    return res
-      .status(400)
-      .json({ message: "document_status and user_id are required." });
-  }
-
-  try {
-    // 1. Get person_id
-    const [personRows] = await db.query(
-      `SELECT pt.person_id
+    try {
+      // 1. Get person_id
+      const [personRows] = await db.query(
+        `SELECT pt.person_id
        FROM applicant_numbering_table ant
        INNER JOIN person_table pt
        ON ant.person_id = pt.person_id
        WHERE ant.applicant_number = ?`,
-      [applicant_number]
-    );
+        [applicant_number]
+      );
 
-    if (personRows.length === 0) {
-      return res.status(404).json({ message: "Applicant not found." });
-    }
+      if (personRows.length === 0) {
+        return res.status(404).json({ message: "Applicant not found." });
+      }
 
-    const { person_id } = personRows[0];
+      const { person_id } = personRows[0];
 
-    // ?? 2. IF VERIFIED ? FORCE ALL STATUS = 1
-    if (document_status === "Documents Verified & ECAT") {
-      await db.query(
-        `UPDATE requirement_uploads
+      // ?? 2. IF VERIFIED ? FORCE ALL STATUS = 1
+      if (document_status === "Documents Verified & ECAT") {
+        await db.query(
+          `UPDATE requirement_uploads
          SET status = 1,
              document_status = ?,
              last_updated_by = ?
          WHERE person_id = ?`,
-        [document_status, user_id, person_id]
-      );
-    }
+          [document_status, user_id, person_id]
+        );
+      }
 
-    // ?? 3. IF DISAPPROVED ? FORCE ALL STATUS = 2
-    else if (document_status === "Disapproved / Program Closed") {
-      await db.query(
-        `UPDATE requirement_uploads
+      // ?? 3. IF DISAPPROVED ? FORCE ALL STATUS = 2
+      else if (document_status === "Disapproved / Program Closed") {
+        await db.query(
+          `UPDATE requirement_uploads
          SET status = 2,
              document_status = ?,
              last_updated_by = ?
          WHERE person_id = ?`,
-        [document_status, user_id, person_id]
-      );
-    }
+          [document_status, user_id, person_id]
+        );
+      }
 
-    // ?? 4. ON PROCESS ? do not override row statuses
-    else {
-      await db.query(
-        `UPDATE requirement_uploads
+      // ?? 4. ON PROCESS ? do not override row statuses
+      else {
+        await db.query(
+          `UPDATE requirement_uploads
          SET document_status = ?,
              last_updated_by = ?
          WHERE person_id = ?`,
-        [document_status, user_id, person_id]
-      );
+          [document_status, user_id, person_id]
+        );
+      }
+
+      res.json({
+        message: "? Document status + row statuses synced successfully.",
+      });
+
+    } catch (err) {
+      console.error("Error updating document status:", err);
+      res.status(500).json({ error: "Failed to update document status" });
     }
+  });
 
-    res.json({
-      message: "? Document status + row statuses synced successfully.",
-    });
+  //  Dynamic: Check if applicant's required verifiable documents are verified
+  app.get("/api/document_status/check/:applicant_number", async (req, res) => {
+    const { applicant_number } = req.params;
 
-  } catch (err) {
-    console.error("Error updating document status:", err);
-    res.status(500).json({ error: "Failed to update document status" });
-  }
-});
-
-//  Dynamic: Check if applicant's required verifiable documents are verified
-app.get("/api/document_status/check/:applicant_number", async (req, res) => {
-  const { applicant_number } = req.params;
-
-  try {
-    const [personResult] = await db.query(
-      `
+    try {
+      const [personResult] = await db.query(
+        `
       SELECT pt.person_id, pt.applyingAs
       FROM applicant_numbering_table ant
       INNER JOIN person_table pt
         ON ant.person_id = pt.person_id
       WHERE ant.applicant_number = ?
       `,
-      [applicant_number],
-    );
+        [applicant_number],
+      );
 
-    if (personResult.length === 0) {
-      return res.status(404).json({ message: "Applicant not found" });
-    }
+      if (personResult.length === 0) {
+        return res.status(404).json({ message: "Applicant not found" });
+      }
 
-    const { person_id, applyingAs } = personResult[0];
+      const { person_id, applyingAs } = personResult[0];
 
-    const [reqRows] = await db.query(`
+      const [reqRows] = await db.query(`
       SELECT id
       FROM requirements_table
       WHERE category = 'Main'
@@ -5382,155 +5470,155 @@ app.get("/api/document_status/check/:applicant_number", async (req, res) => {
         )
     `, [applyingAs]);
 
-    if (reqRows.length === 0) {
-      return res.json({
-        verified: false,
-        message: "No verifiable requirements found.",
-      });
-    }
+      if (reqRows.length === 0) {
+        return res.json({
+          verified: false,
+          message: "No verifiable requirements found.",
+        });
+      }
 
-    const requirementIds = reqRows.map((r) => r.id);
-    const placeholders = requirementIds.map(() => "?").join(",");
+      const requirementIds = reqRows.map((r) => r.id);
+      const placeholders = requirementIds.map(() => "?").join(",");
 
-    // 3️�� Get applicant��s uploaded documents for those requirements
-    const [docs] = await db.query(
-      `
+      // 3️�� Get applicant��s uploaded documents for those requirements
+      const [docs] = await db.query(
+        `
         SELECT requirements_id, document_status
         FROM requirement_uploads
         WHERE person_id = ? AND requirements_id IN (${placeholders})
       `,
-      [person_id, ...requirementIds],
-    );
+        [person_id, ...requirementIds],
+      );
 
-    if (docs.length < requirementIds.length) {
-      return res.json({
-        verified: false,
-        message: "Missing required documents.",
-      });
-    }
+      if (docs.length < requirementIds.length) {
+        return res.json({
+          verified: false,
+          message: "Missing required documents.",
+        });
+      }
 
-    // 4️�� Check if all are �Documents Verified & ECAT�
-    const allVerified = docs.every(
-      (d) => d.document_status === "Documents Verified & ECAT",
-    );
-
-    res.json({
-      verified: allVerified,
-      person_id,
-      required_count: requirementIds.length,
-      verified_count: docs.filter(
+      // 4️�� Check if all are �Documents Verified & ECAT�
+      const allVerified = docs.every(
         (d) => d.document_status === "Documents Verified & ECAT",
-      ).length,
-    });
-  } catch (err) {
-    console.error("Error checking document status:", err);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+      );
+
+      res.json({
+        verified: allVerified,
+        person_id,
+        required_count: requirementIds.length,
+        verified_count: docs.filter(
+          (d) => d.document_status === "Documents Verified & ECAT",
+        ).length,
+      });
+    } catch (err) {
+      console.error("Error checking document status:", err);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  });
 
 
-//  GET registrar name (or any prof by role)
-app.get("/api/scheduled-by/:role", async (req, res) => {
-  const { role } = req.params;
+  //  GET registrar name (or any prof by role)
+  app.get("/api/scheduled-by/:role", async (req, res) => {
+    const { role } = req.params;
 
-  try {
-    const [rows] = await db3.query(
-      `
+    try {
+      const [rows] = await db3.query(
+        `
       SELECT first_name, middle_name, last_name
       FROM user_accounts
       WHERE role = ?
       LIMIT 1
       `,
-      [role],
-    );
+        [role],
+      );
 
-    if (!rows.length) {
-      return res.status(404).json({ message: "No user found for that role" });
+      if (!rows.length) {
+        return res.status(404).json({ message: "No user found for that role" });
+      }
+
+      const { first_name, middle_name, last_name } = rows[0];
+      const fullName =
+        `${first_name || ""} ${middle_name ? middle_name + " " : ""}${last_name || ""}`.trim();
+
+      res.json({ fullName });
+    } catch (err) {
+      console.error(" Error fetching user by role:", err);
+      res.status(500).json({ message: "Server error" });
     }
+  });
 
-    const { first_name, middle_name, last_name } = rows[0];
-    const fullName =
-      `${first_name || ""} ${middle_name ? middle_name + " " : ""}${last_name || ""}`.trim();
+  //  Toggle submitted_medical (1 = checked, 0 = unchecked)
+  app.put("/api/submitted-medical/:upload_id", async (req, res) => {
+    const { upload_id } = req.params;
+    const { submitted_medical, user_person_id } = req.body;
 
-    res.json({ fullName });
-  } catch (err) {
-    console.error(" Error fetching user by role:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
+    try {
+      // 1� Find person_id
+      const [[row]] = await db.query(
+        "SELECT person_id FROM requirement_uploads WHERE upload_id = ?",
+        [upload_id],
+      );
+      if (!row) return res.status(404).json({ error: "Upload not found" });
 
-//  Toggle submitted_medical (1 = checked, 0 = unchecked)
-app.put("/api/submitted-medical/:upload_id", async (req, res) => {
-  const { upload_id } = req.params;
-  const { submitted_medical, user_person_id } = req.body;
+      const person_id = row.person_id;
 
-  try {
-    // 1� Find person_id
-    const [[row]] = await db.query(
-      "SELECT person_id FROM requirement_uploads WHERE upload_id = ?",
-      [upload_id],
-    );
-    if (!row) return res.status(404).json({ error: "Upload not found" });
-
-    const person_id = row.person_id;
-
-    // 2� Applicant info
-    const [[appInfo]] = await db.query(
-      `
+      // 2� Applicant info
+      const [[appInfo]] = await db.query(
+        `
       SELECT ant.applicant_number, pt.last_name, pt.first_name, pt.middle_name
       FROM applicant_numbering_table ant
       JOIN person_table pt ON ant.person_id = pt.person_id
       WHERE ant.person_id = ?
     `,
-      [person_id],
-    );
+        [person_id],
+      );
 
-    const applicant_number = appInfo?.applicant_number || "Unknown";
-    const fullName = `${appInfo?.last_name || ""}, ${appInfo?.first_name || ""} ${appInfo?.middle_name?.charAt(0) || ""}.`;
+      const applicant_number = appInfo?.applicant_number || "Unknown";
+      const fullName = `${appInfo?.last_name || ""}, ${appInfo?.first_name || ""} ${appInfo?.middle_name?.charAt(0) || ""}.`;
 
-    // 3� Update submitted_medical
-    await db.query(
-      "UPDATE requirement_uploads SET submitted_medical = ? WHERE person_id = ?",
-      [submitted_medical ? 1 : 0, person_id],
-    );
+      // 3� Update submitted_medical
+      await db.query(
+        "UPDATE requirement_uploads SET submitted_medical = ? WHERE person_id = ?",
+        [submitted_medical ? 1 : 0, person_id],
+      );
 
-    // 4� Create message
-    const type = submitted_medical ? "submit_medical" : "unsubmit_medical";
-    const action = submitted_medical
-      ? " Medical submitted"
-      : " Medical unsubmitted";
-    const message = `${action} (Applicant #${applicant_number} - ${fullName})`;
+      // 4� Create message
+      const type = submitted_medical ? "submit_medical" : "unsubmit_medical";
+      const action = submitted_medical
+        ? " Medical submitted"
+        : " Medical unsubmitted";
+      const message = `${action} (Applicant #${applicant_number} - ${fullName})`;
 
-    //  Full actor info (same as exam/save)
-    let actorEmail = "earistmis@gmail.com";
-    let actorName = "SYSTEM";
+      //  Full actor info (same as exam/save)
+      let actorEmail = "earistmis@gmail.com";
+      let actorName = "SYSTEM";
 
-    if (user_person_id) {
-      const [actorRows] = await db3.query(
-        `SELECT email, role, employee_id, last_name, first_name, middle_name
+      if (user_person_id) {
+        const [actorRows] = await db3.query(
+          `SELECT email, role, employee_id, last_name, first_name, middle_name
          FROM user_accounts
          WHERE person_id = ?
          LIMIT 1`,
-        [user_person_id],
-      );
+          [user_person_id],
+        );
 
-      if (actorRows.length > 0) {
-        const u = actorRows[0];
-        const role = u.role?.toUpperCase() || "UNKNOWN";
-        const empId = u.employee_id || "";
-        const lname = u.last_name || "";
-        const fname = u.first_name || "";
-        const mname = u.middle_name || "";
-        const email = u.email || "";
+        if (actorRows.length > 0) {
+          const u = actorRows[0];
+          const role = u.role?.toUpperCase() || "UNKNOWN";
+          const empId = u.employee_id || "";
+          const lname = u.last_name || "";
+          const fname = u.first_name || "";
+          const mname = u.middle_name || "";
+          const email = u.email || "";
 
-        actorEmail = email;
-        actorName = `${role} (${empId}) - ${lname}, ${fname} ${mname}`.trim();
+          actorEmail = email;
+          actorName = `${role} (${empId}) - ${lname}, ${fname} ${mname}`.trim();
+        }
       }
-    }
 
-    //  No duplicates per day (same logic as exam/save)
-    await db.query(
-      `INSERT INTO notifications (type, message, applicant_number, actor_email, actor_name, timestamp)
+      //  No duplicates per day (same logic as exam/save)
+      await db.query(
+        `INSERT INTO notifications (type, message, applicant_number, actor_email, actor_name, timestamp)
        SELECT ?, ?, ?, ?, ?, NOW()
        FROM DUAL
        WHERE NOT EXISTS (
@@ -5539,53 +5627,53 @@ app.put("/api/submitted-medical/:upload_id", async (req, res) => {
            AND message = ?
            AND DATE(timestamp) = CURDATE()
        )`,
-      [
+        [
+          type,
+          message,
+          applicant_number,
+          actorEmail,
+          actorName,
+          applicant_number,
+          message,
+        ],
+      );
+
+      //  Socket emit
+      io.emit("notification", {
         type,
         message,
         applicant_number,
-        actorEmail,
-        actorName,
-        applicant_number,
-        message,
-      ],
-    );
+        actor_email: actorEmail,
+        actor_name: actorName,
+        timestamp: new Date().toISOString(),
+      });
 
-    //  Socket emit
-    io.emit("notification", {
-      type,
-      message,
-      applicant_number,
-      actor_email: actorEmail,
-      actor_name: actorName,
-      timestamp: new Date().toISOString(),
-    });
+      res.json({ success: true, message });
+    } catch (err) {
+      console.error(" Error toggling submitted medical:", err);
+      res.status(500).json({ error: "Failed to toggle submitted medical" });
+    }
+  });
 
-    res.json({ success: true, message });
-  } catch (err) {
-    console.error(" Error toggling submitted medical:", err);
-    res.status(500).json({ error: "Failed to toggle submitted medical" });
-  }
-});
-
-app.get("/api/requirements", async (req, res) => {
-  try {
-    const [rows] = await db.query(
-      `SELECT id, description, short_label, label, category, is_verifiable, xerox_copies, requires_original, is_optional, applicant_type
+  app.get("/api/requirements", async (req, res) => {
+    try {
+      const [rows] = await db.query(
+        `SELECT id, description, short_label, label, category, is_verifiable, xerox_copies, requires_original, is_optional, applicant_type
        FROM requirements_table
        ORDER BY id ASC`,
-    );
-    res.json(rows);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch requirements" });
-  }
-});
+      );
+      res.json(rows);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch requirements" });
+    }
+  });
 
-app.get("/api/program_evaluation/:student_number", async (req, res) => {
-  const { student_number } = req.params;
+  app.get("/api/program_evaluation/:student_number", async (req, res) => {
+    const { student_number } = req.params;
 
-  try {
-    const [rows] = await db3.query(
-      `
+    try {
+      const [rows] = await db3.query(
+        `
         SELECT DISTINCT
           pt.gender, pt.birthOfDate, rt.id AS requirements, pt.last_name, pt.first_name, pt.schoolLastAttended, pt.profile_img AS profile_image, pt.yearGraduated - 1 AS previous_year, pt.yearGraduated, pt.middle_name, pgt.program_code, pgt.major, yt.year_description, pgt.program_description, snt.student_number, dpt.dprtmnt_name FROM enrolled_subject AS es
         LEFT JOIN student_numbering_table AS snt ON es.student_number = snt.student_number
@@ -5599,47 +5687,47 @@ app.get("/api/program_evaluation/:student_number", async (req, res) => {
         LEFT JOIN requirements_table AS rt ON ru.requirements_id = rt.id
         WHERE es.student_number = ?;
       `,
-      [student_number],
-    );
+        [student_number],
+      );
 
-    if (rows.length === 0) {
-      return res.status(404).send({ message: "Student is not found" });
-    }
-
-    const studentInfo = {
-      ...rows[0], // keep the first row�s data
-      requirements: [
-        ...new Set(rows.map((r) => r.requirements).filter(Boolean)),
-      ],
-    };
-
-    res.json(studentInfo);
-    console.log(studentInfo);
-  } catch (error) {
-    console.log("Database Error", error);
-    res.status(500).send({ message: "Database/Server Error", error });
-  }
-});
-
-app.get("/registrar-users", async (req, res) => {
-  try {
-    const requestedPageId = Number(req.query.pageId);
-
-    const parsePageIds = (value) => {
-      if (!value) return [];
-
-      try {
-        const parsed = Array.isArray(value) ? value : JSON.parse(value);
-        return parsed
-          .map((pageId) => Number(pageId))
-          .filter((pageId) => Number.isInteger(pageId));
-      } catch (error) {
-        console.error("Error parsing page access:", error);
-        return [];
+      if (rows.length === 0) {
+        return res.status(404).send({ message: "Student is not found" });
       }
-    };
 
-    const [users] = await db3.query(`
+      const studentInfo = {
+        ...rows[0], // keep the first row�s data
+        requirements: [
+          ...new Set(rows.map((r) => r.requirements).filter(Boolean)),
+        ],
+      };
+
+      res.json(studentInfo);
+      console.log(studentInfo);
+    } catch (error) {
+      console.log("Database Error", error);
+      res.status(500).send({ message: "Database/Server Error", error });
+    }
+  });
+
+  app.get("/registrar-users", async (req, res) => {
+    try {
+      const requestedPageId = Number(req.query.pageId);
+
+      const parsePageIds = (value) => {
+        if (!value) return [];
+
+        try {
+          const parsed = Array.isArray(value) ? value : JSON.parse(value);
+          return parsed
+            .map((pageId) => Number(pageId))
+            .filter((pageId) => Number.isInteger(pageId));
+        } catch (error) {
+          console.error("Error parsing page access:", error);
+          return [];
+        }
+      };
+
+      const [users] = await db3.query(`
       SELECT
         ua.id,
         ua.person_id,
@@ -5678,43 +5766,43 @@ app.get("/registrar-users", async (req, res) => {
       ORDER BY ua.first_name ASC, ua.last_name ASC
     `);
 
-    const registrars = users
-      .map((user) => {
-        const accessTablePages = parsePageIds(user.access_page);
-        const assignedPageIds = (user.assigned_page_ids || "")
-          .split(",")
-          .map((pageId) => Number(pageId))
-          .filter((pageId) => Number.isInteger(pageId));
+      const registrars = users
+        .map((user) => {
+          const accessTablePages = parsePageIds(user.access_page);
+          const assignedPageIds = (user.assigned_page_ids || "")
+            .split(",")
+            .map((pageId) => Number(pageId))
+            .filter((pageId) => Number.isInteger(pageId));
 
-        return {
-          ...user,
-          access_page: accessTablePages,
-          assigned_page_ids: assignedPageIds,
-        };
-      })
-      .filter((user) => {
-        if (!Number.isInteger(requestedPageId)) return true;
+          return {
+            ...user,
+            access_page: accessTablePages,
+            assigned_page_ids: assignedPageIds,
+          };
+        })
+        .filter((user) => {
+          if (!Number.isInteger(requestedPageId)) return true;
 
-        return (
-          user.access_page.includes(requestedPageId) ||
-          user.assigned_page_ids.includes(requestedPageId)
-        );
-      });
+          return (
+            user.access_page.includes(requestedPageId) ||
+            user.assigned_page_ids.includes(requestedPageId)
+          );
+        });
 
-    res.json({ registrars });
-  } catch (error) {
-    console.error("Error fetching registrar users:", error);
-    res
-      .status(500)
-      .json({ message: "Internal Server Error", error: error.message });
-  }
-});
+      res.json({ registrars });
+    } catch (error) {
+      console.error("Error fetching registrar users:", error);
+      res
+        .status(500)
+        .json({ message: "Internal Server Error", error: error.message });
+    }
+  });
 
-app.get("/api/my_schedule/:prof_id", async (req, res) => {
-  const { prof_id } = req.params;
-  console.log("Professor Id: ", prof_id);
-  try {
-    const sql = `
+  app.get("/api/my_schedule/:prof_id", async (req, res) => {
+    const { prof_id } = req.params;
+    console.log("Professor Id: ", prof_id);
+    try {
+      const sql = `
     SELECT rdt.description, rt.room_description, tt.school_time_start, tt.school_time_end, ct.course_code, pgt.program_code, st.description AS section  FROM time_table AS tt
     LEFT JOIN room_day_table AS rdt ON tt.room_day = rdt.id
     LEFT JOIN room_table AS rt ON tt.department_room_id = rt.room_id
@@ -5725,20 +5813,20 @@ app.get("/api/my_schedule/:prof_id", async (req, res) => {
     LEFT JOIN program_table AS pgt ON cct.program_id = pgt.program_id
     LEFT JOIN section_table AS st ON dst.section_id = st.id
     WHERE tt.professor_id = ? AND sy.astatus = 1;`;
-    const [rows] = await db3.query(sql, [prof_id]);
+      const [rows] = await db3.query(sql, [prof_id]);
 
-    res.json(rows);
-  } catch (err) {
-    console.log("Internal Server Error");
-  }
-});
+      res.json(rows);
+    } catch (err) {
+      console.log("Internal Server Error");
+    }
+  });
 
-app.get("/api/program_evaluation/details/:student_number", async (req, res) => {
-  const { student_number } = req.params;
+  app.get("/api/program_evaluation/details/:student_number", async (req, res) => {
+    const { student_number } = req.params;
 
-  try {
-    const [rows] = await db3.query(
-      `
+    try {
+      const [rows] = await db3.query(
+        `
         SELECT
           es.id as enrolled_id,
           es.final_grade,
@@ -5770,373 +5858,373 @@ app.get("/api/program_evaluation/details/:student_number", async (req, res) => {
           LEFT JOIN year_table AS yt ON sy.year_id = yt.year_id
         WHERE es.student_number= ?;
     `,
-      [student_number],
-    );
-
-    if (rows.length === 0) {
-      return res.status(404).send({ message: "Student Data is not found" });
-    }
-
-    res.json(rows);
-  } catch (err) {
-    res.status(500).send({ message: "Student Data is not found" });
-    console.log("Database / Server Error", err);
-  }
-});
-
-//  Upload and update registrar profile picture
-app.put(
-  "/api/update_profile_image/:person_id",
-  upload.single("profileImage"),
-  async (req, res) => {
-    const { person_id } = req.params;
-    const file = req.file;
-
-    if (!file) {
-      return res.status(400).json({ error: "No file uploaded" });
-    }
-
-    try {
-      //  Save filename in db3.user_accounts
-      const [result] = await db3.query(
-        `UPDATE user_accounts
-       SET profile_picture = ?
-       WHERE person_id = ?`,
-        [file.filename, person_id],
+        [student_number],
       );
 
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ error: "User not found" });
+      if (rows.length === 0) {
+        return res.status(404).send({ message: "Student Data is not found" });
       }
 
-      res.json({
-        success: true,
-        message: "Profile picture updated successfully.",
-        filename: file.filename,
-      });
+      res.json(rows);
     } catch (err) {
-      console.error(" Error updating profile picture:", err);
-      res.status(500).json({ error: "Failed to update profile picture" });
+      res.status(500).send({ message: "Student Data is not found" });
+      console.log("Database / Server Error", err);
     }
-  },
-);
+  });
 
-app.get("/api/applicant-status/:applicant_id", async (req, res) => {
-  const { applicant_id } = req.params;
-  try {
-    const [rows] = await db.query(
-      "SELECT status FROM interview_applicants WHERE applicant_id = ? LIMIT 1",
-      [applicant_id],
-    );
+  //  Upload and update registrar profile picture
+  app.put(
+    "/api/update_profile_image/:person_id",
+    upload.single("profileImage"),
+    async (req, res) => {
+      const { person_id } = req.params;
+      const file = req.file;
 
-    if (rows.length === 0) {
-      return res.json({ found: false, message: "Applicant not found" });
+      if (!file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      try {
+        //  Save filename in db3.user_accounts
+        const [result] = await db3.query(
+          `UPDATE user_accounts
+       SET profile_picture = ?
+       WHERE person_id = ?`,
+          [file.filename, person_id],
+        );
+
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ error: "User not found" });
+        }
+
+        res.json({
+          success: true,
+          message: "Profile picture updated successfully.",
+          filename: file.filename,
+        });
+      } catch (err) {
+        console.error(" Error updating profile picture:", err);
+        res.status(500).json({ error: "Failed to update profile picture" });
+      }
+    },
+  );
+
+  app.get("/api/applicant-status/:applicant_id", async (req, res) => {
+    const { applicant_id } = req.params;
+    try {
+      const [rows] = await db.query(
+        "SELECT status FROM interview_applicants WHERE applicant_id = ? LIMIT 1",
+        [applicant_id],
+      );
+
+      if (rows.length === 0) {
+        return res.json({ found: false, message: "Applicant not found" });
+      }
+
+      res.json({ found: true, status: rows[0].status });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Database error" });
     }
+  });
 
-    res.json({ found: true, status: rows[0].status });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Database error" });
-  }
-});
+  app.get("/api/applicant-scores/:applicant_number", async (req, res) => {
+    const { applicant_number } = req.params;
 
-app.get("/api/applicant-scores/:applicant_number", async (req, res) => {
-  const { applicant_number } = req.params;
+    try {
+      // Get person_id
+      const [personRow] = await db.query(
+        "SELECT person_id FROM applicant_numbering_table WHERE applicant_number = ? LIMIT 1",
+        [applicant_number],
+      );
 
-  try {
-    // Get person_id
-    const [personRow] = await db.query(
-      "SELECT person_id FROM applicant_numbering_table WHERE applicant_number = ? LIMIT 1",
-      [applicant_number],
-    );
+      if (!personRow.length) {
+        return res.status(404).json({ message: "Applicant not found" });
+      }
 
-    if (!personRow.length) {
-      return res.status(404).json({ message: "Applicant not found" });
-    }
+      const person_id = personRow[0].person_id;
 
-    const person_id = personRow[0].person_id;
+      // 1� Get Admission Exam Score
+      const [examRow] = await db.query(
+        "SELECT final_rating FROM exam_results WHERE person_id = ? LIMIT 1",
+        [person_id],
+      );
 
-    // 1� Get Admission Exam Score
-    const [examRow] = await db.query(
-      "SELECT final_rating FROM admission_exam WHERE person_id = ? LIMIT 1",
-      [person_id],
-    );
+      const entrance_exam_score = examRow.length ? examRow[0].final_rating : null;
 
-    const entrance_exam_score = examRow.length ? examRow[0].final_rating : null;
-
-    // 2� Get Qualifying & Interview Results
-    const [statusRow] = await db.query(
-      `SELECT qualifying_result, interview_result
+      // 2� Get Qualifying & Interview Results
+      const [statusRow] = await db.query(
+        `SELECT qualifying_result, interview_result
        FROM person_status_table
        WHERE person_id = ? LIMIT 1`,
-      [person_id],
-    );
+        [person_id],
+      );
 
-    const qualifying_result = statusRow.length
-      ? statusRow[0].qualifying_result
-      : null;
-    const interview_result = statusRow.length
-      ? statusRow[0].interview_result
-      : null;
+      const qualifying_result = statusRow.length
+        ? statusRow[0].qualifying_result
+        : null;
+      const interview_result = statusRow.length
+        ? statusRow[0].interview_result
+        : null;
 
-    res.json({
-      entrance_exam_score,
-      qualifying_result,
-      interview_result,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error fetching scores" });
-  }
-});
-
-app.get("/api/applicant-has-score/:applicant_number", async (req, res) => {
-  const { applicant_number } = req.params;
-
-  try {
-    const [rows] = await db.query(
-      "SELECT * FROM applicant_numbering_table WHERE applicant_number = ? LIMIT 1",
-      [applicant_number],
-    );
-
-    if (rows.length > 0) {
-      res.json({ hasScore: true, score: rows[0] });
-    } else {
-      res.json({ hasScore: false });
+      res.json({
+        entrance_exam_score,
+        qualifying_result,
+        interview_result,
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Server error fetching scores" });
     }
-  } catch (err) {
-    console.error("Error checking applicant score:", err);
-    res.status(500).json({ message: "Database error" });
-  }
-});
+  });
 
-//  CHECK IF APPLICANT IS QUALIFIED FOR INTERVIEW / QUALIFYING EXAM (NO PASSING SCORE)
-app.get("/api/applicant-qualified-interview/:applicant_number", async (req, res) => {
-  const { applicant_number } = req.params;
+  app.get("/api/applicant-has-score/:applicant_number", async (req, res) => {
+    const { applicant_number } = req.params;
 
-  try {
-    // 1� Get person_id from applicant_numbering_table
-    const [personRows] = await db.query(
-      "SELECT person_id FROM applicant_numbering_table WHERE applicant_number = ? LIMIT 1",
-      [applicant_number],
-    );
+    try {
+      const [rows] = await db.query(
+        "SELECT * FROM applicant_numbering_table WHERE applicant_number = ? LIMIT 1",
+        [applicant_number],
+      );
 
-    if (personRows.length === 0) {
-      return res
-        .status(404)
-        .json({ qualified: false, message: "Applicant not found." });
+      if (rows.length > 0) {
+        res.json({ hasScore: true, score: rows[0] });
+      } else {
+        res.json({ hasScore: false });
+      }
+    } catch (err) {
+      console.error("Error checking applicant score:", err);
+      res.status(500).json({ message: "Database error" });
     }
+  });
 
-    const person_id = personRows[0].person_id;
+  //  CHECK IF APPLICANT IS QUALIFIED FOR INTERVIEW / QUALIFYING EXAM (NO PASSING SCORE)
+  app.get("/api/applicant-qualified-interview/:applicant_number", async (req, res) => {
+    const { applicant_number } = req.params;
 
-    // 2� Check if applicant has exam record in admission_exam table
-    const [examRows] = await db.query(
-      "SELECT final_rating FROM admission_exam WHERE person_id = ? LIMIT 1",
-      [person_id],
-    );
+    try {
+      // 1� Get person_id from applicant_numbering_table
+      const [personRows] = await db.query(
+        "SELECT person_id FROM applicant_numbering_table WHERE applicant_number = ? LIMIT 1",
+        [applicant_number],
+      );
 
-    if (examRows.length === 0) {
-      return res.json({
-        qualified: false,
+      if (personRows.length === 0) {
+        return res
+          .status(404)
+          .json({ qualified: false, message: "Applicant not found." });
+      }
+
+      const person_id = personRows[0].person_id;
+
+      // 2� Check if applicant has exam record in 
+      const [examRows] = await db.query(
+        "SELECT final_rating FROM exam_results WHERE person_id = ? LIMIT 1",
+        [person_id],
+      );
+
+      if (examRows.length === 0) {
+        return res.json({
+          qualified: false,
+          message:
+            " Applicant has no entrance exam score yet  not qualified for interview.",
+        });
+      }
+
+      // 3� If applicant has any exam record, they are qualified
+      const finalRating = examRows[0].final_rating;
+
+      res.json({
+        qualified: true,
+        person_id,
+        final_rating: finalRating,
         message:
-          " Applicant has no entrance exam score yet  not qualified for interview.",
+          " Applicant is qualified to take the Qualifying / Interview Exam.",
+      });
+    } catch (err) {
+      console.error("Error checking interview qualification:", err);
+      res.status(500).json({
+        qualified: false,
+        message: "Server error while checking qualification.",
       });
     }
+  },
+  );
 
-    // 3� If applicant has any exam record, they are qualified
-    const finalRating = examRows[0].final_rating;
+  //  Fetch Qualifying, Interview, and Exam Results by Person ID
+  app.get("/api/person_status/:person_id", async (req, res) => {
+    const { person_id } = req.params;
 
-    res.json({
-      qualified: true,
-      person_id,
-      final_rating: finalRating,
-      message:
-        " Applicant is qualified to take the Qualifying / Interview Exam.",
-    });
-  } catch (err) {
-    console.error("Error checking interview qualification:", err);
-    res.status(500).json({
-      qualified: false,
-      message: "Server error while checking qualification.",
-    });
-  }
-},
-);
-
-//  Fetch Qualifying, Interview, and Exam Results by Person ID
-app.get("/api/person_status/:person_id", async (req, res) => {
-  const { person_id } = req.params;
-
-  try {
-    const [rows] = await db.query(
-      `
+    try {
+      const [rows] = await db.query(
+        `
       SELECT qualifying_result, interview_result, exam_result
       FROM person_status_table
       WHERE person_id = ?
       LIMIT 1
       `,
-      [person_id],
-    );
+        [person_id],
+      );
 
-    if (rows.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No status record found for this person" });
+      if (rows.length === 0) {
+        return res
+          .status(404)
+          .json({ message: "No status record found for this person" });
+      }
+
+      res.json(rows[0]);
+    } catch (err) {
+      console.error(" Error fetching person_status:", err);
+      res.status(500).json({ message: "Database error" });
     }
+  });
 
-    res.json(rows[0]);
-  } catch (err) {
-    console.error(" Error fetching person_status:", err);
-    res.status(500).json({ message: "Database error" });
-  }
-});
+  app.get("/get_prof_data/:id", async (req, res) => {
+    const id = req.params.id;
 
-app.get("/get_prof_data/:id", async (req, res) => {
-  const id = req.params.id;
-
-  const query = `
+    const query = `
     SELECT pt.prof_id, pt.person_id, pt.profile_image, pt.email, pt.fname, pt.mname, pt.lname, pt.employee_id FROM prof_table AS pt
     WHERE pt.person_id = ?
   `;
 
-  try {
-    const [rows] = await db3.query(query, [id]);
-    console.log(rows);
-    res.json(rows);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-// UPDATED
-
-app.post("/insert-logs/faculty/:prof_id", async (req, res) => {
-  const { prof_id } = req.params;
-  const { message, type } = req.body;
-
-  try {
-    const [professorData] = await db3.query(
-      "SELECT * FROM prof_table WHERE prof_id = ?",
-      [prof_id],
-    );
-
-    if (professorData === 0) {
-      res.status(400).send({ message: "No Data found" });
+    try {
+      const [rows] = await db3.query(query, [id]);
+      console.log(rows);
+      res.json(rows);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Internal server error" });
     }
+  });
 
-    const prof = professorData[0];
-    const profID = prof.prof_id;
-    const fullName = `${prof.lname}, ${prof.fname} ${prof.mname}`;
-    const email = prof.email;
+  // UPDATED
 
-    await db.query(
-      `INSERT INTO notifications (type, message, applicant_number, actor_email, actor_name, timestamp)
+  app.post("/insert-logs/faculty/:prof_id", async (req, res) => {
+    const { prof_id } = req.params;
+    const { message, type } = req.body;
+
+    try {
+      const [professorData] = await db3.query(
+        "SELECT * FROM prof_table WHERE prof_id = ?",
+        [prof_id],
+      );
+
+      if (professorData === 0) {
+        res.status(400).send({ message: "No Data found" });
+      }
+
+      const prof = professorData[0];
+      const profID = prof.prof_id;
+      const fullName = `${prof.lname}, ${prof.fname} ${prof.mname}`;
+      const email = prof.email;
+
+      await db.query(
+        `INSERT INTO notifications (type, message, applicant_number, actor_email, actor_name, timestamp)
        VALUES (?, ?, ?, ?, ?, NOW())`,
-      [type, message, profID, email, fullName],
-    );
+        [type, message, profID, email, fullName],
+      );
 
-    res.json({ success: true, message: "Log inserted" });
-  } catch (err) {
-    console.error("Error fetching notifications:", err);
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
+      res.json({ success: true, message: "Log inserted" });
+    } catch (err) {
+      console.error("Error fetching notifications:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
 
-app.get("/api/verification-status/:applicant_number", async (req, res) => {
-  const { applicant_number } = req.params;
+  app.get("/api/verification-status/:applicant_number", async (req, res) => {
+    const { applicant_number } = req.params;
 
-  try {
-    //  Step 1: Get person_id from applicant_number
-    const [personRows] = await db.query(
-      `
+    try {
+      //  Step 1: Get person_id from applicant_number
+      const [personRows] = await db.query(
+        `
       SELECT pt.person_id, pt.applyingAs
       FROM applicant_numbering_table ant
       INNER JOIN person_table pt
         ON ant.person_id = pt.person_id
       WHERE ant.applicant_number = ?
       `,
-      [applicant_number],
-    );
-    if (personRows.length === 0) {
-      return res.json({ verified: false, reason: "Applicant not found" });
-    }
+        [applicant_number],
+      );
+      if (personRows.length === 0) {
+        return res.json({ verified: false, reason: "Applicant not found" });
+      }
 
-    const { person_id: personId, applyingAs } = personRows[0];
+      const { person_id: personId, applyingAs } = personRows[0];
 
-    //  Step 2: Count how many verifiable requirements exist
-    const [requirements] = await db.query(
-      `
+      //  Step 2: Count how many verifiable requirements exist
+      const [requirements] = await db.query(
+        `
       SELECT COUNT(*) AS total_required
       FROM requirements_table
       WHERE is_verifiable = 1
         AND applicant_type = ?
       `,
-      [applyingAs],
-    );
-    const totalRequired = requirements[0]?.total_required || 0;
+        [applyingAs],
+      );
+      const totalRequired = requirements[0]?.total_required || 0;
 
-    //  Step 3: Count how many of those requirements were submitted & verified
-    const [verifiedUploads] = await db.query(
-      `
+      //  Step 3: Count how many of those requirements were submitted & verified
+      const [verifiedUploads] = await db.query(
+        `
       SELECT COUNT(DISTINCT requirements_id) AS total_verified
       FROM requirement_uploads
       WHERE person_id = ?
       AND document_status = 'Documents Verified & ECAT'
       `,
-      [personId],
-    );
-    const totalVerified = verifiedUploads[0]?.total_verified || 0;
+        [personId],
+      );
+      const totalVerified = verifiedUploads[0]?.total_verified || 0;
 
-    //  Step 4: Check if applicant has an exam schedule
-    const [schedule] = await db.query(
-      `
+      //  Step 4: Check if applicant has an exam schedule
+      const [schedule] = await db.query(
+        `
       SELECT ees.*
       FROM exam_applicants ea
       JOIN entrance_exam_schedule ees ON ea.schedule_id = ees.schedule_id
       WHERE ea.applicant_id = ?
       `,
-      [applicant_number],
-    );
-    const hasSchedule = schedule.length > 0;
+        [applicant_number],
+      );
+      const hasSchedule = schedule.length > 0;
 
-    //  Step 5: Determine if verified
-    const fullyVerified = totalVerified >= totalRequired && hasSchedule;
+      //  Step 5: Determine if verified
+      const fullyVerified = totalVerified >= totalRequired && hasSchedule;
 
-    res.json({
-      verified: fullyVerified,
-      totalRequired,
-      totalVerified,
-      hasSchedule,
-    });
-  } catch (error) {
-    console.error("Error checking applicant verification:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
+      res.json({
+        verified: fullyVerified,
+        totalRequired,
+        totalVerified,
+        hasSchedule,
+      });
+    } catch (error) {
+      console.error("Error checking applicant verification:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
 
 
 
-app.get("/api/student_data_as_applicant/:id", async (req, res) => {
-  const { id } = req.params;
+  app.get("/api/student_data_as_applicant/:id", async (req, res) => {
+    const { id } = req.params;
 
-  try {
-    const [[person]] = await db3.query(
-      `
+    try {
+      const [[person]] = await db3.query(
+        `
       SELECT *
       FROM enrollment.person_table
       WHERE person_id = ?
       `,
-      [id],
-    );
+        [id],
+      );
 
-    if (!person) {
-      return res.status(404).json({ message: "Person not found" });
-    }
+      if (!person) {
+        return res.status(404).json({ message: "Person not found" });
+      }
 
-    // Get latest document status + evaluator
-    const [rows] = await db3.query(
-      `
+      // Get latest document status + evaluator
+      const [rows] = await db3.query(
+        `
       SELECT
         ru.document_status AS upload_document_status,
         rt.id AS requirement_id,
@@ -6155,92 +6243,92 @@ app.get("/api/student_data_as_applicant/:id", async (req, res) => {
       WHERE ru.person_id = ?
       ORDER BY ru.created_at DESC
       `,
-      [person.person_id],
-    );
+        [person.person_id],
+      );
 
-    if (rows.length > 0) {
-      person.document_status = rows[0].upload_document_status || "On process";
-      person.evaluator = rows[0];
-    } else {
-      person.document_status = "On process";
-      person.evaluator = null;
+      if (rows.length > 0) {
+        person.document_status = rows[0].upload_document_status || "On process";
+        person.evaluator = rows[0];
+      } else {
+        person.document_status = "On process";
+        person.evaluator = null;
+      }
+
+      res.json(person);
+    } catch (err) {
+      console.error(" Error fetching person_with_applicant:", err);
+      res.status(500).json({ error: "Failed to fetch person" });
     }
+  });
 
-    res.json(person);
-  } catch (err) {
-    console.error(" Error fetching person_with_applicant:", err);
-    res.status(500).json({ error: "Failed to fetch person" });
-  }
-});
+  //  UPDATE person_table in ENROLLMENT DB3
+  app.put("/api/enrollment_person/:person_id", async (req, res) => {
+    try {
+      const { person_id } = req.params;
+      const updateData = req.body;
 
-//  UPDATE person_table in ENROLLMENT DB3
-app.put("/api/enrollment_person/:person_id", async (req, res) => {
-  try {
-    const { person_id } = req.params;
-    const updateData = req.body;
+      if (!person_id) {
+        return res.status(400).json({ error: "Missing person_id" });
+      }
 
-    if (!person_id) {
-      return res.status(400).json({ error: "Missing person_id" });
-    }
+      if (!updateData || Object.keys(updateData).length === 0) {
+        return res.status(400).json({ error: "No update data provided" });
+      }
 
-    if (!updateData || Object.keys(updateData).length === 0) {
-      return res.status(400).json({ error: "No update data provided" });
-    }
+      // Remove unsafe fields if present
+      delete updateData.person_id;
+      delete updateData.created_at;
+      delete updateData.current_step;
 
-    // Remove unsafe fields if present
-    delete updateData.person_id;
-    delete updateData.created_at;
-    delete updateData.current_step;
+      // Build dynamic SET fields
+      const fields = Object.keys(updateData)
+        .map((field) => `${field} = ?`)
+        .join(", ");
 
-    // Build dynamic SET fields
-    const fields = Object.keys(updateData)
-      .map((field) => `${field} = ?`)
-      .join(", ");
+      const values = Object.values(updateData);
 
-    const values = Object.values(updateData);
-
-    // Execute update query
-    const query = `
+      // Execute update query
+      const query = `
             UPDATE person_table
             SET ${fields}
             WHERE person_id = ?
         `;
 
-    values.push(person_id);
+      values.push(person_id);
 
-    const [result] = await db3.query(query, values);
+      const [result] = await db3.query(query, values);
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Person not found" });
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: "Person not found" });
+      }
+
+      return res.json({
+        message: "Person updated successfully",
+        updated: updateData,
+      });
+    } catch (error) {
+      console.error(" Error updating enrollment person:", error);
+      return res.status(500).json({ error: "Internal Server Error" });
     }
+  });
 
-    return res.json({
-      message: "Person updated successfully",
-      updated: updateData,
-    });
-  } catch (error) {
-    console.error(" Error updating enrollment person:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
-  }
-});
+  app.get("/uploads/by-student/:student_number", async (req, res) => {
+    const student_number = req.params.student_number;
 
-app.get("/uploads/by-student/:student_number", async (req, res) => {
-  const student_number = req.params.student_number;
+    try {
+      const [personResult] = await db3.query(
+        "SELECT person_id FROM student_numbering_table WHERE student_number = ?",
+        [student_number],
+      );
 
-  try {
-    const [personResult] = await db3.query(
-      "SELECT person_id FROM student_numbering_table WHERE student_number = ?",
-      [student_number],
-    );
+      if (personResult.length === 0) {
+        return res.status(404).json({ message: "Applicant not found" });
+      }
 
-    if (personResult.length === 0) {
-      return res.status(404).json({ message: "Applicant not found" });
-    }
+      const person_id = personResult[0].person_id;
 
-    const person_id = personResult[0].person_id;
-
-    const [uploads] = await db3.query(
-      `
+      const [uploads] = await db3.query(
+        `
       SELECT
         ru.upload_id,
         ru.requirements_id,
@@ -6275,21 +6363,21 @@ app.get("/uploads/by-student/:student_number", async (req, res) => {
         ON ua.person_id = pr.person_id
       WHERE ru.person_id = ?;
     `,
-      [person_id],
-    );
+        [person_id],
+      );
 
-    res.status(200).json(uploads);
-  } catch (err) {
-    res.status(500).json({ message: "Internal Server Error", error: err });
-  }
-});
+      res.status(200).json(uploads);
+    } catch (err) {
+      res.status(500).json({ message: "Internal Server Error", error: err });
+    }
+  });
 
-app.get("/api/document_status/:student_number", async (req, res) => {
-  const { student_number } = req.params;
+  app.get("/api/document_status/:student_number", async (req, res) => {
+    const { student_number } = req.params;
 
-  try {
-    const [rows] = await db3.query(
-      `SELECT
+    try {
+      const [rows] = await db3.query(
+        `SELECT
          ru.document_status     AS upload_document_status,
          rt.id                  AS requirement_id,
          ua.email               AS evaluator_email,
@@ -6306,82 +6394,82 @@ app.get("/api/document_status/:student_number", async (req, res) => {
        LEFT JOIN enrollment.user_accounts ua ON ru.last_updated_by = ua.person_id
        WHERE snt.student_number = ? AND rt.is_verifiable = 1
        ORDER BY ru.created_at DESC`,
-      [student_number],
-    );
+        [student_number],
+      );
 
-    // � If no uploads found
-    if (!rows || rows.length === 0) {
-      return res.json({
-        document_status: "On Process",
-        evaluator: null,
-      });
-    }
+      // � If no uploads found
+      if (!rows || rows.length === 0) {
+        return res.json({
+          document_status: "On Process",
+          evaluator: null,
+        });
+      }
 
-    const statuses = rows.map((r) => r.upload_document_status);
-    const latest = rows[0];
+      const statuses = rows.map((r) => r.upload_document_status);
+      const latest = rows[0];
 
-    // �� Determine final document status
-    let finalStatus = "On Process";
-    if (statuses.every((s) => s === "Disapproved / Program Closed")) {
-      finalStatus = "Disapproved / Program Closed";
-    } else if (statuses.every((s) => s === "Documents Verified & ECAT")) {
-      finalStatus = "Documents Verified & ECAT";
-    }
+      // �� Determine final document status
+      let finalStatus = "On Process";
+      if (statuses.every((s) => s === "Disapproved / Program Closed")) {
+        finalStatus = "Disapproved / Program Closed";
+      } else if (statuses.every((s) => s === "Documents Verified & ECAT")) {
+        finalStatus = "Documents Verified & ECAT";
+      }
 
-    // �� Build evaluator display name with employee ID
-    // �� Build evaluator display name with employee ID (no HTML tags)
-    let actorEmail = null;
-    let actorName = "Unknown - System";
+      // �� Build evaluator display name with employee ID
+      // �� Build evaluator display name with employee ID (no HTML tags)
+      let actorEmail = null;
+      let actorName = "Unknown - System";
 
-    if (latest?.evaluator_email) {
-      const role = latest.evaluator_role?.toUpperCase() || "UNKNOWN";
-      const empId = latest.evaluator_employee_id
-        ? `(${latest.evaluator_employee_id})`
-        : "";
-      const lname = latest.evaluator_lname || "";
-      const fname = latest.evaluator_fname || "";
-      const mname = latest.evaluator_mname || "";
+      if (latest?.evaluator_email) {
+        const role = latest.evaluator_role?.toUpperCase() || "UNKNOWN";
+        const empId = latest.evaluator_employee_id
+          ? `(${latest.evaluator_employee_id})`
+          : "";
+        const lname = latest.evaluator_lname || "";
+        const fname = latest.evaluator_fname || "";
+        const mname = latest.evaluator_mname || "";
 
-      actorEmail = latest.evaluator_email;
-      actorName = `${role} ${empId} - ${lname}, ${fname} ${mname}`.trim();
-      latest.evaluator_display = `BY: ${actorName} (${actorEmail})`;
-    } else {
-      latest.evaluator_display = `BY: Unknown - System`;
-    }
+        actorEmail = latest.evaluator_email;
+        actorName = `${role} ${empId} - ${lname}, ${fname} ${mname}`.trim();
+        latest.evaluator_display = `BY: ${actorName} (${actorEmail})`;
+      } else {
+        latest.evaluator_display = `BY: Unknown - System`;
+      }
 
-    // � Create notification message
-    const message = `� Document status for Student #${student_number} set to "${finalStatus}"`;
+      // � Create notification message
+      const message = `� Document status for Student #${student_number} set to "${finalStatus}"`;
 
-    // �� Insert notification (only if there's evaluator info)
-    await db.query(
-      `INSERT INTO notifications (type, message, applicant_number, actor_email, actor_name)
+      // �� Insert notification (only if there's evaluator info)
+      await db.query(
+        `INSERT INTO notifications (type, message, applicant_number, actor_email, actor_name)
        VALUES (?, ?, ?, ?, ?)`,
-      ["update", message, student_number, actorEmail, actorName],
-    );
+        ["update", message, student_number, actorEmail, actorName],
+      );
 
-    // �� Emit notification via socket.io
-    io.emit("notification", {
-      type: "update",
-      message,
-      student_number,
-      actor_email: actorEmail,
-      actor_name: actorName,
-      timestamp: new Date().toISOString(),
-    });
+      // �� Emit notification via socket.io
+      io.emit("notification", {
+        type: "update",
+        message,
+        student_number,
+        actor_email: actorEmail,
+        actor_name: actorName,
+        timestamp: new Date().toISOString(),
+      });
 
-    return res.json({
-      document_status: finalStatus,
-      evaluator: latest,
-    });
-  } catch (err) {
-    console.error(" Error fetching document status:", err);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+      return res.json({
+        document_status: finalStatus,
+        evaluator: latest,
+      });
+    } catch (err) {
+      console.error(" Error fetching document status:", err);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  });
 
-app.get("/api/student_upload_documents_data", async (req, res) => {
-  try {
-    const [persons] = await db3.query(`
+  app.get("/api/student_upload_documents_data", async (req, res) => {
+    try {
+      const [persons] = await db3.query(`
       SELECT
         pt.person_id,
         pt.first_name,
@@ -6396,198 +6484,198 @@ app.get("/api/student_upload_documents_data", async (req, res) => {
       LEFT JOIN student_numbering_table snt ON pt.person_id = snt.person_id
     `);
 
-    res.status(200).json(persons);
-  } catch (error) {
-    console.error(" Error fetching upload documents:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
-
-app.delete("/admin/uploads/:uploadId", async (req, res) => {
-  const { uploadId } = req.params;
-
-  try {
-    // 1� Get upload row (file + person_id)
-    const [uploadRows] = await db3.query(
-      "SELECT person_id, file_path FROM requirement_uploads WHERE upload_id = ?",
-      [uploadId],
-    );
-    if (!uploadRows.length) {
-      return res.status(404).json({ error: "Upload not found." });
+      res.status(200).json(persons);
+    } catch (error) {
+      console.error(" Error fetching upload documents:", error);
+      res.status(500).json({ message: "Internal Server Error" });
     }
+  });
 
-    const { person_id: personId, file_path: filePath } = uploadRows[0];
+  app.delete("/admin/uploads/:uploadId", async (req, res) => {
+    const { uploadId } = req.params;
 
-    // 2� Student info
-    const [[appInfo]] = await db3.query(
-      `
+    try {
+      // 1� Get upload row (file + person_id)
+      const [uploadRows] = await db3.query(
+        "SELECT person_id, file_path FROM requirement_uploads WHERE upload_id = ?",
+        [uploadId],
+      );
+      if (!uploadRows.length) {
+        return res.status(404).json({ error: "Upload not found." });
+      }
+
+      const { person_id: personId, file_path: filePath } = uploadRows[0];
+
+      // 2� Student info
+      const [[appInfo]] = await db3.query(
+        `
       SELECT snt.student_number, pt.last_name, pt.first_name, pt.middle_name
       FROM student_numbering_table snt
       LEFT JOIN person_table pt ON snt.person_id = pt.person_id
       WHERE snt.person_id = ?;
     `,
-      [personId],
-    );
+        [personId],
+      );
 
-    const student_number = appInfo?.student_number || "Unknown";
-    const fullName = `${appInfo?.last_name || ""}, ${appInfo?.first_name || ""} ${appInfo?.middle_name?.charAt(0) || ""}.`;
+      const student_number = appInfo?.student_number || "Unknown";
+      const fullName = `${appInfo?.last_name || ""}, ${appInfo?.first_name || ""} ${appInfo?.middle_name?.charAt(0) || ""}.`;
 
-    // 3� Actor (admin performing the action)
-    const user_person_id = req.headers["x-person-id"];
-    const { actorEmail, actorName } = await getActorInfo(user_person_id);
+      // 3� Actor (admin performing the action)
+      const user_person_id = req.headers["x-person-id"];
+      const { actorEmail, actorName } = await getActorInfo(user_person_id);
 
-    // 4� Delete physical file
-    if (filePath) {
-      const fullPath = path.join(applicantDocsDir, filePath);
+      // 4� Delete physical file
+      if (filePath) {
+        const fullPath = path.join(applicantDocsDir, filePath);
 
-      try {
-        await fs.promises.unlink(fullPath);
-        console.log("��� File deleted:", fullPath);
-      } catch (err) {
-        if (err.code === "ENOENT") {
-          console.warn("�� File already missing:", fullPath);
-        } else {
-          console.error("File delete error:", err);
+        try {
+          await fs.promises.unlink(fullPath);
+          console.log("��� File deleted:", fullPath);
+        } catch (err) {
+          if (err.code === "ENOENT") {
+            console.warn("�� File already missing:", fullPath);
+          } else {
+            console.error("File delete error:", err);
+          }
         }
       }
-    }
 
-    // 5� Delete DB record
-    await db.query("DELETE FROM requirement_uploads WHERE upload_id = ?", [
-      uploadId,
-    ]);
-
-    // 6� Log notification
-    const message = `��� Deleted document (Applicant #${student_number} - ${fullName})`;
-    await db.query(
-      "INSERT INTO notifications (type, message, applicant_number, actor_email, actor_name, timestamp) VALUES (?, ?, ?, ?, ?, NOW())",
-      ["delete", message, student_number, actorEmail, actorName],
-    );
-
-    io.emit("notification", {
-      type: "delete",
-      message,
-      student_number,
-      actor_email: actorEmail,
-      actor_name: actorName,
-      timestamp: new Date().toISOString(),
-    });
-
-    res.status(200).json({ message: " Upload deleted successfully." });
-  } catch (error) {
-    console.error("Delete error:", error);
-    res.status(500).json({ error: "Failed to delete the upload." });
-  }
-});
-
-// app.get("/api/get_applicant_account_id/:person_id", async (req, res) => {
-//   const { person_id } = req.params;
-//   try {
-//     const [rows] = await db.query(
-//       "SELECT user_id FROM user_accounts WHERE person_id = ? LIMIT 1",
-//       [person_id]
-//     );
-//     if (rows.length === 0) return res.status(404).json({ message: "User not found" });
-//     res.json({ user_account_id: rows[0].user_id });
-//   } catch (err) {
-//     console.error(" Error fetching user_account_id:", err);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// });
-
-app.post(
-  "/update_applicant/:user_id",
-  profileUpload.single("profile_picture"),
-  async (req, res) => {
-    const { user_id } = req.params;
-    const data = req.body;
-    const file = req.file;
-
-    try {
-      // Get user info
-      const [existing] = await db.query(
-        "SELECT * FROM user_accounts WHERE user_id = ?",
-        [user_id],
-      );
-      if (existing.length === 0)
-        return res.status(404).json({ message: "User not found" });
-      const applicant_person_id = existing[0].person_id;
-
-      // Get applicant_number
-      const [applicant] = await db.query(
-        "SELECT * FROM applicant_numbering_table WHERE person_id = ?",
-        [applicant_person_id],
-      );
-      if (applicant.length === 0)
-        return res.status(404).json({ message: "Applicant not found" });
-      const applicant_number = applicant[0].applicant_number;
-
-      // Get current profile
-      const [datas] = await db.query(
-        "SELECT * FROM person_table WHERE person_id = ?",
-        [applicant_person_id],
-      );
-      const current = datas[0];
-
-      let finalFilename = current.profile_img;
-
-      if (file) {
-        const a_id = applicant_number || "unknown";
-
-        const philTime = new Date().toLocaleString("en-US", {
-          timeZone: "Asia/Manila",
-        });
-        const year = new Date(philTime).getFullYear();
-
-        const ext = path.extname(file.originalname).toLowerCase();
-        finalFilename = `${a_id}_1by1_${year}${ext}`;
-
-        //  New folder: uploads/Applicant1by1
-        const uploadDir = path.join(__dirname, "uploads", "Applicant1by1");
-        if (!fs.existsSync(uploadDir))
-          fs.mkdirSync(uploadDir, { recursive: true });
-
-        const tempPath = path.join(__dirname, "uploads", file.filename); // temp file multer stored
-        const newPath = path.join(uploadDir, finalFilename);
-
-        // Delete old file if exists
-        if (current.profile_img) {
-          const oldPath = path.join(uploadDir, current.profile_img);
-          if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-        }
-
-        // Move temp file to new folder
-        fs.renameSync(tempPath, newPath);
-      }
-
-      // Update DB
-      const sql = `UPDATE person_table SET profile_img = ? WHERE person_id = ?`;
-      const [updated] = await db.query(sql, [
-        finalFilename,
-        applicant_person_id,
+      // 5� Delete DB record
+      await db.query("DELETE FROM requirement_uploads WHERE upload_id = ?", [
+        uploadId,
       ]);
 
-      res.json({
-        success: true,
-        message: "Applicant updated successfully!",
-        updated,
+      // 6� Log notification
+      const message = `��� Deleted document (Applicant #${student_number} - ${fullName})`;
+      await db.query(
+        "INSERT INTO notifications (type, message, applicant_number, actor_email, actor_name, timestamp) VALUES (?, ?, ?, ?, ?, NOW())",
+        ["delete", message, student_number, actorEmail, actorName],
+      );
+
+      io.emit("notification", {
+        type: "delete",
+        message,
+        student_number,
+        actor_email: actorEmail,
+        actor_name: actorName,
+        timestamp: new Date().toISOString(),
       });
+
+      res.status(200).json({ message: " Upload deleted successfully." });
     } catch (error) {
-      console.error(" Error updating applicant:", error);
-      res.status(500).json({ error: "Internal Server Error" });
+      console.error("Delete error:", error);
+      res.status(500).json({ error: "Failed to delete the upload." });
     }
-  },
-);
+  });
 
-// ---------------- Get total required count ----------------
-app.get("/total-requirements", async (req, res) => {
-  try {
-    const { person_id } = req.query;
-    let rows;
+  // app.get("/api/get_applicant_account_id/:person_id", async (req, res) => {
+  //   const { person_id } = req.params;
+  //   try {
+  //     const [rows] = await db.query(
+  //       "SELECT user_id FROM user_accounts WHERE person_id = ? LIMIT 1",
+  //       [person_id]
+  //     );
+  //     if (rows.length === 0) return res.status(404).json({ message: "User not found" });
+  //     res.json({ user_account_id: rows[0].user_id });
+  //   } catch (err) {
+  //     console.error(" Error fetching user_account_id:", err);
+  //     res.status(500).json({ error: "Internal Server Error" });
+  //   }
+  // });
 
-    if (person_id) {
-      [rows] = await db.query(
-        `
+  app.post(
+    "/update_applicant/:user_id",
+    profileUpload.single("profile_picture"),
+    async (req, res) => {
+      const { user_id } = req.params;
+      const data = req.body;
+      const file = req.file;
+
+      try {
+        // Get user info
+        const [existing] = await db.query(
+          "SELECT * FROM user_accounts WHERE user_id = ?",
+          [user_id],
+        );
+        if (existing.length === 0)
+          return res.status(404).json({ message: "User not found" });
+        const applicant_person_id = existing[0].person_id;
+
+        // Get applicant_number
+        const [applicant] = await db.query(
+          "SELECT * FROM applicant_numbering_table WHERE person_id = ?",
+          [applicant_person_id],
+        );
+        if (applicant.length === 0)
+          return res.status(404).json({ message: "Applicant not found" });
+        const applicant_number = applicant[0].applicant_number;
+
+        // Get current profile
+        const [datas] = await db.query(
+          "SELECT * FROM person_table WHERE person_id = ?",
+          [applicant_person_id],
+        );
+        const current = datas[0];
+
+        let finalFilename = current.profile_img;
+
+        if (file) {
+          const a_id = applicant_number || "unknown";
+
+          const philTime = new Date().toLocaleString("en-US", {
+            timeZone: "Asia/Manila",
+          });
+          const year = new Date(philTime).getFullYear();
+
+          const ext = path.extname(file.originalname).toLowerCase();
+          finalFilename = `${a_id}_1by1_${year}${ext}`;
+
+          //  New folder: uploads/Applicant1by1
+          const uploadDir = path.join(__dirname, "uploads", "Applicant1by1");
+          if (!fs.existsSync(uploadDir))
+            fs.mkdirSync(uploadDir, { recursive: true });
+
+          const tempPath = path.join(__dirname, "uploads", file.filename); // temp file multer stored
+          const newPath = path.join(uploadDir, finalFilename);
+
+          // Delete old file if exists
+          if (current.profile_img) {
+            const oldPath = path.join(uploadDir, current.profile_img);
+            if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+          }
+
+          // Move temp file to new folder
+          fs.renameSync(tempPath, newPath);
+        }
+
+        // Update DB
+        const sql = `UPDATE person_table SET profile_img = ? WHERE person_id = ?`;
+        const [updated] = await db.query(sql, [
+          finalFilename,
+          applicant_person_id,
+        ]);
+
+        res.json({
+          success: true,
+          message: "Applicant updated successfully!",
+          updated,
+        });
+      } catch (error) {
+        console.error(" Error updating applicant:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+      }
+    },
+  );
+
+  // ---------------- Get total required count ----------------
+  app.get("/total-requirements", async (req, res) => {
+    try {
+      const { person_id } = req.query;
+      let rows;
+
+      if (person_id) {
+        [rows] = await db.query(
+          `
         SELECT COUNT(*) AS total
         FROM requirements_table rt
         INNER JOIN person_table pt
@@ -6595,287 +6683,287 @@ app.get("/total-requirements", async (req, res) => {
         WHERE rt.is_verifiable = 1
           AND pt.person_id = ?
         `,
-        [person_id],
-      );
-    } else {
-      [rows] = await db.query(
-        "SELECT COUNT(*) AS total FROM requirements_table WHERE is_verifiable = 1",
-      );
-    }
-
-    res.json({ total: rows[0].total });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Failed to get total requirements" });
-  }
-});
-
-
-
-
-app.get("/api/get_prof_account_id/:person_id", async (req, res) => {
-  const { person_id } = req.params;
-  try {
-    const [rows] = await db3.query(
-      "SELECT prof_id FROM prof_table WHERE person_id = ? LIMIT 1",
-      [person_id],
-    );
-    if (rows.length === 0)
-      return res.status(404).json({ message: "User not found" });
-    res.json({ user_account_id: rows[0].prof_id });
-  } catch (err) {
-    console.error(" Error fetching uproft_id:", err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-app.post(
-  "/update_faculty/:id",
-  profileUpload.single("profile_picture"),
-  async (req, res) => {
-    const { id } = req.params;
-    const file = req.file;
-
-    try {
-      const [existing] = await db3.query(
-        "SELECT * FROM prof_table WHERE prof_id = ?",
-        [id],
-      );
-      if (existing.length === 0)
-        return res.status(404).json({ message: "Faculty not found" });
-
-      const current = existing[0];
-
-      let finalFilename = current.profile_image; // fallback to existing if no new file
-
-      if (file) {
-        //  Get employee_id for filename
-        const employee_id = current.prof_id || "unknown";
-
-        //  Get current Philippine year
-        const philTime = new Date().toLocaleString("en-US", {
-          timeZone: "Asia/Manila",
-        });
-        const year = new Date(philTime).getFullYear();
-
-        //  Build final filename
-        const ext = path.extname(file.originalname).toLowerCase();
-        finalFilename = `2${current.person_id}${employee_id}_profile_image_${year}${ext}`;
-
-        //  Paths
-        const uploadDir = path.join(__dirname, "uploads");
-        const tempPath = path.join(uploadDir, file.filename);
-        const newPath = path.join(uploadDir, finalFilename);
-
-        //  Delete old image if exists
-        if (current.profile_image) {
-          const oldPath = path.join(uploadDir, current.profile_image);
-          if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-        }
-
-        //  Rename temp file to proper name
-        fs.renameSync(tempPath, newPath);
+          [person_id],
+        );
+      } else {
+        [rows] = await db.query(
+          "SELECT COUNT(*) AS total FROM requirements_table WHERE is_verifiable = 1",
+        );
       }
 
-      //  Update registrar data in DB
-      const updated = {
-        profile_picture: finalFilename,
-      };
+      res.json({ total: rows[0].total });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Failed to get total requirements" });
+    }
+  });
 
-      const sql = `
+
+
+
+  app.get("/api/get_prof_account_id/:person_id", async (req, res) => {
+    const { person_id } = req.params;
+    try {
+      const [rows] = await db3.query(
+        "SELECT prof_id FROM prof_table WHERE person_id = ? LIMIT 1",
+        [person_id],
+      );
+      if (rows.length === 0)
+        return res.status(404).json({ message: "User not found" });
+      res.json({ user_account_id: rows[0].prof_id });
+    } catch (err) {
+      console.error(" Error fetching uproft_id:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
+
+  app.post(
+    "/update_faculty/:id",
+    profileUpload.single("profile_picture"),
+    async (req, res) => {
+      const { id } = req.params;
+      const file = req.file;
+
+      try {
+        const [existing] = await db3.query(
+          "SELECT * FROM prof_table WHERE prof_id = ?",
+          [id],
+        );
+        if (existing.length === 0)
+          return res.status(404).json({ message: "Faculty not found" });
+
+        const current = existing[0];
+
+        let finalFilename = current.profile_image; // fallback to existing if no new file
+
+        if (file) {
+          //  Get employee_id for filename
+          const employee_id = current.prof_id || "unknown";
+
+          //  Get current Philippine year
+          const philTime = new Date().toLocaleString("en-US", {
+            timeZone: "Asia/Manila",
+          });
+          const year = new Date(philTime).getFullYear();
+
+          //  Build final filename
+          const ext = path.extname(file.originalname).toLowerCase();
+          finalFilename = `2${current.person_id}${employee_id}_profile_image_${year}${ext}`;
+
+          //  Paths
+          const uploadDir = path.join(__dirname, "uploads");
+          const tempPath = path.join(uploadDir, file.filename);
+          const newPath = path.join(uploadDir, finalFilename);
+
+          //  Delete old image if exists
+          if (current.profile_image) {
+            const oldPath = path.join(uploadDir, current.profile_image);
+            if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+          }
+
+          //  Rename temp file to proper name
+          fs.renameSync(tempPath, newPath);
+        }
+
+        //  Update registrar data in DB
+        const updated = {
+          profile_picture: finalFilename,
+        };
+
+        const sql = `
       UPDATE prof_table
       SET profile_image=?
       WHERE prof_id=?`;
-      const values = [updated.profile_picture, id];
+        const values = [updated.profile_picture, id];
 
-      await db3.query(sql, values);
+        await db3.query(sql, values);
 
-      res.json({
-        success: true,
-        message: "Faculty updated successfully!",
-        updated,
-      });
-    } catch (error) {
-      console.error(" Error updating faculty:", error);
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  },
-);
+        res.json({
+          success: true,
+          message: "Faculty updated successfully!",
+          updated,
+        });
+      } catch (error) {
+        console.error(" Error updating faculty:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+      }
+    },
+  );
 
-app.put(
-  "/api/update_prof_profile_image/:person_id",
-  profileUpload.single("profileImage"),
-  async (req, res) => {
-    const { person_id } = req.params;
-    if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded" });
-    }
-
-    const filename = req.file.filename;
-
-    try {
-      // Update DB (set filename to the same name we saved)
-      const [result] = await db3.query(
-        "UPDATE prof_table SET profile_image = ? WHERE person_id = ?",
-        [filename, person_id],
-      );
-
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ error: "Person not found" });
+  app.put(
+    "/api/update_prof_profile_image/:person_id",
+    profileUpload.single("profileImage"),
+    async (req, res) => {
+      const { person_id } = req.params;
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
       }
 
-      res.json({
-        message: " Profile image updated successfully",
-        filename,
-      });
-    } catch (err) {
-      console.error(" DB Error:", err);
-      res.status(500).json({ error: "Database update failed" });
-    }
-  },
-);
+      const filename = req.file.filename;
 
-app.post(
-  "/update_student/:user_id",
-  profileUpload.single("profile_picture"),
-  async (req, res) => {
-    const { user_id } = req.params;
-    const data = req.body;
-    const file = req.file;
+      try {
+        // Update DB (set filename to the same name we saved)
+        const [result] = await db3.query(
+          "UPDATE prof_table SET profile_image = ? WHERE person_id = ?",
+          [filename, person_id],
+        );
 
-    try {
-      const [existing] = await db3.query(
-        "SELECT * FROM user_accounts WHERE id = ?",
-        [user_id],
-      );
-      if (existing.length === 0)
-        return res.status(404).json({ message: "User not found" });
-      const student_person_id = existing[0].person_id;
-
-      const [student] = await db3.query(
-        "SELECT * FROM student_numbering_table WHERE person_id = ?",
-        [student_person_id],
-      );
-
-      if (student.length === 0)
-        return res.status(404).json({ message: "Student not found" });
-      const student_number = student[0].student_number;
-
-      const [datas] = await db3.query(
-        "SELECT * FROM person_table WHERE person_id = ?",
-        [student_person_id],
-      );
-      const current = datas[0];
-
-      let finalFilename = current.profile_img;
-
-      if (file) {
-        const s_id = student_number || "unknown";
-
-        const philTime = new Date().toLocaleString("en-US", {
-          timeZone: "Asia/Manila",
-        });
-        const year = new Date(philTime).getFullYear();
-
-        const ext = path.extname(file.originalname).toLowerCase();
-        finalFilename = `${s_id}_profile_image_${year}${ext}`;
-
-        const uploadDir = path.join(__dirname, "uploads");
-        const tempPath = path.join(uploadDir, file.filename);
-        const newPath = path.join(uploadDir, finalFilename);
-
-        if (current.profile_img) {
-          const oldPath = path.join(uploadDir, current.profile_img);
-          if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ error: "Person not found" });
         }
 
-        fs.renameSync(tempPath, newPath);
+        res.json({
+          message: " Profile image updated successfully",
+          filename,
+        });
+      } catch (err) {
+        console.error(" DB Error:", err);
+        res.status(500).json({ error: "Database update failed" });
       }
+    },
+  );
 
-      const sql = `
+  app.post(
+    "/update_student/:user_id",
+    profileUpload.single("profile_picture"),
+    async (req, res) => {
+      const { user_id } = req.params;
+      const data = req.body;
+      const file = req.file;
+
+      try {
+        const [existing] = await db3.query(
+          "SELECT * FROM user_accounts WHERE id = ?",
+          [user_id],
+        );
+        if (existing.length === 0)
+          return res.status(404).json({ message: "User not found" });
+        const student_person_id = existing[0].person_id;
+
+        const [student] = await db3.query(
+          "SELECT * FROM student_numbering_table WHERE person_id = ?",
+          [student_person_id],
+        );
+
+        if (student.length === 0)
+          return res.status(404).json({ message: "Student not found" });
+        const student_number = student[0].student_number;
+
+        const [datas] = await db3.query(
+          "SELECT * FROM person_table WHERE person_id = ?",
+          [student_person_id],
+        );
+        const current = datas[0];
+
+        let finalFilename = current.profile_img;
+
+        if (file) {
+          const s_id = student_number || "unknown";
+
+          const philTime = new Date().toLocaleString("en-US", {
+            timeZone: "Asia/Manila",
+          });
+          const year = new Date(philTime).getFullYear();
+
+          const ext = path.extname(file.originalname).toLowerCase();
+          finalFilename = `${s_id}_profile_image_${year}${ext}`;
+
+          const uploadDir = path.join(__dirname, "uploads");
+          const tempPath = path.join(uploadDir, file.filename);
+          const newPath = path.join(uploadDir, finalFilename);
+
+          if (current.profile_img) {
+            const oldPath = path.join(uploadDir, current.profile_img);
+            if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+          }
+
+          fs.renameSync(tempPath, newPath);
+        }
+
+        const sql = `
       UPDATE person_table SET profile_img = ? WHERE person_id = ?
     `;
 
-      const [updated] = await db3.query(sql, [
-        finalFilename,
-        student_person_id,
-      ]);
+        const [updated] = await db3.query(sql, [
+          finalFilename,
+          student_person_id,
+        ]);
 
-      res.json({
-        success: true,
-        message: "Student updated successfully!",
-        updated,
-      });
-    } catch (error) {
-      console.error(" Error updating student:", error);
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  },
-);
-
-//  Check if applicant already has a student number
-app.get("/api/student_status/:person_id", async (req, res) => {
-  const { person_id } = req.params;
-  try {
-    const [applicantEmail] = await db.query(
-      `SELECT emailAddress FROM person_table WHERE person_id = ?`,
-      [person_id],
-    );
-
-    if (applicantEmail.length === 0) {
-      return res.status(500).json({ message: "Email Address not found" });
-    }
-
-    const [studentPersonID] = await db3.query(
-      `SELECT person_id FROM person_table WHERE emailAddress = ?`,
-      [applicantEmail[0].emailAddress],
-    );
-
-    if (studentPersonID.length === 0) {
-      return res
-        .status(500)
-        .json({ message: "Person Id of this email is not found" });
-    }
-
-    const [rows] = await db3.query(
-      "SELECT student_number FROM student_numbering_table WHERE person_id = ?",
-      [studentPersonID[0].person_id],
-    );
-
-    if (rows.length > 0 && rows[0].student_number) {
-      res.json({
-        hasStudentNumber: true,
-        student_number: rows[0].student_number,
-      });
-    } else {
-      res.json({ hasStudentNumber: false });
-    }
-  } catch (error) {
-    console.error(" Error checking student number:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-app.get("/api/all-persons", (req, res) => {
-  db.query(
-    "SELECT person_id, last_name, first_name, middle_name FROM person_table",
-    (err, result) => {
-      if (err) {
-        console.error("Error fetching persons:", err);
-        return res.status(500).json({ error: "Failed to fetch persons" });
+        res.json({
+          success: true,
+          message: "Student updated successfully!",
+          updated,
+        });
+      } catch (error) {
+        console.error(" Error updating student:", error);
+        res.status(500).json({ error: "Internal Server Error" });
       }
-      res.json(result);
     },
   );
-});
 
-
-app.get("/api/applicant_uploaded_requirements/:person_id", async (req, res) => {
-  try {
+  //  Check if applicant already has a student number
+  app.get("/api/student_status/:person_id", async (req, res) => {
     const { person_id } = req.params;
+    try {
+      const [applicantEmail] = await db.query(
+        `SELECT emailAddress FROM person_table WHERE person_id = ?`,
+        [person_id],
+      );
 
-    const [rows] = await db.query(
-      `
+      if (applicantEmail.length === 0) {
+        return res.status(500).json({ message: "Email Address not found" });
+      }
+
+      const [studentPersonID] = await db3.query(
+        `SELECT person_id FROM person_table WHERE emailAddress = ?`,
+        [applicantEmail[0].emailAddress],
+      );
+
+      if (studentPersonID.length === 0) {
+        return res
+          .status(500)
+          .json({ message: "Person Id of this email is not found" });
+      }
+
+      const [rows] = await db3.query(
+        "SELECT student_number FROM student_numbering_table WHERE person_id = ?",
+        [studentPersonID[0].person_id],
+      );
+
+      if (rows.length > 0 && rows[0].student_number) {
+        res.json({
+          hasStudentNumber: true,
+          student_number: rows[0].student_number,
+        });
+      } else {
+        res.json({ hasStudentNumber: false });
+      }
+    } catch (error) {
+      console.error(" Error checking student number:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
+
+  app.get("/api/all-persons", (req, res) => {
+    db.query(
+      "SELECT person_id, last_name, first_name, middle_name FROM person_table",
+      (err, result) => {
+        if (err) {
+          console.error("Error fetching persons:", err);
+          return res.status(500).json({ error: "Failed to fetch persons" });
+        }
+        res.json(result);
+      },
+    );
+  });
+
+
+  app.get("/api/applicant_uploaded_requirements/:person_id", async (req, res) => {
+    try {
+      const { person_id } = req.params;
+
+      const [rows] = await db.query(
+        `
       SELECT
         pt.person_id,
         pt.first_name,
@@ -6921,22 +7009,22 @@ app.get("/api/applicant_uploaded_requirements/:person_id", async (req, res) => {
       WHERE pt.person_id = ?
       ORDER BY rt.id
     `,
-      [person_id],
-    );
+        [person_id],
+      );
 
-    res.json(rows);
-  } catch (error) {
-    console.error(" Error fetching applicant uploaded requirements:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
+      res.json(rows);
+    } catch (error) {
+      console.error(" Error fetching applicant uploaded requirements:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
 
-app.get("/api/applicant-documents/:person_id", async (req, res) => {
-  try {
-    const { person_id } = req.params;
+  app.get("/api/applicant-documents/:person_id", async (req, res) => {
+    try {
+      const { person_id } = req.params;
 
-    const [rows] = await db.query(
-      `SELECT
+      const [rows] = await db.query(
+        `SELECT
           requirements_id,
           submitted_documents,
           registrar_status,
@@ -6944,53 +7032,53 @@ app.get("/api/applicant-documents/:person_id", async (req, res) => {
        FROM requirement_uploads
        WHERE person_id = ?
        ORDER BY requirements_id`,
-      [person_id],
-    );
+        [person_id],
+      );
 
-    res.json(rows);
-  } catch (error) {
-    console.error(" Error loading applicant documents:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
-
-//UPDATE ()
-app.post("/insert-logs/:userID", async (req, res) => {
-  const { userID } = req.params;
-  const { message, type } = req.body;
-
-  try {
-    const [userData] = await db3.query(
-      "SELECT * FROM user_accounts WHERE person_id = ?",
-      [userID],
-    );
-
-    if (userData === 0) {
-      res.status(400).send({ message: "No Data found" });
+      res.json(rows);
+    } catch (error) {
+      console.error(" Error loading applicant documents:", error);
+      res.status(500).json({ message: "Internal Server Error" });
     }
+  });
 
-    const user = userData[0];
-    const UserID = user.employee_id;
-    const fullName = `${user.last_name}, ${prof.first_name} ${prof.middle_name}`;
-    const email = user.email;
+  //UPDATE ()
+  app.post("/insert-logs/:userID", async (req, res) => {
+    const { userID } = req.params;
+    const { message, type } = req.body;
 
-    await db.query(
-      `INSERT INTO notifications (type, message, applicant_number, actor_email, actor_name, timestamp)
+    try {
+      const [userData] = await db3.query(
+        "SELECT * FROM user_accounts WHERE person_id = ?",
+        [userID],
+      );
+
+      if (userData === 0) {
+        res.status(400).send({ message: "No Data found" });
+      }
+
+      const user = userData[0];
+      const UserID = user.employee_id;
+      const fullName = `${user.last_name}, ${prof.first_name} ${prof.middle_name}`;
+      const email = user.email;
+
+      await db.query(
+        `INSERT INTO notifications (type, message, applicant_number, actor_email, actor_name, timestamp)
        VALUES (?, ?, ?, ?, ?, NOW())`,
-      [type, message, UserID, email, fullName],
-    );
+        [type, message, UserID, email, fullName],
+      );
 
-    res.json({ success: true, message: "Log inserted" });
-  } catch (err) {
-    console.error("Error fetching notifications:", err);
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
+      res.json({ success: true, message: "Log inserted" });
+    } catch (err) {
+      console.error("Error fetching notifications:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
 
-app.get("/get_college_professor_schedule/:dprtmnt_id", async (req, res) => {
-  const { dprtmnt_id } = req.params;
-  try {
-    const sql = `
+  app.get("/get_college_professor_schedule/:dprtmnt_id", async (req, res) => {
+    const { dprtmnt_id } = req.params;
+    try {
+      const sql = `
       SELECT pt.employee_id, pt.fname, pt.mname, pt.lname, ct.course_code, pgt.program_id, pgt.program_code, sct.description AS section_description, rdt.description AS day, tt.school_time_start, tt.school_time_end, rt.room_id, rt.room_description, tt.ishonorarium, yt.year_id, yt.year_description AS current_year, yt.year_description + 1 AS next_year, st.semester_id, st.semester_description FROM time_table tt
       LEFT JOIN prof_table pt ON tt.professor_id = pt.prof_id
       LEFT JOIN course_table ct ON tt.course_id = ct.course_id
@@ -7008,24 +7096,24 @@ app.get("/get_college_professor_schedule/:dprtmnt_id", async (req, res) => {
       WHERE dt.dprtmnt_id = ? AND sy.astatus = 1
     `;
 
-    const [rows] = await db3.execute(sql, [dprtmnt_id]);
+      const [rows] = await db3.execute(sql, [dprtmnt_id]);
 
-    if (rows.length === 0) {
-      return res.status(404).json({ error: "No schedule found" });
+      if (rows.length === 0) {
+        return res.status(404).json({ error: "No schedule found" });
+      }
+
+      res.json(rows);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Server error" });
     }
+  });
 
-    res.json(rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
-  }
-});
+  app.get("/get_professor_schedule/:employee_id", async (req, res) => {
+    const { employee_id } = req.params;
 
-app.get("/get_professor_schedule/:employee_id", async (req, res) => {
-  const { employee_id } = req.params;
-
-  try {
-    const sql = `
+    try {
+      const sql = `
       SELECT
         pt.employee_id,
         pt.fname,
@@ -7066,18 +7154,18 @@ app.get("/get_professor_schedule/:employee_id", async (req, res) => {
                tt.school_time_end
     `;
 
-    const [rows] = await db3.execute(sql, [employee_id]);
-    res.json(rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-//----------------------------prereq end
+      const [rows] = await db3.execute(sql, [employee_id]);
+      res.json(rows);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Server error" });
+    }
+  });
+  //----------------------------prereq end
 
-app.get("/prof_dropdown", async (req, res) => {
-  try {
-    const [rows] = await db3.query(`
+  app.get("/prof_dropdown", async (req, res) => {
+    try {
+      const [rows] = await db3.query(`
       SELECT
         person_id,
         fname,
@@ -7087,154 +7175,154 @@ app.get("/prof_dropdown", async (req, res) => {
       ORDER BY lname, fname
     `);
 
-    res.json(rows);
-  } catch (err) {
-    console.error("Error fetching prof dropdown:", err);
-    res.status(500).json({ message: "Failed to load professors" });
-  }
-});
+      res.json(rows);
+    } catch (err) {
+      console.error("Error fetching prof dropdown:", err);
+      res.status(500).json({ message: "Failed to load professors" });
+    }
+  });
 
-//  NEWLY ADDED API 1/13/2025
+  //  NEWLY ADDED API 1/13/2025
 
-//  GET all year levels
-// GET only YEAR levels
+  //  GET all year levels
+  // GET only YEAR levels
 
-// ================= POST =================
+  // ================= POST =================
 
-app.delete("/delete_subject/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    if (!id) {
-      return res
-        .status(400)
-        .json({ error: "Please Select a Subject to Delete" });
+  app.delete("/delete_subject/:id", async (req, res) => {
+    const { id } = req.params;
+    try {
+      if (!id) {
+        return res
+          .status(400)
+          .json({ error: "Please Select a Subject to Delete" });
+      }
+
+      await db3.execute("DELETE FROM enrolled_subject WHERE id = ?", [id]);
+      res.json({ message: "Deleted Successfully" });
+    } catch (err) {
+      console.error("Error in Deleting a suject", err);
+      res.status(500).json({ error: "Error in Deleting a subject", err });
+    }
+  });
+
+  app.post("/insert_subject", async (req, res) => {
+    const { course_id, student_number, currId, active_school_year_id } = req.body;
+
+    if (!course_id || !student_number || !currId || !active_school_year_id) {
+      return res.status(400).json({ error: "Missing parameters" });
     }
 
-    await db3.execute("DELETE FROM enrolled_subject WHERE id = ?", [id]);
-    res.json({ message: "Deleted Successfully" });
-  } catch (err) {
-    console.error("Error in Deleting a suject", err);
-    res.status(500).json({ error: "Error in Deleting a subject", err });
-  }
-});
+    console.log("Course: ", course_id);
+    console.log("Student Number: ", student_number);
+    console.log("Curriculum: ", currId);
+    console.log("School Year", active_school_year_id);
 
-app.post("/insert_subject", async (req, res) => {
-  const { course_id, student_number, currId, active_school_year_id } = req.body;
-
-  if (!course_id || !student_number || !currId || !active_school_year_id) {
-    return res.status(400).json({ error: "Missing parameters" });
-  }
-
-  console.log("Course: ", course_id);
-  console.log("Student Number: ", student_number);
-  console.log("Curriculum: ", currId);
-  console.log("School Year", active_school_year_id);
-
-  try {
-    const sql = `
+    try {
+      const sql = `
       INSERT INTO enrolled_subject
         (course_id, student_number, curriculum_id, active_school_year_id)
       VALUES (?, ?, ?, ?)
     `;
 
-    await db3.execute(sql, [
+      await db3.execute(sql, [
+        course_id,
+        student_number,
+        currId,
+        active_school_year_id,
+      ]);
+
+      res.json({ message: "Course added successfully" });
+    } catch (err) {
+      console.error("Insert subject error:", err);
+      res.status(500).json({ error: "Failed to add subject" });
+    }
+  });
+
+  app.put("/update_subject", async (req, res) => {
+    const {
       course_id,
       student_number,
       currId,
       active_school_year_id,
-    ]);
+      final_grade,
+    } = req.body;
 
-    res.json({ message: "Course added successfully" });
-  } catch (err) {
-    console.error("Insert subject error:", err);
-    res.status(500).json({ error: "Failed to add subject" });
-  }
-});
-
-app.put("/update_subject", async (req, res) => {
-  const {
-    course_id,
-    student_number,
-    currId,
-    active_school_year_id,
-    final_grade,
-  } = req.body;
-
-  if (!course_id || !student_number || !currId || !active_school_year_id) {
-    return res.status(400).json({ error: "Missing parameters" });
-  }
-
-  console.log("Course: ", course_id);
-  console.log("Student Number: ", student_number);
-  console.log("Curriculum: ", currId);
-  console.log("School Year", active_school_year_id);
-
-  try {
-    // Dynamic conversion keeps subject updates aligned with grade_conversion records.
-    const gradeConversions = await getGradeConversions();
-    const numericGrade = getStoredNumericGrade(final_grade, gradeConversions);
-
-    if (numericGrade === null) {
-      return res.status(400).json({ error: "Invalid grade conversion value" });
+    if (!course_id || !student_number || !currId || !active_school_year_id) {
+      return res.status(400).json({ error: "Missing parameters" });
     }
 
-    const sql = `
+    console.log("Course: ", course_id);
+    console.log("Student Number: ", student_number);
+    console.log("Curriculum: ", currId);
+    console.log("School Year", active_school_year_id);
+
+    try {
+      // Dynamic conversion keeps subject updates aligned with grade_conversion records.
+      const gradeConversions = await getGradeConversions();
+      const numericGrade = getStoredNumericGrade(final_grade, gradeConversions);
+
+      if (numericGrade === null) {
+        return res.status(400).json({ error: "Invalid grade conversion value" });
+      }
+
+      const sql = `
       UPDATE enrolled_subject SET final_grade = ? WHERE
         course_id = ? AND student_number = ? AND curriculum_id = ? AND active_school_year_id = ?
     `;
 
-    await db3.execute(sql, [
-      numericGrade,
-      course_id,
-      student_number,
-      currId,
-      active_school_year_id,
-    ]);
+      await db3.execute(sql, [
+        numericGrade,
+        course_id,
+        student_number,
+        currId,
+        active_school_year_id,
+      ]);
 
-    res.json({ message: "Course added successfully" });
-  } catch (err) {
-    console.error("Insert subject error:", err);
-    res.status(500).json({ error: "Failed to add subject" });
-  }
-});
+      res.json({ message: "Course added successfully" });
+    } catch (err) {
+      console.error("Insert subject error:", err);
+      res.status(500).json({ error: "Failed to add subject" });
+    }
+  });
 
-io.on("connection", (socket) => {
-  console.log(" Socket connected (VERIFY)");
+  io.on("connection", (socket) => {
+    console.log(" Socket connected (VERIFY)");
 
-  socket.on(
-    "send_verify_schedule_emails",
-    async ({
-      schedule_id,
-      applicant_numbers,
-      subject,
-      message,
-      user_person_id,
-    }) => {
-      console.log(applicant_numbers);
+    socket.on(
+      "send_verify_schedule_emails",
+      async ({
+        schedule_id,
+        applicant_numbers,
+        subject,
+        message,
+        user_person_id,
+      }) => {
+        console.log(applicant_numbers);
 
-      try {
-        if (
-          !schedule_id ||
-          !Array.isArray(applicant_numbers) ||
-          applicant_numbers.length === 0
-        ) {
-          return socket.emit("send_verify_schedule_emails_result", {
-            success: false,
-            error: "No applicants provided.",
-          });
-        }
+        try {
+          if (
+            !schedule_id ||
+            !Array.isArray(applicant_numbers) ||
+            applicant_numbers.length === 0
+          ) {
+            return socket.emit("send_verify_schedule_emails_result", {
+              success: false,
+              error: "No applicants provided.",
+            });
+          }
 
-        // OFFICE NAME
-        const [[office]] = await db.query(
-          "SELECT short_term FROM company_settings WHERE id = 1",
-        );
+          // OFFICE NAME
+          const [[office]] = await db.query(
+            "SELECT short_term FROM company_settings WHERE id = 1",
+          );
 
-        const shortTerm = office?.short_term || "EARIST";
-        const officeName = `${shortTerm} - Admission Office`;
+          const shortTerm = office?.short_term || "EARIST";
+          const officeName = `${shortTerm} - Admission Office`;
 
-        //  Fetch applicants with email
-        const [rows] = await db.query(
-          `
+          //  Fetch applicants with email
+          const [rows] = await db.query(
+            `
       SELECT
         va.applicant_id,
         p.first_name,
@@ -7250,164 +7338,164 @@ io.on("connection", (socket) => {
       AND va.applicant_id IN (?)
       AND va.email_sent = 0
     `,
-          [schedule_id, applicant_numbers],
-        );
-
-        if (rows.length === 0) {
-          return socket.emit("send_verify_schedule_emails_result", {
-            success: false,
-            error: "No pending applicants found.",
-          });
-        }
-
-        const sent = [];
-        const failed = [];
-
-        for (const row of rows) {
-          if (!row.emailAddress) {
-            failed.push(row.applicant_id);
-            continue;
-          }
-
-          const personalizedMsg = message
-            .replace("{first_name}", row.first_name || "")
-            .replace("{middle_name}", row.middle_name || "")
-            .replace("{last_name}", row.last_name || "")
-            .replace("{applicant_number}", row.applicant_id);
-
-          try {
-            await transporter.sendMail({
-              from: `"${officeName}" <${process.env.EMAIL_USER}>`,
-              to: row.emailAddress,
-              subject,
-              text: personalizedMsg,
-            });
-
-            //  Mark sent
-            await db.query(
-              "UPDATE verify_applicants SET email_sent = 1 WHERE applicant_id = ?",
-              [row.applicant_id],
-            );
-
-            sent.push(row.applicant_id);
-          } catch (err) {
-            console.error("Email failed:", err.message);
-
-            await db.query(
-              "UPDATE verify_applicants SET email_sent = -1 WHERE applicant_id = ?",
-              [row.applicant_id],
-            );
-
-            failed.push(row.applicant_id);
-          }
-        }
-
-        //  Return result
-        socket.emit("send_verify_schedule_emails_result", {
-          success: true,
-          sent,
-          failed,
-          message: `Verify emails: Sent=${sent.length}, Failed=${failed.length}`,
-        });
-
-        io.emit("schedule_updated", { schedule_id });
-      } catch (err) {
-        console.error("Verify email error:", err);
-
-        socket.emit("send_verify_schedule_emails_result", {
-          success: false,
-          error: "Server error sending verify emails.",
-        });
-      }
-    },
-  );
-
-  socket.on(
-    "update_verify_schedule",
-    async ({ schedule_id, applicant_numbers }) => {
-      try {
-        if (!schedule_id || !applicant_numbers?.length) {
-          return socket.emit("update_verify_schedule_result", {
-            success: false,
-            error: "Schedule ID and applicants required.",
-          });
-        }
-
-        //  Get quota
-        const [[scheduleInfo]] = await db.query(
-          `SELECT room_quota FROM verify_document_schedule WHERE schedule_id = ?`,
-          [schedule_id],
-        );
-
-        if (!scheduleInfo) {
-          return socket.emit("update_verify_schedule_result", {
-            success: false,
-            error: "Schedule not found.",
-          });
-        }
-
-        const roomQuota = scheduleInfo.room_quota;
-
-        //  Current count
-        const [[{ currentCount }]] = await db.query(
-          `SELECT COUNT(*) AS currentCount FROM verify_applicants WHERE schedule_id = ?`,
-          [schedule_id],
-        );
-
-        let runningCount = currentCount;
-
-        const assigned = [];
-        const updated = [];
-        const skipped = [];
-
-        for (const applicant_number of applicant_numbers) {
-          //  STOP when full
-          if (runningCount >= roomQuota) {
-            break;
-          }
-
-          const [check] = await db.query(
-            `SELECT schedule_id FROM verify_applicants WHERE applicant_id = ?`,
-            [applicant_number],
+            [schedule_id, applicant_numbers],
           );
 
-          if (check.length > 0) {
-            if (check[0].schedule_id === schedule_id) {
-              skipped.push(applicant_number);
-            } else {
-              await db.query(
-                `UPDATE verify_applicants SET schedule_id = ? WHERE applicant_id = ?`,
-                [schedule_id, applicant_number],
-              );
-              updated.push(applicant_number);
-              runningCount++; // increase count
+          if (rows.length === 0) {
+            return socket.emit("send_verify_schedule_emails_result", {
+              success: false,
+              error: "No pending applicants found.",
+            });
+          }
+
+          const sent = [];
+          const failed = [];
+
+          for (const row of rows) {
+            if (!row.emailAddress) {
+              failed.push(row.applicant_id);
+              continue;
             }
-          } else {
-            await db.query(
-              `INSERT INTO verify_applicants (applicant_id, schedule_id, email_sent)
-            VALUES (?, ?, 0)`,
-              [applicant_number, schedule_id],
+
+            const personalizedMsg = message
+              .replace("{first_name}", row.first_name || "")
+              .replace("{middle_name}", row.middle_name || "")
+              .replace("{last_name}", row.last_name || "")
+              .replace("{applicant_number}", row.applicant_id);
+
+            try {
+              await transporter.sendMail({
+                from: `"${officeName}" <${process.env.EMAIL_USER}>`,
+                to: row.emailAddress,
+                subject,
+                text: personalizedMsg,
+              });
+
+              //  Mark sent
+              await db.query(
+                "UPDATE verify_applicants SET email_sent = 1 WHERE applicant_id = ?",
+                [row.applicant_id],
+              );
+
+              sent.push(row.applicant_id);
+            } catch (err) {
+              console.error("Email failed:", err.message);
+
+              await db.query(
+                "UPDATE verify_applicants SET email_sent = -1 WHERE applicant_id = ?",
+                [row.applicant_id],
+              );
+
+              failed.push(row.applicant_id);
+            }
+          }
+
+          //  Return result
+          socket.emit("send_verify_schedule_emails_result", {
+            success: true,
+            sent,
+            failed,
+            message: `Verify emails: Sent=${sent.length}, Failed=${failed.length}`,
+          });
+
+          io.emit("schedule_updated", { schedule_id });
+        } catch (err) {
+          console.error("Verify email error:", err);
+
+          socket.emit("send_verify_schedule_emails_result", {
+            success: false,
+            error: "Server error sending verify emails.",
+          });
+        }
+      },
+    );
+
+    socket.on(
+      "update_verify_schedule",
+      async ({ schedule_id, applicant_numbers }) => {
+        try {
+          if (!schedule_id || !applicant_numbers?.length) {
+            return socket.emit("update_verify_schedule_result", {
+              success: false,
+              error: "Schedule ID and applicants required.",
+            });
+          }
+
+          //  Get quota
+          const [[scheduleInfo]] = await db.query(
+            `SELECT room_quota FROM verify_document_schedule WHERE schedule_id = ?`,
+            [schedule_id],
+          );
+
+          if (!scheduleInfo) {
+            return socket.emit("update_verify_schedule_result", {
+              success: false,
+              error: "Schedule not found.",
+            });
+          }
+
+          const roomQuota = scheduleInfo.room_quota;
+
+          //  Current count
+          const [[{ currentCount }]] = await db.query(
+            `SELECT COUNT(*) AS currentCount FROM verify_applicants WHERE schedule_id = ?`,
+            [schedule_id],
+          );
+
+          let runningCount = currentCount;
+
+          const assigned = [];
+          const updated = [];
+          const skipped = [];
+
+          for (const applicant_number of applicant_numbers) {
+            //  STOP when full
+            if (runningCount >= roomQuota) {
+              break;
+            }
+
+            const [check] = await db.query(
+              `SELECT schedule_id FROM verify_applicants WHERE applicant_id = ?`,
+              [applicant_number],
             );
 
-            assigned.push(applicant_number);
-            runningCount++; // increase count
-          }
-        }
+            if (check.length > 0) {
+              if (check[0].schedule_id === schedule_id) {
+                skipped.push(applicant_number);
+              } else {
+                await db.query(
+                  `UPDATE verify_applicants SET schedule_id = ? WHERE applicant_id = ?`,
+                  [schedule_id, applicant_number],
+                );
+                updated.push(applicant_number);
+                runningCount++; // increase count
+              }
+            } else {
+              await db.query(
+                `INSERT INTO verify_applicants (applicant_id, schedule_id, email_sent)
+            VALUES (?, ?, 0)`,
+                [applicant_number, schedule_id],
+              );
 
-        socket.emit("update_verify_schedule_result", {
-          success: true,
-          assigned,
-          updated,
-          skipped,
-        });
-      } catch (err) {
-        console.error(" Verify assign error:", err);
-        socket.emit("update_verify_schedule_result", {
-          success: false,
-          error: "Failed to assign applicants.",
-        });
-      }
-    },
-  );
-});
+              assigned.push(applicant_number);
+              runningCount++; // increase count
+            }
+          }
+
+          socket.emit("update_verify_schedule_result", {
+            success: true,
+            assigned,
+            updated,
+            skipped,
+          });
+        } catch (err) {
+          console.error(" Verify assign error:", err);
+          socket.emit("update_verify_schedule_result", {
+            success: false,
+            error: "Failed to assign applicants.",
+          });
+        }
+      },
+    );
+  });
 };

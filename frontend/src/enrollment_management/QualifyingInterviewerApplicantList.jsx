@@ -284,6 +284,21 @@ const InterviewerApplicantList = () => {
     fetchCurriculums();
   }, []);
 
+  const formatDateLong = (dateString) => {
+    if (!dateString) return "";
+
+    const date = new Date(dateString);
+    if (isNaN(date)) return dateString; // fallback if invalid date
+
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+
+
   const printDiv = () => {
     const newWin = window.open("", "Print-Window");
     newWin.document.open();
@@ -320,7 +335,7 @@ const InterviewerApplicantList = () => {
     const htmlContent = `
 <html>
 <head>
-  <title>Qualifying / Interviewer Applicant List</title>
+  <title>INTERVIEWER / QUALIFYING APPLICANT LIST</title>
   <style>
     @page { size: A4 landscape; margin: 5mm; }
 
@@ -397,25 +412,24 @@ const InterviewerApplicantList = () => {
           <b style="letter-spacing:1px; font-size:20px; font-family: Arial">${firstLine}</b>
           ${secondLine ? `<div style="letter-spacing:1px; font-size: 20px; font-family: Arial"><b>${secondLine}</b></div>` : ""}
           <div style="font-size: 13px; font-family: Arial">${campus}</div>
-          <div style="margin-top:25px;"><b style="font-size:20px; letter-spacing:1px;">Proctor Applicant List</b></div>
+          <div style="margin-top:50px;"><b style="font-size:20px; letter-spacing:1px;">INTERVIEWER / QUALIFYING APPLICANT LIST</b></div>
         </div>
       </div>
     <!-- INTERVIEW DETAILS -->
-    <div style="width: 100%; margin-top: 15px;">
-      <div class="info-row">
-        <span><b>Interviewer:</b> ${interviewerData?.interviewer || "N/A"}</span>
-        <span><b>Building:</b> ${interviewerData?.building_description || "N/A"}</span>
+      <div style="margin-top:20px; width:100%; display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; justify-content:space-between; width:100%;">
+          <span><b>Interviewer:</b> ${interviewerData?.interviewer || "N/A"}</span>
+          <span><b>Building:</b> ${interviewerData?.building_description || "N/A"}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; width:100%;">
+          <span><b>Room:</b> ${interviewerData?.room_description || "N/A"}</span>
+          <span><b>Schedule:</b>
+            ${formatDateLong(interviewerData?.schedule_date) || ""} |
+            ${interviewerData?.start_time ? new Date("1970-01-01T" + interviewerData.start_time).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }) : ""} -
+            ${interviewerData?.end_time ? new Date("1970-01-01T" + interviewerData.end_time).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }) : ""}
+          </span>
+        </div>
       </div>
-      <div class="info-row">
-        <span><b>Room:</b> ${interviewerData?.room_description || "N/A"}</span>
-        <span><b>Schedule:</b>
-          ${interviewerData?.day_description || ""} |
-          ${interviewerData?.start_time ? new Date("1970-01-01T" + interviewerData.start_time).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }) : ""}
-          -
-          ${interviewerData?.end_time ? new Date("1970-01-01T" + interviewerData.end_time).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }) : ""}
-        </span>
-      </div>
-    </div>
 
     <!-- TABLE -->
     <table>
@@ -507,7 +521,7 @@ const InterviewerApplicantList = () => {
             fontSize: "36px",
           }}
         >
-          QUALIFYING / INTERVIEWER APPLICANT LIST
+        INTERVIEWER / QUALIFYING APPLICANT LIST
         </Typography>
 
         <TextField

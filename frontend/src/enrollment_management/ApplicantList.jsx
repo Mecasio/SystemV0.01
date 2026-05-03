@@ -956,7 +956,7 @@ const ApplicantList = () => {
    position: relative;
    width: 100%;
    text-align: center;
-   margin-top: 20px;
+   margin-top: 10px;
  }
  
  .print-header img {
@@ -1988,8 +1988,9 @@ const ApplicantList = () => {
               <Button
                 disabled
                 onClick={() => setConfirmOpen(false)}
-                color="error"
-                variant="outlined"
+              color="error"
+                  variant="outlined"
+
 
               >
                 Cancel
@@ -2106,6 +2107,7 @@ const ApplicantList = () => {
 
                   {/* Applicant ID */}
                   <TableCell
+                     className="clickable-cell"
                     sx={{
                       textAlign: "center",
                       border: `1px solid ${borderColor}`,
@@ -2187,7 +2189,7 @@ const ApplicantList = () => {
                       fontSize: "12px",
                     }}
                   >
-                    {person.generalAverage || ""}
+                    {person.generalAverage || "0"}
                   </TableCell>
 
                   <TableCell
@@ -2197,7 +2199,7 @@ const ApplicantList = () => {
                       fontSize: "12px",
                     }}
                   >
-                    {person.generalAverage1 || ""}
+                    {person.generalAverage1 || "0"}
                   </TableCell>
                   {/* Strand */}
                   <TableCell
@@ -2485,8 +2487,9 @@ const ApplicantList = () => {
 
             <DialogActions>
               <Button
-                color="error"
-                variant="outlined"
+             color="error"
+                  variant="outlined"
+
                 onClick={handleCloseDialog}>Cancel</Button>
               {!(
                 Array.isArray(activePerson?.missing_documents) &&

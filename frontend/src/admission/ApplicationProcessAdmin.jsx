@@ -145,13 +145,14 @@ const ApplicationProcessAdmin = () => {
         sessionStorage.setItem("admin_edit_person_id", String(person_id));
         sessionStorage.setItem(
             "admin_edit_person_id_source",
-            "super_admin_applicant_list",
+            "/applicant_list_admin",
         );
         sessionStorage.setItem("admin_edit_person_id_ts", String(Date.now()));
 
         // ✅ Always pass person_id in the URL
-        navigate(`/readmission_dashboard1?person_id=${person_id}`);
+        navigate(`/admin_dashboard1?person_id=${person_id}`);
     };
+
 
     const navigate = useNavigate();
     const [activeStep, setActiveStep] = useState(0);
@@ -905,7 +906,7 @@ const ApplicationProcessAdmin = () => {
       position: relative;
       width: 100%;
       text-align: center;
-      margin-top: 20px;
+      margin-top: 10px;
     }
     
     .print-header img {
@@ -2025,8 +2026,8 @@ const ApplicationProcessAdmin = () => {
                         </DialogContent>
                         <DialogActions>
                             <Button onClick={() => setConfirmOpen(false)}
-                                 color="error"
-            variant="outlined"
+                                color="error"
+                                variant="outlined"
                             >
                                 Cancel
                             </Button>
@@ -2208,7 +2209,7 @@ const ApplicationProcessAdmin = () => {
                                         fontSize: "12px",
                                     }}
                                 >
-                                    {person.generalAverage || ""}
+                                    {person.generalAverage || "0"}
                                 </TableCell>
 
                                 <TableCell
@@ -2218,7 +2219,7 @@ const ApplicationProcessAdmin = () => {
                                         fontSize: "12px",
                                     }}
                                 >
-                                    {person.generalAverage1 || ""}
+                                    {person.generalAverage1 || "0"}
                                 </TableCell>
                                 {/* Strand */}
                                 <TableCell
@@ -2538,7 +2539,7 @@ const ApplicationProcessAdmin = () => {
                         <DialogActions>
                             <Button
                                 color="error"
-            variant="outlined"
+                                variant="outlined"
 
                                 onClick={handleCloseDialog}>Cancel</Button>
                             {!(
@@ -2800,8 +2801,8 @@ const ApplicationProcessAdmin = () => {
 
                 <DialogActions>
                     <Button
-                  color="error"
-            variant="outlined"
+                        color="error"
+                        variant="outlined"
 
                         onClick={() => {
                             setOpenDeleteDialog(false);

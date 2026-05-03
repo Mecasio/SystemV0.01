@@ -415,10 +415,11 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
         { title: "Examination Permit", link: "/registrar_examination_profile", icon: Badge, page_id: 48 },
         { title: "Entrance Exam Scores", link: "/applicant_scoring", icon: Score, page_id: 8 },
         { title: "Room Registration", link: "/room_registration", icon: MeetingRoom, page_id: 52 },
-        { title: "Verify Schedule Assignment", link: "/verify_document_schedule", icon: MeetingRoom, page_id: 115 },
-        { title: "Evaluator Applicant List", link: "/evaluator_schedule_room_list", icon: MeetingRoom, page_id: 120 },
+        { title: "Verify Schedule Assignment", link: "/verify_document_schedule", icon: AccessTimeIcon, page_id: 115 },
+        { title: "Evaluator Applicant List", link: "/evaluator_schedule_room_list", icon: People, page_id: 120 },
         { title: "Exam Room Assignment", link: "/assign_entrance_exam", icon: AccessTimeIcon, page_id: 9 },
         { title: "Proctor's Applicant List", link: "/admission_schedule_room_list", icon: People, page_id: 33 },
+        { title: "Subject Management", link: "/applicant_exam_subjects", icon: SchoolIcon, page_id: 145 },
         { title: "Announcement", link: "/announcement_for_admission", icon: Campaign, page_id: 98 },
         { title: "Program Slot Remaining", link: "/program_slot_limit", icon: People, page_id: 110 },
         { title: "Application Process Admin", link: "/application_process_admin", icon: PersonAdd, page_id: 139 },
@@ -442,7 +443,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
         { title: "Course Tagging For Summer", link: "/summer_tagging_for_college", icon: Class, page_id: 141 },
         { title: "Search COR", link: "/search_cor_for_college", icon: Search, page_id: 125 },
         { title: "Class List", link: classRosterEnrollmentLink, icon: Class, page_id: 15, activeCheck: () => isClassRosterActive(classRosterEnrollmentLink) },
-        { title: "Qualifying Room Mgmt", link: "/assign_qualifying_interview_exam", icon: MeetingRoom, page_id: 10 },
+        { title: "Qualifying Room Mgmt", link: "/assign_qualifying_interview_exam", icon: AccessTimeIcon, page_id: 10 },
 
         { title: "Interviewer Applicant List", link: "/enrollment_schedule_room_list", icon: People, page_id: 36 },
       ]

@@ -95,9 +95,128 @@ const isDifferent = (oldVal, newVal) => {
 };
 
 
-// =====================================================
-// 🚀 SAVE INTERVIEW (FINAL SAFE VERSION)
-// =====================================================
+router.get("/api/applicants-with-number", async (req, res) => {
+  try {
+
+    // ✅ SUBJECTS
+    const [subjects] = await db.query(`
+      SELECT id, name, max_score
+      FROM subjects
+      WHERE is_active = 1
+      ORDER BY id ASC
+    `);
+
+ 
+    const [rows] = await db.query(`
+      SELECT DISTINCT
+        p.person_id,
+        p.applyingAs,
+        p.emailAddress,
+        p.campus,
+        p.first_name,
+        p.middle_name,
+        p.last_name,
+        p.extension,
+        a.applicant_number,
+        SUBSTRING(a.applicant_number, 5, 1) AS middle_code,
+        p.program,
+        p.generalAverage1,
+        p.created_at,
+
+        er.id AS exam_result_id,
+        er.total_score,
+        er.percentage,
+        er.final_rating,
+        er.status AS exam_status,
+
+        ia.status AS interview_status,
+        ia.action,
+        ia.email_sent,
+
+        -- From person_status_table
+        COALESCE(ps.interview_status, 0) AS applicant_interview_status,
+        COALESCE(ps.exam_result, 0) AS total_ave,
+        COALESCE(ps.qualifying_result, 0) AS qualifying_exam_score,
+        COALESCE(ps.interview_result, 0) AS qualifying_interview_score,
+
+        ia.status AS college_approval_status
+
+      FROM admission.person_table p
+      INNER JOIN admission.applicant_numbering_table a
+        ON p.person_id = a.person_id
+
+      LEFT JOIN exam_results er
+        ON p.person_id = er.person_id
+
+      LEFT JOIN admission.person_status_table ps
+        ON p.person_id = ps.person_id
+
+      LEFT JOIN admission.interview_applicants ia
+        ON ia.applicant_id = a.applicant_number
+
+      ORDER BY p.person_id ASC
+    `);
+
+    // ✅ DETAILS (per subject scores)
+    const [details] = await db.query(`
+      SELECT exam_result_id, subject_id, score
+      FROM exam_result_details
+    `);
+
+    // ✅ FORMAT RESULT (same logic as your working API)
+    const formatted = rows.map(row => {
+
+      const scores = {};
+
+      // initialize all subjects = 0
+      subjects.forEach(sub => {
+        scores[sub.id] = 0;
+      });
+
+      // fill actual scores
+      details
+        .filter(d => d.exam_result_id === row.exam_result_id)
+        .forEach(d => {
+          scores[d.subject_id] = Number(d.score);
+        });
+
+      const total = Object.values(scores).reduce((sum, val) => sum + val, 0);
+
+      const maxTotal = subjects.reduce(
+        (sum, sub) => sum + Number(sub.max_score || 0),
+        0
+      );
+
+      const percentage =
+        row.percentage ??
+        (maxTotal > 0 ? (total / maxTotal) * 100 : 0);
+
+      const final_rating =
+        row.final_rating ??
+        (subjects.length > 0 ? total / subjects.length : 0);
+
+      return {
+        ...row,
+        scores,
+        total,
+        percentage,
+        final_rating
+      };
+    });
+
+    // ✅ SEND
+    res.json({
+      subjects,
+      data: formatted
+    });
+
+  } catch (err) {
+    console.error("Error fetching applicants with number:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+
 
 // Assign Max Slots
 router.put("/api/interview_applicants/assign-max", async (req, res) => {

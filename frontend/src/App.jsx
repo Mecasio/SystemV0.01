@@ -143,6 +143,7 @@ const ProctorApplicantList = lazy(
   () => import("./admission/ProctorApplicantList"),
 );
 const ApplicantScoring = lazy(() => import("./admission/ApplicantScoring"));
+const ApplicantExamSubjects = lazy(() => import("./admission/ApplicantExamSubjects"));
 const QualifyingInterviewExamScore = lazy(
   () => import("./enrollment_management/QualifyingInterviewExamScore"),
 );
@@ -1287,6 +1288,16 @@ function App() {
                           </ProtectedRoute>
                         }
                       />
+
+                      <Route
+                        path="/applicant_exam_subjects"
+                        element={
+                          <ProtectedRoute>
+                            <ApplicantExamSubjects />
+                          </ProtectedRoute>
+                        }
+                      />
+
                       <Route
                         path="/evaluator_schedule_room_list"
                         element={

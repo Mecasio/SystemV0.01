@@ -385,7 +385,7 @@ router.get("/api/applicants/filter", async (req, res) => {
 router.get("/exam/completed-count", async (req, res) => {
   try {
     const [rows] = await db.query(
-      `SELECT COUNT(*) AS total FROM admission_exam`,
+      `SELECT COUNT(*) AS total FROM exam_results`,
     );
     console.log("Exam count from DB:", rows[0].total); // Debug
 
@@ -408,7 +408,7 @@ router.get("/api/ecat-summary", async (req, res) => {
       LEFT JOIN applicant_numbering_table AS ant ON ea.applicant_id = ant.applicant_number
       LEFT JOIN person_table AS pt ON ant.person_id = pt.person_id
       LEFT JOIN person_status_table AS pst ON pt.person_id = pst.person_id
-      LEFT JOIN admission_exam AS ae ON pt.person_id = ae.person_id
+      LEFT JOIN exam_results AS ae ON pt.person_id = ae.person_id
     `);
 
     res.json(rows);

@@ -18,6 +18,7 @@ import {
   Button,
   Checkbox,
   FormControlLabel,
+  MenuItem
 } from "@mui/material";
 import {
   Email as EmailIcon,
@@ -42,17 +43,53 @@ const Register = () => {
   const [subtitleColor, setSubtitleColor] = useState("#555555");
   const [borderColor, setBorderColor] = useState("#000000");
   const [mainButtonColor, setMainButtonColor] = useState("#1976d2");
+  const [subButtonColor, setSubButtonColor] = useState("#ffffff");   // ✅ NEW
+  const [stepperColor, setStepperColor] = useState("#000000");       // ✅ NEW
+
+  const [fetchedLogo, setFetchedLogo] = useState(null);
+  const [companyName, setCompanyName] = useState("");
+  const [shortTerm, setShortTerm] = useState("");
+  const [campusAddress, setCampusAddress] = useState("");
   const [openReminder, setOpenReminder] = useState(true);
 
   useEffect(() => {
-    if (settings) {
-      if (settings.title_color) setTitleColor(settings.title_color);
-      if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
-      if (settings.border_color) setBorderColor(settings.border_color);
-      if (settings.main_button_color)
-        setMainButtonColor(settings.main_button_color);
+    if (!settings) return;
+
+    // 🎨 Colors
+    if (settings.title_color) setTitleColor(settings.title_color);
+    if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
+    if (settings.border_color) setBorderColor(settings.border_color);
+    if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
+    if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);
+    if (settings.stepper_color) setStepperColor(settings.stepper_color);
+
+    // 🏫 Logo
+    if (settings.logo_url) {
+      setFetchedLogo(`${API_BASE_URL}${settings.logo_url}`);
+    } else {
+      setFetchedLogo(EaristLogo);
     }
+
+    // 🏷️ School Info
+    if (settings.company_name) setCompanyName(settings.company_name);
+    if (settings.short_term) setShortTerm(settings.short_term);
+    if (settings.campus_address) setCampusAddress(settings.campus_address);
+
+    // ✅ Branches (JSON stored in DB)
+    if (settings.branches) {
+      setBranches(
+        typeof settings.branches === "string"
+          ? JSON.parse(settings.branches)
+          : settings.branches
+      );
+    }
+
   }, [settings]);
+
+  const getBranchLabel = (branchId) => {
+    const branch = branches.find((item) => String(item.id) === String(branchId));
+    return branch?.branch || "—";
+  };
 
   // const [capVal, setCapVal] = useState(null);
   const [usersData, setUserData] = useState({
@@ -231,6 +268,67 @@ const Register = () => {
       setIsSubmitting(false);
     }
   };
+
+
+  const [programAvailability, setProgramAvailability] = useState([]);
+  const [activeYearId, setActiveYearId] = useState(null);
+  const [activeSemesterId, setActiveSemesterId] = useState(null);
+
+  useEffect(() => {
+    const fetchActiveYearAndAvailability = async () => {
+      const yearRes = await axios.get(`${API_BASE_URL}/active_school_year`);
+      const activeYear = yearRes.data[0];
+      console.log(activeYear);
+
+      if (activeYear) {
+        setActiveYearId(activeYear.year_id);
+        setActiveSemesterId(activeYear.semester_id);
+
+        const availRes = await axios.get(
+          `${API_BASE_URL}/api/programs/availability`,
+          {
+            params: {
+              year_id: activeYear.year_id,
+              semester_id: activeYear.semester_id,
+            },
+          }
+        );
+
+        setProgramAvailability(availRes.data);
+        console.log("Program Availability:", availRes.data);
+      }
+    };
+
+    fetchActiveYearAndAvailability();
+  }, []);
+
+  const availabilityMap = React.useMemo(() => {
+    const map = {};
+    programAvailability.forEach((p) => {
+      map[p.curriculum_id] = {
+        remaining: Number(p.remaining),
+        isFull: Number(p.remaining) <= 0,
+      };
+    });
+    return map;
+  }, [programAvailability]);
+
+  useEffect(() => {
+    if (!selectedCurriculum) return;
+
+    const availability = availabilityMap[selectedCurriculum];
+    const isFull = availability?.isFull;
+
+    if (isFull) {
+      setSelectedCurriculum("");
+
+      setSnack({
+        open: true,
+        message: "Selected course is now FULL. Please choose another.",
+        severity: "warning",
+      });
+    }
+  }, [availabilityMap]);
 
   const isFormValid = () => {
     let newErrors = {};
@@ -571,7 +669,7 @@ const Register = () => {
 
             <div className="Body">
               <div className="TextField">
-                <label>Campus</label>
+                <label style={{ color: "black" }}>Campus<span style={{ color: "red" }}> *</span></label>
                 <select
                   value={branchId}
                   onChange={handleBranchSelect}
@@ -606,284 +704,320 @@ const Register = () => {
                 />
               </div>
 
-              <div className="TextField" style={{ position: "relative" }}>
-                <label>Last Name</label>
-                <input
-                  type="text"
-                  placeholder="Enter your last name"
-                  required
-                  disabled={fieldDisabled}
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value.toUpperCase())}
-                  onKeyDown={handleKeyDownRegister}
-                  className="border"
-                  style={{
-                    paddingLeft: "2.5rem",
-                    border: errors.lastName
-                      ? "2px solid red"
-                      : "2px solid black",
-                  }}
-                />
-                <BadgeIcon
-                  style={{
-                    position: "absolute",
-                    top: "2.5rem",
-                    left: "0.7rem",
-                    color: "rgba(0,0,0,0.4)",
-                  }}
-                />
-                {errors.lastName && (
-                  <span style={{ color: "red", fontSize: "12px" }}>
-                    This field is required
-                  </span>
-                )}
+              <div style={{ display: "flex", alignItems: "center", margin: "1rem 0" }}>
+                <div style={{ flex: 1, height: "1px", backgroundColor: "#ccc" }} />
+
+                <span style={{ margin: "0 1rem", fontWeight: "600", color: "#555" }}>
+                  Personal Informations
+                </span>
+
+                <div style={{ flex: 1, height: "1px", backgroundColor: "#ccc" }} />
+              </div>
+
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "1rem",
+                }}
+              >
+                {/* Last Name */}
+                <div className="TextField" style={{ position: "relative" }}>
+                  <label style={{ color: "black" }}>
+                    Last Name<span style={{ color: "red" }}> *</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Enter your last name"
+                    required
+                    disabled={fieldDisabled}
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value.toUpperCase())}
+                    onKeyDown={handleKeyDownRegister}
+                    className="border"
+                    style={{
+                      paddingLeft: "2.5rem",
+                      border: errors.lastName ? "2px solid red" : "2px solid black",
+                      width: "100%",
+                    }}
+                  />
+                  <BadgeIcon style={{ position: "absolute", top: "2.5rem", left: "0.7rem" }} />
+                  {errors.lastName && (
+                    <span style={{ color: "red", fontSize: "12px" }}>
+                      This field is required
+                    </span>
+                  )}
+                </div>
+
+                {/* First Name */}
+                <div className="TextField" style={{ position: "relative" }}>
+                  <label style={{ color: "black" }}>
+                    First Name<span style={{ color: "red" }}> *</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Enter your first name"
+                    value={firstName}
+                    disabled={fieldDisabled}
+                    onChange={(e) => setFirstName(e.target.value.toUpperCase())}
+                    onKeyDown={handleKeyDownRegister}
+                    className="border"
+                    style={{
+                      paddingLeft: "2.5rem",
+                      border: errors.firstName ? "2px solid red" : "2px solid black",
+                      width: "100%",
+                    }}
+                  />
+                  <PersonIcon style={{ position: "absolute", top: "2.5rem", left: "0.7rem" }} />
+                  {errors.firstName && (
+                    <span style={{ color: "red", fontSize: "12px" }}>
+                      This field is required
+                    </span>
+                  )}
+                </div>
+
+                {/* Middle Name */}
+                <div className="TextField" style={{ position: "relative" }}>
+                  <label style={{ color: "black" }}>
+                    Middle Name (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Enter your middle name"
+                    value={middleName}
+                    disabled={fieldDisabled}
+                    onChange={(e) => setMiddleName(e.target.value.toUpperCase())}
+                    onKeyDown={handleKeyDownRegister}
+                    className="border"
+                    style={{
+                      paddingLeft: "2.5rem",
+                      border: "2px solid black",
+                      width: "100%",
+                    }}
+                  />
+                  <PersonIcon style={{ position: "absolute", top: "2.5rem", left: "0.7rem" }} />
+                </div>
+
+                {/* Birthday */}
+                <div className="TextField" style={{ position: "relative" }}>
+                  <label style={{ color: "black" }}>
+                    Birth Date<span style={{ color: "red" }}> *</span>
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={birthday}
+                    disabled={fieldDisabled}
+                    onChange={(e) => setBirthday(e.target.value)}
+                    onKeyDown={handleKeyDownRegister}
+                    className="border"
+                    style={{
+                      paddingLeft: "2.5rem",
+                      border: errors.birthday ? "2px solid red" : "2px solid black",
+                      width: "100%",
+                    }}
+                  />
+                  <CakeIcon style={{ position: "absolute", top: "2.5rem", left: "0.7rem" }} />
+                  {errors.birthday && (
+                    <span style={{ color: "red", fontSize: "12px" }}>
+                      This field is required
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", margin: "1rem 0" }}>
+                <div style={{ flex: 1, height: "1px", backgroundColor: "#ccc" }} />
+
+                <span style={{ margin: "0 1rem", fontWeight: "600", color: "#555" }}>
+                  Academic Information
+                </span>
+
+                <div style={{ flex: 1, height: "1px", backgroundColor: "#ccc" }} />
+              </div>
+
+
+              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+
+                {/* Academic Program */}
+                <div className="TextField" style={{ position: "relative", flex: 1 }}>
+                  <label style={{ color: "black" }}>
+                    Academic Program<span style={{ color: "red" }}> *</span>
+                  </label>
+
+                  <select
+                    required
+                    value={academicProgram}
+                    disabled={fieldDisabled}
+                    onChange={(e) => {
+                      setAcademicProgram(e.target.value);
+                      setApplyingAs("");
+                      setSelectedCurriculum("");
+                    }}
+                    className="border"
+                    style={{
+                      paddingLeft: "1rem",
+                      height: "45px",
+                      border: errors.academicProgram
+                        ? "2px solid red"
+                        : "2px solid black",
+                      width: "100%",
+                      appearance: "none",
+                    }}
+                  >
+                    <option value="">Select Program</option>
+                    {selectedBranch?.academicPrograms
+                      ?.filter((prog) => prog.open === 1)
+                      .map((prog) => (
+                        <option key={prog.id} value={prog.id}>
+                          {prog.name}
+                        </option>
+                      ))}
+                  </select>
+
+                  {errors.academicProgram && (
+                    <span style={{ color: "red", fontSize: "12px" }}>
+                      This field is required
+                    </span>
+                  )}
+
+                  <ArrowDropDownIcon
+                    sx={{
+                      position: "absolute",
+                      right: "10px",
+                      top: getIconTop(errors.academicProgram),
+                      transform: "translateY(-50%)",
+                      fontSize: "30px",
+                      pointerEvents: "none",
+                    }}
+                  />
+                </div>
+
+                {/* Applying As */}
+                <div className="TextField" style={{ position: "relative", flex: 1 }}>
+                  <label style={{ color: "black" }}>
+                    Applying As<span style={{ color: "red" }}> *</span>
+                  </label>
+
+                  <select
+                    required
+                    value={applyingAs}
+                    disabled={fieldDisabled}
+                    onChange={(e) => {
+                      if (!academicProgram) {
+                        setSnack({
+                          open: true,
+                          message: "Please select Academic Program first.",
+                          severity: "warning",
+                        });
+                        return;
+                      }
+
+                      setApplyingAs(e.target.value);
+                      setSelectedCurriculum("");
+                    }}
+                    className="border"
+                    style={{
+                      paddingLeft: "1rem",
+                      height: "45px",
+                      border: errors.applyingAs
+                        ? "2px solid red"
+                        : "2px solid black",
+                      width: "100%",
+                      appearance: "none",
+                    }}
+                  >
+                    <option value="">Select Applying</option>
+
+                    {(() => {
+                      const selectedProgram =
+                        selectedBranch?.academicPrograms?.find(
+                          (prog) => prog.id.toString() === academicProgram,
+                        );
+
+                      if (!selectedProgram) return null;
+
+                      const name = selectedProgram.name.toLowerCase();
+
+                      if (name.includes("undergraduate")) {
+                        return (
+                          <>
+                            <option value="1">Senior High School Graduate</option>
+                            <option value="2">Senior High School Graduating Student</option>
+                            <option value="3">ALS Passer</option>
+                            <option value="4">Transferee</option>
+                            <option value="5">Cross Enrollee</option>
+                            <option value="6">Foreign Applicant</option>
+                          </>
+                        );
+                      }
+
+                      if (
+                        name.includes("graduate") ||
+                        name.includes("master") ||
+                        name.includes("baccalaureate")
+                      ) {
+                        return (
+                          <>
+                            <option value="7">Baccalaureate Graduate</option>
+                            <option value="8">Master Degree Graduate</option>
+                          </>
+                        );
+                      }
+
+                      return null;
+                    })()}
+                  </select>
+
+                  {errors.applyingAs && (
+                    <span style={{ color: "red", fontSize: "12px" }}>
+                      This field is required
+                    </span>
+                  )}
+
+                  <ArrowDropDownIcon
+                    sx={{
+                      position: "absolute",
+                      right: "10px",
+                      top: getIconTop(errors.applyingAs),
+                      transform: "translateY(-50%)",
+                      fontSize: "30px",
+                      pointerEvents: "none",
+                    }}
+                  />
+                </div>
+
               </div>
 
               <div className="TextField" style={{ position: "relative" }}>
-                <label>First Name</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Enter your first name"
-                  value={firstName}
-                  disabled={fieldDisabled}
-                  onChange={(e) => setFirstName(e.target.value.toUpperCase())}
-                  onKeyDown={handleKeyDownRegister}
-                  className="border"
-                  style={{
-                    paddingLeft: "2.5rem",
-                    border: errors.firstName
-                      ? "2px solid red"
-                      : "2px solid black",
-                  }}
-                />
-                <PersonIcon
-                  style={{
-                    position: "absolute",
-                    top: "2.5rem",
-                    left: "0.7rem",
-                    color: "rgba(0,0,0,0.4)",
-                  }}
-                />
-                {errors.firstName && (
-                  <span style={{ color: "red", fontSize: "12px" }}>
-                    This field is required
-                  </span>
-                )}
-              </div>
-
-              <div className="TextField" style={{ position: "relative" }}>
-                <label>Middle Name (Full – e.g., De la Cruz) (Optional)</label>
-                <input
-                  type="text"
-                  placeholder="Enter your middle name"
-                  value={middleName}
-                  disabled={fieldDisabled}
-                  onChange={(e) => setMiddleName(e.target.value.toUpperCase())}
-                  onKeyDown={handleKeyDownRegister}
-                  className="border"
-                  style={{
-                    paddingLeft: "2.5rem",
-                    border: "2px solid black",
-                  }}
-                />
-                <PersonIcon
-                  style={{
-                    position: "absolute",
-                    top: "2.5rem",
-                    left: "0.7rem",
-                    color: "rgba(0,0,0,0.4)",
-                  }}
-                />
-              </div>
-
-              <div className="TextField" style={{ position: "relative" }}>
-                <label>Birth of Date</label>
-                <input
-                  type="date"
-                  required
-                  value={birthday}
-                  disabled={fieldDisabled}
-                  onChange={(e) => setBirthday(e.target.value)}
-                  onKeyDown={handleKeyDownRegister}
-                  className="border"
-                  style={{
-                    paddingLeft: "2.5rem",
-                    border: errors.birthday
-                      ? "2px solid red"
-                      : "2px solid black",
-                  }}
-                />
-                <CakeIcon
-                  style={{
-                    position: "absolute",
-                    top: "2.5rem",
-                    left: "0.7rem",
-                    color: "rgba(0,0,0,0.4)",
-                  }}
-                />
-                {errors.birthday && (
-                  <span style={{ color: "red", fontSize: "12px" }}>
-                    This field is required
-                  </span>
-                )}
-              </div>
-
-              <div className="TextField" style={{ position: "relative" }}>
-                <label>Academic Program</label>
-                <select
-                  required
-                  value={academicProgram}
-                  disabled={fieldDisabled}
-                  onChange={(e) => {
-                    setAcademicProgram(e.target.value);
-                    setApplyingAs("");
-                    setSelectedCurriculum("");
-                  }}
-                  className="border"
-                  style={{
-                    paddingLeft: "1rem",
-                    height: "45px",
-                    border: errors.academicProgram
-                      ? "2px solid red"
-                      : "2px solid black",
-                    width: "100%",
-                    appearance: "none", // 👈 remove default arrow
-                    WebkitAppearance: "none",
-                    MozAppearance: "none",
-                  }}
-                >
-                  <option value="">Select Program</option>
-                  {selectedBranch?.academicPrograms
-                    ?.filter((prog) => prog.open === 1)
-                    .map((prog) => (
-                      <option key={prog.id} value={prog.id}>
-                        {prog.name}
-                      </option>
-                    ))}
-                </select>
-                {errors.academicProgram && (
-                  <span style={{ color: "red", fontSize: "12px" }}>
-                    This field is required
-                  </span>
-                )}
-                <ArrowDropDownIcon
-                  sx={{
-                    position: "absolute",
-                    right: "10px", // 👈 like margin-right
-                    top: getIconTop(errors.academicProgram),
-                    transform: "translateY(-50%)",
-                    fontSize: "30px", // 👈 BIGGER icon
-                    color: "black",
-                    pointerEvents: "none", // 👈 allow clicking select
-                  }}
-                />
-              </div>
-
-              <div className="TextField" style={{ position: "relative" }}>
-                <label>Applying As</label>
-                <select
-                  required
-                  value={applyingAs}
-                  disabled={fieldDisabled}
-                  onChange={(e) => {
-                    if (!academicProgram) {
-                      setSnack({
-                        open: true,
-                        message: "Please select Academic Program first.",
-                        severity: "warning",
-                      });
-                      return;
-                    }
-
-                    setApplyingAs(e.target.value);
-                    setSelectedCurriculum("");
-                  }}
-                  className="border"
-                  style={{
-                    paddingLeft: "1rem",
-                    height: "45px",
-                    border: errors.applyingAs
-                      ? "2px solid red"
-                      : "2px solid black",
-                    width: "100%",
-                    appearance: "none", // 👈 remove default arrow
-                    WebkitAppearance: "none",
-                    MozAppearance: "none",
-                  }}
-                >
-                  <option value="">Select Applying</option>
-
-                  {(() => {
-                    const selectedProgram =
-                      selectedBranch?.academicPrograms?.find(
-                        (prog) => prog.id.toString() === academicProgram,
-                      );
-
-                    if (!selectedProgram) return null;
-
-                    const name = selectedProgram.name.toLowerCase();
-
-                    if (name.includes("undergraduate")) {
-                      return (
-                        <>
-                          <option value="1">Senior High School Graduate</option>
-                          <option value="2">
-                            Senior High School Graduating Student
-                          </option>
-                          <option value="3">
-                            ALS (Alternative Learning System) Passer
-                          </option>
-                          <option value="4">
-                            Transferee from other University/College
-                          </option>
-                          <option value="5">Cross Enrolee Student</option>
-                          <option value="6">Foreign Applicant/Student</option>
-                        </>
-                      );
-                    }
-
-                    if (
-                      name.includes("graduate") ||
-                      name.includes("master") ||
-                      name.includes("baccalaureate")
-                    ) {
-                      return (
-                        <>
-                          <option value="7">Baccalaureate Graduate</option>
-                          <option value="8">Master Degree Graduate</option>
-                        </>
-                      );
-                    }
-
-                    return null;
-                  })()}
-                </select>
-                {errors.applyingAs && (
-                  <span style={{ color: "red", fontSize: "12px" }}>
-                    This field is required
-                  </span>
-                )}
-                <ArrowDropDownIcon
-                  sx={{
-                    position: "absolute",
-                    right: "10px", // 👈 like margin-right
-                    top: getIconTop(errors.applyingAs), // ✅ dynamic
-                    transform: "translateY(-50%)",
-                    fontSize: "30px", // 👈 BIGGER icon
-                    color: "black",
-                    pointerEvents: "none", // 👈 allow clicking select
-                  }}
-                />
-              </div>
-
-              <div className="TextField" style={{ position: "relative" }}>
-                <label>Curriculum / Course Applied</label>
+                <label style={{ color: "black" }}>Course Applied<span style={{ color: "red" }}> *</span></label>
                 <select
                   required
                   value={selectedCurriculum}
                   disabled={fieldDisabled || !academicProgram}
-                  onChange={(e) => setSelectedCurriculum(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+
+                    const selected = filteredCurriculum.find(
+                      (c) => String(c.curriculum_id) === String(value)
+                    );
+
+                    const availability = availabilityMap[selected?.curriculum_id];
+                    const isFull = availability?.isFull;
+
+                    if (isFull) {
+                      setSnack({
+                        open: true,
+                        message: "This course is already FULL.",
+                        severity: "error",
+                      });
+                      return;
+                    }
+
+                    setSelectedCurriculum(value);
+                  }}
                   className="border"
                   style={{
                     paddingLeft: "1rem",
@@ -898,12 +1032,32 @@ const Register = () => {
                   }}
                 >
                   <option value="">Select Curriculum / Course</option>
-                  {filteredCurriculum.map((item) => (
-                    <option key={item.curriculum_id} value={item.curriculum_id}>
-                      {`(${item.program_code}): ${item.program_description}${item.major ? ` (${item.major})` : ""}`}
-                    </option>
-                  ))}
+
+                  {filteredCurriculum.map((item, index) => {
+                    const availability = availabilityMap[item.curriculum_id];
+                    const remaining = availability?.remaining ?? 0;
+                    const isFull = availability?.isFull;
+
+                    return (
+                      <option
+                        key={index}
+                        value={item.curriculum_id}
+                        disabled={isFull}
+                        style={{
+                          color: isFull ? "red" : "green",
+                          fontWeight: isFull ? "normal" : "normal",
+                        }}
+                      >
+                        {`(${item.program_code}): ${item.program_description}${item.major ? ` (${item.major})` : ""
+                          } (${getBranchLabel(item.components)})`}
+                        {isFull
+                          ? " — FULL (0 slots left)"
+                          : ` — (${remaining} slots left)`}
+                      </option>
+                    );
+                  })}
                 </select>
+
                 {errors.selectedCurriculum && (
                   <span style={{ color: "red", fontSize: "12px" }}>
                     This field is required
@@ -922,8 +1076,18 @@ const Register = () => {
                 />
               </div>
 
+              <div style={{ display: "flex", alignItems: "center", margin: "1rem 0" }}>
+                <div style={{ flex: 1, height: "1px", backgroundColor: "#ccc" }} />
+
+                <span style={{ margin: "0 1rem", fontWeight: "600", color: "#555" }}>
+                  Account Information
+                </span>
+
+                <div style={{ flex: 1, height: "1px", backgroundColor: "#ccc" }} />
+              </div>
+
               <div className="TextField" style={{ position: "relative" }}>
-                <label htmlFor="email">Email Address</label>
+                <label style={{ color: "black" }}>Email Address<span style={{ color: "red" }}> *</span></label>
                 <input
                   required
                   type="email"
@@ -959,126 +1123,124 @@ const Register = () => {
                 </span>
               </div>
 
-              <div className="TextField" style={{ position: "relative" }}>
-                <label htmlFor="password">Password</label>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  className="border"
-                  id="password"
-                  disabled={fieldDisabled}
-                  name="password"
-                  placeholder="Enter your password"
-                  value={usersData.password}
-                  onChange={handleChanges}
-                  onKeyDown={handleKeyDownRegister}
-                  required
-                  style={{
-                    paddingLeft: "2.5rem",
-                    border: errors.confirmPassword
-                      ? "2px solid red"
-                      : "2px solid black",
-                  }}
-                />
-                <LockIcon
-                  style={{
-                    position: "absolute",
-                    top: "2.5rem",
-                    left: "0.7rem",
-                    color: "rgba(0,0,0,0.4)",
-                    fontSize: "26px",
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  style={{
-                    color: "rgba(0,0,0,0.3)",
-                    outline: "none",
-                    position: "absolute",
-                    top: "2.5rem",
-                    right: "1rem",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
-                >
-                  {showPassword ? (
-                    <Visibility
-                      sx={{ fontSize: "26px", color: "rgba(0,0,0,0.4)" }}
-                    />
-                  ) : (
-                    <VisibilityOff
-                      sx={{ fontSize: "26px", color: "rgba(0,0,0,0.4)" }}
-                    />
-                  )}
-                </button>
-                {errors.password && (
-                  <span style={{ color: "red", fontSize: "12px" }}>
-                    This field is required
-                  </span>
-                )}
-              </div>
+              <div style={{ display: "flex", gap: "1rem" }}>
+                {/* Password */}
+                <div className="TextField" style={{ position: "relative", flex: 1 }}>
+                  <label style={{ color: "black" }}>
+                    Password<span style={{ color: "red" }}> *</span>
+                  </label>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    className="border"
+                    id="password"
+                    disabled={fieldDisabled}
+                    name="password"
+                    placeholder="Enter your password"
+                    value={usersData.password}
+                    onChange={handleChanges}
+                    onKeyDown={handleKeyDownRegister}
+                    required
+                    style={{
+                      paddingLeft: "2.5rem",
+                      border: errors.password
+                        ? "2px solid red"
+                        : "2px solid black",
+                      width: "100%",
+                    }}
+                  />
 
-              <div className="TextField" style={{ position: "relative" }}>
-                <label htmlFor="confirmPassword">Confirm Password</label>
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  className="border"
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  placeholder="Re-enter your password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  onKeyDown={handleKeyDownRegister}
-                  required
-                  disabled={!usersData.password} // ✅ Disabled until password is filled
-                  style={{
-                    paddingLeft: "2.5rem",
-                    border: errors.confirmPassword
-                      ? "2px solid red"
-                      : "2px solid black",
-                    backgroundColor: !usersData.password ? "#f0f0f0" : "white", // Optional: gray background when disabled
-                    cursor: !usersData.password ? "not-allowed" : "text",
-                  }}
-                />
-                <LockIcon
-                  style={{
-                    position: "absolute",
-                    top: "2.5rem",
-                    left: "0.7rem",
-                    color: "rgba(0,0,0,0.4)",
-                    fontSize: "26px",
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  style={{
-                    color: "rgba(0,0,0,0.3)",
-                    outline: "none",
-                    position: "absolute",
-                    top: "2.5rem",
-                    right: "1rem",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
-                >
-                  {showConfirmPassword ? (
-                    <Visibility
-                      sx={{ fontSize: "26px", color: "rgba(0,0,0,0.4)" }}
-                    />
-                  ) : (
-                    <VisibilityOff
-                      sx={{ fontSize: "26px", color: "rgba(0,0,0,0.4)" }}
-                    />
+                  <LockIcon
+                    style={{
+                      position: "absolute",
+                      top: "2.5rem",
+                      left: "0.7rem",
+                      color: "rgba(0,0,0,0.4)",
+                      fontSize: "26px",
+                    }}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: "absolute",
+                      top: "2.5rem",
+                      right: "1rem",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {showPassword ? <Visibility /> : <VisibilityOff />}
+                  </button>
+
+                  {errors.password && (
+                    <span style={{ color: "red", fontSize: "12px" }}>
+                      This field is required
+                    </span>
                   )}
-                </button>
-                {errors.password && (
-                  <span style={{ color: "red", fontSize: "12px" }}>
-                    This field is required
-                  </span>
-                )}
+                </div>
+
+                {/* Confirm Password */}
+                <div className="TextField" style={{ position: "relative", flex: 1 }}>
+                  <label style={{ color: "black" }}>
+                    Confirm Password<span style={{ color: "red" }}> *</span>
+                  </label>
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    className="border"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    placeholder="Re-enter your password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onKeyDown={handleKeyDownRegister}
+                    required
+                    disabled={!usersData.password}
+                    style={{
+                      paddingLeft: "2.5rem",
+                      border: errors.confirmPassword
+                        ? "2px solid red"
+                        : "2px solid black",
+                      width: "100%",
+                      backgroundColor: !usersData.password ? "#f0f0f0" : "white",
+                      cursor: !usersData.password ? "not-allowed" : "text",
+                    }}
+                  />
+
+                  <LockIcon
+                    style={{
+                      position: "absolute",
+                      top: "2.5rem",
+                      left: "0.7rem",
+                      color: "rgba(0,0,0,0.4)",
+                      fontSize: "26px",
+                    }}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setShowConfirmPassword(!showConfirmPassword)
+                    }
+                    style={{
+                      position: "absolute",
+                      top: "2.5rem",
+                      right: "1rem",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {showConfirmPassword ? <Visibility /> : <VisibilityOff />}
+                  </button>
+
+                  {errors.confirmPassword && (
+                    <span style={{ color: "red", fontSize: "12px" }}>
+                      Passwords do not match
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* CAPTCHA */}
@@ -1106,9 +1268,8 @@ const Register = () => {
                   }
                   label={
                     <Typography sx={{ fontSize: "14px" }}>
-                      In order to proceed to the online application, please
-                      indicate by checking the box that you have read and agreed
-                      to EARIST requirements.
+                      I have read and agree to the admission requirements and policies of {settings?.company_name || ""}
+                      before proceeding.
                     </Typography>
                   }
                 />
@@ -1168,10 +1329,10 @@ const Register = () => {
                 }}
               >
                 {!registrationOpen
-                  ? "Registration Closed"
+                  ? "REGISTRATION CLOSED"
                   : isSubmitting
-                    ? "Registering..."
-                    : "Register"}
+                    ? "REGISTERING..."
+                    : "SUBMIT APPLICATION"}
               </div>
 
               <div
@@ -1187,7 +1348,7 @@ const Register = () => {
 
             <div className="Footer">
               <div className="FooterText">
-                &copy; {currentYear} {settings?.company_name || "EARIST"} <br />
+                &copy; {currentYear} {settings?.company_name || ""} <br />
                 Student Information System. <br />
                 All rights reserved.
               </div>

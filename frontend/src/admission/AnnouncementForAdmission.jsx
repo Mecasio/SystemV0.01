@@ -41,7 +41,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import Cropper from "react-easy-crop";
 import { useNavigate, useLocation } from "react-router-dom";
 import SaveIcon from '@mui/icons-material/Save';
-
+import SchoolIcon from "@mui/icons-material/School";
 
 const AnnouncementPanel = () => {
     const settings = useContext(SettingsContext);
@@ -102,19 +102,49 @@ const AnnouncementPanel = () => {
 
 
     const tabs = [
-        { label: "Room Registration", to: "/room_registration", icon: <KeyIcon fontSize="large" /> },
-        { label: "Verify Documents Room Assignment", to: "/verify_document_schedule", icon: <MeetingRoomIcon fontSize="large" /> },
-        // { label: "Verify Documents Schedule Management", to: "/verify_schedule", icon: <ScheduleIcon fontSize="large" /> },
-        { label: "Evaluator's Applicant List", to: "/evaluator_schedule_room_list", icon: <PeopleIcon fontSize="large" /> },
-        { label: "Entrance Exam Room Assignment", to: "/assign_entrance_exam", icon: <MeetingRoomIcon fontSize="large" /> },
-        // { label: "Entrance Exam Schedule Management", to: "/assign_schedule_applicant", icon: <ScheduleIcon fontSize="large" /> },
-        { label: "Proctor's Applicant List", to: "/admission_schedule_room_list", icon: <PeopleIcon fontSize="large" /> },
-        // { label: "Examination Permit", to: "/registrar_examination_profile", icon: <PersonSearchIcon fontSize="large" /> },
-        { label: "Announcement", to: "/announcement_for_admission", icon: <CampaignIcon fontSize="large" /> },
+        {
+            label: "Room Registration",
+            to: "/room_registration",
+            icon: <KeyIcon fontSize="large" />,
+        },
+        {
+            label: "Verify Documents Room Assignment",
+            to: "/verify_document_schedule",
+            icon: <MeetingRoomIcon fontSize="large" />,
+        },
+
+        {
+            label: "Evaluator's Applicant List",
+            to: "/evaluator_schedule_room_list",
+            icon: <PeopleIcon fontSize="large" />,
+        },
+        {
+            label: "Entrance Exam Room Assignment",
+            to: "/assign_entrance_exam",
+            icon: <MeetingRoomIcon fontSize="large" />,
+        },
+
+        {
+            label: "Proctor's Applicant List",
+            to: "/admission_schedule_room_list",
+            icon: <PeopleIcon fontSize="large" />,
+        },
+
+        {
+            label: "Subject Management",
+            to: "/applicant_exam_subjects",
+            icon: <SchoolIcon fontSize="large" />,
+        },
+
+        {
+            label: "Announcement",
+            to: "/announcement_for_admission",
+            icon: <CampaignIcon fontSize="large" />,
+        },
     ];
 
     const navigate = useNavigate();
-    const [activeStep, setActiveStep] = useState(5);
+    const [activeStep, setActiveStep] = useState(6);
     const [clickedSteps, setClickedSteps] = useState(Array(tabs.length).fill(false));
 
     const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -573,42 +603,42 @@ const AnnouncementPanel = () => {
                                             Last
                                         </Button>
                                         {showCreateActions && (
-                                        <Button
-                                            variant="contained"
-                                            disabled={!canCreate}
-                                            sx={{
-                                                backgroundColor: "#1976d2", // ✅ Blue
-                                                color: "#fff",
-                                                opacity: canCreate ? 1 : 0.5,
-                                                fontWeight: "bold",
-                                                borderRadius: "8px",
-                                                width: "250px",
-                                                textTransform: "none",
-                                                px: 2,
-                                                mr: "15px",
-                                                '&:hover': {
-                                                    backgroundColor: "#1565c0" // darker blue hover
-                                                }
-                                            }}
-                                            onClick={() => {
-                                                if (!canCreate) {
-                                                    setSnackbar({ open: true, message: "You do not have permission to create items on this page", severity: "error" });
-                                                    return;
-                                                }
-                                                setEditingId(null);
-                                                setForm({
-                                                    title: "",
-                                                    content: "",
-                                                    valid_days: "permanent",
-                                                    target_role: "applicant"
-                                                });
-                                                setImage(null);
-                                                setOpenFormDialog(true);
-                                            }}
-                                        >
-                                            
-                                            + Create Announcement
-                                        </Button>
+                                            <Button
+                                                variant="contained"
+                                                disabled={!canCreate}
+                                                sx={{
+                                                    backgroundColor: "#1976d2", // ✅ Blue
+                                                    color: "#fff",
+                                                    opacity: canCreate ? 1 : 0.5,
+                                                    fontWeight: "bold",
+                                                    borderRadius: "8px",
+                                                    width: "250px",
+                                                    textTransform: "none",
+                                                    px: 2,
+                                                    mr: "15px",
+                                                    '&:hover': {
+                                                        backgroundColor: "#1565c0" // darker blue hover
+                                                    }
+                                                }}
+                                                onClick={() => {
+                                                    if (!canCreate) {
+                                                        setSnackbar({ open: true, message: "You do not have permission to create items on this page", severity: "error" });
+                                                        return;
+                                                    }
+                                                    setEditingId(null);
+                                                    setForm({
+                                                        title: "",
+                                                        content: "",
+                                                        valid_days: "permanent",
+                                                        target_role: "applicant"
+                                                    });
+                                                    setImage(null);
+                                                    setOpenFormDialog(true);
+                                                }}
+                                            >
+
+                                                + Create Announcement
+                                            </Button>
                                         )}
 
                                     </Box>
@@ -695,17 +725,17 @@ const AnnouncementPanel = () => {
                                     Target Role
                                 </th>
                                 {showActionColumn && (
-                                <th
-                                    style={{
-                                        border: `1px solid ${borderColor}`,
-                                        padding: "12px",
-                                        backgroundColor: "#f5f5f5",
-                                        color: "black",
-                                        textAlign: "center",
-                                    }}
-                                >
-                                    Actions
-                                </th>
+                                    <th
+                                        style={{
+                                            border: `1px solid ${borderColor}`,
+                                            padding: "12px",
+                                            backgroundColor: "#f5f5f5",
+                                            color: "black",
+                                            textAlign: "center",
+                                        }}
+                                    >
+                                        Actions
+                                    </th>
                                 )}
                             </tr>
                         </thead>
@@ -759,68 +789,68 @@ const AnnouncementPanel = () => {
 
                                     {/* Actions Cell */}
                                     {showActionColumn && (
-                                    <td
-                                        style={{
-                                            border: `1px solid ${borderColor}`,
-                                            padding: "8px",
-                                            textAlign: "center",
-                                            width: "150px",
-                                        }}
-                                    >
-                                        <Box sx={{ display: "flex", justifyContent: "center", gap: "8px" }}>
-                                            {canEdit && (
-                                            <Button
-                                                variant="contained"
-                                                size="small"
-                                                sx={{
-                                                    backgroundColor: "green",
-                                                    color: "white",
-                                                    borderRadius: "5px",
-                                                    padding: "8px 14px",
-                                                    width: "100px",
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    justifyContent: "center",
-                                                    gap: "5px",
-                                                    cursor: "pointer",
-                                                }}
+                                        <td
+                                            style={{
+                                                border: `1px solid ${borderColor}`,
+                                                padding: "8px",
+                                                textAlign: "center",
+                                                width: "150px",
+                                            }}
+                                        >
+                                            <Box sx={{ display: "flex", justifyContent: "center", gap: "8px" }}>
+                                                {canEdit && (
+                                                    <Button
+                                                        variant="contained"
+                                                        size="small"
+                                                        sx={{
+                                                            backgroundColor: "green",
+                                                            color: "white",
+                                                            borderRadius: "5px",
+                                                            padding: "8px 14px",
+                                                            width: "100px",
+                                                            display: "flex",
+                                                            alignItems: "center",
+                                                            justifyContent: "center",
+                                                            gap: "5px",
+                                                            cursor: "pointer",
+                                                        }}
 
-                                                onClick={() => {
-                                                    handleEdit(a);
-                                                    setOpenFormDialog(true);
-                                                }}
-                                            >
+                                                        onClick={() => {
+                                                            handleEdit(a);
+                                                            setOpenFormDialog(true);
+                                                        }}
+                                                    >
 
-                                                <EditIcon fontSize="small" /> Edit
-                                            </Button>
-                                            )}
-                                            {canDelete && (
-                                            <Button
-                                                variant="contained"
-                                                size="small"
-                                                sx={{
-                                                    backgroundColor: "#9E0000",
-                                                    color: "white",
-                                                    borderRadius: "5px",
-                                                    padding: "8px 14px",
-                                                    width: "100px",
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    justifyContent: "center",
-                                                    gap: "5px",
-                                                    cursor: "pointer",
-                                                }}
-                                                onClick={() => {
-                                                    setAnnouncementToDelete(a);
-                                                    setOpenDeleteDialog(true);
-                                                }}
-                                            >
+                                                        <EditIcon fontSize="small" /> Edit
+                                                    </Button>
+                                                )}
+                                                {canDelete && (
+                                                    <Button
+                                                        variant="contained"
+                                                        size="small"
+                                                        sx={{
+                                                            backgroundColor: "#9E0000",
+                                                            color: "white",
+                                                            borderRadius: "5px",
+                                                            padding: "8px 14px",
+                                                            width: "100px",
+                                                            display: "flex",
+                                                            alignItems: "center",
+                                                            justifyContent: "center",
+                                                            gap: "5px",
+                                                            cursor: "pointer",
+                                                        }}
+                                                        onClick={() => {
+                                                            setAnnouncementToDelete(a);
+                                                            setOpenDeleteDialog(true);
+                                                        }}
+                                                    >
 
-                                                <DeleteIcon fontSize="small" /> Delete
-                                            </Button>
-                                            )}
-                                        </Box>
-                                    </td>
+                                                        <DeleteIcon fontSize="small" /> Delete
+                                                    </Button>
+                                                )}
+                                            </Box>
+                                        </td>
                                     )}
                                 </tr>
                             ))}

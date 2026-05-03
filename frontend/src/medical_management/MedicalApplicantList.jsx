@@ -845,7 +845,7 @@ const MedicalApplicantList = () => {
    position: relative;
    width: 100%;
    text-align: center;
-   margin-top: 20px;
+   margin-top: 10px;
  }
  
  .print-header img {
@@ -1011,7 +1011,7 @@ const MedicalApplicantList = () => {
         <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                 <Typography variant="h4" fontWeight="bold" sx={{ color: titleColor, }}>
-                    MEDICAL RECORDS
+                  STUDENT MEDICAL RECORDS
                 </Typography>
 
 
@@ -1564,8 +1564,8 @@ const MedicalApplicantList = () => {
                         </DialogContent>
                         <DialogActions>
                             <Button
-                              color="error"
-            variant="outlined"
+                                color="error"
+                                variant="outlined"
                                 onClick={() => setConfirmOpen(false)}>
                                 Cancel
                             </Button>

@@ -1199,7 +1199,7 @@ Admission Office`;
           <Grid container spacing={2} sx={{ mb: 2 }}>
             {/* Select Schedule */}
             <Grid item xs={12} md={3}>
-              <Typography textAlign="left" color="maroon" sx={{ mb: 1 }}>
+              <Typography textAlign="left" color="maroon" sx={{ mb: 1, fontWeight: "bold" }}>
                 Select Schedule:
               </Typography>
               <TextField
@@ -1250,7 +1250,7 @@ Admission Office`;
 
             {/* Proctor */}
             <Grid item xs={12} md={3}>
-              <Typography textAlign="left" color="maroon" sx={{ mb: 1 }}>
+             <Typography textAlign="left" color="maroon" sx={{ mb: 1, fontWeight: "bold" }}>
                 Proctor:
               </Typography>
               <TextField
@@ -1273,7 +1273,7 @@ Admission Office`;
 
             {/* Room Quota */}
             <Grid item xs={12} md={3}>
-              <Typography textAlign="left" color="maroon" sx={{ mb: 1 }}>
+           <Typography textAlign="left" color="maroon" sx={{ mb: 1, fontWeight: "bold" }}>
                 Room Quota:
               </Typography>
               <TextField
@@ -1296,7 +1296,7 @@ Admission Office`;
 
             {/* Current Occupancy */}
             <Grid item xs={12} md={3}>
-              <Typography textAlign="left" color="maroon" sx={{ mb: 1 }}>
+            <Typography textAlign="left" color="maroon" sx={{ mb: 1, fontWeight: "bold" }}>
                 Current Occupancy:
               </Typography>
               <TextField
@@ -1436,7 +1436,7 @@ Admission Office`;
               onClick={handleSendEmails}
               sx={{ minWidth: 150 }}
             >
-              SEND ALL EMAIL
+               SEND EMAIL TO ALL
             </Button>
 
           </Box>

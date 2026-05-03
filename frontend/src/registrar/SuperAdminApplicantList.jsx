@@ -880,7 +880,7 @@ const SuperAdminApplicantList = () => {
    position: relative;
    width: 100%;
    text-align: center;
-   margin-top: 20px;
+   margin-top: 10px;
  }
  
  .print-header img {
@@ -1858,8 +1858,8 @@ const SuperAdminApplicantList = () => {
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setConfirmOpen(false)}
-             color="error"
-            variant="outlined"
+              color="error"
+                  variant="outlined"
 
               >
                 Cancel
@@ -2040,7 +2040,7 @@ const SuperAdminApplicantList = () => {
                     fontSize: "12px",
                   }}
                 >
-                  {person.generalAverage || ""}
+                  {person.generalAverage || "0"}
                 </TableCell>
 
                 <TableCell
@@ -2050,7 +2050,7 @@ const SuperAdminApplicantList = () => {
                     fontSize: "12px",
                   }}
                 >
-                  {person.generalAverage1 || ""}
+                  {person.generalAverage1 || "0"}
                 </TableCell>
                 {/* Strand */}
                 <TableCell
@@ -2335,8 +2335,9 @@ const SuperAdminApplicantList = () => {
 
             <DialogActions>
               <Button
-           color="error"
-            variant="outlined"
+          color="error"
+                  variant="outlined"
+
 
                 onClick={handleCloseDialog}>Cancel</Button>
               {!(

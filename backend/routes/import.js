@@ -1638,170 +1638,141 @@ router.post("/api/exam/import", upload.single("file"), async (req, res) => {
   try {
     const fileValidation = validateSpreadsheetUpload(req.file);
     if (!fileValidation.valid) {
-      return res
-        .status(fileValidation.status)
-        .json({ error: fileValidation.error });
+      return res.status(fileValidation.status).json({ error: fileValidation.error });
     }
 
     const workbook = readWorkbookSafely(req.file);
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    if (!sheet) {
-      return res.status(400).json({ error: "Spreadsheet has no worksheet" });
-    }
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    if (!sheet) return res.status(400).json({ error: "No worksheet found" });
 
-    if (hasFormulaCell(sheet)) {
-      return res
-        .status(400)
-        .json({ error: "Formulas are not allowed in uploads" });
-    }
+    const { rows: parsedRows } = getSheetRowsWithLimits(sheet, {
+      sheetToJsonOptions: { defval: "" },
+    });
 
-    const { rows: parsedRows, truncatedByMaxRows } = getSheetRowsWithLimits(
-      sheet,
-      {
-        sheetToJsonOptions: { defval: "" },
-      },
-    );
-    const { cleanRows, flaggedRows } = removeFormulaLikeRows(parsedRows);
-    const { validRows, skippedMissingMandatory } =
-      filterRowsWithMandatoryColumns(cleanRows, ["applicant id"]);
-    const { rowsToInsert } = prepareRowsForInsert(validRows, req.file.size);
+    const validRows = parsedRows;
 
-    // 1️⃣ Collect applicant numbers
-    const applicantNumbers = rowsToInsert
-      .map((r) => r["Applicant ID"] || r["applicant_number"])
-      .filter((n) => n);
+    // 1️⃣ GET SUBJECTS (DYNAMIC SOURCE OF TRUTH)
+    const [subjects] = await db.query(`
+      SELECT id, name, max_score
+      FROM subjects
+      WHERE is_active = 1
+      ORDER BY id ASC
+    `);
 
-    if (applicantNumbers.length === 0) {
-      return res.status(400).json({ error: "No valid applicant numbers" });
-    }
+    // map subject name → subject row
+    const subjectMap = {};
+    subjects.forEach((s) => {
+      subjectMap[s.name.trim().toLowerCase()] = s;
+    });
 
-    // 2️⃣ Map applicant_number -> person_id
-    const [matches] = await db.query(
-      `SELECT person_id, applicant_number
-       FROM applicant_numbering_table
-       WHERE applicant_number IN (?)`,
-      [applicantNumbers],
-    );
+    // 2️⃣ applicant mapping
+    const applicantNumbers = validRows
+      .map(r => r["Applicant ID"])
+      .filter(Boolean);
+
+    const [matches] = await db.query(`
+      SELECT person_id, applicant_number
+      FROM applicant_numbering_table
+      WHERE applicant_number IN (?)
+    `, [applicantNumbers]);
 
     const applicantMap = {};
-    matches.forEach((m) => {
+    matches.forEach(m => {
       applicantMap[m.applicant_number] = m.person_id;
     });
 
     const now = new Date();
 
-    // 3️⃣ LOOP & INSERT/UPDATE PER RECORD
-    for (const row of rowsToInsert) {
-      const applicantNumber = row["Applicant ID"] || row["applicant_number"];
+    // 3️⃣ PROCESS EACH ROW
+    for (const row of validRows) {
+      const applicantNumber = row["Applicant ID"];
       const personId = applicantMap[applicantNumber];
       if (!personId) continue;
 
-      const english = Number(row["English"] || 0);
-      const science = Number(row["Science"] || 0);
-      const filipino = Number(row["Filipino"] || 0);
-      const math = Number(row["Math"] || 0);
-      const abstract = Number(row["Abstract"] || 0);
+      // 4️⃣ BUILD SCORES DYNAMICALLY FROM SUBJECTS TABLE
+      const subjectScores = {};
 
-      const finalRating = (english + science + filipino + math + abstract) / 5;
+      subjects.forEach(sub => {
+        const key = sub.name; // Excel header must match DB name
+        subjectScores[sub.id] = Number(row[key] || 0);
+      });
 
-      // Status
+      const totalScore = Object.values(subjectScores).reduce((a, b) => a + b, 0);
+
+      const maxTotal = subjects.reduce(
+        (sum, s) => sum + Number(s.max_score || 0),
+        0
+      );
+
+      const percentage = maxTotal ? (totalScore / maxTotal) * 100 : 0;
+
+      const finalRating = subjects.length
+        ? totalScore / subjects.length
+        : 0;
+
       let status = row["Status"]?.toUpperCase();
       if (status !== "PASSED" && status !== "FAILED") {
         status = null;
       }
 
-      // Check existing record
+      // 5️⃣ UPSERT exam_results
       const [existing] = await db.query(
-        "SELECT id FROM admission_exam WHERE person_id = ? LIMIT 1",
-        [personId],
+        `SELECT id FROM exam_results WHERE person_id = ?`,
+        [personId]
       );
 
+      let examResultId;
+
       if (existing.length > 0) {
-        // UPDATE (NO USER)
+        examResultId = existing[0].id;
+
         await db.query(
-          `UPDATE admission_exam SET
-              English = ?,
-              Science = ?,
-              Filipino = ?,
-              Math = ?,
-              Abstract = ?,
-              final_rating = ?,
-              status = ?,
-              date_created = ?
-           WHERE person_id = ?`,
-          [
-            english,
-            science,
-            filipino,
-            math,
-            abstract,
-            finalRating,
-            status,
-            now,
-            personId,
-          ],
+          `UPDATE exam_results
+           SET total_score = ?, percentage = ?, final_rating = ?, status = ?
+           WHERE id = ?`,
+          [totalScore, percentage, finalRating, status, examResultId]
+        );
+
+        await db.query(
+          `DELETE FROM exam_result_details WHERE exam_result_id = ?`,
+          [examResultId]
         );
       } else {
-        // INSERT (NO USER)
-        await db.query(
-          `INSERT INTO admission_exam
-            (person_id, English, Science, Filipino, Math, Abstract, final_rating, status, date_created)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            personId,
-            english,
-            science,
-            filipino,
-            math,
-            abstract,
-            finalRating,
-            status,
-            now,
-          ],
+        const [insert] = await db.query(
+          `INSERT INTO exam_results
+           (person_id, total_score, percentage, final_rating, status, date_created)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [personId, totalScore, percentage, finalRating, status, now]
         );
+
+        examResultId = insert.insertId;
       }
+
+      // 6️⃣ INSERT DETAILS (FULLY DYNAMIC)
+      const detailRows = subjects.map(sub => [
+        examResultId,
+        sub.id,
+        subjectScores[sub.id] || 0
+      ]);
+
+      await db.query(
+        `INSERT INTO exam_result_details
+         (exam_result_id, subject_id, score)
+         VALUES ?`,
+        [detailRows]
+      );
     }
-
-    // 4️⃣ Notification (SYSTEM)
-    const actorEmail = "earistmis@gmail.com";
-    const actorName = "SYSTEM";
-
-    await db.query(
-      "INSERT INTO notifications (type, message, applicant_number, actor_email, actor_name) VALUES (?, ?, ?, ?, ?)",
-      [
-        "upload",
-        "📊 Bulk Entrance Exam Scores uploaded",
-        null,
-        actorEmail,
-        actorName,
-      ],
-    );
-
-    (req.app.get("io") || { emit: () => {} }).emit("notification", {
-      type: "upload",
-      message: "📊 Bulk Entrance Exam Scores uploaded",
-      applicant_number: null,
-      actor_email: actorEmail,
-      actor_name: actorName,
-      timestamp: new Date().toISOString(),
-    });
 
     res.json({
       success: true,
-      message: "Excel imported successfully!",
-      warnings: {
-        truncatedByMaxRows,
-        skippedMissingMandatory,
-        formulaRowsRemoved: flaggedRows,
-      },
+      message: "Import successful (fully dynamic subjects)"
     });
+
   } catch (err) {
-    console.error("❌ Excel import error:", err);
-    res.status(500).json({ error: "Failed to import Excel" });
+    console.error("Import error:", err);
+    res.status(500).json({ error: "Server error" });
   }
 });
-
 router.post("/import_xslx_student", upload.single("file"), async (req, res) => {
   try {
     const fileValidation = validateSpreadsheetUpload(req.file);

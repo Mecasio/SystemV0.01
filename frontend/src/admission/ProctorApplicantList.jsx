@@ -119,16 +119,47 @@ const ProctorApplicantList = () => {
 
 
   const tabs = [
-    { label: "Room Registration", to: "/room_registration", icon: <KeyIcon fontSize="large" /> },
-    { label: "Verify Documents Room Assignment", to: "/verify_document_schedule", icon: <MeetingRoomIcon fontSize="large" /> },
-    // { label: "Verify Documents Schedule Management", to: "/verify_schedule", icon: <ScheduleIcon fontSize="large" /> },
-    { label: "Evaluator's Applicant List", to: "/evaluator_schedule_room_list", icon: <PeopleIcon fontSize="large" /> },
-    { label: "Entrance Exam Room Assignment", to: "/assign_entrance_exam", icon: <MeetingRoomIcon fontSize="large" /> },
-    // { label: "Entrance Exam Schedule Management", to: "/assign_schedule_applicant", icon: <ScheduleIcon fontSize="large" /> },
-    { label: "Proctor's Applicant List", to: "/admission_schedule_room_list", icon: <PeopleIcon fontSize="large" /> },
-    // { label: "Examination Permit", to: "/registrar_examination_profile", icon: <PersonSearchIcon fontSize="large" /> },
-    { label: "Announcement", to: "/announcement_for_admission", icon: <CampaignIcon fontSize="large" /> },
+    {
+      label: "Room Registration",
+      to: "/room_registration",
+      icon: <KeyIcon fontSize="large" />,
+    },
+    {
+      label: "Verify Documents Room Assignment",
+      to: "/verify_document_schedule",
+      icon: <MeetingRoomIcon fontSize="large" />,
+    },
+
+    {
+      label: "Evaluator's Applicant List",
+      to: "/evaluator_schedule_room_list",
+      icon: <PeopleIcon fontSize="large" />,
+    },
+    {
+      label: "Entrance Exam Room Assignment",
+      to: "/assign_entrance_exam",
+      icon: <MeetingRoomIcon fontSize="large" />,
+    },
+
+    {
+      label: "Proctor's Applicant List",
+      to: "/admission_schedule_room_list",
+      icon: <PeopleIcon fontSize="large" />,
+    },
+
+    {
+      label: "Subject Management",
+      to: "/applicant_exam_subjects",
+      icon: <SchoolIcon fontSize="large" />,
+    },
+
+    {
+      label: "Announcement",
+      to: "/announcement_for_admission",
+      icon: <CampaignIcon fontSize="large" />,
+    },
   ];
+
 
 
   // Also put it at the very top
@@ -295,7 +326,7 @@ const ProctorApplicantList = () => {
     const htmlContent = `
 <html>
   <head>
-    <title>Proctor Applicant List</title>
+    <title>PROCTOR APPLICANT LIST</title>
     <style>
       @page { size: A4 landscape; margin: 5mm; }
       body { font-family: Arial, sans-serif; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -330,7 +361,7 @@ const ProctorApplicantList = () => {
           <b style="letter-spacing:1px; font-size:20px; font-family: Arial">${firstLine}</b>
           ${secondLine ? `<div style="letter-spacing:1px; font-size: 20px; font-family: Arial"><b>${secondLine}</b></div>` : ""}
           <div style="font-size: 13px; font-family: Arial">${address}</div>
-          <div style="margin-top:25px;"><b style="font-size:20px; letter-spacing:1px;">Proctor Applicant List</b></div>
+          <div style="margin-top:50px;"><b style="font-size:20px; letter-spacing:1px;">PROCTOR APPLICANT LIST</b></div>
         </div>
       </div>
 

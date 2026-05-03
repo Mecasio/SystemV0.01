@@ -407,10 +407,21 @@ const AssignScheduleToApplicantsInterviewer = () => {
         `${API_BASE_URL}/api/interview/not-emailed-applicants`,
       );
 
-      setPersons(res.data);
+      const fetchedSubjects = Array.isArray(res.data?.subjects) ? res.data.subjects : [];
+
+
+      // Safely normalize response: handle array, wrapped object, or unexpected shapes
+      const data = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data?.data)
+          ? res.data.data
+          : [];
+
+      setPersons(data);
+      setSubjects(fetchedSubjects);
       setSelectedApplicants((prev) => {
         const newSet = new Set(prev);
-        res.data.forEach((a) => {
+        data.forEach((a) => {
           if (a.schedule_id !== null) newSet.delete(a.applicant_number);
         });
         return newSet;
@@ -419,6 +430,25 @@ const AssignScheduleToApplicantsInterviewer = () => {
       console.error("Error fetching all-applicants:", err);
     }
   };
+
+  const [subjects, setSubjects] = useState([]);
+
+  const fetchSubjects = async () => {
+    try {
+      const res = await axios.get(
+        `${API_BASE_URL}/api/subjects`
+      );
+
+      setSubjects(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchSubjects();
+  }, []);
+
 
   const handleRowClick = (person_id) => {
     if (!person_id) return;
@@ -1180,9 +1210,11 @@ Thank you and good luck!
       (schoolYear &&
         String(applicantAppliedYear) === String(schoolYear.current_year));
 
+    // middle_code is not returned by the API query - semester filter bypassed.
+    // To enable it, add middle_code to the SQL SELECT in the backend.
     const matchesSemester =
       selectedSchoolSemester === "" ||
-      String(personData.middle_code) === String(selectedSchoolSemester);
+      String(personData.middle_code ?? "") === String(selectedSchoolSemester);
 
     // ✅ Created At (Date Applied) filter
     const createdAtDate = new Date(personData.created_at);
@@ -1535,7 +1567,7 @@ Thank you and good luck!
             {/* Proctor */}
             <Grid item xs={12} md={3}>
               <Typography textAlign="left" color="maroon" sx={{ mb: 1 }}>
-                Proctor:
+                Interviewer / Exam Supervisor:
               </Typography>
               <TextField
                 fullWidth

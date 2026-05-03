@@ -1575,7 +1575,7 @@ const Dashboard1 = (props) => {
                 >
                   {/* Program 1 */}
                   <Box display="flex" alignItems="center" gap={2} mb={3}>
-                    <label className="w-40 font-medium">Course Applied:<span style={{ color: "red" }}> *</span></label>
+                    <label className="w-42 font-medium">Course Applied:<span style={{ color: "red" }}> *</span></label>
                     <FormControl
                       fullWidth
                       size="small"
@@ -1584,11 +1584,12 @@ const Dashboard1 = (props) => {
                     >
                       <InputLabel>Course Applied</InputLabel>
                       <Select
+                        readOnly
                         name="program"
                         value={person.program || ""}
                         onBlur={() => handleUpdate(person)}
                         onChange={handleChange}
-                        disabled={!!person.program}
+
                         label="Program"
                       >
                         <MenuItem value="">

@@ -179,7 +179,7 @@ const RoomRegistration = () => {
       to: "/verify_document_schedule",
       icon: <MeetingRoomIcon fontSize="large" />,
     },
-    // { label: "Verify Documents Schedule Management", to: "/verify_schedule", icon: <ScheduleIcon fontSize="large" /> },
+ 
     {
       label: "Evaluator's Applicant List",
       to: "/evaluator_schedule_room_list",
@@ -190,13 +190,19 @@ const RoomRegistration = () => {
       to: "/assign_entrance_exam",
       icon: <MeetingRoomIcon fontSize="large" />,
     },
-    // { label: "Entrance Exam Schedule Management", to: "/assign_schedule_applicant", icon: <ScheduleIcon fontSize="large" /> },
+   
     {
       label: "Proctor's Applicant List",
       to: "/admission_schedule_room_list",
       icon: <PeopleIcon fontSize="large" />,
     },
-    // { label: "Examination Permit", to: "/registrar_examination_profile", icon: <PersonSearchIcon fontSize="large" /> },
+  
+    {
+      label: "Subject Management",
+      to: "/applicant_exam_subjects",
+      icon: <SchoolIcon fontSize="large" />,
+    },
+
     {
       label: "Announcement",
       to: "/announcement_for_admission",

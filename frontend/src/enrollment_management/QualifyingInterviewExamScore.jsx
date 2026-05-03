@@ -429,7 +429,9 @@ const QualifyingExamScore = () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/applicants-with-number`);
 
-      const data = Array.isArray(res.data) ? res.data : [];
+      // ✅ API returns { subjects: [...], data: [...] }
+      const data = Array.isArray(res.data?.data) ? res.data.data : [];
+      const fetchedSubjects = Array.isArray(res.data?.subjects) ? res.data.subjects : [];
 
       const withAssignedFlag = data.map((p) => ({
         ...p,
@@ -437,6 +439,7 @@ const QualifyingExamScore = () => {
       }));
 
       setPersons(withAssignedFlag);
+      setSubjects(fetchedSubjects); // ✅ use subjects from this API instead of a separate call
     } catch (err) {
       console.error("Error fetching applicants:", err);
       setPersons([]);
@@ -459,6 +462,26 @@ const QualifyingExamScore = () => {
       console.error("Error fetching admin data:", err);
     }
   };
+
+
+  const [subjects, setSubjects] = useState([]);
+
+  const fetchSubjects = async () => {
+    try {
+      const res = await axios.get(
+        `${API_BASE_URL}/api/subjects`
+      );
+
+      setSubjects(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchSubjects();
+  }, []);
+
 
   useEffect(() => {
     if (user) {
@@ -543,8 +566,12 @@ const QualifyingExamScore = () => {
   const [exactRating, setExactRating] = useState("");
   const [editScores, setEditScores] = useState({});
 
+  const [minTotal, setMinTotal] = useState("");
+  const [minScorePercent, setMinScorePercent] = useState("");
+  const [minFinalRating, setMinFinalRating] = useState("");
+
+
   const filteredPersons = persons.filter((personData) => {
-    const finalRating = Number(personData.final_rating) || 0;
 
     /* ⭐ SCORE FILTER */
     const matchesScore =
@@ -603,6 +630,30 @@ const QualifyingExamScore = () => {
       selectedSchoolSemester === "" ||
       String(personData.middle_code) === String(selectedSchoolSemester);
 
+
+    // ✅ ADD THIS HERE
+    const e = Number(personData.english || 0);
+    const s = Number(personData.science || 0);
+    const f = Number(personData.filipino || 0);
+    const m = Number(personData.math || 0);
+    const a = Number(personData.abstract || 0);
+
+    const total = e + s + f + m + a;
+    const scorePercent = ((total / 150) * 50) + 50;
+    const finalRating = Math.round(total / 5);
+
+    const matchesTotal =
+      minTotal === "" || total === Number(minTotal);
+
+    const matchesScorePercent =
+      minScorePercent === "" ||
+      (scorePercent >= Number(minScorePercent) &&
+        scorePercent < Number(minScorePercent) + 1);
+
+    const matchesFinalRating =
+      minFinalRating === "" || finalRating === Number(minFinalRating);
+
+
     /* FINAL FILTER RESULT */
     return (
       (matchesApplicantID ||
@@ -615,7 +666,10 @@ const QualifyingExamScore = () => {
       matchesSemester &&
       matchesScore &&
       matchesCampus &&
-      matchesExactRating
+      matchesExactRating &&
+      matchesTotal &&
+      matchesScorePercent &&
+      matchesFinalRating
     );
   });
 
@@ -2603,9 +2657,13 @@ Thank you, best regards
                 >
                   Accept Top
                 </Button>
+
               </Box>
+
             </Box>
+
           </Box>
+
 
           {/* MIDDLE COLUMN: SY & Semester */}
           <Box display="flex" flexDirection="column" gap={2}>
@@ -2774,10 +2832,48 @@ Thank you, best regards
                 onClick={() => handleOpenDialog(null)}
                 sx={{ width: "160px", height: "37px" }}
               >
-                Send Email to All
+                SEND EMAIL TO ALL
               </Button>
             </Box>
           </Box>
+        </Box>
+        <Typography textAlign="left" color="maroon" sx={{ mb: 1, mt: 3, fontWeight: "bold" }}>
+          Applicant Score Filters:
+        </Typography>
+        <Box display="flex" gap={2} mt={2} flexWrap="wrap">
+
+          <Typography fontSize={13} sx={{ minWidth: "70px" }}>
+            Total:
+          </Typography>
+          <TextField
+            label="Total"
+            size="small"
+            type="number"
+            value={minTotal}
+            onChange={(e) => setMinTotal(e.target.value)}
+          />
+
+          <Typography fontSize={13} sx={{ minWidth: "70px" }}>
+            Score:
+          </Typography>
+          <TextField
+            label="Score %"
+            size="small"
+            type="number"
+            value={minScorePercent}
+            onChange={(e) => setMinScorePercent(e.target.value)}
+          />
+          <Typography fontSize={13} sx={{ minWidth: "70px" }}>
+            Final Rating:
+          </Typography>
+          <TextField
+            label="Final Rating"
+            size="small"
+            type="number"
+            value={minFinalRating}
+            onChange={(e) => setMinFinalRating(e.target.value)}
+          />
+
         </Box>
       </TableContainer>
 
@@ -2849,6 +2945,30 @@ Thank you, best regards
                 }}
               >
                 SHS GWA
+              </TableCell>
+              <TableCell
+                sx={{
+                  color: "white",
+                  textAlign: "center",
+                  width: "10%",
+                  py: 0.5,
+                  fontSize: "12px",
+                  border: `1px solid ${borderColor}`,
+                }}
+              >
+                Total
+              </TableCell>
+              <TableCell
+                sx={{
+                  color: "white",
+                  textAlign: "center",
+                  width: "10%",
+                  py: 0.5,
+                  fontSize: "12px",
+                  border: `1px solid ${borderColor}`,
+                }}
+              >
+                Score %
               </TableCell>
               <TableCell
                 sx={{
@@ -2984,6 +3104,30 @@ Thank you, best regards
                 const isAssigned = !!person.schedule_id; // ✅ check if already assigned
                 const finalRating = Number(person.final_rating) || 0; // ✅ use backend value
 
+
+                const english = Number(person.english) || 0;
+                const science = Number(person.science) || 0;
+                const filipino = Number(person.filipino) || 0;
+                const math = Number(person.math) || 0;
+                const abstract = Number(person.abstract) || 0;
+
+                // ✅ Use edited values if present
+                const e = [person.person_id]?.english ?? english;
+                const s = [person.person_id]?.science ?? science;
+                const f = [person.person_id]?.filipino ?? filipino;
+                const m = [person.person_id]?.math ?? math;
+                const a = [person.person_id]?.abstract ?? abstract;
+
+                // ✅ TOTAL (NEW)
+                const totalScore = e + s + f + m + a;
+
+                // ✅ ORIGINAL FINAL (keep this)
+                const computedFinalRating = totalScore / 5;
+
+                // ✅ NEW CONVERTED (your formula)
+                const computedConvertedRating = ((totalScore / 150) * 50) + 50;
+
+
                 return (
                   <TableRow
                     key={person.person_id}
@@ -2996,7 +3140,7 @@ Thank you, best regards
                       sx={{
                         border: `1px solid ${borderColor}`,
                         textAlign: "center",
-                        fontSize: "13px",
+                        fontSize: "12px",
                       }}
                     >
                       {index + 1}
@@ -3007,8 +3151,9 @@ Thank you, best regards
                       sx={{
                         border: `1px solid ${borderColor}`,
                         textAlign: "center",
-                        fontSize: "13px",
+                        fontSize: "12px",
                         color: "blue",
+                        cursor: "pointer",
                       }}
                       onClick={() => handleRowClick(person.person_id)}
                     >
@@ -3020,8 +3165,9 @@ Thank you, best regards
                       sx={{
                         border: `1px solid ${borderColor}`,
                         textAlign: "center",
-                        fontSize: "13px",
+                        fontSize: "12px",
                         color: "blue",
+                        cursor: "pointer",
                       }}
                       onClick={() => handleRowClick(person.person_id)}
                     >
@@ -3033,7 +3179,7 @@ Thank you, best regards
                       sx={{
                         border: `1px solid ${borderColor}`,
                         textAlign: "center",
-                        fontSize: "13px",
+                        fontSize: "12px",
                       }}
                     >
                       {curriculumOptions.find(
@@ -3047,21 +3193,42 @@ Thank you, best regards
                       sx={{
                         border: `1px solid ${borderColor}`,
                         textAlign: "center",
-                        fontSize: "13px",
+                        fontSize: "12px",
                       }}
-                      onClick={() => handleRowClick(person.person_id)}
+
                     >
-                      {person.generalAverage1}
+                      {person.generalAverage1 || "0"}
                     </TableCell>
 
                     <TableCell
                       sx={{
-                        border: `1px solid ${borderColor}`,
                         textAlign: "center",
-                        fontSize: "13px",
+                        border: `1px solid ${borderColor}`,
+                        fontSize: "12px",
                       }}
                     >
-                      {finalRating.toFixed(2)}
+                      {totalScore}
+                    </TableCell>
+
+                    <TableCell
+                      sx={{
+                        textAlign: "center",
+                        border: `1px solid ${borderColor}`,
+                        fontSize: "12px",
+                      }}
+                    >
+                      {Number(computedConvertedRating).toFixed(2)}
+                    </TableCell>
+
+                    {/* Final Rating */}
+                    <TableCell
+                      sx={{
+                        textAlign: "center",
+                        border: `1px solid ${borderColor}`,
+                        fontSize: "12px",
+                      }}
+                    >
+                      {Number(person.final_rating).toFixed(2)}
                     </TableCell>
 
                     {/* Qualifying Exam Score */}
@@ -3069,7 +3236,7 @@ Thank you, best regards
                       sx={{
                         border: `1px solid ${borderColor}`,
                         textAlign: "center",
-                        fontSize: "13px",
+                        fontSize: "12px",
                       }}
                     >
                       <TextField
@@ -3092,7 +3259,7 @@ Thank you, best regards
                       sx={{
                         border: `1px solid ${borderColor}`,
                         textAlign: "center",
-                        fontSize: "13px",
+                        fontSize: "12px",
                       }}
                     >
                       <TextField
@@ -3115,7 +3282,7 @@ Thank you, best regards
                       sx={{
                         border: `1px solid ${borderColor}`,
                         textAlign: "center",
-                        fontSize: "13px",
+                        fontSize: "12px",
                       }}
                     >
                       {computedTotalAve.toFixed(2)}
@@ -3124,7 +3291,7 @@ Thank you, best regards
                       sx={{
                         border: `1px solid ${borderColor}`,
                         textAlign: "center",
-                        fontSize: "13px",
+                        fontSize: "12px",
                       }}
                     >
                       <FormControl fullWidth size="small">
@@ -3154,7 +3321,7 @@ Thank you, best regards
                       sx={{
                         border: `1px solid ${borderColor}`,
                         textAlign: "center",
-                        fontSize: "13px",
+                        fontSize: "12px",
                       }}
                     >
                       {(() => {
@@ -3176,7 +3343,7 @@ Thank you, best regards
                       sx={{
                         border: `1px solid ${borderColor}`,
                         textAlign: "center",
-                        fontSize: "13px",
+                        fontSize: "12px",
                       }}
                     >
                       <Button
@@ -3194,7 +3361,7 @@ Thank you, best regards
                       sx={{
                         border: `1px solid ${borderColor}`,
                         textAlign: "center",
-                        fontSize: "13px",
+                        fontSize: "12px",
                       }}
                     >
                       {person.college_approval_status === "Accepted" ? (

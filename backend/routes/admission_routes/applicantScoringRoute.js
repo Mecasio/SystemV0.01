@@ -4,14 +4,14 @@ const { db, db3 } = require("../database/database");
 
 const router = express.Router();
 
+
 // -----------------------------
-// 🔐 VERIFY TOKEN MIDDLEWARE
+// VERIFY TOKEN
 // -----------------------------
 function verifyToken(req, res, next) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
-    console.log("❌ No Authorization header");
     req.user = null;
     return next();
   }
@@ -19,28 +19,17 @@ function verifyToken(req, res, next) {
   const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(token, "your_secret_key");
-    req.user = decoded;
+    req.user = jwt.verify(token, "your_secret_key");
   } catch (err) {
-    console.log("❌ Invalid token");
     req.user = null;
   }
 
   next();
 }
 
-// -----------------------------
-// 🧠 PASSING LOGIC
-// -----------------------------
-const PASSING_SCORE = 75;
-
-function getStatus(score) {
-  if (score === null || score === undefined) return null;
-  return score >= PASSING_SCORE ? "Passed" : "Failed";
-}
 
 // -----------------------------
-// INSERT AUDIT LOG
+// AUDIT LOG
 // -----------------------------
 async function insertAuditLog({
   actorId,
@@ -52,54 +41,200 @@ async function insertAuditLog({
   try {
     await db.query(
       `INSERT INTO audit_logs
-        (actor_id, role, action, message, severity)
-       VALUES (?, ?, ?, ?, ?)`,
+      (actor_id, role, action, message, severity)
+      VALUES (?, ?, ?, ?, ?)`,
       [
         actorId || "unknown",
         role || "unknown",
         action || "UNKNOWN",
         message || "No message",
-        severity || "INFO",
+        severity || "INFO"
       ]
     );
   } catch (err) {
-    console.error("❌ Audit log insert failed:", err);
+    console.error(err);
   }
 }
 
-// -----------------------------
-// SAVE EXAM ROUTE
-// -----------------------------
-router.post("/api/exam/save", verifyToken, async (req, res) => {
-  console.log(" /api/exam/save HIT", req.body);
 
+//////////////////////////////////////////////////////////////
+// GET ACTIVE SUBJECTS
+//////////////////////////////////////////////////////////////
+router.get("/api/subjects", async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT *
+      FROM subjects
+      WHERE is_active = 1
+      ORDER BY id ASC
+    `);
+
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch subjects" });
+  }
+});
+
+
+//////////////////////////////////////////////////////////////
+// GET APPLICANT SCORING
+//////////////////////////////////////////////////////////////
+router.get("/api-applicant-scoring", async (req, res) => {
+  try {
+
+    // ✅ SUBJECTS (dynamic)
+    const [subjects] = await db.query(`
+      SELECT id, name, max_score
+      FROM subjects
+      WHERE is_active = 1
+      ORDER BY id ASC
+    `);
+
+ 
+    const [rows] = await db.query(`
+      SELECT DISTINCT
+        p.person_id,
+        p.campus,
+        p.first_name,
+        p.middle_name,
+        p.last_name,
+        p.extension,
+        a.applicant_number,
+        SUBSTRING(a.applicant_number, 5, 1) AS middle_code,
+        p.program,
+        p.created_at,
+
+        er.id AS exam_result_id,
+        er.total_score,
+        er.percentage,
+        er.final_rating,
+        er.status,
+
+        COALESCE(ps.exam_result, 0) AS total_ave,
+        COALESCE(ps.qualifying_result, 0) AS qualifying_exam_score,
+        COALESCE(ps.interview_result, 0) AS qualifying_interview_score,
+
+        ia.status AS college_approval_status
+
+      FROM person_table p
+      INNER JOIN applicant_numbering_table a
+        ON p.person_id = a.person_id
+
+      LEFT JOIN exam_results er
+        ON p.person_id = er.person_id
+
+      LEFT JOIN person_status_table ps
+        ON p.person_id = ps.person_id
+
+      LEFT JOIN interview_applicants ia
+        ON ia.applicant_id = a.applicant_number
+
+      LEFT JOIN exam_applicants ea
+        ON a.applicant_number = ea.applicant_id
+
+      WHERE ea.email_sent = 1
+      ORDER BY p.person_id ASC
+    `);
+
+    // ✅ DETAILS (scores per subject)
+    const [details] = await db.query(`
+      SELECT exam_result_id, subject_id, score
+      FROM exam_result_details
+    `);
+
+    // ✅ FORMAT RESULT
+    const formatted = rows.map(row => {
+
+      const scores = {};
+
+      // initialize all subjects = 0
+      subjects.forEach(sub => {
+        scores[sub.id] = 0;
+      });
+
+      // fill actual scores
+      details
+        .filter(d => d.exam_result_id === row.exam_result_id)
+        .forEach(d => {
+          scores[d.subject_id] = Number(d.score);
+        });
+
+      // compute total dynamically
+      const total = Object.values(scores).reduce((sum, val) => sum + val, 0);
+
+      const maxTotal = subjects.reduce(
+        (sum, sub) => sum + Number(sub.max_score || 0),
+        0
+      );
+
+      const percentage =
+        row.percentage ??
+        (maxTotal > 0 ? (total / maxTotal) * 100 : 0);
+
+      const final_rating =
+        row.final_rating ??
+        (subjects.length > 0 ? total / subjects.length : 0);
+
+      return {
+        ...row,
+        scores,        // ✅ dynamic subjects
+        total,
+        percentage,
+        final_rating
+      };
+    });
+
+    // ✅ SEND EVERYTHING (same structure + subjects)
+    res.json({
+      subjects,   // 👈 needed for frontend columns
+      data: formatted
+    });
+
+  } catch (err) {
+    console.error("Error fetching applicant scoring:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+
+//////////////////////////////////////////////////////////////
+// SAVE EXAM
+//////////////////////////////////////////////////////////////
+router.post("/api/exam/save", verifyToken, async (req, res) => {
   try {
     const {
       applicant_number,
-      english = null,
-      science = null,
-      filipino = null,
-      math = null,
-      abstract = null,
-      final_rating = null,
-      status = "",
+      scores,
+      status
     } = req.body;
 
     if (!applicant_number) {
-      return res.status(400).json({ error: "applicant_number is required" });
+      return res.status(400).json({
+        error: "Applicant number required"
+      });
     }
 
-    // -----------------------------
-    // 🔥 GET USER (SAFE)
-    // -----------------------------
+    if (!Array.isArray(scores)) {
+      return res.status(400).json({
+        error: "Scores must be array"
+      });
+    }
+
+    //--------------------------------------
+    // GET USER
+    //--------------------------------------
     let actor = {
       email: "unknown",
-      role: "unknown",
+      role: "unknown"
     };
 
     if (req.user?.email) {
       const [userRows] = await db3.query(
-        "SELECT email, role FROM user_accounts WHERE email = ? LIMIT 1",
+        `SELECT email, role
+         FROM user_accounts
+         WHERE email = ?
+         LIMIT 1`,
         [req.user.email]
       );
 
@@ -108,145 +243,159 @@ router.post("/api/exam/save", verifyToken, async (req, res) => {
       }
     }
 
-    // -----------------------------
-    // applicant_number -> person_id
-    // -----------------------------
-    const [rows] = await db.query(
-      "SELECT person_id FROM applicant_numbering_table WHERE applicant_number = ? LIMIT 1",
+    //--------------------------------------
+    // GET PERSON
+    //--------------------------------------
+    const [personRows] = await db.query(
+      `SELECT person_id
+       FROM applicant_numbering_table
+       WHERE applicant_number = ?
+       LIMIT 1`,
       [applicant_number]
     );
 
-    if (!rows.length) {
-      return res.status(400).json({ error: "Applicant number not found" });
+    if (!personRows.length) {
+      return res.status(404).json({
+        error: "Applicant not found"
+      });
     }
 
-    const personId = rows[0].person_id;
+    const personId = personRows[0].person_id;
 
-    // -----------------------------
-    // GET OLD DATA (include status)
-    // -----------------------------
-    const [oldRows] = await db.query(
-      `SELECT English, Science, Filipino, Math, Abstract, status
-       FROM admission_exam
+    //--------------------------------------
+    // COMPUTE TOTAL
+    //--------------------------------------
+    let totalScore = 0;
+
+    scores.forEach(item => {
+      totalScore += Number(item.score || 0);
+    });
+
+    //--------------------------------------
+    // GET MAX TOTAL
+    //--------------------------------------
+    const [maxRows] = await db.query(`
+      SELECT SUM(max_score) AS max_total
+      FROM subjects
+      WHERE is_active = 1
+    `);
+
+    const maxTotal = Number(maxRows[0].max_total || 0);
+
+    const percentage =
+      maxTotal > 0
+        ? (totalScore / maxTotal) * 100
+        : 0;
+
+    const finalRating =
+      scores.length > 0
+        ? totalScore / scores.length
+        : 0;
+
+    //--------------------------------------
+    // CHECK EXISTING EXAM RESULT
+    //--------------------------------------
+    const [existingRows] = await db.query(
+      `SELECT id
+       FROM exam_results
        WHERE person_id = ?
        LIMIT 1`,
       [personId]
     );
 
-    const oldData = oldRows[0] || null;
+    let examResultId;
 
-    const toNumberOrNull = (val) =>
-      val === undefined || val === null || val === "" ? null : Number(val);
+    if (existingRows.length) {
+      examResultId = existingRows[0].id;
 
-    const e = toNumberOrNull(english);
-    const s = toNumberOrNull(science);
-    const f = toNumberOrNull(filipino);
-    const m = toNumberOrNull(math);
-    const a = toNumberOrNull(abstract);
-    const fr = toNumberOrNull(final_rating);
-    const newStatus = status === "" ? null : status;
+      await db.query(`
+        UPDATE exam_results
+        SET
+          total_score = ?,
+          percentage = ?,
+          final_rating = ?,
+          status = ?,
+          date_created = NOW()
+        WHERE id = ?
+      `, [
+        totalScore,
+        percentage,
+        finalRating,
+        status,
+        examResultId
+      ]);
 
-    // -----------------------------
-    // INSERT / UPDATE
-    // -----------------------------
-    await db.query(
-      `INSERT INTO admission_exam
-        (person_id, English, Science, Filipino, Math, Abstract, final_rating, status, date_created)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
-       ON DUPLICATE KEY UPDATE
-        English = COALESCE(VALUES(English), English),
-        Science = COALESCE(VALUES(Science), Science),
-        Filipino = COALESCE(VALUES(Filipino), Filipino),
-        Math = COALESCE(VALUES(Math), Math),
-        Abstract = COALESCE(VALUES(Abstract), Abstract),
-        final_rating = COALESCE(VALUES(final_rating), final_rating),
-        status = COALESCE(VALUES(status), status),
-        date_created = NOW()`,
-      [personId, e, s, f, m, a, fr, newStatus]
-    );
-
-    // -----------------------------
-    // 🔥 AUDIT LOGGING
-    // -----------------------------
-    if (oldData) {
-      const subjects = [
-        { key: "English", label: "English", newVal: e },
-        { key: "Science", label: "Science", newVal: s },
-        { key: "Filipino", label: "Filipino", newVal: f },
-        { key: "Math", label: "Math", newVal: m },
-        { key: "Abstract", label: "Abstract", newVal: a },
-      ];
-
-      let changes = [];
-
-      for (const subj of subjects) {
-        const oldVal = oldData[subj.key];
-        const newVal = subj.newVal;
-
-        if ((oldVal ?? null) != (newVal ?? null)) {
-          const oldStatusSub = getStatus(oldVal);
-          const newStatusSub = getStatus(newVal);
-
-          changes.push(
-            `${subj.label}: ${oldVal ?? 0} (${oldStatusSub ?? "N/A"}) → ${newVal ?? 0} (${newStatusSub ?? "N/A"})`
-          );
-        }
-      }
-
-      // STATUS CHANGE
-      const oldStatus = oldData?.status ?? null;
-
-      if ((oldStatus ?? null) != (newStatus ?? null)) {
-        changes.push(
-          `Status: ${oldStatus ?? "NONE"} → ${newStatus ?? "NONE"}`
-        );
-      }
-
-      // ✅ INSERT ONLY IF THERE ARE CHANGES
-      if (changes.length > 0) {
-        const message = `Applicant #${applicant_number} updated:\n${changes.join("\n")}`;
-
-        await insertAuditLog({
-          actorId: actor.email,
-          role: actor.role,
-          action: "EDIT",
-          message,
-          severity: "INFO",
-        });
-      }
+      await db.query(`
+        DELETE FROM exam_result_details
+        WHERE exam_result_id = ?
+      `, [examResultId]);
 
     } else {
-      // FIRST INSERT
-      await insertAuditLog({
-        actorId: actor.email,
-        role: actor.role,
-        action: "CREATE",
-        message: `Applicant #${applicant_number} exam created`,
-        severity: "INFO",
-      });
+      const [insertResult] = await db.query(`
+        INSERT INTO exam_results
+        (
+          person_id,
+          total_score,
+          percentage,
+          final_rating,
+          status,
+          date_created
+        )
+        VALUES (?, ?, ?, ?, ?, NOW())
+      `, [
+        personId,
+        totalScore,
+        percentage,
+        finalRating,
+        status
+      ]);
+
+      examResultId = insertResult.insertId;
     }
 
-    // -----------------------------
-    // RETURN DATA
-    // -----------------------------
-    const [savedRows] = await db.query(
-      "SELECT * FROM admission_exam WHERE person_id = ? LIMIT 1",
-      [personId]
-    );
+    //--------------------------------------
+    // INSERT SUBJECT SCORES
+    //--------------------------------------
+    for (const item of scores) {
+      await db.query(`
+        INSERT INTO exam_result_details
+        (
+          exam_result_id,
+          subject_id,
+          score
+        )
+        VALUES (?, ?, ?)
+      `, [
+        examResultId,
+        item.subject_id,
+        item.score
+      ]);
+    }
 
-    return res.json({
+    //--------------------------------------
+    // AUDIT LOG
+    //--------------------------------------
+    await insertAuditLog({
+      actorId: actor.email,
+      role: actor.role,
+      action: "SAVE_EXAM",
+      message: `Saved exam result for applicant #${applicant_number}`,
+      severity: "INFO"
+    });
+
+    res.json({
       success: true,
-      message: "Exam data saved!",
-      saved: savedRows[0],
+      message: "Exam saved successfully"
     });
 
   } catch (err) {
-    console.error("❌ ERROR saving exam:", err);
-    return res.status(500).json({
-      error: "Failed to save exam data",
-      details: String(err.message || err),
+    console.error(err);
+
+    res.status(500).json({
+      error: "Failed saving exam"
     });
   }
 });
+
 
 module.exports = router;

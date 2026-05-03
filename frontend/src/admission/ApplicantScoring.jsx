@@ -113,10 +113,14 @@ const ApplicantScoring = () => {
         if (!person_id) return;
 
         sessionStorage.setItem("admin_edit_person_id", String(person_id));
-        sessionStorage.setItem("admin_edit_person_id_source", "applicant_list");
+        sessionStorage.setItem(
+            "admin_edit_person_id_source",
+            "/applicant_list_admin",
+        );
         sessionStorage.setItem("admin_edit_person_id_ts", String(Date.now()));
 
-
+        // ✅ Always pass person_id in the URL
+        navigate(`/admin_dashboard1?person_id=${person_id}`);
     };
 
     const tabs = [
@@ -420,21 +424,26 @@ const ApplicantScoring = () => {
     const [allApplicants, setAllApplicants] = useState([]);
 
     // ⬇️ Add this inside ApplicantList component, before useEffect
-
-    // ✅ fetch applicants WITH exam scores
     const fetchApplicants = async () => {
         try {
             const res = await axios.get(`${API_BASE_URL}/api-applicant-scoring`);
 
+            // ✅ NEW: extract properly
+            const { data, subjects } = res.data;
+
+            // ✅ set subjects (IMPORTANT for your scoring logic)
+            setSubjects(subjects);
+
             // ✅ Remove duplicates based on applicant_number
             const uniqueData = Object.values(
-                res.data.reduce((acc, curr) => {
+                data.reduce((acc, curr) => {
                     acc[curr.applicant_number] = curr;
                     return acc;
                 }, {})
             );
 
             setPersons(uniqueData);
+
         } catch (err) {
             console.error("❌ Error fetching applicants with scores:", err);
         }
@@ -443,6 +452,24 @@ const ApplicantScoring = () => {
 
     useEffect(() => {
         fetchApplicants();
+    }, []);
+
+    const [subjects, setSubjects] = useState([]);
+
+    const fetchSubjects = async () => {
+        try {
+            const res = await axios.get(
+                `${API_BASE_URL}/api/subjects`
+            );
+
+            setSubjects(res.data);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    useEffect(() => {
+        fetchSubjects();
     }, []);
 
 
@@ -571,6 +598,11 @@ const ApplicantScoring = () => {
     };
     const [showSubmittedOnly, setShowSubmittedOnly] = useState(false);
 
+    const [minTotal, setMinTotal] = useState("");
+    const [minScorePercent, setMinScorePercent] = useState("");
+    const [minFinalRating, setMinFinalRating] = useState("");
+
+
     const filteredPersons = persons
         .filter((personData) => {
 
@@ -578,13 +610,9 @@ const ApplicantScoring = () => {
             const fullText = `${personData.first_name} ${personData.middle_name} ${personData.last_name} ${personData.emailAddress ?? ''} ${personData.applicant_number ?? ''}`.toLowerCase();
             const matchesSearch = fullText.includes(searchQuery.toLowerCase());
 
-
-
-
             /* 🏫 CAMPUS */
             const matchesCampus =
                 !person.campus || String(personData.campus) === String(person.campus);
-
 
             /* 📄 DOCUMENT STATUS */
             const matchesApplicantStatus =
@@ -610,9 +638,9 @@ const ApplicantScoring = () => {
                 selectedDepartmentFilter === "" ||
                 String(programInfo?.dprtmnt_id) === String(selectedDepartmentFilter);
 
-            /* 📅 CREATED AT — Manila-safe date parsing */
+            /* 📅 CREATED AT */
             const appliedDate = parseDateOnlyLocal(personData.created_at);
-            if (!appliedDate) return false;
+            if (!appliedDate) return true;
 
             const applicantAppliedYear = appliedDate.getFullYear();
 
@@ -627,7 +655,7 @@ const ApplicantScoring = () => {
                 selectedSchoolSemester === "" ||
                 String(personData.middle_code) === String(selectedSchoolSemester);
 
-            /* 📆 DATE RANGE (FULLY FIXED) */
+            /* 📆 DATE RANGE */
             let matchesDateRange = true;
 
             let from = parseDateOnlyLocal(person.fromDate);
@@ -649,6 +677,46 @@ const ApplicantScoring = () => {
             const matchesSubmittedDocs =
                 !showSubmittedOnly || personData.submitted_documents === 1;
 
+            /* 🧮 SCORES */
+            const subjectScores = subjects.map((subject) =>
+                Number(personData.scores?.[subject.id] ?? 0)
+            );
+
+            const total = subjectScores.reduce((sum, score) => sum + score, 0);
+
+            const maxTotal = subjects.reduce(
+                (sum, subject) => sum + Number(subject.max_score || 0),
+                0
+            );
+
+            const scorePercent =
+                maxTotal > 0 ? (total / maxTotal) * 100 : 0;
+
+            const finalRating =
+                subjectScores.length > 0
+                    ? Math.round(total / subjectScores.length)
+                    : 0;
+
+            const matchesTotal =
+                minTotal === "" ||
+                (
+                    total >= Number(minTotal) &&
+                    total < Number(minTotal) + 1
+                );
+
+            const matchesScorePercent =
+                minScorePercent === "" ||
+                (
+                    scorePercent >= Number(minScorePercent) &&
+                    scorePercent < Number(minScorePercent) + 1
+                );
+
+            const matchesFinalRating =
+                minFinalRating === "" ||
+                (
+                    finalRating >= Number(minFinalRating) &&
+                    finalRating < Number(minFinalRating) + 1
+                );
             /* FINAL RESULT */
             return (
                 matchesSearch &&
@@ -660,37 +728,36 @@ const ApplicantScoring = () => {
                 matchesProgram &&
                 matchesSchoolYear &&
                 matchesSemester &&
-                matchesDateRange
+                matchesDateRange &&
+                matchesTotal &&
+                matchesScorePercent &&
+                matchesFinalRating
             );
         })
 
         /* 🔽 SORTING */
         .sort((a, b) => {
-            /* ⭐ FINAL RATING */
-            const aFinal =
-                (Number(a.english || 0) +
-                    Number(a.science || 0) +
-                    Number(a.filipino || 0) +
-                    Number(a.math || 0) +
-                    Number(a.abstract || 0)) / 5;
 
-            const bFinal =
-                (Number(b.english || 0) +
-                    Number(b.science || 0) +
-                    Number(b.filipino || 0) +
-                    Number(b.math || 0) +
-                    Number(b.abstract || 0)) / 5;
+            const getFinalRating = (person) => {
+                const scores = subjects.map((subject) =>
+                    Number(person.scores?.[subject.id] ?? 0)
+                );
 
-            /* ⭐ SORT BY HIGHEST FINAL FIRST */
-            if (aFinal !== bFinal) {
-                return bFinal - aFinal;  // highest first
-            }
+                const total = scores.reduce((sum, score) => sum + score, 0);
+
+                return scores.length > 0
+                    ? total / scores.length
+                    : 0;
+            };
+
+            const aFinal = getFinalRating(a);
+            const bFinal = getFinalRating(b);
 
             /* ⭐ IF TIE → FIRST COME FIRST SERVE */
             const dateA = parseDateOnlyLocal(a.created_at) || new Date(0);
             const dateB = parseDateOnlyLocal(b.created_at) || new Date(0);
 
-            return dateA - dateB;  // earliest submission first
+            return dateA - dateB;
         });
 
 
@@ -795,7 +862,7 @@ const ApplicantScoring = () => {
     <head>
       <title>Entrance Examination Scores</title>
       <style>
-        @page { size: A4 landscape; margin: 10mm; }
+        @page { size: A4 landscape; margin: 5mm; }
 
         body {
           font-family: Arial;
@@ -803,66 +870,44 @@ const ApplicantScoring = () => {
           padding: 0;
         }
 
-        .print-container {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          text-align: center;
-          padding: 0 15px;
-        }
+     .print-container {
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     text-align: center;
+     padding-left: 10px;
+     padding-right: 10px;
+   }
 
-        /* ✅ HEADER FIXED ALIGNMENT */
-        .print-header {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 20px;
-          width: 100%;
-          margin-top: 20px;
-        }
+       .print-header {
+  position: relative;
+  width: 100%;
+  text-align: center;
+  margin-top: 10px;
+}
 
-        .print-header img {
-          width: 120px;
-          height: 120px;
-          border-radius: 50%;
-          object-fit: cover;
-        }
+.print-header img {
+  position: absolute;
+  left: 220px; /* adjust if needed */
+  top: -10px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+}
 
-        .header-text {
-          text-align: center;
-        }
-
-        .header-text .gov {
-          font-size: 13px;
-        }
-
-        .header-text .school-name {
-          font-size: 22px;
-          font-weight: bold;
-          letter-spacing: 1px;
-          line-height: 1.2;
-        }
-
-        .header-text .address {
-          font-size: 13px;
-          margin-top: 2px;
-        }
-
-        .header-text .title {
-          margin-top: 25px;
-          font-size: 22px;
-          font-weight: bold;
-          letter-spacing: 1px;
-        }
-
+.header-text {
+  display: inline-block;
+  padding-left: 100px; /* important spacing */
+}
         /* ✅ TABLE IMPROVEMENTS */
         table {
-          border-collapse: collapse;
-          width: 100%;
-          margin-top: 25px;
-          border: 1.5px solid black;
-          table-layout: fixed;
-        }
+     border-collapse: collapse;
+     width: 100%;
+     margin-top: 20px;
+     border: 1.5px solid black; /* slightly thicker for landscape clarity */
+     table-layout: fixed;
+   }
 
         th, td {
           border: 1.5px solid black;
@@ -887,69 +932,118 @@ const ApplicantScoring = () => {
     </head>
 
     <body onload="window.print(); setTimeout(() => window.close(), 100);">
-      <div class="print-container">
+              <div class="print-container">
+   
+             <!-- ✅ HEADER -->
+    <div class="print-header">
+  <img src="${logoSrc}" alt="School Logo" />
 
-        <!-- ✅ HEADER -->
-        <div class="print-header">
-          <img src="${logoSrc}" alt="School Logo"/>
+  <div class="header-text">
+    <div style="font-size: 13px; font-family: Arial">
+      Republic of the Philippines
+    </div>
 
-          <div class="header-text">
-            <div style="font-size: 13px; font-family: Arial">Republic of the Philippines</div>
+    ${name
+                ? `
+        <b style="letter-spacing: 1px; font-size: 20px; font-family: Arial, sans-serif;">
+          ${firstLine}
+        </b>
+        ${secondLine
+                    ? `<div style="letter-spacing: 1px; font-size: 20px; font-family: Arial, sans-serif;">
+                 <b>${secondLine}</b>
+               </div>`
+                    : ""
+                }
+      `
+                : ""
+            }
 
-            ${name ? `
-              <div class="school-name">${firstLine}</div>
-              ${secondLine ? `<div class="school-name">${secondLine}</div>` : ""}
-            ` : ""}
+    <div style="font-size: 13px; font-family: Arial">
+      ${resolvedCampusAddress}
+    </div>
 
-            <div class="address">${resolvedCampusAddress}</div>
-
-            <div class="title">Entrance Examination Scores</div>
-          </div>
-        </div>
+    <div style="margin-top: 30px;">
+      <b style="font-size: 24px; letter-spacing: 1px;">
+        Entrance Examination Scores
+      </b>
+    </div>
+  </div>
+</div>
 
         <!-- ✅ TABLE -->
         <table>
           <thead>
             <tr>
               <th style="width:10%">Applicant ID</th>
-              <th style="width:28%">Applicant Name</th>
-              <th style="width:10%">Program</th>
-              <th style="width:6%">Eng</th>
-              <th style="width:6%">Sci</th>
-              <th style="width:6%">Fil</th>
-              <th style="width:6%">Math</th>
-              <th style="width:6%">Abs</th>
-              <th style="width:8%">Final</th>
+              <th style="width:20%">Applicant Name</th>
+              <th style="width:12%">Program</th>
+              ${subjects.map(subject => `
+              <th style="width:7%">
+              ${subject.name}
+              </th>
+              `).join("")}
+              <th style="width:8%">Total</th>
+              <th style="width:8%">Score %</th>
+              <th style="width:8%">Final Rating</th>
               <th style="width:8%">Status</th>
             </tr>
           </thead>
 
           <tbody>
             ${filteredPersons.map((person) => {
-            const english = Number(person.english) || 0;
-            const science = Number(person.science) || 0;
-            const filipino = Number(person.filipino) || 0;
-            const math = Number(person.math) || 0;
-            const abstract = Number(person.abstract) || 0;
+                const subjectScores = subjects.map((subject) => {
+                    return Number(
+                        editScores[person.person_id]?.[subject.id] ??
+                        person.scores?.[subject.id] ??
+                        0
+                    );
+                });
 
-            const computedFinalRating =
-                (english + science + filipino + math + abstract) / 5;
+                const totalScore = subjectScores.reduce(
+                    (sum, score) => sum + score,
+                    0
+                );
 
-            return `
+                const maxTotal = subjects.reduce(
+                    (sum, subject) => sum + Number(subject.max_score || 0),
+                    0
+                );
+
+                const computedConvertedRating =
+                    maxTotal > 0
+                        ? (totalScore / maxTotal) * 100
+                        : 0;
+
+                const computedFinalRating =
+                    subjectScores.length > 0
+                        ? totalScore / subjectScores.length
+                        : 0;
+
+                return `
                 <tr>
                   <td>${person.applicant_number || ""}</td>
                   <td>${person.last_name}, ${person.first_name} ${person.middle_name || ""} ${person.extension || ""}</td>
-                  <td>${person.program_code || ""}</td>
-                  <td>${english}</td>
-                  <td>${science}</td>
-                  <td>${filipino}</td>
-                  <td>${math}</td>
-                  <td>${abstract}</td>
+                   <td>${allCurriculums.find(
+                    (item) => item.curriculum_id?.toString() === person.program?.toString()
+                )?.program_code ?? "N/A"
+                    }</td>
+              ${subjects.map(subject => {
+                        const score =
+                            Number(
+                                editScores[person.person_id]?.[subject.id] ??
+                                person.scores?.[subject.id] ??
+                                0
+                            );
+
+                        return `<td>${score}</td>`;
+                    }).join("")}
+                  <td>${totalScore}</td>
+                  <td>${Number(computedConvertedRating).toFixed(2)}</td>
                   <td>${computedFinalRating.toFixed(2)}</td>
                   <td>${person.status || ""}</td>
                 </tr>
               `;
-        }).join("")}
+            }).join("")}
           </tbody>
         </table>
 
@@ -1000,47 +1094,84 @@ const ApplicantScoring = () => {
 
     const saveTimers = useRef({});
 
-    // typed changes: update editScores and UI only (no auto-save)
-    const handleScoreChange = (person, field, value) => {
-        const numericValue = value === "" ? "" : Number(value);
+    const handleScoreChange = (personId, subjectId, value) => {
 
-        // 1. Update local state instantly (UI)
-        setEditScores(prev => ({
+        const subject = subjects.find(s => s.id === subjectId);
+        const max = Number(subject?.max_score || 0);
+        const numericValue = Number(value);
+
+        // ❌ VALIDATION
+        if (numericValue > max) {
+            setSnack({
+                open: true,
+                message: `Score cannot exceed max score (${max})`,
+                severity: "error"
+            });
+            return; // ⛔ stop update
+        }
+
+        if (numericValue < 0) {
+            setSnack({
+                open: true,
+                message: "Score cannot be negative",
+                severity: "error"
+            });
+            return;
+        }
+
+        // ✅ NORMAL UPDATE
+        setEditScores((prev) => ({
             ...prev,
-            [person.person_id]: {
-                ...prev[person.person_id],
-                [field]: numericValue
+            [personId]: {
+                ...prev[personId],
+                [subjectId]: value
             }
         }));
-
-        setPersons(prev =>
-            prev.map(p =>
-                p.person_id === person.person_id
-                    ? { ...p, [field]: numericValue }
-                    : p
-            )
-        );
-
-
     };
 
+
     const buildPayload = (person) => {
-        const scores = editScores[person.person_id] || {};
+        const editedScores = editScores[person.person_id] || {};
+
+        const subjectScores = subjects.map((subject) => ({
+            subject_id: subject.id,
+            score: Number(
+                editedScores[subject.id] ??
+                person.scores?.[subject.id] ??
+                0
+            )
+        }));
+
+        const total = subjectScores.reduce(
+            (sum, item) => sum + item.score,
+            0
+        );
+
+        const maxTotal = subjects.reduce(
+            (sum, subject) => sum + Number(subject.max_score || 0),
+            0
+        );
+
+        const percentage =
+            maxTotal > 0
+                ? (total / maxTotal) * 100
+                : 0;
+
+        const final_rating =
+            subjectScores.length > 0
+                ? total / subjectScores.length
+                : 0;
 
         return {
-            applicant_number: person.applicant_number,   // REQUIRED BY BACKEND
-            english: Number(scores.english ?? person.english ?? 0),
-            science: Number(scores.science ?? person.science ?? 0),
-            filipino: Number(scores.filipino ?? person.filipino ?? 0),
-            math: Number(scores.math ?? person.math ?? 0),
-            abstract: Number(scores.abstract ?? person.abstract ?? 0),
-            final_rating:
-                (Number(scores.english ?? person.english ?? 0) +
-                    Number(scores.science ?? person.science ?? 0) +
-                    Number(scores.filipino ?? person.filipino ?? 0) +
-                    Number(scores.math ?? person.math ?? 0) +
-                    Number(scores.abstract ?? person.abstract ?? 0)) / 5,
-            status: scores.status ?? person.status ?? ""
+            applicant_number: person.applicant_number,
+            scores: subjectScores,
+            total,
+            percentage,
+            final_rating,
+            status:
+                editedScores.status ??
+                person.status ??
+                ""
         };
     };
 
@@ -1049,59 +1180,72 @@ const ApplicantScoring = () => {
             setSaving(true);
 
             const payload = buildPayload(person);
-            const res = await axios.post(`${API_BASE_URL}/api/exam/save`, payload, {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`
+
+            const res = await axios.post(
+                `${API_BASE_URL}/api/exam/save`,
+                payload,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`
+                    }
                 }
-            });
+            );
 
             if (!res.data?.success) {
-                throw new Error(res.data?.error || "Save failed");
+                throw new Error(
+                    res.data?.error || "Save failed"
+                );
             }
 
-            const saved = res.data.saved;
+            // convert array → object for frontend table
+            const updatedScores = payload.scores.reduce(
+                (acc, curr) => {
+                    acc[curr.subject_id] = curr.score;
+                    return acc;
+                },
+                {}
+            );
 
-            // Normalize saved just in case (backend returns lowercase already)
-            const normalized = {
-                person_id: saved.person_id ?? person.person_id,
-                english: saved.english != null ? Number(saved.english) : Number(person.english || 0),
-                science: saved.science != null ? Number(saved.science) : Number(person.science || 0),
-                filipino: saved.filipino != null ? Number(saved.filipino) : Number(person.filipino || 0),
-                math: saved.math != null ? Number(saved.math) : Number(person.math || 0),
-                abstract: saved.abstract != null ? Number(saved.abstract) : Number(person.abstract || 0),
-                final_rating: saved.final_rating != null ? Number(saved.final_rating) : (
-                    (Number(saved.english ?? person.english ?? 0) +
-                        Number(saved.science ?? person.science ?? 0) +
-                        Number(saved.filipino ?? person.filipino ?? 0) +
-                        Number(saved.math ?? person.math ?? 0) +
-                        Number(saved.abstract ?? person.abstract ?? 0)) / 5
-                ),
-                status: saved.status ?? person.status,
-                date_created: saved.date_created ?? person.date_created
-            };
-
-            // 1) Update persons (table source) immediately with normalized saved values
-            setPersons(prev =>
-                prev.map(p =>
-                    p.person_id === normalized.person_id
-                        ? { ...p, ...normalized }
+            // update current row immediately
+            setPersons((prev) =>
+                prev.map((p) =>
+                    p.person_id === person.person_id
+                        ? {
+                            ...p,
+                            scores: updatedScores,
+                            total_score: payload.total,
+                            percentage: payload.percentage,
+                            final_rating: payload.final_rating,
+                            status: payload.status
+                        }
                         : p
                 )
             );
 
-            // 2) Clear edit buffer AFTER persons updated
-            setEditScores(prev => {
+            // clear temporary edits
+            setEditScores((prev) => {
                 const copy = { ...prev };
                 delete copy[person.person_id];
                 return copy;
             });
 
-            setSnack({ open: true, message: "Row saved successfully!", severity: "success" });
-        } catch (err) {
-            console.error("SAVE ERROR:", err);
             setSnack({
                 open: true,
-                message: "Save failed: " + (err.response?.data?.error || err.message),
+                message: "Row saved successfully!",
+                severity: "success"
+            });
+
+        } catch (err) {
+            console.error("SAVE ERROR:", err);
+
+            setSnack({
+                open: true,
+                message:
+                    "Save failed: " +
+                    (
+                        err.response?.data?.error ||
+                        err.message
+                    ),
                 severity: "error"
             });
         } finally {
@@ -1109,31 +1253,54 @@ const ApplicantScoring = () => {
         }
     };
 
-
     const saveAllRows = async () => {
         try {
             setSaving(true);
 
-            // iterate over persons (table data), not applicants
             for (const person of persons) {
                 const payload = buildPayload(person);
-                await axios.post(`${API_BASE_URL}/api/exam/save`, payload, {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("token")}`
+
+                const res = await axios.post(
+                    `${API_BASE_URL}/api/exam/save`,
+                    payload,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("token")}`
+                        }
                     }
-                });
+                );
+
+                if (!res.data?.success) {
+                    throw new Error(
+                        res.data?.error ||
+                        `Failed saving ${person.applicant_number}`
+                    );
+                }
             }
 
-            // refresh table source from server to ensure consistency
-            await fetchApplicants(); // this sets persons via setPersons
+            // refresh latest records from backend
+            await fetchApplicants();
 
-            setSnack({ open: true, message: "All scores saved!", severity: "success" });
+            // clear all temporary edits
+            setEditScores({});
+
+            setSnack({
+                open: true,
+                message: "All scores saved successfully!",
+                severity: "success"
+            });
 
         } catch (err) {
             console.error("SAVE ALL ERROR:", err);
+
             setSnack({
                 open: true,
-                message: "Save All failed: " + (err.response?.data?.error || err.message),
+                message:
+                    "Save All failed: " +
+                    (
+                        err.response?.data?.error ||
+                        err.message
+                    ),
                 severity: "error"
             });
         } finally {
@@ -1744,7 +1911,74 @@ const ApplicantScoring = () => {
 
                         </Box>
                     </Box>
+
                 </Box>
+                <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="flex-start"
+                    flexWrap="wrap"
+                    mt={3}
+                >
+                    {/* ✅ LEFT SIDE (FILTERS) */}
+                    <Box>
+                        <Typography
+                            color="maroon"
+                            sx={{ mb: 1, fontWeight: "bold" }}
+                        >
+                            Applicant Score Filters:
+                        </Typography>
+
+                        <Box display="flex" gap={2} flexWrap="wrap" alignItems="center">
+
+                            <Typography fontSize={13}>Total:</Typography>
+                            <TextField
+                                label="Total"
+                                size="small"
+                                type="number"
+                                value={minTotal}
+                                onChange={(e) => setMinTotal(e.target.value)}
+                            />
+
+                            <Typography fontSize={13}>Score:</Typography>
+                            <TextField
+                                label="Score %"
+                                size="small"
+                                type="number"
+                                value={minScorePercent}
+                                onChange={(e) => setMinScorePercent(e.target.value)}
+                            />
+
+                            <Typography fontSize={13}>Final Rating:</Typography>
+                            <TextField
+                                label="Final Rating"
+                                size="small"
+                                type="number"
+                                value={minFinalRating}
+                                onChange={(e) => setMinFinalRating(e.target.value)}
+                            />
+
+                        </Box>
+                    </Box>
+
+                    {/* ✅ RIGHT SIDE (BUTTON) */}
+                    <Box>
+                        <Button
+                            variant="contained"
+                            color="secondary"
+                            onClick={() => navigate("/applicant_exam_subjects")}
+                            sx={{
+                                width: "220px",
+                                height: "45px",
+                                fontWeight: "bold",
+                                mt: 4,
+                            }}
+                        >
+                            SUBJECT MANAGEMENT
+                        </Button>
+                    </Box>
+                </Box>
+
             </TableContainer>
 
             <div ref={divToPrintRef}>
@@ -1770,26 +2004,24 @@ const ApplicantScoring = () => {
                                 Program
                             </TableCell>
 
-                            {/* Exam Columns */}
+                            {subjects.map((subject) => (
+                                <TableCell sx={{ color: "white", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}
+                                    key={subject.id}>
+                                    {subject.name}
+                                </TableCell>
+                            ))}
+
                             <TableCell sx={{ color: "white", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
-                                English
+                                Total
                             </TableCell>
                             <TableCell sx={{ color: "white", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
-                                Science
-                            </TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
-                                Filipino
-                            </TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
-                                Math
-                            </TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
-                                Abstract
+                                Score %
                             </TableCell>
 
                             <TableCell sx={{ color: "white", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 Final Rating
                             </TableCell>
+
                             <TableCell sx={{ color: "white", textAlign: "center", width: "5%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                                 Date Applied
                             </TableCell>
@@ -1819,27 +2051,41 @@ const ApplicantScoring = () => {
                             </TableRow>
                         )}
                         {currentPersons.map((person, index) => {
-                            const english = Number(person.english) || 0;
-                            const science = Number(person.science) || 0;
-                            const filipino = Number(person.filipino) || 0;
-                            const math = Number(person.math) || 0;
-                            const abstract = Number(person.abstract) || 0;
+                            const subjectScores = subjects.map((subject) => {
+                                return Number(
+                                    editScores[person.person_id]?.[subject.id] ??
+                                    person.scores?.[subject.id] ??
+                                    0
+                                );
+                            });
+
+                            const totalScore = subjectScores.reduce(
+                                (sum, score) => sum + score,
+                                0
+                            );
+
+                            const maxTotal = subjects.reduce(
+                                (sum, subject) => sum + Number(subject.max_score || 0),
+                                0
+                            );
+
+                            const computedConvertedRating =
+                                maxTotal > 0
+                                    ? (totalScore / maxTotal) * 100
+                                    : 0;
 
                             const computedFinalRating =
-                                (
-                                    (editScores[person.person_id]?.english ?? english) +
-                                    (editScores[person.person_id]?.science ?? science) +
-                                    (editScores[person.person_id]?.filipino ?? filipino) +
-                                    (editScores[person.person_id]?.math ?? math) +
-                                    (editScores[person.person_id]?.abstract ?? abstract)
-                                ) / 5;
+                                subjectScores.length > 0
+                                    ? totalScore / subjectScores.length
+                                    : 0;
+
                             return (
-                           <TableRow
-                                                           key={person.person_id}
-                                                           sx={{
-                                                               backgroundColor: index % 2 === 0 ? "#ffffff" : "lightgray", // white / light gray
-                                                           }}
-                                                       >
+                                <TableRow
+                                    key={person.person_id}
+                                    sx={{
+                                        backgroundColor: index % 2 === 0 ? "#ffffff" : "lightgray", // white / light gray
+                                    }}
+                                >
                                     <TableCell sx={{
                                         color: "black",
                                         textAlign: "center",
@@ -1850,14 +2096,15 @@ const ApplicantScoring = () => {
                                     >{index + 1}</TableCell>
 
                                     <TableCell
-                                        onClick={() => handleRowClick(person.person_id)}
+
                                         sx={{
-                                            color: "blue",
                                             textAlign: "center",
                                             border: `1px solid ${borderColor}`,
-                                            py: 0.5,
-                                            fontSize: "15px",
+                                            cursor: "pointer",
+                                            color: "blue",
+                                            fontSize: "12px",
                                         }}
+                                        onClick={() => handleRowClick(person.person_id)}
                                     >
 
 
@@ -1865,14 +2112,15 @@ const ApplicantScoring = () => {
                                     </TableCell>
 
                                     <TableCell
-                                        onClick={() => handleRowClick(person.person_id)}
+
                                         sx={{
-                                            color: "blue",
                                             textAlign: "center",
                                             border: `1px solid ${borderColor}`,
-                                            py: 0.5,
-                                            fontSize: "15px",
+                                            cursor: "pointer",
+                                            color: "blue",
+                                            fontSize: "12px",
                                         }}
+                                        onClick={() => handleRowClick(person.person_id)}
                                     >
 
                                         {`${person.last_name}, ${person.first_name} ${person.middle_name ?? ""}`}
@@ -1893,25 +2141,66 @@ const ApplicantScoring = () => {
                                     </TableCell>
 
                                     {/* SCORE INPUTS */}
-                                    {["english", "science", "filipino", "math", "abstract"].map((field) => (
+                                    {subjects.map((subject) => (
                                         <TableCell
+                                            key={subject.id}
                                             sx={{
-                                                color: "black",
                                                 textAlign: "center",
-                                                border: `1px solid ${borderColor}`,
-                                                py: 0.5,
-                                                fontSize: "15px",
+                                                border: `1px solid ${borderColor}`
                                             }}
                                         >
                                             <TextField
-                                                value={editScores[person.person_id]?.[field] ?? person[field] ?? 0}
-                                                onChange={(e) => handleScoreChange(person, field, e.target.value)}
                                                 size="small"
                                                 type="number"
-                                                sx={{ width: 70 }}
+                                                value={
+                                                    editScores[person.person_id]?.[subject.id] ??
+                                                    person.scores?.[subject.id] ??
+                                                    ""
+                                                }
+                                                onChange={(e) =>
+                                                    handleScoreChange(
+                                                        person.person_id,
+                                                        subject.id,
+                                                        e.target.value
+                                                    )
+                                                }
+                                                inputProps={{
+                                                    min: 0,
+                                                    max: subject.max_score
+                                                }}
+                                                sx={{
+                                                    width: "80px"
+                                                }}
                                             />
                                         </TableCell>
                                     ))}
+
+
+                                    <TableCell
+                                        sx={{
+                                            color: "black",
+                                            textAlign: "center",
+                                            border: `1px solid ${borderColor}`,
+                                            py: 0.5,
+                                            fontSize: "15px",
+                                        }}
+                                    >
+                                        {totalScore}
+                                    </TableCell>
+
+                                    <TableCell
+                                        sx={{
+                                            color: "black",
+                                            textAlign: "center",
+                                            border: `1px solid ${borderColor}`,
+                                            py: 0.5,
+                                            fontSize: "15px",
+                                        }}
+                                    >
+                                        {Number(computedConvertedRating).toFixed(2)}
+                                    </TableCell>
+
+
 
                                     {/* FINAL RATING */}
                                     <TableCell
@@ -1925,6 +2214,8 @@ const ApplicantScoring = () => {
                                     >
                                         {Number(computedFinalRating).toFixed(2)}
                                     </TableCell>
+
+
 
                                     {/* DATE APPLIED */}
                                     <TableCell

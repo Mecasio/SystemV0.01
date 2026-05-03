@@ -102,16 +102,47 @@ const EvaluatorApplicantList = () => {
 
 
   const tabs = [
-    { label: "Room Registration", to: "/room_registration", icon: <KeyIcon fontSize="large" /> },
-    { label: "Verify Documents Room Assignment", to: "/verify_document_schedule", icon: <MeetingRoomIcon fontSize="large" /> },
-    // { label: "Verify Documents Schedule Management", to: "/verify_schedule", icon: <ScheduleIcon fontSize="large" /> },
-    { label: "Evaluator's Applicant List", to: "/evaluator_schedule_room_list", icon: <PeopleIcon fontSize="large" /> },
-    { label: "Entrance Exam Room Assignment", to: "/assign_entrance_exam", icon: <MeetingRoomIcon fontSize="large" /> },
-    // { label: "Entrance Exam Schedule Management", to: "/assign_schedule_applicant", icon: <ScheduleIcon fontSize="large" /> },
-    { label: "Proctor's Applicant List", to: "/admission_schedule_room_list", icon: <PeopleIcon fontSize="large" /> },
-    // { label: "Examination Permit", to: "/registrar_examination_profile", icon: <PersonSearchIcon fontSize="large" /> },
-    { label: "Announcement", to: "/announcement_for_admission", icon: <CampaignIcon fontSize="large" /> },
+    {
+      label: "Room Registration",
+      to: "/room_registration",
+      icon: <KeyIcon fontSize="large" />,
+    },
+    {
+      label: "Verify Documents Room Assignment",
+      to: "/verify_document_schedule",
+      icon: <MeetingRoomIcon fontSize="large" />,
+    },
+
+    {
+      label: "Evaluator's Applicant List",
+      to: "/evaluator_schedule_room_list",
+      icon: <PeopleIcon fontSize="large" />,
+    },
+    {
+      label: "Entrance Exam Room Assignment",
+      to: "/assign_entrance_exam",
+      icon: <MeetingRoomIcon fontSize="large" />,
+    },
+
+    {
+      label: "Proctor's Applicant List",
+      to: "/admission_schedule_room_list",
+      icon: <PeopleIcon fontSize="large" />,
+    },
+
+    {
+      label: "Subject Management",
+      to: "/applicant_exam_subjects",
+      icon: <SchoolIcon fontSize="large" />,
+    },
+
+    {
+      label: "Announcement",
+      to: "/announcement_for_admission",
+      icon: <CampaignIcon fontSize="large" />,
+    },
   ];
+
 
 
   const [snack, setSnack] = useState({
@@ -333,7 +364,7 @@ const EvaluatorApplicantList = () => {
     const htmlContent = `
 <html>
   <head>
-    <title>Evaluator Applicant List</title>
+    <title>EVALUATOR APPLICANT LIST</title>
     <style>
       @page { size: A4 landscape; margin: 5mm; }
       body { font-family: Arial; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -388,7 +419,7 @@ const EvaluatorApplicantList = () => {
           <b style="letter-spacing:1px; font-size:20px; font-family:Arial, serif;">${firstLine}</b>
           ${secondLine ? `<div style="letter-spacing:1px; font-size:20px; font-family:Arial, serif;"><b>${secondLine}</b></div>` : ""}
           <div style="font-size:12px;">${address}</div>
-          <div style="margin-top:25px;"><b style="font-size:20px; letter-spacing:1px;">Evaluator Applicant List</b></div>
+          <div style="margin-top:50px;"><b style="font-size:20px; letter-spacing:1px;">EVALUATOR APPLICANT LIST</b></div>
         </div>
       </div>
 
@@ -759,11 +790,14 @@ const EvaluatorApplicantList = () => {
 
               <DialogActions>
                 <Button
+                  color="error"
+                  variant="outlined"
+
+
                   onClick={() => {
                     setOpenDeleteDialog(false);
                     setApplicantToDelete(null);
-                    color = "error"
-                    variant = "outlined"
+
 
                   }}
 

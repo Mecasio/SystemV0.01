@@ -55,11 +55,11 @@ const applicantDocsDir = path.join(
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "http://192.168.50.41:5173",
+  "http://192.168.1.12:5173",
   "http://192.168.50.55:5173",
   "http://192.168.50.211:5173",
   "http://136.239.248.62:5173",
-  "http://192.168.50.41:5173",
+  "http://192.168.1.12:5173",
   "http://192.168.1.9:5173",
 ];
 
@@ -96,6 +96,7 @@ const paymentExporting = require("./routes/system_routes/paymentExportingRoute")
 const corExporting = require("./routes/system_routes/corExportingRoute");
 const entranceExamSchedule = require("./routes/admission_routes/entranceExamSchedule");
 const applicantScoringRoute = require("./routes/admission_routes/applicantScoringRoute");
+const subjectsRoute = require("./routes/admission_routes/subjectsRoute");
 const interviewQualifyingRoute = require("./routes/admission_routes/interviewQualifyingRoute");
 const verifyDocumentSchedule = require("./routes/admission_routes/verifyDocumentSchedule");
 const QualifyingInterviewExam = require("./routes/admission_routes/QualifyingInterviewExam");
@@ -168,6 +169,7 @@ app.use("/", paymentExporting);
 app.use("/", corExporting);
 app.use("/", entranceExamSchedule);
 app.use("/", applicantScoringRoute);
+app.use("/", subjectsRoute);
 app.use("/", interviewQualifyingRoute);
 app.use("/", verifyDocumentSchedule);
 app.use("/", QualifyingInterviewExam);
@@ -1866,122 +1868,7 @@ ${shortTerm} - Admission Office
   }
 });
 
-app.get("/api-applicant-scoring", async (req, res) => {
-  try {
-    const [rows] = await db.execute(`
-     SELECT
-        p.person_id,
-        p.campus,
-        p.first_name,
-        p.middle_name,
-        p.last_name,
-        p.extension,
-        a.applicant_number,
-        SUBSTRING(a.applicant_number, 5, 1) AS middle_code,
-        p.program,
-        p.created_at,
 
-        -- Exam scores
-        e.English AS english,
-        e.Science AS science,
-        e.Filipino AS filipino,
-        e.Math AS math,
-        e.Abstract AS abstract,
-        COALESCE(
-          e.final_rating,
-          (COALESCE(e.English,0) + COALESCE(e.Science,0) + COALESCE(e.Filipino,0) + COALESCE(e.Math,0) + COALESCE(e.Abstract,0)) / 5
-        ) AS final_rating,
-
-        e.status AS status,
-
-        COALESCE(ps.exam_result, 0)        AS total_ave,
-        COALESCE(ps.qualifying_result, 0)  AS qualifying_exam_score,
-        COALESCE(ps.interview_result, 0)   AS qualifying_interview_score,
-
-        ia.status AS college_approval_status
-
-      FROM admission.person_table p
-      INNER JOIN admission.applicant_numbering_table a
-        ON p.person_id = a.person_id
-      LEFT JOIN admission.admission_exam e
-        ON p.person_id = e.person_id
-      LEFT JOIN admission.person_status_table ps
-        ON p.person_id = ps.person_id
-      LEFT JOIN admission.interview_applicants ia
-        ON ia.applicant_id = a.applicant_number
-      LEFT JOIN admission.exam_applicants ea ON a.applicant_number = ea.applicant_id
-      WHERE ea.email_sent = 1
-      ORDER BY p.person_id ASC;
-    `);
-
-    res.json(rows);
-  } catch (err) {
-    console.error(" Error fetching applicants with number:", err);
-    res.status(500).send("Server error");
-  }
-});
-
-app.get("/api/applicants-with-number", async (req, res) => {
-  try {
-    const [rows] = await db.execute(`
-      SELECT
-        p.person_id,
-        p.applyingAs,
-        p.emailAddress,
-        p.campus,
-        p.first_name,
-        p.middle_name,
-        p.last_name,
-        p.extension,
-        a.applicant_number,
-        SUBSTRING(a.applicant_number, 5, 1) AS middle_code,
-        p.program,
-        p.generalAverage1,
-        p.created_at,
-        ia.status AS interview_status,
-        ia.action,
-        ia.email_sent,
-        -- Exam scores
-        e.English AS english,
-        e.Science AS science,
-        e.Filipino AS filipino,
-        e.Math AS math,
-        e.Abstract AS abstract,
-        COALESCE(
-          e.final_rating,
-          (COALESCE(e.English,0) + COALESCE(e.Science,0) + COALESCE(e.Filipino,0) + COALESCE(e.Math,0) + COALESCE(e.Abstract,0))
-        ) AS final_rating,
-
-        e.status AS exam_status,
-
-        -- From person_status_table
-        COALESCE(ps.interview_status, 0)   AS applicant_interview_status,
-        COALESCE(ps.exam_result, 0)        AS total_ave,
-        COALESCE(ps.qualifying_result, 0)  AS qualifying_exam_score,
-        COALESCE(ps.interview_result, 0)   AS qualifying_interview_score,
-
-        -- College Approval
-        ia.status AS college_approval_status
-
-      FROM admission.person_table p
-      INNER JOIN admission.applicant_numbering_table a
-        ON p.person_id = a.person_id
-      LEFT JOIN admission.admission_exam e
-        ON p.person_id = e.person_id
-      LEFT JOIN admission.person_status_table ps
-        ON p.person_id = ps.person_id
-      LEFT JOIN admission.interview_applicants ia
-        ON ia.applicant_id = a.applicant_number
-
-      ORDER BY p.person_id ASC;
-    `);
-
-    res.json(rows);
-  } catch (err) {
-    console.error(" Error fetching applicants with number:", err);
-    res.status(500).send("Server error");
-  }
-});
 
 // Get full person info + applicant_number
 app.get("/api/person_with_applicant/:id", async (req, res) => {
