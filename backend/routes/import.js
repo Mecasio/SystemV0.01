@@ -1651,7 +1651,7 @@ router.post("/api/exam/import", upload.single("file"), async (req, res) => {
 
     const validRows = parsedRows;
 
-    // 1️⃣ GET SUBJECTS (DYNAMIC SOURCE OF TRUTH)
+    // 1️⃣ SUBJECTS (SOURCE OF TRUTH)
     const [subjects] = await db.query(`
       SELECT id, name, max_score
       FROM subjects
@@ -1659,13 +1659,7 @@ router.post("/api/exam/import", upload.single("file"), async (req, res) => {
       ORDER BY id ASC
     `);
 
-    // map subject name → subject row
-    const subjectMap = {};
-    subjects.forEach((s) => {
-      subjectMap[s.name.trim().toLowerCase()] = s;
-    });
-
-    // 2️⃣ applicant mapping
+    // 2️⃣ APPLICANT MAPPING
     const applicantNumbers = validRows
       .map(r => r["Applicant ID"])
       .filter(Boolean);
@@ -1682,40 +1676,46 @@ router.post("/api/exam/import", upload.single("file"), async (req, res) => {
     });
 
     const now = new Date();
+    const errors = [];
 
-    // 3️⃣ PROCESS EACH ROW
+    // 3️⃣ PROCESS ROWS
     for (const row of validRows) {
       const applicantNumber = row["Applicant ID"];
       const personId = applicantMap[applicantNumber];
-      if (!personId) continue;
 
-      // 4️⃣ BUILD SCORES DYNAMICALLY FROM SUBJECTS TABLE
+      if (!personId) {
+        errors.push(`Applicant ${applicantNumber}: not found in system`);
+        continue;
+      }
+
+      // ✅ VALIDATE + BUILD SCORES
       const subjectScores = {};
+      const rowErrors = [];
 
       subjects.forEach(sub => {
-        const key = sub.name; // Excel header must match DB name
-        subjectScores[sub.id] = Number(row[key] || 0);
+        const key = sub.name;
+        const value = Number(row[key] || 0);
+
+        if (value > sub.max_score) {
+          rowErrors.push(`${sub.name} (${value} > ${sub.max_score})`);
+        }
+
+        subjectScores[sub.id] = value;
       });
 
-      const totalScore = Object.values(subjectScores).reduce((a, b) => a + b, 0);
+      // ❌ SKIP INVALID ROW (BUT COLLECT ERROR)
+      if (rowErrors.length > 0) {
+        errors.push(`Applicant ${applicantNumber}: ${rowErrors.join(", ")}`);
+        continue;
+      }
 
-      const maxTotal = subjects.reduce(
-        (sum, s) => sum + Number(s.max_score || 0),
-        0
-      );
-
-      const percentage = maxTotal ? (totalScore / maxTotal) * 100 : 0;
-
-      const finalRating = subjects.length
-        ? totalScore / subjects.length
-        : 0;
-
+      // ✅ STATUS
       let status = row["Status"]?.toUpperCase();
       if (status !== "PASSED" && status !== "FAILED") {
         status = null;
       }
 
-      // 5️⃣ UPSERT exam_results
+      // 4️⃣ UPSERT exam_results (NO TOTALS YET)
       const [existing] = await db.query(
         `SELECT id FROM exam_results WHERE person_id = ?`,
         [personId]
@@ -1728,27 +1728,28 @@ router.post("/api/exam/import", upload.single("file"), async (req, res) => {
 
         await db.query(
           `UPDATE exam_results
-           SET total_score = ?, percentage = ?, final_rating = ?, status = ?
+           SET status = ?
            WHERE id = ?`,
-          [totalScore, percentage, finalRating, status, examResultId]
+          [status, examResultId]
         );
 
         await db.query(
           `DELETE FROM exam_result_details WHERE exam_result_id = ?`,
           [examResultId]
         );
+
       } else {
         const [insert] = await db.query(
           `INSERT INTO exam_results
-           (person_id, total_score, percentage, final_rating, status, date_created)
-           VALUES (?, ?, ?, ?, ?, ?)`,
-          [personId, totalScore, percentage, finalRating, status, now]
+           (person_id, status, date_created)
+           VALUES (?, ?, ?)`,
+          [personId, status, now]
         );
 
         examResultId = insert.insertId;
       }
 
-      // 6️⃣ INSERT DETAILS (FULLY DYNAMIC)
+      // 5️⃣ INSERT DETAILS
       const detailRows = subjects.map(sub => [
         examResultId,
         sub.id,
@@ -1761,11 +1762,41 @@ router.post("/api/exam/import", upload.single("file"), async (req, res) => {
          VALUES ?`,
         [detailRows]
       );
+
+      // 6️⃣ COMPUTE TOTALS FROM DB (SOURCE OF TRUTH)
+      const [totals] = await db.query(`
+        SELECT 
+          SUM(erd.score) AS totalScore,
+          SUM(s.max_score) AS maxTotal,
+          COUNT(*) AS subjectCount
+        FROM exam_result_details erd
+        JOIN subjects s ON s.id = erd.subject_id
+        WHERE erd.exam_result_id = ?
+      `, [examResultId]);
+
+      const totalScore = totals[0].totalScore || 0;
+      const maxTotal = totals[0].maxTotal || 0;
+      const subjectCount = totals[0].subjectCount || 0;
+
+      const percentage = maxTotal ? (totalScore / maxTotal) * 100 : 0;
+      const finalRating = subjectCount ? totalScore / subjectCount : 0;
+
+      // 7️⃣ FINAL UPDATE
+      await db.query(
+        `UPDATE exam_results
+         SET total_score = ?, percentage = ?, final_rating = ?
+         WHERE id = ?`,
+        [totalScore, percentage, finalRating, examResultId]
+      );
     }
 
+    // ✅ FINAL RESPONSE
     res.json({
-      success: true,
-      message: "Import successful (fully dynamic subjects)"
+      success: errors.length === 0,
+      message: errors.length
+        ? "Import completed with some applicants skipped"
+        : "All applicants imported successfully",
+      errors
     });
 
   } catch (err) {
@@ -1773,6 +1804,7 @@ router.post("/api/exam/import", upload.single("file"), async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
 router.post("/import_xslx_student", upload.single("file"), async (req, res) => {
   try {
     const fileValidation = validateSpreadsheetUpload(req.file);
@@ -2155,8 +2187,8 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
 
     const programMapRows = studentNumbers.length
       ? (
-          await db3.query(
-            `
+        await db3.query(
+          `
             SELECT 
               snt.student_number,
               MAX(sst.active_curriculum) AS curriculum_id,
@@ -2173,9 +2205,9 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
             WHERE snt.student_number IN (?)
             GROUP BY snt.student_number
             `,
-            [studentNumbers],
-          )
-        )[0]
+          [studentNumbers],
+        )
+      )[0]
       : [];
 
     const programMap = {};
@@ -3692,95 +3724,130 @@ router.post("/api/qualifying_exam/import", async (req, res) => {
       return res.status(400).json({ success: false, error: "No rows found" });
     }
 
-    const applicantNumbers = rows
-      .map((r) => r.applicant_number)
-      .filter(Boolean);
-    if (!applicantNumbers.length) {
-      return res
-        .status(400)
-        .json({ success: false, error: "No valid applicant numbers" });
-    }
+    // 1️⃣ GET APPLICANT MAPPING
+    const applicantNumbers = rows.map(r => r.applicant_number).filter(Boolean);
 
     const [matches] = await db.query(
       `SELECT person_id, applicant_number
        FROM applicant_numbering_table
        WHERE applicant_number IN (?)`,
-      [applicantNumbers],
+      [applicantNumbers]
     );
 
     const applicantMap = {};
-    matches.forEach((m) => {
+    matches.forEach(m => {
       applicantMap[m.applicant_number] = m.person_id;
     });
 
-    const personStatusValues = [];
-    const statusMap = {};
+    const values = [];
+    const errors = [];
+
+    // 2️⃣ PROCESS ROWS
     for (const row of rows) {
-      const personId = applicantMap[row.applicant_number];
-      if (!personId) continue;
+      const applicantNumber = row.applicant_number;
+      const personId = applicantMap[applicantNumber];
 
-      const qExam = Number(row.qualifying_exam_score) || 0;
+      if (!personId) {
+        errors.push(`Applicant ${applicantNumber}: not found`);
+        continue;
+      }
+
+      const qExam     = Number(row.qualifying_exam_score)     || 0;
       const qInterview = Number(row.qualifying_interview_score) || 0;
-      const status = row.status ? row.status.trim() : "Waiting List";
+      const examResult = (qExam + qInterview) / 2;
 
-      personStatusValues.push([personId, qExam, qInterview]);
-      statusMap[row.applicant_number] = status;
+      // ✅ VALIDATE STATUS
+      const allowedStatus = ["Accepted", "Rejected", "Waiting List"];
+      let status = (row.status || "Waiting List").trim();
+      if (!allowedStatus.includes(status)) status = "Waiting List";
+
+      // index: 0=personId, 1=applicantNumber, 2=qExam, 3=qInterview, 4=examResult, 5=status
+      values.push([personId, applicantNumber, qExam, qInterview, examResult, status]);
     }
 
-    if (!personStatusValues.length) {
-      return res
-        .status(400)
-        .json({ success: false, error: "No valid data to import" });
+    if (!values.length) {
+      return res.status(400).json({ success: false, error: "No valid rows to import", errors });
     }
 
+    // 3️⃣ UPSERT scores into person_status_table
     await db.query(
       `INSERT INTO person_status_table
-        (person_id, qualifying_result, interview_result)
+         (person_id, applicant_id, qualifying_result, interview_result, exam_result)
        VALUES ?
        ON DUPLICATE KEY UPDATE
          qualifying_result = VALUES(qualifying_result),
-         interview_result = VALUES(interview_result)`,
-      [personStatusValues],
+         interview_result  = VALUES(interview_result),
+         exam_result       = VALUES(exam_result)`,
+      [values.map(v => [v[0], v[1], v[2], v[3], v[4]])]  // exclude status
     );
 
-    const applicantIds = Object.keys(statusMap);
+    // ✅ 4️⃣ SYNC STATUS TO interview_applicants using correct index v[5]
+    const applicantIds = values.map(v => v[1]); // applicant_number strings
+
     if (applicantIds.length > 0) {
-      const cases = applicantIds
-        .map((a) => `WHEN '${a}' THEN '${statusMap[a]}'`)
+      const cases = values
+        .map(v => `WHEN '${v[1]}' THEN '${v[5]}'`)  // v[5] = status ✅
         .join(" ");
+
       await db.query(
         `UPDATE interview_applicants
          SET status = CASE applicant_id ${cases} END
          WHERE applicant_id IN (?)`,
-        [applicantIds],
+        [applicantIds]
       );
     }
 
+    // 5️⃣ NOTIFICATION
     const [registrarRows] = await db3.query(
-      "SELECT last_name, first_name, middle_name, email FROM user_accounts WHERE role = 'registrar' LIMIT 1",
+      `SELECT last_name, first_name, middle_name, email
+       FROM user_accounts
+       WHERE role = 'registrar'
+       LIMIT 1`
     );
+
     const registrar = registrarRows[0];
-    const registrarEmail = registrar?.email || "earistmis@gmail.com";
+    const registrarEmail    = registrar?.email || "earistmis@gmail.com";
     const registrarFullName = registrar
       ? `${registrar.last_name}, ${registrar.first_name} ${registrar.middle_name || ""}`.trim()
       : "Registrar";
 
-    const message = `📊 Bulk Qualifying/Interview Exam Scores uploaded by ${registrarFullName}`;
+    const message = `📊 Qualifying Exam + Interview Results uploaded by ${registrarFullName}`;
+
     await db.query(
-      "INSERT INTO notifications (type, message, applicant_number, actor_email, actor_name, timestamp) VALUES (?, ?, ?, ?, ?, NOW())",
-      ["upload", message, null, registrarEmail, registrarFullName],
+      `INSERT INTO notifications
+         (type, message, applicant_number, actor_email, actor_name, timestamp)
+       VALUES (?, ?, ?, ?, ?, NOW())`,
+      ["upload", message, null, registrarEmail, registrarFullName]
     );
 
     (req.app.get("io") || { emit: () => {} }).emit("notification", {
       type: "upload",
       message,
       applicant_number: null,
-      actor_email: registrarEmail,
-      actor_name: registrarFullName,
-      timestamp: new Date().toISOString(),
+      actor_email:  registrarEmail,
+      actor_name:   registrarFullName,
+      timestamp:    new Date().toISOString()
     });
 
-    res.json({ success: true, message: "Excel imported successfully!" });
+    // 6️⃣ RETURN UPDATED ROWS so frontend can patch state without a reload
+    // Build a map: applicant_number → { qualifying_result, interview_result, exam_result, status }
+    const updatedRows = values.map(v => ({
+      applicant_number:           v[1],
+      qualifying_result:          v[2],
+      interview_result:           v[3],
+      exam_result:                v[4],
+      college_approval_status:    v[5],
+    }));
+
+    res.json({
+      success:     errors.length === 0,
+      message:     errors.length
+        ? "Import completed with some applicants skipped"
+        : "All applicants imported successfully",
+      errors,
+      updatedRows,   // ✅ NEW — frontend uses this to patch state instantly
+    });
+
   } catch (err) {
     console.error("Bulk import error:", err);
     res.status(500).json({ success: false, error: err.message });

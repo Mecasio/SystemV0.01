@@ -47,6 +47,7 @@ import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
 
+
 const ApplicantDashboard = (props) => {
   const settings = useContext(SettingsContext);
 
@@ -1783,75 +1784,143 @@ const ApplicantDashboard = (props) => {
             disableEscapeKeyDown
             maxWidth="sm"
             fullWidth
+            PaperProps={{
+              sx: {
+                borderRadius: "6px",
+                overflow: "hidden",
+                boxShadow: "0 8px 40px rgba(0,0,0,0.28)",
+              },
+            }}
           >
-            <DialogTitle sx={{ fontWeight: "bold", textAlign: "center" }}>
-              ⚠️ Important Notice Before Proceeding
+            <DialogTitle
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+                backgroundColor: "#f5f5f5",
+                borderBottom: "1px solid #e0e0e0",
+                py: 1.5,
+                px: 2.5,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: "50%",
+                  backgroundColor: "#f5a623",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
+                <WarningAmberIcon sx={{ color: "#fff", fontSize: 16 }} />
+              </Box>
+              <Typography sx={{ fontWeight: 700, fontSize: "15px", color: "#222" }}>
+                Important Notice Before Proceeding
+              </Typography>
             </DialogTitle>
 
-            <DialogContent>
-              <Typography
-                sx={{ mt: 2, textAlign: "justify", fontSize: "15px" }}
-              >
-                Welcome to the <strong>{companyName}</strong> Applicant
-                Dashboard.
-              </Typography>
+            <DialogContent sx={{ px: 3, pt: 2.5, pb: 1 }}>
+           
+                <Typography sx={{ fontSize: "13.5px", color: "#333", lineHeight: 1.6, mt: 2 }}>
+                  Welcome to the <strong>{companyName}</strong> Applicant Dashboard.
+                </Typography>
 
-              <Typography
-                sx={{ mt: 2, textAlign: "justify", fontSize: "15px" }}
+                <Typography sx={{ mt: 1.5, fontSize: "13.5px", color: "#333", lineHeight: 1.6 }}>
+                  Before continuing, please make sure that you will:
+                </Typography>
+              
+              <Box
+                sx={{
+                  mt: 1.5,
+                  pl: 1.5,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 0.6,
+                }}
               >
-                Before continuing, please make sure that you will:
-              </Typography>
-
-              <Box sx={{ mt: 2, pl: 2 }}>
-                <Typography>
-                  • Fill out all required personal information.
-                </Typography>
-                <Typography>
-                  • Fields marked with <span style={{ color: "red" }}>*</span>{" "}
-                  (Asterisk) are required to fill up
-                </Typography>
-                <Typography>• Upload your 2 by 2 Formal Picture.</Typography>
-                <Typography>
-                  • Upload All Main Required Online Documents.
-                </Typography>
-                <Typography>
-                  • Ensure that the information you provide is accurate and
-                  correct.
-                </Typography>
-                <Typography>
-                  • Regularly check your Applicant Dashboard or Your provided
-                  Gmail Account for updates.
-                </Typography>
+                {[
+                  "Fill out all required personal information.",
+                  <>Fields marked with <span style={{ color: "red" }}>*</span> (Asterisk) are required to fill up.</>,
+                  "Upload your 2 by 2 Formal Picture.",
+                  "Upload All Main Required Online Documents.",
+                  "Ensure that the information you provide is accurate and correct.",
+                  "Regularly check your Applicant Dashboard or Your provided Gmail Account for updates.",
+                ].map((item, i) => (
+                  <Box key={i} sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}>
+                    <Typography sx={{ fontSize: "13.5px", color: "#555", lineHeight: 1, mt: "2px" }}>•</Typography>
+                    <Typography sx={{ fontSize: "13.5px", color: "#333", lineHeight: 1.6 }}>{item}</Typography>
+                  </Box>
+                ))}
               </Box>
 
-              <Typography
-                sx={{ mt: 2, textAlign: "justify", fontSize: "15px" }}
-              >
-                Failure to complete the required information or document uploads
-                may delay the evaluation of your application.
+              <Typography sx={{ mt: 1.5, fontSize: "13.5px", color: "#333", lineHeight: 1.6 }}>
+                Failure to complete the required information or document uploads may delay
+                the evaluation of your application.
               </Typography>
 
-              <FormControlLabel
-                sx={{ mt: 3 }}
-                control={
-                  <Checkbox
-                    checked={agreeChecked}
-                    onChange={(e) => setAgreeChecked(e.target.checked)}
-                  />
-                }
-                label="I confirm that I will complete all required information and upload all required documents."
-              />
+              <Box
+                component="label"
+                htmlFor="agreementCheck"
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1.5,
+                  border: "1.5px solid #cc3333",
+                  borderRadius: "4px",
+                  px: 1.5,
+                  py: 1.25,
+                  mt: 2,
+                  mb: 0.5,
+                  cursor: "pointer",
+                  "&:hover": { backgroundColor: "#fff5f5" },
+                  transition: "background 0.15s",
+                }}
+              >
+                <Checkbox
+                  id="agreementCheck"
+                  checked={agreeChecked}
+                  onChange={(e) => setAgreeChecked(e.target.checked)}
+                  sx={{
+                    p: 0,
+                    color: "#cc3333",
+                    "&.Mui-checked": { color: "#cc3333" },
+                  }}
+                  size="small"
+                />
+                <Typography sx={{ fontSize: "13px", color: "#333", userSelect: "none" }}>
+                  I confirm that I will complete all required information and upload all required documents.
+                </Typography>
+              </Box>
             </DialogContent>
 
-            <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
+            <DialogActions sx={{ justifyContent: "center", px: 3, pb: 2.5, pt: 1 }}>
               <Button
                 variant="contained"
                 disabled={!agreeChecked}
                 onClick={() => setOpenAgreementModal(false)}
                 sx={{
-                  fontWeight: "bold",
+                  backgroundColor: agreeChecked ? mainButtonColor : "#b0b8c8",
+                  color: "#fff",
+                  fontWeight: 600,
+                  fontSize: "14px",
+                  px: 4,
+                  py: 1.25,
+                  borderRadius: "4px",
                   textTransform: "none",
-                  minWidth: "150px",
+                  letterSpacing: "0.02em",
+                  boxShadow: "none",
+                  "&:hover": {
+                    backgroundColor: agreeChecked ? mainButtonColor : "#b0b8c8",
+                    boxShadow: "none",
+                  },
+                  "&.Mui-disabled": {
+                    backgroundColor: "#b0b8c8",
+                    color: "#fff",
+                    opacity: 0.7,
+                  },
                 }}
               >
                 I Agree & Continue

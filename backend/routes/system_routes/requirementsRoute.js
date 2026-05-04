@@ -17,8 +17,6 @@ const normalizeRequirementPayload = (body = {}) => {
     label: body.label ?? null,
     category: body.category || "Regular",
     is_verifiable: body.is_verifiable === undefined ? 1 : body.is_verifiable ? 1 : 0,
-    xerox_copies: Number(body.xerox_copies ?? 0) || 0,
-    requires_original: body.requires_original ? 1 : 0,
     is_optional: body.is_optional ? 1 : 0,
     applicant_type: String(body.applicant_type ?? 0),
 
@@ -69,8 +67,6 @@ router.post("/requirements", CanCreate, async (req, res) => {
       label,
       category,
       is_verifiable,
-      xerox_copies,
-      requires_original,
       is_optional,
       applicant_type
     )
@@ -84,8 +80,7 @@ router.post("/requirements", CanCreate, async (req, res) => {
       payload.label,
       payload.category,
       payload.is_verifiable,
-      payload.xerox_copies,
-      payload.requires_original,
+  
       payload.is_optional,
       payload.applicant_type,
     ]);
@@ -125,8 +120,7 @@ router.put("/requirements/:id", CanEdit, async (req, res) => {
       label = ?,
       category = ?,
       is_verifiable = ?,
-      xerox_copies = ?,
-      requires_original = ?,
+ 
       is_optional = ?,
       applicant_type = ?
     WHERE id = ?
@@ -139,8 +133,7 @@ router.put("/requirements/:id", CanEdit, async (req, res) => {
       payload.label,
       payload.category,
       payload.is_verifiable,
-      payload.xerox_copies,
-      payload.requires_original,
+
       payload.is_optional,
       payload.applicant_type,
       id,

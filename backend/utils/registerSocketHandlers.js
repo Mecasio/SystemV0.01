@@ -5658,7 +5658,7 @@ WHERE proctor LIKE ?
   app.get("/api/requirements", async (req, res) => {
     try {
       const [rows] = await db.query(
-        `SELECT id, description, short_label, label, category, is_verifiable, xerox_copies, requires_original, is_optional, applicant_type
+        `SELECT id, description, short_label, label, category, is_verifiable, is_optional, applicant_type
        FROM requirements_table
        ORDER BY id ASC`,
       );

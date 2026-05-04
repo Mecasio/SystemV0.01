@@ -855,7 +855,7 @@ const AssignScheduleToApplicantsInterviewer = () => {
     return `
 Dear ${applicant?.last_name || ""}, ${applicant?.first_name || ""} ${applicant?.middle_name || ""}
 
-You are scheduled for an interview on:
+You have been assigned to the following schedule:
 
 📅 Date: ${formattedDate}
 🏢 Building: ${sched?.building_description || "N/A"}
@@ -867,12 +867,7 @@ Please bring the following requirements:
 📄 REQUIRED DOCUMENTS:
 ${reqText}
 
-1. Your Enrollment Officer will provide you with the Admission Form Process, including the required signatories.
-
-Reminder:
-Please provide your Enrollment Officer with photocopies of all your submitted online documents.
-
-Thank you and good luck!
+⚠️ Important Reminder:
 `.trim();
   };
 
@@ -880,19 +875,33 @@ Thank you and good luck!
   const buildRequirementsText = (applicant, list = requirements, copies = selectedCopies) => {
     const filtered = filterRequirementsForApplicant(applicant, list);
 
+    if (!filtered || filtered.length === 0) {
+      return "• No requirements listed at this time.";
+    }
+
+    // Group by category (Regular, Medical, etc.)
+    const grouped = filtered.reduce((acc, req) => {
+      const category = req.category || "Other";
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(req);
+      return acc;
+    }, {});
+
     let text = "";
 
-    filtered.forEach((req) => {
-      const selected = copies[req.id];
-
-      text += `• ${req.description}`;
-      if (selected) {
-        text += ` (${selected.toUpperCase()})`;
-      }
-      text += `\n`;
+    Object.entries(grouped).forEach(([category, items]) => {
+      text += `\n${category} Requirements:\n`;
+      items.forEach((req) => {
+        const selected = copies[req.id];
+        text += `• ${req.description}`;
+        if (selected) {
+          text += ` (${selected.toUpperCase()})`;
+        }
+        text += `\n`;
+      });
     });
 
-    return text;
+    return text.trim();
   };
 
   const handleSendEmails = () => {
@@ -1034,7 +1043,7 @@ Thank you and good luck!
       applicant_numbers: assignedApplicants,
       subject: emailSubject,
       senderName: emailSender,
-      message: emailMessage,
+      message: finalPreview,
       user_person_id: loggedInPersonId,
     });
 
@@ -1073,7 +1082,20 @@ Thank you and good luck!
   );
 
 
-  const [emailMessage, setEmailMessage] = useState("");
+  const [emailMessage, setEmailMessage] = useState(""); // fixed top portion (without reminder)
+  const [finalPreview, setFinalPreview] = useState(""); // live full preview shown read-only
+
+  const [customReminders, setCustomReminders] = useState(
+    `• Please provide your Enrollment Officer with photocopies of all your submitted online documents.
+• Your Enrollment Officer will provide you with the Admission Form Process, including the required signatories.`
+  );
+
+  // Live-rebuild finalPreview whenever reminders or base message change
+  useEffect(() => {
+    if (!confirmOpen) return;
+    setFinalPreview(`${emailMessage}\n\n${customReminders}\n\nThank you and good luck!`);
+  }, [customReminders, emailMessage, confirmOpen]);
+
   const [schedules, setSchedules] = useState([]);
 
   const [itemsPerPage, setItemsPerPage] = useState(100);
@@ -1154,9 +1176,33 @@ Thank you and good luck!
     setCurrentPage(1);
   };
 
+
+  const [minTotal, setMinTotal] = useState("");
+  const [minScorePercent, setMinScorePercent] = useState("");
+  const [minFinalRating, setMinFinalRating] = useState("");
+
+
   // ✅ Step 1: Filtering
   const filteredPersons = persons.filter((personData) => {
-    const finalRating = Number(personData.final_rating) || 0;
+
+    /* 🧮 COMPUTE SCORES (same as ApplicantScoring) */
+    const subjectScores = subjects.map((subject) =>
+      Number(personData.scores?.[subject.id] ?? 0)
+    );
+
+    const total = subjectScores.reduce((sum, score) => sum + score, 0);
+
+    const maxTotal = subjects.reduce(
+      (sum, subject) => sum + Number(subject.max_score || 0),
+      0
+    );
+
+    const scorePercent = maxTotal > 0 ? (total / maxTotal) * 100 : 0;
+
+    const finalRating =
+      subjectScores.length > 0
+        ? total / subjectScores.length
+        : 0;
 
     /* 🏫 CAMPUS */
     const personCampus = String(personData.campus ?? "").trim();
@@ -1165,15 +1211,22 @@ Thank you and good luck!
     const matchesCampus =
       selectedCampusFilter === "" || personCampus === selectedCampusId;
 
-    // ✅ Score range filter
-    const matchesScore =
-      (minScore === "" || finalRating >= Number(minScore)) &&
-      (maxScore === "" || finalRating <= Number(maxScore));
+    /* 🎯 SCORE FILTERS (NEW) */
+    const matchesTotal =
+      minTotal === "" ||
+      (total >= Number(minTotal) && total < Number(minTotal) + 1);
 
-    // ✅ Exact score filter
-    const matchesExactRating =
-      exactRating === "" || finalRating === Number(exactRating);
+    const matchesScorePercent =
+      minScorePercent === "" ||
+      (scorePercent >= Number(minScorePercent) &&
+        scorePercent < Number(minScorePercent) + 1);
 
+    const matchesFinalRating =
+      minFinalRating === "" ||
+      (finalRating >= Number(minFinalRating) &&
+        finalRating < Number(minFinalRating) + 1);
+
+    /* 🔎 SEARCH */
     const query = searchQuery.toLowerCase();
     const fullName =
       `${personData.first_name ?? ""} ${personData.middle_name ?? ""} ${personData.last_name ?? ""}`.toLowerCase();
@@ -1182,16 +1235,19 @@ Thank you and good luck!
       ?.toString()
       .toLowerCase()
       .includes(query);
+
     const matchesName = fullName.includes(query);
     const matchesEmail = personData.emailAddress?.toLowerCase().includes(query);
 
     const programInfo = allCurriculums.find(
-      (opt) => opt.curriculum_id?.toString() === personData.program?.toString(),
+      (opt) => opt.curriculum_id?.toString() === personData.program?.toString()
     );
+
     const matchesProgramQuery = programInfo?.program_code
       ?.toLowerCase()
       .includes(query);
 
+    /* 🎓 FILTERS */
     const matchesDepartment =
       activeDepartmentFilter === "" ||
       String(programInfo?.dprtmnt_id) === String(activeDepartmentFilter);
@@ -1202,7 +1258,7 @@ Thank you and good luck!
 
     const applicantAppliedYear = new Date(personData.created_at).getFullYear();
     const schoolYear = schoolYears.find(
-      (sy) => sy.year_id === selectedSchoolYear,
+      (sy) => sy.year_id === selectedSchoolYear
     );
 
     const matchesSchoolYear =
@@ -1210,13 +1266,11 @@ Thank you and good luck!
       (schoolYear &&
         String(applicantAppliedYear) === String(schoolYear.current_year));
 
-    // middle_code is not returned by the API query - semester filter bypassed.
-    // To enable it, add middle_code to the SQL SELECT in the backend.
     const matchesSemester =
       selectedSchoolSemester === "" ||
       String(personData.middle_code ?? "") === String(selectedSchoolSemester);
 
-    // ✅ Created At (Date Applied) filter
+    /* 📅 DATE */
     const createdAtDate = new Date(personData.created_at);
     const matchesDateRange =
       (!startDate || createdAtDate >= new Date(startDate)) &&
@@ -1232,9 +1286,10 @@ Thank you and good luck!
       matchesSchoolYear &&
       matchesSemester &&
       matchesCampus &&
-      matchesScore &&
-      matchesExactRating &&
-      matchesDateRange // ✅ Added Date Applied filter
+      matchesTotal &&              // ✅ NEW
+      matchesScorePercent &&       // ✅ NEW
+      matchesFinalRating &&        // ✅ NEW
+      matchesDateRange
     );
   });
 
@@ -1861,21 +1916,45 @@ Thank you and good luck!
               </Select>
             </FormControl>
 
-            <Typography
-              fontSize={13}
-              sx={{ marginLeft: "20px", minWidth: "80px", textAlign: "right" }}
-            >
-              Exam Rating:
-            </Typography>
-            <TextField
-              type="number"
-              size="small"
-              label="Input Rating"
-              value={exactRating}
-              onChange={(e) => setExactRating(e.target.value)}
-              sx={{ width: 150 }}
-            />
+
           </Box>
+        </Box>
+        <Typography
+          color="maroon"
+          sx={{ mb: 1, fontWeight: "bold" }}
+        >
+          Applicant Score Filters:
+        </Typography>
+
+        <Box display="flex" gap={2} flexWrap="wrap" alignItems="center">
+
+          <Typography fontSize={13}>Total:</Typography>
+          <TextField
+            label="Total"
+            size="small"
+            type="number"
+            value={minTotal}
+            onChange={(e) => setMinTotal(e.target.value)}
+          />
+
+          <Typography fontSize={13}>Score:</Typography>
+          <TextField
+            label="Score %"
+            size="small"
+            type="number"
+            value={minScorePercent}
+            onChange={(e) => setMinScorePercent(e.target.value)}
+          />
+
+          <Typography fontSize={13}>Final Rating:</Typography>
+          <TextField
+            label="Final Rating"
+            size="small"
+            type="number"
+            value={minFinalRating}
+            onChange={(e) => setMinFinalRating(e.target.value)}
+          />
+
         </Box>
       </Paper>
 
@@ -2125,17 +2204,17 @@ Thank you and good luck!
               >
                 Email Address
               </TableCell>
-              <TableCell
-                sx={{
-                  color: "white",
-                  textAlign: "center",
-                  fontSize: "12px",
-                  color: "black",
-                  border: `1px solid ${borderColor}`,
-                }}
-              >
+              <TableCell sx={{ color: "black", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
+                Total
+              </TableCell>
+              <TableCell sx={{ color: "black", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
+                Score %
+              </TableCell>
+
+              <TableCell sx={{ color: "black", textAlign: "center", width: "6%", py: 0.5, fontSize: "12px", border: `1px solid ${borderColor}` }}>
                 Final Rating
               </TableCell>
+
               <TableCell
                 sx={{
                   color: "white",
@@ -2169,9 +2248,35 @@ Thank you and good luck!
               </TableRow>
             ) : (
               currentPersons.map((person, idx) => {
-                const finalRating = Number(person.final_rating) || 0; // ✅ use backend value
+                const subjectScores = subjects.map((subject) => {
+                  return Number(
+                    person.scores?.[subject.id] ?? 0
+                  );
+                });
+
                 const applicantId = person.applicant_number;
-                const isAssigned = !!person.schedule_id; // ✅ check if already assigned
+                const isAssigned = !!person.schedule_id;
+
+                const totalScore = subjectScores.reduce(
+                  (sum, score) => sum + score,
+                  0
+                );
+
+                const maxTotal = subjects.reduce(
+                  (sum, subject) => sum + Number(subject.max_score || 0),
+                  0
+                );
+
+                const computedConvertedRating =
+                  maxTotal > 0
+                    ? (totalScore / maxTotal) * 100
+                    : 0;
+
+                const computedFinalRating =
+                  subjectScores.length > 0
+                    ? totalScore / subjectScores.length
+                    : 0;
+
 
                 return (
                   <TableRow
@@ -2182,9 +2287,8 @@ Thank you and good luck!
                   >
                     <TableCell
                       sx={{
-                        textAlign: "center",
                         border: `1px solid ${borderColor}`,
-
+                        textAlign: "center",
                         fontSize: "12px",
                       }}
                     >
@@ -2197,8 +2301,6 @@ Thank you and good luck!
                         cursor: "pointer",
                         textAlign: "center",
                         border: `1px solid ${borderColor}`,
-
-                        py: 0.5,
                         fontSize: "12px",
                       }}
                       onClick={() => handleRowClick(person.person_id)}
@@ -2213,8 +2315,6 @@ Thank you and good luck!
                         cursor: "pointer",
                         textAlign: "left",
                         border: `1px solid ${borderColor}`,
-
-                        py: 0.5,
                         fontSize: "12px",
                       }}
                       onClick={() => handleRowClick(person.person_id)}
@@ -2225,8 +2325,8 @@ Thank you and good luck!
                     {/* Program */}
                     <TableCell
                       sx={{
-                        textAlign: "center",
                         border: `1px solid ${borderColor}`,
+                        textAlign: "center",
                         fontSize: "12px",
                       }}
                     >
@@ -2240,29 +2340,51 @@ Thank you and good luck!
                     {/* Email */}
                     <TableCell
                       sx={{
-                        textAlign: "center",
                         border: `1px solid ${borderColor}`,
+                        textAlign: "center",
                         fontSize: "12px",
                       }}
                     >
                       {person.emailAddress ?? "N/A"}
                     </TableCell>
 
-                    {/* Final Rating */}
                     <TableCell
                       sx={{
-                        textAlign: "center",
                         border: `1px solid ${borderColor}`,
+                        textAlign: "center",
                         fontSize: "12px",
                       }}
                     >
-                      {finalRating.toFixed(2)}
+                      {totalScore}
                     </TableCell>
 
                     <TableCell
                       sx={{
-                        textAlign: "center",
                         border: `1px solid ${borderColor}`,
+                        textAlign: "center",
+                        fontSize: "12px",
+                      }}
+                    >
+                      {Number(computedConvertedRating).toFixed(2)}
+                    </TableCell>
+
+
+
+                    {/* FINAL RATING */}
+                    <TableCell
+                      sx={{
+                        border: `1px solid ${borderColor}`,
+                        textAlign: "center",
+                        fontSize: "12px",
+                      }}
+                    >
+                      {Number(computedFinalRating).toFixed(2)}
+                    </TableCell>
+
+                    <TableCell
+                      sx={{
+                        border: `1px solid ${borderColor}`,
+                        textAlign: "center",
                         fontSize: "12px",
                       }}
                     >
@@ -2284,8 +2406,9 @@ Thank you and good luck!
                     {/* Action Buttons */}
                     <TableCell
                       sx={{
-                        textAlign: "center",
                         border: `1px solid ${borderColor}`,
+                        textAlign: "center",
+                        fontSize: "12px",
                       }}
                     >
                       {!isAssigned ? (
@@ -2536,7 +2659,7 @@ Thank you and good luck!
             color: "white",
           }}
         >
-          ✉️ Edit & Send Email
+           ✉️ Message
         </DialogTitle>
 
         <DialogContent dividers sx={{ p: 3 }}>
@@ -2636,26 +2759,33 @@ Thank you and good luck!
             })}
           </div>
 
-          {/* Message */}
+          {/* Email Preview (Read Only) — updates live as reminders change */}
           <TextField
-            label="Message"
-            value={emailMessage}
-            onChange={(e) => setEmailMessage(e.target.value)}
+            label="Email Preview (Read Only)"
+            value={finalPreview}
             fullWidth
             multiline
             minRows={10}
-            placeholder="Write your message here..."
-            sx={{
-              fontFamily: "monospace",
-              whiteSpace: "pre-wrap",
-              mt: 2
-            }}
+            InputProps={{ readOnly: true }}
+            sx={{ mt: 2, mb: 3 }}
+          />
+
+          {/* Editable Reminders Only */}
+          <TextField
+            label="Important Reminders"
+            value={customReminders}
+            onChange={(e) => setCustomReminders(e.target.value)}
+            fullWidth
+            multiline
+            minRows={4}
+            placeholder="Edit reminders here..."
+            sx={{ mb: 2, fontFamily: "monospace", whiteSpace: "pre-wrap" }}
           />
 
           <Typography
             variant="caption"
             color="gray"
-            sx={{ display: "block", mt: 2 }}
+            sx={{ display: "block", mt: 1 }}
           >
             🔑 Available placeholders:{" "}
             {

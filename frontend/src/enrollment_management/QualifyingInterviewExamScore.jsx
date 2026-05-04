@@ -429,17 +429,19 @@ const QualifyingExamScore = () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/applicants-with-number`);
 
-      // ✅ API returns { subjects: [...], data: [...] }
       const data = Array.isArray(res.data?.data) ? res.data.data : [];
       const fetchedSubjects = Array.isArray(res.data?.subjects) ? res.data.subjects : [];
 
       const withAssignedFlag = data.map((p) => ({
         ...p,
         assigned: false,
+        // ✅ guarantee the fields are always numbers, never null/undefined
+        qualifying_exam_score: Number(p.qualifying_exam_score) || 0,
+        qualifying_interview_score: Number(p.qualifying_interview_score) || 0,
       }));
 
       setPersons(withAssignedFlag);
-      setSubjects(fetchedSubjects); // ✅ use subjects from this API instead of a separate call
+      setSubjects(fetchedSubjects);
     } catch (err) {
       console.error("Error fetching applicants:", err);
       setPersons([]);
@@ -573,14 +575,6 @@ const QualifyingExamScore = () => {
 
   const filteredPersons = persons.filter((personData) => {
 
-    /* ⭐ SCORE FILTER */
-    const matchesScore =
-      (minScore === "" || finalRating >= Number(minScore)) &&
-      (maxScore === "" || finalRating <= Number(maxScore));
-
-    const matchesExactRating =
-      exactRating === "" || finalRating === Number(exactRating);
-
     /* 🔎 SEARCH */
     const query = searchQuery.toLowerCase();
     const fullName =
@@ -590,6 +584,7 @@ const QualifyingExamScore = () => {
       ?.toString()
       .toLowerCase()
       .includes(query);
+
     const matchesName = fullName.includes(query);
     const matchesEmail = personData.emailAddress?.toLowerCase().includes(query);
 
@@ -598,7 +593,8 @@ const QualifyingExamScore = () => {
 
     /* 🎓 PROGRAM */
     const programInfo = allCurriculums.find(
-      (opt) => opt.curriculum_id?.toString() === personData.program?.toString(),
+      (opt) =>
+        opt.curriculum_id?.toString() === personData.program?.toString()
     );
 
     const matchesProgramQuery = programInfo?.program_code
@@ -613,12 +609,12 @@ const QualifyingExamScore = () => {
       selectedProgramFilter === "" ||
       programInfo?.program_code === selectedProgramFilter;
 
-    /* 📅 CREATED_AT — FIXED TO MANILA TIME */
+    /* 📅 CREATED_AT */
     const appliedDate = new Date(personData.created_at.split("T")[0]);
     const applicantAppliedYear = appliedDate.getFullYear();
 
     const schoolYear = schoolYears.find(
-      (sy) => sy.year_id === selectedSchoolYear,
+      (sy) => sy.year_id === selectedSchoolYear
     );
 
     const matchesSchoolYear =
@@ -630,20 +626,39 @@ const QualifyingExamScore = () => {
       selectedSchoolSemester === "" ||
       String(personData.middle_code) === String(selectedSchoolSemester);
 
+    /* 🧮 SCORE COMPUTATION (MUST COME BEFORE FILTERS) */
+    const subjectScores = subjects.map((subject) =>
+      Number(personData.scores?.[subject.id] ?? 0)
+    );
 
-    // ✅ ADD THIS HERE
-    const e = Number(personData.english || 0);
-    const s = Number(personData.science || 0);
-    const f = Number(personData.filipino || 0);
-    const m = Number(personData.math || 0);
-    const a = Number(personData.abstract || 0);
+    const total = subjectScores.reduce((sum, score) => sum + score, 0);
 
-    const total = e + s + f + m + a;
-    const scorePercent = ((total / 150) * 50) + 50;
-    const finalRating = Math.round(total / 5);
+    const maxTotal = subjects.reduce(
+      (sum, subject) => sum + Number(subject.max_score || 0),
+      0
+    );
+
+    const scorePercent =
+      maxTotal > 0 ? (total / maxTotal) * 100 : 0;
+
+    const finalRating =
+      subjectScores.length > 0
+        ? total / subjectScores.length
+        : 0;
+
+    /* ⭐ SCORE FILTER */
+    const matchesScore =
+      (minScore === "" || finalRating >= Number(minScore)) &&
+      (maxScore === "" || finalRating <= Number(maxScore));
+
+    const matchesExactRating =
+      exactRating === "" ||
+      finalRating === Number(exactRating);
 
     const matchesTotal =
-      minTotal === "" || total === Number(minTotal);
+      minTotal === "" ||
+      (total >= Number(minTotal) &&
+        total < Number(minTotal) + 1);
 
     const matchesScorePercent =
       minScorePercent === "" ||
@@ -651,8 +666,9 @@ const QualifyingExamScore = () => {
         scorePercent < Number(minScorePercent) + 1);
 
     const matchesFinalRating =
-      minFinalRating === "" || finalRating === Number(minFinalRating);
-
+      minFinalRating === "" ||
+      (finalRating >= Number(minFinalRating) &&
+        finalRating < Number(minFinalRating) + 1);
 
     /* FINAL FILTER RESULT */
     return (
@@ -664,14 +680,15 @@ const QualifyingExamScore = () => {
       matchesProgramFilter &&
       matchesSchoolYear &&
       matchesSemester &&
-      matchesScore &&
       matchesCampus &&
+      matchesScore &&
       matchesExactRating &&
       matchesTotal &&
       matchesScorePercent &&
       matchesFinalRating
     );
   });
+
 
   /* ⭐ SORTING (ALSO FIXED CREATED_AT) */
   const sortedPersons = React.useMemo(() => {
@@ -792,12 +809,11 @@ const QualifyingExamScore = () => {
   useEffect(() => {
     const personIdFromQuery = queryParams.get("person_id");
 
+    // ✅ If specific applicant → fetch single
     if (personIdFromQuery) {
-      // ✅ Fetch single applicant
       axios
         .get(`${API_BASE_URL}/api/person_with_applicant/${personIdFromQuery}`)
         .then((res) => {
-          // Ensure scores always have a value
           const fixed = {
             ...res.data,
             qualifying_exam_score: res.data.qualifying_exam_score ?? 0,
@@ -805,27 +821,20 @@ const QualifyingExamScore = () => {
               res.data.qualifying_interview_score ?? 0,
             final_rating: res.data.final_rating ?? 0,
           };
-          setPersons([fixed]); // wrap in array for table rendering
+
+          setPersons([fixed]); // ✅ correct
         })
         .catch((err) => {
           console.error("❌ Error fetching single applicant:", err);
-          setPersons([]); // fallback to empty list
-        });
-    } else {
-      // ✅ Fetch all applicants (with scores)
-      axios
-        .get(`${API_BASE_URL}/api/applicants-with-number`)
-        .then((res) =>
-          setPersons(
-            Array.isArray(res.data) ? res.data : [],
-          ),
-        )
-        .catch((err) => {
-          console.error("❌ Error fetching applicants:", err);
           setPersons([]);
         });
+
+    } else {
+      // ✅ USE YOUR EXISTING FUNCTION (IMPORTANT)
+      fetchApplicants();
     }
   }, [queryPersonId]);
+
 
   const handleStatusChange = async (applicantId, newStatus) => {
     try {
@@ -1070,69 +1079,93 @@ const QualifyingExamScore = () => {
     }
   };
 
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    document.getElementById("excel-upload").value = "";
+  };
+
+
   // when import button clicked
   const handleImport = async () => {
     try {
       if (!selectedFile) {
-        setSnack({
-          open: true,
-          message: "Please choose a file first!",
-          severity: "warning",
-        });
+        setSnack({ open: true, message: "Please choose a file first!", severity: "warning" });
         return;
       }
 
       const data = await selectedFile.arrayBuffer();
       const workbook = XLSX.read(data);
       const sheetName = workbook.SheetNames[0];
-      let sheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {
-        defval: "",
-      });
+
+      let sheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
 
       sheet = sheet
         .filter((row) => row["Applicant ID"])
         .map((row) => ({
           applicant_number: String(row["Applicant ID"]).trim(),
           qualifying_exam_score: Number(row["Qualifying Exam Score"]) || 0,
-          qualifying_interview_score:
-            Number(row["Qualifying Interview Score"]) || 0,
-          total_ave:
-            Number(row["Total Ave"]) ||
-            (Number(row["Qualifying Exam Score"]) +
-              Number(row["Qualifying Interview Score"])) /
-            2,
-
-          // ⭐ NEW: Status Column from Excel
+          qualifying_interview_score: Number(row["Qualifying Interview Score"]) || 0,
           status: row["Status"] ? String(row["Status"]).trim() : "Waiting List",
         }));
 
       if (sheet.length === 0) {
-        setSnack({
-          open: true,
-          message: "Excel file had no valid rows!",
-          severity: "warning",
-        });
+        setSnack({ open: true, message: "Excel file had no valid rows!", severity: "warning" });
         return;
       }
 
+      setLoading(true);
+
       const res = await axios.post(
         `${API_BASE_URL}/api/qualifying_exam/import`,
-        {
-          userID,
-          data: sheet,
-        },
-        {
-          headers: { "Content-Type": "application/json" },
-        },
+        { userID, data: sheet },
+        { headers: { "Content-Type": "application/json" } }
       );
 
-      setSnack({
-        open: true,
-        message: res.data.message || "Import successful!",
-        severity: "success",
-      });
+      const errors = res.data.errors || [];
 
-      fetchApplicants(); // refresh UI
+      // ✅ STEP 1: Patch state immediately from updatedRows (instant UI update)
+      if (Array.isArray(res.data.updatedRows) && res.data.updatedRows.length > 0) {
+        const patchMap = {};
+        res.data.updatedRows.forEach(r => {
+          patchMap[r.applicant_number] = r;
+        });
+
+        setPersons(prev =>
+          prev.map(p => {
+            const patch = patchMap[p.applicant_number];
+            if (!patch) return p;
+            return {
+              ...p,
+              qualifying_exam_score: Number(patch.qualifying_result) || 0,
+              qualifying_interview_score: Number(patch.interview_result) || 0,
+              exam_result: Number(patch.exam_result) || 0,
+              college_approval_status: patch.college_approval_status,
+            };
+          })
+        );
+      }
+
+      // ✅ STEP 2: Wait briefly for DB to fully commit, then re-fetch to sync
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await fetchApplicants(); // ✅ now awaited — guarantees fresh data replaces state
+
+      setSelectedFile(null);
+
+      if (res.data.success && errors.length === 0) {
+        setSnack({ open: true, message: "✅ All applicants imported successfully!", severity: "success" });
+      } else if (errors.length > 0) {
+        const failedApplicants = errors
+          .map(e => { const m = e.match(/Applicant (\S+)/); return m ? m[1] : null; })
+          .filter(Boolean);
+        setSnack({
+          open: true,
+          message: `⚠️ Some applicants skipped. Failed: ${failedApplicants.join(", ")}`,
+          severity: "warning",
+        });
+      } else {
+        setSnack({ open: true, message: res.data.message || "Import failed", severity: "error" });
+      }
+
     } catch (err) {
       console.error("❌ Import error:", err.response?.data || err.message);
       setSnack({
@@ -1140,8 +1173,11 @@ const QualifyingExamScore = () => {
         message: "Import failed: " + (err.response?.data?.error || err.message),
         severity: "error",
       });
+    } finally {
+      setLoading(false);
     }
   };
+
 
   useEffect(() => {
     const syncPendingScores = async () => {
@@ -1529,6 +1565,27 @@ const QualifyingExamScore = () => {
 
   const [emailMessage, setEmailMessage] = useState("");
 
+  const [customReminders, setCustomReminders] = useState(
+    `⚠️ Important Reminder:
+
+1. Proceed to the Clinic for your Medical Examination.
+   - Bring and present your Admission Form Process so they can verify if you're eligible to take the Medical Examination.
+
+2. After completing your Medical Examination, proceed to the Registrar's Office to submit your Original Documents within 7 days.
+   - Submissions are accepted only during working hours, Monday to Friday, from 8:00 AM to 5:00 PM.
+
+3. Please note that failure to comply within 7 days may result in your slot being given to another applicant.
+
+You have until May 11, 2026 to complete the admission process.`
+  );
+
+  const [finalPreview, setFinalPreview] = useState("");
+
+  useEffect(() => {
+    if (!confirmOpen && !singleConfirmOpen) return;
+    setFinalPreview(emailMessage + "\n\n" + customReminders + "\n\nThank you and good luck!");
+  }, [emailMessage, customReminders, confirmOpen, singleConfirmOpen]);
+
 
   const [requirements, setRequirements] = useState([]);
 
@@ -1587,56 +1644,55 @@ const QualifyingExamScore = () => {
         year: "numeric",
       });
 
-      const newMessage = buildFullMessage(applicant, reqText, formattedValidUntil);
-      setEmailMessage(newMessage);
-
+      const newMessage = buildFullMessage(applicant, reqText);
       setEmailMessage(newMessage);
 
       return updated;
     });
   };
 
-  const buildFullMessage = (applicant, reqText, formattedValidUntil) => {
-    return `
-Dear ${applicant?.last_name || ""}, ${applicant?.first_name || ""} ${applicant?.middle_name || ""}
+  const buildFullMessage = (applicant, reqText) => {
+    return `Dear ${applicant?.last_name || ""}, ${applicant?.first_name || ""} ${applicant?.middle_name || ""}
 
 Congratulations on passing the Interview/Qualifying Exam!
 
 Please follow the steps below to complete your Admission process:
 
 📄 REQUIRED DOCUMENTS:
-${reqText}
-
-1. Proceed to the Clinic for your Medical Examination.  
-   - Bring and present your Admission Form Process so they can verify if you're eligible to take the Medical Examination.
-
-2. After completing your Medical Examination, proceed to the Registrar’s Office to submit your Original Documents within 7 days.  
-   - Submissions are accepted only during working hours, Monday to Friday, from 8:00 AM to 5:00 PM.
-
-3. Please note that failure to comply within 7 days may result in your slot being given to another applicant.
-
-You have until ${formattedValidUntil} to complete the admission process.
-
-Thank you, best regards
-`.trim();
+${reqText}`.trim();
   };
 
   const buildRequirementsText = (applicant, list = requirements, copies = selectedCopies) => {
     const filtered = filterRequirementsForApplicant(applicant, list);
 
+    if (!filtered || filtered.length === 0) return "No requirements listed.";
+
+    const mainReqs = filtered.filter(r => !r.category?.toLowerCase().includes("medical"));
+    const medReqs = filtered.filter(r => r.category?.toLowerCase().includes("medical"));
+
     let text = "";
 
-    filtered.forEach((req) => {
-      const selected = copies[req.id];
+    if (mainReqs.length > 0) {
+      text += "Main Requirements:\n";
+      mainReqs.forEach((req, i) => {
+        const sel = copies[req.id];
+        text += `${i + 1}. ${req.description}`;
+        if (sel) text += ` (${sel.toUpperCase()})`;
+        text += "\n";
+      });
+    }
 
-      text += `• ${req.description}`;
-      if (selected) {
-        text += ` (${selected.toUpperCase()})`;
-      }
-      text += `\n`;
-    });
+    if (medReqs.length > 0) {
+      text += "\nMedical Requirements:\n";
+      medReqs.forEach((req) => {
+        const sel = copies[req.id];
+        text += `  • ${req.description}`;
+        if (sel) text += ` (${sel.toUpperCase()})`;
+        text += "\n";
+      });
+    }
 
-    return text;
+    return text.trim();
   };
 
   const handleOpenDialog = (applicant = null) => {
@@ -1681,7 +1737,7 @@ Thank you, best regards
 
 
     setSelectedApplicant(applicant?.applicant_number || null);
-    const message = buildFullMessage(applicant, reqText, formattedValidUntil);
+    const message = buildFullMessage(applicant, reqText);
     setEmailMessage(message);
     setConfirmOpen(true);
   };
@@ -1727,7 +1783,7 @@ Thank you, best regards
 `.trim();
 
     setSelectedApplicant(applicant?.applicant_number || null);
-    const message = buildFullMessage(applicant, reqText, formattedValidUntil);
+    const message = buildFullMessage(applicant, reqText);
     setEmailMessage(message);
     setSingleConfirmOpen(true);
   };
@@ -1779,7 +1835,7 @@ Thank you, best regards
         await axios.post(`${API_BASE_URL}/api/send-email`, {
           to: recipientEmail,
           subject: emailSubject,
-          html: emailMessage.replace(/\n/g, "<br/>"),
+          html: finalPreview.replace(/\n/g, "<br/>"),
           senderName: emailSender,
           user_person_id: loggedInPersonId,
         });
@@ -1859,7 +1915,7 @@ Thank you, best regards
         await axios.post(`${API_BASE_URL}/api/send-email`, {
           to: recipientEmail,
           subject: emailSubject,
-          html: emailMessage.replace(/\n/g, "<br/>"),
+          html: finalPreview.replace(/\n/g, "<br/>"),
           senderName: emailSender,
           user_person_id: userID,
         });
@@ -2253,56 +2309,112 @@ Thank you, best regards
               </FormControl>
 
               {/* ✅ Import Excel beside To Date */}
-              <Box display="flex" alignItems="center" gap={1}>
-                <input
-                  type="file"
-                  accept=".xlsx,.xls"
-                  onChange={handleFileChange}
-                  style={{ display: "none" }}
-                  id="excel-upload"
-                />
 
-                {/* ✅ Button that triggers file input */}
-                <button
-                  onClick={() =>
-                    document.getElementById("excel-upload").click()
-                  }
-                  style={{
-                    padding: "5px 20px",
-                    border: "2px solid green",
-                    backgroundColor: "#f0fdf4",
-                    color: "green",
-                    borderRadius: "5px",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    fontWeight: "bold",
-                    height: "40px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    userSelect: "none",
-                    width: "200px", // ✅ same width as Print
-                  }}
-                  type="button"
-                >
-                  <FaFileExcel size={20} />
-                  Choose Excel
-                </button>
+              <Box display="flex" flexDirection="column" gap={1}>
+                <Box display="flex" alignItems="center" gap={1}>
+                  <input
+                    type="file"
+                    accept=".xlsx,.xls"
+                    onChange={handleFileChange}
+                    style={{ display: "none" }}
+                    id="excel-upload"
+                  />
+
+                  {/* Button that triggers file input */}
+                  <button
+                    onClick={() => document.getElementById("excel-upload").click()}
+                    style={{
+                      padding: "5px 20px",
+                      border: "2px solid green",
+                      backgroundColor: "#f0fdf4",
+                      color: "green",
+                      borderRadius: "5px",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                      fontWeight: "bold",
+                      height: "40px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      userSelect: "none",
+                      width: "200px",
+                    }}
+                    type="button"
+                  >
+                    <FaFileExcel size={20} />
+                    Choose Excel
+                  </button>
+
+                  <Button
+                    variant="contained"
+                    disabled={!selectedFile}
+                    sx={{
+                      height: "40px",
+                      width: "200px",
+                      backgroundColor: selectedFile ? "green" : undefined,
+                      "&:hover": { backgroundColor: "#166534" },
+                      fontWeight: "bold",
+                    }}
+                    onClick={handleImport}
+                  >
+                    Import Applicants
+                  </Button>
+                </Box>
+
+                {/* ✅ FILE PREVIEW — visible only after a file is chosen */}
+                {selectedFile && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1.5,
+                      border: "1px solid #bbf7d0",
+                      backgroundColor: "#f0fdf4",
+                      borderRadius: "8px",
+                      padding: "10px 14px",
+                      mt: 0.5,
+                    }}
+                  >
+                    <FaFileExcel size={28} color="#16a34a" />
+                    <Box flex={1} minWidth={0}>
+                      <Typography
+                        sx={{
+                          fontSize: 14,
+                          fontWeight: 600,
+                          color: "#14532d",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {selectedFile.name}
+                      </Typography>
+                      <Typography sx={{ fontSize: 12, color: "#15803d" }}>
+                        {selectedFile.type || "Excel Workbook"} ·{" "}
+                        {selectedFile.size < 1024 * 1024
+                          ? (selectedFile.size / 1024).toFixed(1) + " KB"
+                          : (selectedFile.size / (1024 * 1024)).toFixed(1) + " MB"}
+                      </Typography>
+                    </Box>
+                    <Button
+                      size="small"
+                      onClick={handleRemoveFile}
+                      sx={{
+                        fontSize: 12,
+                        color: "#15803d",
+                        border: "1px solid #86efac",
+                        borderRadius: "6px",
+                        textTransform: "none",
+                        minWidth: "unset",
+                        px: 1.5,
+                        flexShrink: 0,
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  </Box>
+                )}
               </Box>
-
-              <Button
-                variant="contained"
-                sx={{
-                  height: "40px",
-                  width: "200px", // ✅ matches Print
-                  backgroundColor: "green",
-                  "&:hover": { backgroundColor: "#166534" },
-                  fontWeight: "bold",
-                }}
-                onClick={handleImport}
-              >
-                Import Applicants
-              </Button>
             </Box>
           </Box>
 
@@ -3090,6 +3202,12 @@ Thank you, best regards
               </TableRow>
             ) : (
               currentPersons.map((person, index) => {
+                const subjectScores = subjects.map((subject) => {
+                  return Number(
+                    person.scores?.[subject.id] ?? 0
+                  );
+                });
+
                 const qualifyingExam =
                   editScores[person.person_id]?.qualifying_exam_score ??
                   person.qualifying_exam_score ??
@@ -3104,28 +3222,25 @@ Thank you, best regards
                 const isAssigned = !!person.schedule_id; // ✅ check if already assigned
                 const finalRating = Number(person.final_rating) || 0; // ✅ use backend value
 
+                const totalScore = subjectScores.reduce(
+                  (sum, score) => sum + score,
+                  0
+                );
 
-                const english = Number(person.english) || 0;
-                const science = Number(person.science) || 0;
-                const filipino = Number(person.filipino) || 0;
-                const math = Number(person.math) || 0;
-                const abstract = Number(person.abstract) || 0;
+                const maxTotal = subjects.reduce(
+                  (sum, subject) => sum + Number(subject.max_score || 0),
+                  0
+                );
 
-                // ✅ Use edited values if present
-                const e = [person.person_id]?.english ?? english;
-                const s = [person.person_id]?.science ?? science;
-                const f = [person.person_id]?.filipino ?? filipino;
-                const m = [person.person_id]?.math ?? math;
-                const a = [person.person_id]?.abstract ?? abstract;
+                const computedConvertedRating =
+                  maxTotal > 0
+                    ? (totalScore / maxTotal) * 100
+                    : 0;
 
-                // ✅ TOTAL (NEW)
-                const totalScore = e + s + f + m + a;
-
-                // ✅ ORIGINAL FINAL (keep this)
-                const computedFinalRating = totalScore / 5;
-
-                // ✅ NEW CONVERTED (your formula)
-                const computedConvertedRating = ((totalScore / 150) * 50) + 50;
+                const computedFinalRating =
+                  subjectScores.length > 0
+                    ? totalScore / subjectScores.length
+                    : 0;
 
 
                 return (
@@ -3202,8 +3317,8 @@ Thank you, best regards
 
                     <TableCell
                       sx={{
-                        textAlign: "center",
                         border: `1px solid ${borderColor}`,
+                        textAlign: "center",
                         fontSize: "12px",
                       }}
                     >
@@ -3212,23 +3327,25 @@ Thank you, best regards
 
                     <TableCell
                       sx={{
-                        textAlign: "center",
                         border: `1px solid ${borderColor}`,
+                        textAlign: "center",
                         fontSize: "12px",
                       }}
                     >
                       {Number(computedConvertedRating).toFixed(2)}
                     </TableCell>
 
-                    {/* Final Rating */}
+
+
+                    {/* FINAL RATING */}
                     <TableCell
                       sx={{
-                        textAlign: "center",
                         border: `1px solid ${borderColor}`,
+                        textAlign: "center",
                         fontSize: "12px",
                       }}
                     >
-                      {Number(person.final_rating).toFixed(2)}
+                      {Number(computedFinalRating).toFixed(2)}
                     </TableCell>
 
                     {/* Qualifying Exam Score */}
@@ -3653,96 +3770,142 @@ Thank you, best regards
             sx={{ mb: 3 }}
           />
 
+          {/* ── REQUIRED DOCUMENTS ── */}
           <div
             style={{
               border: "1px solid #ddd",
               borderRadius: "8px",
               padding: "16px",
-              minHeight: "200px",
-              backgroundColor: "#fafafa"
+              backgroundColor: "#fafafa",
+              marginBottom: "16px"
             }}
           >
-            <p style={{ fontWeight: "bold", marginBottom: "12px" }}>
+            <p style={{ fontWeight: "bold", marginBottom: "8px" }}>
               📄 REQUIRED DOCUMENTS:
             </p>
 
+            {/* Main Requirements – numbered */}
             {filterRequirementsForApplicant(
               persons.find(p => p.applicant_number === selectedApplicant),
               requirements
-            ).map((req) => {
-              const selected = selectedCopies[req.id];
-
-              return (
-                <div
-                  key={req.id}
-                  style={{
-                    border: "1px solid #eee",
-                    borderRadius: "6px",
-                    padding: "10px",
-                    marginBottom: "10px",
-                    backgroundColor: selected ? "#fff8f0" : "white"
-                  }}
-                >
-                  {/* Description */}
-                  <div style={{ marginBottom: "8px" }}>
-                    <span style={{ fontWeight: 500 }}>
-                      • {req.description}
-                    </span>
-
-                    {selected && (
-                      <span
+            ).filter(r => !r.category?.toLowerCase().includes("medical")).length > 0 && (
+                <>
+                  <p style={{ fontWeight: 600, fontSize: "13px", color: "#444", marginBottom: "6px" }}>
+                    Main Requirements:
+                  </p>
+                  {filterRequirementsForApplicant(
+                    persons.find(p => p.applicant_number === selectedApplicant),
+                    requirements
+                  ).filter(r => !r.category?.toLowerCase().includes("medical")).map((req, index) => {
+                    const selected = selectedCopies[req.id];
+                    return (
+                      <div
+                        key={req.id}
                         style={{
-                          marginLeft: "10px",
-                          color: "#800000",
-                          fontWeight: "bold"
+                          border: "1px solid #eee",
+                          borderRadius: "6px",
+                          padding: "10px",
+                          marginBottom: "8px",
+                          backgroundColor: selected ? "#fff8f0" : "white"
                         }}
                       >
-                        ({selected.toUpperCase()})
-                      </span>
-                    )}
-                  </div>
+                        <div style={{ marginBottom: "6px" }}>
+                          <span style={{ fontWeight: 500 }}>
+                            {index + 1}. {req.description}
+                          </span>
+                          {selected && (
+                            <span style={{ marginLeft: "10px", color: "#800000", fontWeight: "bold" }}>
+                              ({selected.toUpperCase()})
+                            </span>
+                          )}
+                        </div>
+                        <div>
+                          <Button size="small" variant={selected === "xerox" ? "contained" : "outlined"} color="warning" onClick={() => handleSelect(req.id, "xerox")} sx={{ mr: 1 }}>
+                            Xerox
+                          </Button>
+                          <Button size="small" variant={selected === "original" ? "contained" : "outlined"} color="success" onClick={() => handleSelect(req.id, "original")}>
+                            Original
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </>
+              )}
 
-                  {/* Buttons */}
-                  <div>
-                    <Button
-                      size="small"
-                      variant={selected === "xerox" ? "contained" : "outlined"}
-                      color="warning"
-                      onClick={() => handleSelect(req.id, "xerox")}
-                      sx={{ mr: 1 }}
-                    >
-                      Xerox
-                    </Button>
-
-                    <Button
-                      size="small"
-                      variant={selected === "original" ? "contained" : "outlined"}
-                      color="success"
-                      onClick={() => handleSelect(req.id, "original")}
-                    >
-                      Original
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
+            {/* Medical Requirements – bulleted */}
+            {filterRequirementsForApplicant(
+              persons.find(p => p.applicant_number === selectedApplicant),
+              requirements
+            ).filter(r => r.category?.toLowerCase().includes("medical")).length > 0 && (
+                <>
+                  <p style={{ fontWeight: 600, fontSize: "13px", color: "#444", marginTop: "12px", marginBottom: "6px" }}>
+                    Medical Requirements:
+                  </p>
+                  {filterRequirementsForApplicant(
+                    persons.find(p => p.applicant_number === selectedApplicant),
+                    requirements
+                  ).filter(r => r.category?.toLowerCase().includes("medical")).map((req) => {
+                    const selected = selectedCopies[req.id];
+                    return (
+                      <div
+                        key={req.id}
+                        style={{
+                          border: "1px solid #eee",
+                          borderRadius: "6px",
+                          padding: "10px",
+                          marginBottom: "8px",
+                          backgroundColor: selected ? "#fff8f0" : "white"
+                        }}
+                      >
+                        <div style={{ marginBottom: "6px" }}>
+                          <span style={{ fontWeight: 500 }}>
+                            • {req.description}
+                          </span>
+                          {selected && (
+                            <span style={{ marginLeft: "10px", color: "#800000", fontWeight: "bold" }}>
+                              ({selected.toUpperCase()})
+                            </span>
+                          )}
+                        </div>
+                        <div>
+                          <Button size="small" variant={selected === "xerox" ? "contained" : "outlined"} color="warning" onClick={() => handleSelect(req.id, "xerox")} sx={{ mr: 1 }}>
+                            Xerox
+                          </Button>
+                          <Button size="small" variant={selected === "original" ? "contained" : "outlined"} color="success" onClick={() => handleSelect(req.id, "original")}>
+                            Original
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </>
+              )}
           </div>
 
 
-          {/* Message */}
+          {/* Live Preview + Editable Reminder side by side */}
+          <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+            <TextField
+              label="Email Preview (Read Only)"
+              value={finalPreview}
+              fullWidth
+              multiline
+              minRows={12}
+              InputProps={{ readOnly: true }}
+              sx={{ fontFamily: "monospace", whiteSpace: "pre-wrap", flex: 1 }}
+            />
+
+          </Box>
           <TextField
-            label="Message"
-            value={emailMessage}
-            onChange={(e) => setEmailMessage(e.target.value)}
+            label="Important Reminders"
+            value={customReminders}
+            onChange={(e) => setCustomReminders(e.target.value)}
             fullWidth
             multiline
-            minRows={10}
-            placeholder="Write your message here..."
-            sx={{
-              fontFamily: "monospace",
-              whiteSpace: "pre-wrap",
-              mt: 2
-            }}
+            placeholder="Edit reminders here..."
+            minRows={12}
+            sx={{ fontFamily: "monospace", whiteSpace: "pre-wrap", flex: 1 }}
           />
 
         </DialogContent>
@@ -3773,7 +3936,7 @@ Thank you, best regards
         maxWidth="md"
         fullWidth
       >
-        <DialogTitle sx={{ bgcolor: "#800000", color: "white" }}>
+        <DialogTitle sx={{ backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
           ✉️ Message
         </DialogTitle>
 
@@ -3796,98 +3959,142 @@ Thank you, best regards
             sx={{ mb: 3 }}
           />
 
+          {/* ── REQUIRED DOCUMENTS ── */}
           <div
             style={{
               border: "1px solid #ddd",
               borderRadius: "8px",
               padding: "16px",
-              minHeight: "200px",
-              backgroundColor: "#fafafa"
+              backgroundColor: "#fafafa",
+              marginBottom: "16px"
             }}
           >
-            <p style={{ fontWeight: "bold", marginBottom: "12px" }}>
+            <p style={{ fontWeight: "bold", marginBottom: "8px" }}>
               📄 REQUIRED DOCUMENTS:
             </p>
 
+            {/* Main Requirements – numbered */}
             {filterRequirementsForApplicant(
               persons.find(p => p.applicant_number === selectedApplicant),
               requirements
-            ).map((req) => {
-              const selected = selectedCopies[req.id];
-
-              return (
-                <div
-                  key={req.id}
-                  style={{
-                    border: "1px solid #eee",
-                    borderRadius: "6px",
-                    padding: "10px",
-                    marginBottom: "10px",
-                    backgroundColor: selected ? "#fff8f0" : "white"
-                  }}
-                >
-                  {/* Description */}
-                  <div style={{ marginBottom: "8px" }}>
-                    <span style={{ fontWeight: 500 }}>
-                      • {req.description}
-                    </span>
-
-                    {selected && (
-                      <span
+            ).filter(r => !r.category?.toLowerCase().includes("medical")).length > 0 && (
+                <>
+                  <p style={{ fontWeight: 600, fontSize: "13px", color: "#444", marginBottom: "6px" }}>
+                    Main Requirements:
+                  </p>
+                  {filterRequirementsForApplicant(
+                    persons.find(p => p.applicant_number === selectedApplicant),
+                    requirements
+                  ).filter(r => !r.category?.toLowerCase().includes("medical")).map((req, index) => {
+                    const selected = selectedCopies[req.id];
+                    return (
+                      <div
+                        key={req.id}
                         style={{
-                          marginLeft: "10px",
-                          color: "#800000",
-                          fontWeight: "bold"
+                          border: "1px solid #eee",
+                          borderRadius: "6px",
+                          padding: "10px",
+                          marginBottom: "8px",
+                          backgroundColor: selected ? "#fff8f0" : "white"
                         }}
                       >
-                        ({selected.toUpperCase()})
-                      </span>
-                    )}
-                  </div>
+                        <div style={{ marginBottom: "6px" }}>
+                          <span style={{ fontWeight: 500 }}>
+                            {index + 1}. {req.description}
+                          </span>
+                          {selected && (
+                            <span style={{ marginLeft: "10px", color: "#800000", fontWeight: "bold" }}>
+                              ({selected.toUpperCase()})
+                            </span>
+                          )}
+                        </div>
+                        <div>
+                          <Button size="small" variant={selected === "xerox" ? "contained" : "outlined"} color="warning" onClick={() => handleSelect(req.id, "xerox")} sx={{ mr: 1 }}>
+                            Xerox
+                          </Button>
+                          <Button size="small" variant={selected === "original" ? "contained" : "outlined"} color="success" onClick={() => handleSelect(req.id, "original")}>
+                            Original
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </>
+              )}
 
-                  {/* Buttons */}
-                  <div>
-                    <Button
-                      size="small"
-                      variant={selected === "xerox" ? "contained" : "outlined"}
-                      color="warning"
-                      onClick={() => handleSelect(req.id, "xerox")}
-                      sx={{ mr: 1 }}
-                    >
-                      Xerox
-                    </Button>
-
-                    <Button
-                      size="small"
-                      variant={selected === "original" ? "contained" : "outlined"}
-                      color="success"
-                      onClick={() => handleSelect(req.id, "original")}
-                    >
-                      Original
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
+            {/* Medical Requirements – bulleted */}
+            {filterRequirementsForApplicant(
+              persons.find(p => p.applicant_number === selectedApplicant),
+              requirements
+            ).filter(r => r.category?.toLowerCase().includes("medical")).length > 0 && (
+                <>
+                  <p style={{ fontWeight: 600, fontSize: "13px", color: "#444", marginTop: "12px", marginBottom: "6px" }}>
+                    Medical Requirements:
+                  </p>
+                  {filterRequirementsForApplicant(
+                    persons.find(p => p.applicant_number === selectedApplicant),
+                    requirements
+                  ).filter(r => r.category?.toLowerCase().includes("medical")).map((req) => {
+                    const selected = selectedCopies[req.id];
+                    return (
+                      <div
+                        key={req.id}
+                        style={{
+                          border: "1px solid #eee",
+                          borderRadius: "6px",
+                          padding: "10px",
+                          marginBottom: "8px",
+                          backgroundColor: selected ? "#fff8f0" : "white"
+                        }}
+                      >
+                        <div style={{ marginBottom: "6px" }}>
+                          <span style={{ fontWeight: 500 }}>
+                            • {req.description}
+                          </span>
+                          {selected && (
+                            <span style={{ marginLeft: "10px", color: "#800000", fontWeight: "bold" }}>
+                              ({selected.toUpperCase()})
+                            </span>
+                          )}
+                        </div>
+                        <div>
+                          <Button size="small" variant={selected === "xerox" ? "contained" : "outlined"} color="warning" onClick={() => handleSelect(req.id, "xerox")} sx={{ mr: 1 }}>
+                            Xerox
+                          </Button>
+                          <Button size="small" variant={selected === "original" ? "contained" : "outlined"} color="success" onClick={() => handleSelect(req.id, "original")}>
+                            Original
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </>
+              )}
           </div>
 
-          {/* Message */}
+          {/* Live Preview + Editable Reminder side by side */}
+          <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+            <TextField
+              label="Email Preview (Read Only)"
+              value={finalPreview}
+              fullWidth
+              multiline
+              minRows={12}
+              InputProps={{ readOnly: true }}
+              sx={{ fontFamily: "monospace", whiteSpace: "pre-wrap", flex: 1 }}
+            />
+
+          </Box>
           <TextField
-            label="Message"
-            value={emailMessage}
-            onChange={(e) => setEmailMessage(e.target.value)}
+            label="Important Reminders"
+            value={customReminders}
+            onChange={(e) => setCustomReminders(e.target.value)}
             fullWidth
             multiline
-            minRows={10}
-            placeholder="Write your message here..."
-            sx={{
-              fontFamily: "monospace",
-              whiteSpace: "pre-wrap",
-              mt: 2
-
-            }}
+            placeholder="Edit reminders here..."
+            minRows={12}
+            sx={{ fontFamily: "monospace", whiteSpace: "pre-wrap", flex: 1, mt: 3 }}
           />
-
 
         </DialogContent>
 

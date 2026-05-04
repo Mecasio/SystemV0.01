@@ -1063,32 +1063,92 @@ const ApplicantScoring = () => {
     const [editScores, setEditScores] = useState({});
     const [saving, setSaving] = useState(false);
 
-    // When a file is chosen
+
+    // Handlers
     const handleFileChange = (e) => {
-        if (e.target.files && e.target.files.length > 0) setSelectedFile(e.target.files[0]);
+        if (e.target.files && e.target.files.length > 0) {
+            setSelectedFile(e.target.files[0]);
+        }
     };
 
-    // IMPORT (leave as you had it)
+    const handleRemoveFile = () => {
+        setSelectedFile(null);
+        document.getElementById("excel-upload").value = "";
+    };
+
+    const formatFileSize = (bytes) => {
+        if (bytes < 1024) return bytes + " B";
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+        return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+    };
+
     const handleImport = async (userID) => {
         try {
             if (!selectedFile) {
                 setSnack({ open: true, message: "Please choose a file first!", severity: "warning" });
                 return;
             }
+
             const fd = new FormData();
             fd.append("file", selectedFile);
             fd.append("userID", userID);
-            const res = await axios.post(`${API_BASE_URL}/api/exam/import`, fd, { headers: { "Content-Type": "multipart/form-data" } });
-            if (res.data.success) {
-                setSnack({ open: true, message: "Excel imported successfully!", severity: "success" });
-                fetchApplicants();
-                setSelectedFile(null);
-            } else {
-                setSnack({ open: true, message: res.data.error || "Failed to import", severity: "error" });
+
+            const res = await axios.post(
+                `${API_BASE_URL}/api/exam/import`,
+                fd,
+                { headers: { "Content-Type": "multipart/form-data" } }
+            );
+
+            const errors = res.data.errors || [];
+
+            // ✅ ALL SUCCESS
+            if (res.data.success && errors.length === 0) {
+                setSnack({
+                    open: true,
+                    message: "✅ All applicants imported successfully!",
+                    severity: "success"
+                });
             }
+
+            // ⚠️ PARTIAL SUCCESS (THIS IS YOUR CASE)
+            else if (errors.length > 0) {
+                // extract applicant IDs only
+                const failedApplicants = errors.map(e => {
+                    const match = e.match(/Applicant (\d+)/);
+                    return match ? match[1] : null;
+                }).filter(Boolean);
+
+                setSnack({
+                    open: true,
+                    message:
+                        `⚠️ Some applicants were NOT uploaded.\n\n` +
+                        `Failed: ${failedApplicants.join(", ")}\n\n` +
+                        `Others were successfully imported.`,
+                    severity: "warning"
+                });
+
+                console.warn("❌ Import errors:", errors);
+            }
+
+            // ❌ FULL FAILURE
+            else {
+                setSnack({
+                    open: true,
+                    message: res.data.message || res.data.error || "Failed to import",
+                    severity: "error"
+                });
+            }
+
+            fetchApplicants();
+            setSelectedFile(null);
+
         } catch (err) {
             console.error("❌ Import error:", err);
-            setSnack({ open: true, message: "Import failed: " + (err.response?.data?.error || err.message), severity: "error" });
+            setSnack({
+                open: true,
+                message: "Import failed: " + (err.response?.data?.error || err.message),
+                severity: "error"
+            });
         }
     };
 
@@ -1485,55 +1545,111 @@ const ApplicantScoring = () => {
                             </FormControl>
 
 
-                            {/* ✅ Import Excel beside To Date */}
-                            <Box display="flex" alignItems="center" gap={1}>
-                                <input
-                                    type="file"
-                                    accept=".xlsx,.xls"
-                                    onChange={handleFileChange}
-                                    style={{ display: "none" }}
-                                    id="excel-upload"
-                                />
 
-                                {/* ✅ Button that triggers file input */}
-                                <button
-                                    onClick={() => document.getElementById("excel-upload").click()}
-                                    style={{
-                                        padding: "5px 20px",
-                                        border: "2px solid green",
-                                        backgroundColor: "#f0fdf4",
-                                        color: "green",
-                                        borderRadius: "5px",
-                                        cursor: "pointer",
-                                        fontSize: "14px",
-                                        fontWeight: "bold",
-                                        height: "40px",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "8px",
-                                        userSelect: "none",
-                                        width: "200px", // ✅ same width as Print
-                                    }}
-                                    type="button"
-                                >
-                                    <FaFileExcel size={20} />
-                                    Choose Excel
-                                </button>
+                            {/* JSX — Import Section */}
+                            <Box display="flex" flexDirection="column" gap={1}>
+                                <Box display="flex" alignItems="center" gap={1}>
+                                    <input
+                                        type="file"
+                                        accept=".xlsx,.xls"
+                                        onChange={handleFileChange}
+                                        style={{ display: "none" }}
+                                        id="excel-upload"
+                                    />
+
+                                    {/* Choose Excel button */}
+                                    <button
+                                        onClick={() => document.getElementById("excel-upload").click()}
+                                        style={{
+                                            padding: "5px 20px",
+                                            border: "2px solid green",
+                                            backgroundColor: "#f0fdf4",
+                                            color: "green",
+                                            borderRadius: "5px",
+                                            cursor: "pointer",
+                                            fontSize: "14px",
+                                            fontWeight: "bold",
+                                            height: "40px",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "8px",
+                                            width: "200px",
+                                        }}
+                                        type="button"
+                                    >
+                                        <FaFileExcel size={20} />
+                                        Choose Excel
+                                    </button>
+
+                                    {/* Import button — disabled until file is selected */}
+                                    <Button
+                                        variant="contained"
+                                        disabled={!selectedFile}
+                                        sx={{
+                                            height: "40px",
+                                            width: "200px",
+                                            backgroundColor: selectedFile ? "green" : undefined,
+                                            "&:hover": { backgroundColor: "#166534" },
+                                            fontWeight: "bold",
+                                        }}
+                                        onClick={() => handleImport(userID)}
+                                    >
+                                        Import Applicants
+                                    </Button>
+                                </Box>
+
+                                {/* ✅ FILE PREVIEW — shows only when a file is chosen */}
+                                {selectedFile && (
+                                    <Box
+                                        sx={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 1.5,
+                                            border: "1px solid #bbf7d0",
+                                            backgroundColor: "#f0fdf4",
+                                            borderRadius: "8px",
+                                            padding: "10px 14px",
+                                            mt: 0.5,
+                                        }}
+                                    >
+                                        <FaFileExcel size={28} color="#16a34a" />
+                                        <Box flex={1} minWidth={0}>
+                                            <Typography
+                                                sx={{
+                                                    fontSize: 14,
+                                                    fontWeight: 600,
+                                                    color: "#14532d",
+                                                    whiteSpace: "nowrap",
+                                                    overflow: "hidden",
+                                                    textOverflow: "ellipsis",
+                                                }}
+                                            >
+                                                {selectedFile.name}
+                                            </Typography>
+                                            <Typography sx={{ fontSize: 12, color: "#15803d" }}>
+                                                {selectedFile.type || "Excel Workbook"} · {formatFileSize(selectedFile.size)}
+                                            </Typography>
+                                        </Box>
+                                        <Button
+                                            size="small"
+                                            onClick={handleRemoveFile}
+                                            sx={{
+                                                fontSize: 12,
+                                                color: "#15803d",
+                                                border: "1px solid #86efac",
+                                                borderRadius: "6px",
+                                                textTransform: "none",
+                                                minWidth: "unset",
+                                                px: 1.5,
+                                                flexShrink: 0,
+                                            }}
+                                        >
+                                            Remove
+                                        </Button>
+                                    </Box>
+                                )}
                             </Box>
 
-                            <Button
-                                variant="contained"
-                                sx={{
-                                    height: "40px",
-                                    width: "200px", // ✅ matches Print
-                                    backgroundColor: "green",
-                                    "&:hover": { backgroundColor: "#166534" },
-                                    fontWeight: "bold",
-                                }}
-                                onClick={handleImport}
-                            >
-                                Import Applicants
-                            </Button>
                         </Box>
                     </Box>
 

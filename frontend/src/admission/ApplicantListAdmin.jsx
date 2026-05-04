@@ -1094,7 +1094,9 @@ const AdminApplicantList = () => {
                        <tr>
                          <td style="width:10%">${person.applicant_number || ""}</td>
                          <td style="width:40%">${person.last_name}, ${person.first_name} ${person.middle_name || ""} ${person.extension || ""}</td>
-                         <td style="width:15%">${person.program_code || ""}</td>                 
+                         <td style="width:15%">${allCurriculums.find(
+            (item) => item.curriculum_id?.toString() === person.program?.toString()
+          )?.program_code ?? "N/A"}</td>                 
                          <td style="width:10%">${person.generalAverage1 || ""}</td>
                          <td style="width:10%">${new Date(
             person.created_at.split("T")[0],
@@ -2176,7 +2178,9 @@ const AdminApplicantList = () => {
                     fontSize: "12px",
                   }}
                 >
-                  {person.program_code || ""}
+                  {allCurriculums.find(
+                    (item) => item.curriculum_id?.toString() === person.program?.toString()
+                  )?.program_code ?? "N/A"}
                 </TableCell>
                 <TableCell
                   sx={{

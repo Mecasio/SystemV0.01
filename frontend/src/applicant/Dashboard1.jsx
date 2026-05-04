@@ -1637,7 +1637,7 @@ const Dashboard1 = (props) => {
                         <FormHelperText>This field is required.</FormHelperText>
                       )}
                       {person.program && !errors.program && (
-                        <FormHelperText>
+                        <FormHelperText sx={{color: "red"}}>
                           Curriculum was selected during registration and cannot be changed.
                         </FormHelperText>
                       )}

@@ -1074,7 +1074,9 @@ const ApplicantList = () => {
                        <tr>
                          <td style="width:10%">${person.applicant_number || ""}</td>
                          <td style="width:40%">${person.last_name}, ${person.first_name} ${person.middle_name || ""} ${person.extension || ""}</td>
-                         <td style="width:15%">${person.program_code || ""}</td>                 
+                         <td style="width:15%">${allCurriculums.find(
+                                            (item) => item.curriculum_id?.toString() === person.program?.toString()
+                                        )?.program_code ?? "N/A"}</td>                 
                          <td style="width:10%">${person.generalAverage1 || ""}</td>
                          <td style="width:10%">${new Date(
             person.created_at.split("T")[0],
@@ -1988,8 +1990,8 @@ const ApplicantList = () => {
               <Button
                 disabled
                 onClick={() => setConfirmOpen(false)}
-              color="error"
-                  variant="outlined"
+                color="error"
+                variant="outlined"
 
 
               >
@@ -2107,7 +2109,7 @@ const ApplicantList = () => {
 
                   {/* Applicant ID */}
                   <TableCell
-                     className="clickable-cell"
+                    className="clickable-cell"
                     sx={{
                       textAlign: "center",
                       border: `1px solid ${borderColor}`,
@@ -2179,7 +2181,9 @@ const ApplicantList = () => {
                       fontSize: "12px",
                     }}
                   >
-                    {person.program_code || ""}
+                    {allCurriculums.find(
+                      (item) => item.curriculum_id?.toString() === person.program?.toString()
+                    )?.program_code ?? "N/A"}
                   </TableCell>
                   {/* SHS GWA */}
                   <TableCell
@@ -2487,8 +2491,8 @@ const ApplicantList = () => {
 
             <DialogActions>
               <Button
-             color="error"
-                  variant="outlined"
+                color="error"
+                variant="outlined"
 
                 onClick={handleCloseDialog}>Cancel</Button>
               {!(

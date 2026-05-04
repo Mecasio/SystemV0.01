@@ -963,7 +963,9 @@ const MedicalApplicantList = () => {
                        <tr>
                          <td style="width:10%">${person.student_number ?? "N/A"}</td>
                          <td style="width:30%">${person.last_name}, ${person.first_name} ${person.middle_name || ""} ${person.extension || ""}</td>
-                         <td style="width:15%">${person.program_code || ""}</td>
+                         <td style="width:15%">${allCurriculums.find(
+                        (item) => item.curriculum_id?.toString() === person.program?.toString()
+                    )?.program_code ?? "N/A"}</td>
                          <td style="width:10%">${person.generalAverage1 || ""}</td>
                          <td style="width:20%">${new Date(
                         person.created_at.split("T")[0],
@@ -1011,7 +1013,7 @@ const MedicalApplicantList = () => {
         <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                 <Typography variant="h4" fontWeight="bold" sx={{ color: titleColor, }}>
-                  STUDENT MEDICAL RECORDS
+                    STUDENT MEDICAL RECORDS
                 </Typography>
 
 
@@ -1652,9 +1654,8 @@ const MedicalApplicantList = () => {
 
                                 {/* Program */}
                                 <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
-                                    {curriculumOptions.find(
-                                        (item) =>
-                                            item.curriculum_id?.toString() === person.program?.toString()
+                                    {allCurriculums.find(
+                                        (item) => item.curriculum_id?.toString() === person.program?.toString()
                                     )?.program_code ?? "N/A"}
                                 </TableCell>
 

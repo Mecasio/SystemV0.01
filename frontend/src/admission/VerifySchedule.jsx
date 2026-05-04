@@ -743,7 +743,20 @@ const AssignScheduleToApplicants = () => {
     };
 
     const [emailSubject, setEmailSubject] = useState("Document Verification Schedule");
-    const [emailMessage, setEmailMessage] = useState("");
+
+    // Editable only
+    const [officeHours, setOfficeHours] = useState(
+        "8:00 AM – 5:00 PM"
+    );
+
+    const [importantReminders, setImportantReminders] = useState(
+        `• Arrive at least 1 hour before your scheduled time.
+• Bring all listed documents and a valid ID.
+• Ensure all documents are Certified True Copies with a dry seal from your school.
+• Incomplete requirements may delay your verification process.`
+    );
+
+    const [finalEmailMessage, setFinalEmailMessage] = useState("");
 
     const buildRequirementsText = (applicant, list = requirements) => {
         const filteredRequirements = filterRequirementsForApplicant(applicant, list);
@@ -771,7 +784,27 @@ const AssignScheduleToApplicants = () => {
         return text.trim();
     };
 
+
+
     const officeName = `${shortTerm} - Admission Office`;
+
+    useEffect(() => {
+        if (!confirmOpen) return;
+
+        // rebuild preview automatically when office hours/reminders change
+        setFinalEmailMessage((prev) => {
+            return prev
+                .replace(
+                    /🕘 Office Hours for Admission Evaluation:\n[\s\S]*?(?=\n⚠️ Important Reminders:)/,
+                    `🕘 Office Hours for Admission Evaluation:\n${officeHours}\n`
+                )
+                .replace(
+                    /⚠️ Important Reminders:\n[\s\S]*?(?=\nThank you and good luck!)/,
+                    `⚠️ Important Reminders:\n${importantReminders}\n`
+                );
+        });
+    }, [officeHours, importantReminders, confirmOpen]);
+
 
     const handleSendEmails = (person) => {
         if (!selectedSchedule) {
@@ -813,10 +846,12 @@ const AssignScheduleToApplicants = () => {
 
 
 
-        setEmailMessage(
-            `Hello, ${person.first_name} ${person.middle_name ? person.middle_name.charAt(0) + "." : ""} ${person.last_name},
+        const fixedMessage = `Hello, ${person.first_name} ${person.middle_name
+            ? person.middle_name.charAt(0) + "."
+            : ""
+            } ${person.last_name},
 
-You have been scheduled for document verification with the following details:
+You have been scheduled for Document Verification with the following details:
 
 📅 Evaluation Date: ${formatDateLong(sched.schedule_date)}
 🏫 Room: ${sched.room_description}
@@ -831,19 +866,16 @@ You have been scheduled for document verification with the following details:
 ${reqText}
 
 🕘 Office Hours for Admission Evaluation:
-8:00 AM – 5:00 PM
+${officeHours}
 
-⚠️ Important Reminders:
-• Arrive at least **1 hour before** your scheduled time.
-• Bring all listed documents and a **valid ID**.
-• Ensure all documents are **Certified True Copies with a dry seal** from your school.
-• Incomplete requirements may **delay your verification process**.
+\n\n⚠️ Important Reminders:
+${importantReminders}
 
 Thank you and good luck!
 
-${officeName}`
-        );
+${officeName}`;
 
+        setFinalEmailMessage(fixedMessage);
         setConfirmOpen(true);
     };
 
@@ -878,7 +910,7 @@ ${officeName}`
             user_person_id: localStorage.getItem("person_id"),
 
             subject: emailSubject,
-            message: emailMessage,
+            message: finalEmailMessage,
         });
 
         socket.current.once("send_verify_schedule_emails_result", async (res) => {
@@ -1293,7 +1325,7 @@ ${officeName}`
                     <Grid container spacing={2} sx={{ mb: 2 }}>
                         {/* Select Schedule */}
                         <Grid item xs={12} md={3}>
-                           <Typography textAlign="left" color="maroon" sx={{ mb: 1, fontWeight: "bold" }}>
+                            <Typography textAlign="left" color="maroon" sx={{ mb: 1, fontWeight: "bold" }}>
                                 Select Schedule:
                             </Typography>
                             <TextField
@@ -1356,7 +1388,7 @@ ${officeName}`
 
                         {/* Proctor */}
                         <Grid item xs={12} md={3}>
-                             <Typography textAlign="left" color="maroon" sx={{ mb: 1, fontWeight: "bold" }}>
+                            <Typography textAlign="left" color="maroon" sx={{ mb: 1, fontWeight: "bold" }}>
                                 Evaluator:
                             </Typography>
                             <TextField
@@ -1379,7 +1411,7 @@ ${officeName}`
 
                         {/* Room Quota */}
                         <Grid item xs={12} md={3}>
-                           <Typography textAlign="left" color="maroon" sx={{ mb: 1, fontWeight: "bold" }}>
+                            <Typography textAlign="left" color="maroon" sx={{ mb: 1, fontWeight: "bold" }}>
                                 Room Quota:
                             </Typography>
                             <TextField
@@ -1544,7 +1576,7 @@ ${officeName}`
                             onClick={handleSendEmails}
                             sx={{ minWidth: 150 }}
                         >
-                              SEND EMAIL TO ALL
+                            SEND EMAIL TO ALL
                         </Button>
 
                     </Box>
@@ -2209,7 +2241,7 @@ ${officeName}`
                 fullWidth
             >
                 <DialogTitle sx={{ backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
-                    ✉️ Edit & Send Email
+                     ✉️ Message
                 </DialogTitle>
 
                 <DialogContent dividers sx={{ p: 3 }}>
@@ -2225,20 +2257,40 @@ ${officeName}`
                         sx={{ mb: 3 }}
                     />
 
-                    {/* Message */}
+                    {/* Fixed Preview */}
                     <TextField
-                        label="Message"
-                        value={emailMessage}
-                        onChange={(e) => setEmailMessage(e.target.value)}
+                        label="Email Preview (Read Only)"
+                        value={finalEmailMessage}
                         fullWidth
                         multiline
-                        minRows={12}
-                        placeholder="Write your message here..."
-                        sx={{
-                            fontFamily: "monospace",
-                            whiteSpace: "pre-wrap",
+                        minRows={10}
+                        InputProps={{
+                            readOnly: true,
                         }}
+                        sx={{ mb: 3 }}
                     />
+
+                    {/* Editable Office Hours */}
+                    <TextField
+                        label="Office Hours"
+                        value={officeHours}
+                        onChange={(e) => setOfficeHours(e.target.value)}
+                        fullWidth
+                        sx={{ mb: 3 }}
+                    />
+
+                    {/* Editable Important Reminders */}
+                    <TextField
+                        label="Important Reminders"
+                        value={importantReminders}
+                        onChange={(e) => setImportantReminders(e.target.value)}
+                        fullWidth
+                        multiline
+                        placeholder="Edit reminders here..."
+                        minRows={6}
+                        sx={{ mb: 3 }}
+                    />
+
 
                     <Typography
                         variant="caption"

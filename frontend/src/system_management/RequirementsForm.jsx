@@ -33,6 +33,17 @@ import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
 import SaveIcon from '@mui/icons-material/Save';
 
+const applicantTypeMap = {
+  "0": "All Applicants",
+  "1": "Senior High School Graduate",
+  "2": "Graduating Student",
+  "3": "ALS Passer",
+  "4": "Transferee",
+  "5": "Cross Enrollee",
+  "6": "Foreign Applicant/Student",
+  "7": "Baccalaureate Graduate",
+  "8": "Master Degree Graduate"
+};
 
 const RequirementsForm = () => {
   const settings = useContext(SettingsContext);
@@ -154,8 +165,6 @@ const RequirementsForm = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState(null);
 
-  const [xeroxCopies, setXeroxCopies] = useState(0);
-  const [requiresOriginal, setRequiresOriginal] = useState(false);
 
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Main"); // ✅ Default category
@@ -240,8 +249,7 @@ const RequirementsForm = () => {
     setDescription(req.description);
     setShortLabel(req.short_label || "");
     setCategory(req.category || "Main");
-    setRequiresOriginal(req.requires_original);
-    setXeroxCopies(req.xerox_copies || 0);
+
     setIsOptional(req.is_optional);
     setApplicantType(req.applicant_type || "0");
 
@@ -290,8 +298,7 @@ const RequirementsForm = () => {
           requirements_description: description,
           short_label: shortLabel,
           category: category,
-          xerox_copies: xeroxCopies,
-          requires_original: requiresOriginal,
+       
           is_optional: isOptional,
           applicant_type: applicantType
         }, permissionHeaders);
@@ -671,8 +678,7 @@ const RequirementsForm = () => {
               <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                 Applicant Type
               </TableCell>
-              <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>Original Documents</TableCell>
-              <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>Xerox Copies</TableCell>
+            
               <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>Optional</TableCell>
               {showActionColumn && (
                 <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>Actions</TableCell>
@@ -707,21 +713,11 @@ const RequirementsForm = () => {
                 <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                   {req.category || "Main"}
                 </TableCell>
-                <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
-                  {req.applicant_type || "All"}
-                </TableCell>
+             <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
+  {applicantTypeMap[req.applicant_type] || "All Applicants"}
+</TableCell>
 
-                {/* ORIGINAL */}
-                <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
-                  {req.requires_original ? "Yes" : "No"}
-                </TableCell>
-
-                {/* XEROX */}
-                <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
-                  {req.xerox_copies > 0
-                    ? `${req.xerox_copies} ${req.xerox_copies > 1 ? "copies" : "copy"}`
-                    : "-"}
-                </TableCell>
+           
                 <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                   {req.is_optional ? "Yes" : "No"}
                 </TableCell>
@@ -1081,64 +1077,8 @@ const RequirementsForm = () => {
             </Select>
           </FormControl>
 
-          <br />
-
-
-          <Typography
-            variant="subtitle1"
-            fontWeight={700}
-            sx={{ mb: 1, mt: 1 }}
-          >
-            Requires Original
-          </Typography>
-
-          <FormControl fullWidth>
-            <InputLabel>
-              Requires Original
-            </InputLabel>
-
-            <Select
-              value={
-                requiresOriginal ? "Yes" : "No"
-              }
-              label="Requires Original"
-              onChange={(e) =>
-                setRequiresOriginal(
-                  e.target.value === "Yes"
-                )
-              }
-            >
-              <MenuItem value="Yes">
-                Yes
-              </MenuItem>
-
-              <MenuItem value="No">
-                No
-              </MenuItem>
-            </Select>
-          </FormControl>
-
-          <br />
-
-          <Typography
-            variant="subtitle1"
-            fontWeight={700}
-            sx={{ mb: 1, mt: 1 }}
-          >
-            Xerox Copies
-          </Typography>
-
-          <input
-            type="number"
-            value={xeroxCopies}
-            onChange={(e) =>
-              setXeroxCopies(
-                Number(e.target.value)
-              )
-            }
-            className="p-2 border rounded w-full"
-          />
-
+      
+      
           <br />
 
           <Typography

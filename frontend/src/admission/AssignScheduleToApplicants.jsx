@@ -692,7 +692,21 @@ const AssignScheduleToApplicants = () => {
   };
 
   const [emailSubject, setEmailSubject] = useState("Entrance Exam Schedule");
-  const [emailMessage, setEmailMessage] = useState("");
+  const [emailMessage, setEmailMessage] = useState(""); // fixed top portion (no reminders)
+  const [finalPreview, setFinalPreview] = useState(""); // live full preview
+
+  // ONLY editable part
+  const [customReminders, setCustomReminders] = useState(`- Arrive at least 1 hour before your scheduled exam.
+- Bring your printed exam permit, a valid ID, your own pen, and all required documents.
+- Wear a plain white t-shirt on the exam day.`);
+
+  // Live-rebuild finalPreview whenever reminders or base message change
+  useEffect(() => {
+    if (!confirmOpen) return;
+    setFinalPreview(
+      `${emailMessage}\n\u26a0\ufe0f Important Reminders:\n\n${customReminders}\n\nThank you and good luck!\n\nAdmission Office`
+    );
+  }, [customReminders, emailMessage, confirmOpen]);
 
   const handleSendEmails = () => {
     // 1️⃣ Validate schedule selection
@@ -737,11 +751,11 @@ const AssignScheduleToApplicants = () => {
     };
 
 
-    // 4️⃣ Build DEFAULT EMAIL MESSAGE
-    // ⚠️ Applicant fields stay as placeholders
-    const defaultMessage = `Hello, {first_name} {middle_name}. {last_name},
 
-You have been assigned to the following entrance exam schedule:
+    // 4️⃣ Build FIXED top portion of email (no reminders — useEffect appends them live)
+    const defaultMessage = `Hello, {first_name} {middle_name} {last_name},
+
+You have been assigned to the following Entrance Examination schedule:
 
 📅 Day: ${formatDateLong(sched.day_description)}
 🏫 Room: ${sched.room_description}
@@ -750,18 +764,14 @@ You have been assigned to the following entrance exam schedule:
 
 Please log in to your Applicant Form Dashboard, click on your Exam Permit, and print it.
 This printed permit must be presented to your proctor on the exam day to verify your eligibility.
+`;
 
-⚠️ Important Reminders:
-- Arrive at least 1 hour before your scheduled exam.
-- Bring your printed exam permit, a valid ID, your own pen, and all required documents.
-- Wear a plain white t-shirt on the exam day.
-
-Thank you and good luck!
-
-Admission Office`;
-
-    // 5️⃣ Set message + open confirmation modal
     setEmailMessage(defaultMessage);
+
+    // reset editable reminders every time modal opens
+    setCustomReminders(`- Arrive at least 1 hour before your scheduled exam.
+- Bring your printed exam permit, a valid ID, your own pen, and all required documents.
+- Wear a plain white t-shirt on the exam day.`);
     setConfirmOpen(true);
   };
 
@@ -796,7 +806,7 @@ Admission Office`;
 
       // ✅ SEND TO BACKEND
       subject: emailSubject,
-      message: emailMessage,
+      message: finalPreview,
     });
 
 
@@ -1250,7 +1260,7 @@ Admission Office`;
 
             {/* Proctor */}
             <Grid item xs={12} md={3}>
-             <Typography textAlign="left" color="maroon" sx={{ mb: 1, fontWeight: "bold" }}>
+              <Typography textAlign="left" color="maroon" sx={{ mb: 1, fontWeight: "bold" }}>
                 Proctor:
               </Typography>
               <TextField
@@ -1273,7 +1283,7 @@ Admission Office`;
 
             {/* Room Quota */}
             <Grid item xs={12} md={3}>
-           <Typography textAlign="left" color="maroon" sx={{ mb: 1, fontWeight: "bold" }}>
+              <Typography textAlign="left" color="maroon" sx={{ mb: 1, fontWeight: "bold" }}>
                 Room Quota:
               </Typography>
               <TextField
@@ -1296,7 +1306,7 @@ Admission Office`;
 
             {/* Current Occupancy */}
             <Grid item xs={12} md={3}>
-            <Typography textAlign="left" color="maroon" sx={{ mb: 1, fontWeight: "bold" }}>
+              <Typography textAlign="left" color="maroon" sx={{ mb: 1, fontWeight: "bold" }}>
                 Current Occupancy:
               </Typography>
               <TextField
@@ -1436,7 +1446,7 @@ Admission Office`;
               onClick={handleSendEmails}
               sx={{ minWidth: 150 }}
             >
-               SEND EMAIL TO ALL
+              SEND EMAIL TO ALL
             </Button>
 
           </Box>
@@ -1907,28 +1917,27 @@ Admission Office`;
                               };
 
                               setEmailMessage(
-                                `Hello, ${person.first_name} ${person.middle_name ? person.middle_name.charAt(0) + "." : ""
-                                } ${person.last_name}
+  `Hello, ${person.first_name} ${
+    person.middle_name
+      ? person.middle_name.charAt(0) + "."
+      : ""
+  } ${person.last_name}
 
-You have been assigned to the following entrance exam schedule:
+You have been assigned to the following Entrance Examination schedule:
 
 📅 Day: ${formatDateLong(sched.day_description)}
 🏫 Room: ${sched.room_description}
 🕒 Time: ${formatTime(sched.start_time)} - ${formatTime(sched.end_time)}
 🆔 Applicant No: ${person.applicant_number}
 
-Please log in to your Applicant Form Dashboard, click on your Exam Permit, and print it. 
+Please log in to your Applicant Form Dashboard, click on your Exam Permit, and print it.
 This printed permit must be presented to your proctor on the exam day to verify your eligibility.
+`
+);
 
-⚠️ Important Reminders:
-- Arrive at least 1 hour before your scheduled exam.
+setCustomReminders(`- Arrive at least 1 hour before your scheduled exam.
 - Bring your printed exam permit, a valid ID, your own pen, and all required documents.
-- Wear a plain white t-shirt on the exam day.
-
-Thank you and good luck!
-
-Admission Office`);
-
+- Wear a plain white t-shirt on the exam day.`);
                               setConfirmOpen(true);
                             }}
                           >
@@ -2142,12 +2151,10 @@ Admission Office`);
         fullWidth
       >
         <DialogTitle sx={{ backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
-          ✉️ Edit & Send Email
+           ✉️ Message
         </DialogTitle>
 
         <DialogContent dividers sx={{ p: 3 }}>
-
-
 
           {/* Subject */}
           <TextField
@@ -2158,25 +2165,33 @@ Admission Office`);
             sx={{ mb: 3 }}
           />
 
-          {/* Message */}
+          {/* Email Preview (Read Only) — updates live as reminders change */}
           <TextField
-            label="Message"
-            value={emailMessage}
-            onChange={(e) => setEmailMessage(e.target.value)}
+            label="Email Preview (Read Only)"
+            value={finalPreview}
             fullWidth
             multiline
-            minRows={12}
-            placeholder="Write your message here..."
-            sx={{
-              fontFamily: "monospace",
-              whiteSpace: "pre-wrap",
-            }}
+            minRows={10}
+            InputProps={{ readOnly: true }}
+            sx={{ mb: 3 }}
+          />
+
+          {/* Editable Reminders Only */}
+          <TextField
+            label="Important Reminders"
+            value={customReminders}
+            onChange={(e) => setCustomReminders(e.target.value)}
+            fullWidth
+            multiline
+            minRows={6}
+            placeholder="Edit reminders here..."
+            sx={{ mb: 2, fontFamily: "monospace", whiteSpace: "pre-wrap" }}
           />
 
           <Typography
             variant="caption"
             color="gray"
-            sx={{ display: "block", mt: 2 }}
+            sx={{ display: "block", mt: 1 }}
           >
             🔑 Available placeholders:
             {` {first_name}, {last_name}, {applicant_number}, {day}, {room}, {start_time}, {end_time}, {office} `}
@@ -2185,13 +2200,10 @@ Admission Office`);
         </DialogContent>
 
         <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
-
           <Button
             onClick={() => setConfirmOpen(false)}
             color="error"
             variant="outlined"
-
-
           >
             Cancel
           </Button>
@@ -2205,7 +2217,6 @@ Admission Office`);
           >
             SEND EMAIL
           </Button>
-
         </DialogActions>
       </Dialog>
 

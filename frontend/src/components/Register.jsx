@@ -35,6 +35,9 @@ import { SettingsContext } from "../App"; // ✅ Access settings from context
 import API_BASE_URL from "../apiConfig";
 import AnnouncementSlider from "../components/AnnouncementSlider";
 import RedirectLoading from "../components/RedirectLoading";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+
+import CampaignIcon from "@mui/icons-material/Campaign";
 
 const Register = () => {
   const settings = useContext(SettingsContext);
@@ -704,7 +707,7 @@ const Register = () => {
                 />
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", margin: "1rem 0" }}>
+              <div style={{ display: "flex", alignItems: "center", margin: "1.5rem 0" }}>
                 <div style={{ flex: 1, height: "1px", backgroundColor: "#ccc" }} />
 
                 <span style={{ margin: "0 1rem", fontWeight: "600", color: "#555" }}>
@@ -828,7 +831,7 @@ const Register = () => {
                 </div>
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", margin: "1rem 0" }}>
+              <div style={{ display: "flex", alignItems: "center", margin: "1.5rem 0" }}>
                 <div style={{ flex: 1, height: "1px", backgroundColor: "#ccc" }} />
 
                 <span style={{ margin: "0 1rem", fontWeight: "600", color: "#555" }}>
@@ -1076,7 +1079,7 @@ const Register = () => {
                 />
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", margin: "1rem 0" }}>
+              <div style={{ display: "flex", alignItems: "center", margin: "1.5rem 0" }}>
                 <div style={{ flex: 1, height: "1px", backgroundColor: "#ccc" }} />
 
                 <span style={{ margin: "0 1rem", fontWeight: "600", color: "#555" }}>
@@ -1537,63 +1540,136 @@ const Register = () => {
           onClose={() => setOpenReminder(false)}
           maxWidth="sm"
           fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: "6px",
+              overflow: "hidden",
+              boxShadow: "0 8px 40px rgba(0,0,0,0.28)",
+            },
+          }}
         >
-          <DialogTitle sx={dialogStyles.title}>
-            ⚠️ Important Reminder for Applicants
+          <DialogTitle
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+              backgroundColor: "#f5f5f5",
+              borderBottom: "1px solid #e0e0e0",
+              py: 1.5,
+              px: 2.5,
+            }}
+          >
+            <Box
+              sx={{
+                width: 28,
+                height: 28,
+                borderRadius: "50%",
+                backgroundColor: "#f5a623",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <WarningAmberIcon sx={{ color: "#fff", fontSize: 16 }} />
+            </Box>
+            <Typography sx={{ fontWeight: 700, fontSize: "15px", color: "#222" }}>
+              Important Reminder for Applicants
+            </Typography>
           </DialogTitle>
 
-          <DialogContent>
-            <Typography sx={dialogStyles.contentText}>
-              Please make sure that all information you provide in your
-              application is correct and complete before submitting.
+          <DialogContent sx={{ px: 3, pt: 2.5, pb: 1 }}>
+            <Typography
+              sx={{
+                fontSize: "13.5px",
+                color: "#333",
+                lineHeight: 1.6,
+                mb: 1.5,
+              }}
+            >
+              <Box sx={{ mt: 3 }}>
+                Please ensure all information is accurate and complete. Submitting{" "}
+                <strong>multiple accounts or duplicate applications is strictly prohibited</strong>{" "}
+                and may result in automatic disqualification.
+              </Box>
             </Typography>
 
-            <Typography sx={{ ...dialogStyles.contentText, mt: 2 }}>
-              Creating multiple accounts or submitting more than one application
-              is strictly not allowed. Each applicant should only register and
-              apply once.
+            <Typography
+              sx={{
+                fontSize: "13.5px",
+                color: "#333",
+                lineHeight: 1.6,
+              }}
+            >
+              <Box sx={{ mt: 3 }}>
+                Each applicant must register and submit only one application. Await the official
+                announcement for screening results.
+              </Box>
             </Typography>
 
-            <Typography sx={{ ...dialogStyles.contentText, mt: 2 }}>
-              If multiple accounts or duplicate applications are detected, your
-              application may be rejected or automatically disqualified from the
-              admission process.
-            </Typography>
-
-            <Typography sx={{ ...dialogStyles.contentText, mt: 2 }}>
-              Please wait for the official announcement regarding the results of
-              the application screening.
-            </Typography>
-
-            <Typography sx={dialogStyles.contentTextCenter}>
-              Thank you for your cooperation.
-            </Typography>
-
-            <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={agreeChecked}
-                    onChange={(e) => setAgreeChecked(e.target.checked)}
-                  />
-                }
-                label={
-                  <Typography sx={{ fontSize: "15px" }}>
-                    I understand and agree to submit only one application.
-                  </Typography>
-                }
+            <Box
+              component="label"
+              htmlFor="agreeCheck"
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+                border: "1.5px solid #cc3333",
+                borderRadius: "4px",
+                px: 1.5,
+                py: 1.25,
+                mt: 3,
+                mb: 0.5,
+                cursor: "pointer",
+                "&:hover": { backgroundColor: "#fff5f5" },
+                transition: "background 0.15s",
+              }}
+            >
+              <Checkbox
+                id="agreeCheck"
+                checked={agreeChecked}
+                onChange={(e) => setAgreeChecked(e.target.checked)}
+                sx={{
+                  p: 0,
+                  color: "#cc3333",
+                  "&.Mui-checked": { color: "#cc3333" },
+                }}
+                size="small"
               />
+              <Typography sx={{ fontSize: "13px", color: "#333", userSelect: "none" }}>
+                I understand and agree to submit only one application.
+              </Typography>
             </Box>
           </DialogContent>
 
-          <DialogActions sx={dialogStyles.actions}>
+          <DialogActions sx={{ justifyContent: "center", px: 3, pb: 2.5, pt: 1, mt: 2 }}>
             <Button
               variant="contained"
               disabled={!agreeChecked}
               onClick={() => setOpenReminder(false)}
-              sx={dialogStyles.button}
+              sx={{
+                backgroundColor: agreeChecked ? mainButtonColor : "#b0b8c8",
+                color: "#fff",
+                fontWeight: 600,
+                fontSize: "14px",
+                px: 4,
+                py: 1.25,
+                borderRadius: "4px",
+                textTransform: "none",
+                letterSpacing: "0.02em",
+                boxShadow: "none",
+                "&:hover": {
+                  backgroundColor: agreeChecked ? mainButtonColor : "#b0b8c8",
+                  boxShadow: "none",
+                },
+                "&.Mui-disabled": {
+                  backgroundColor: "#b0b8c8",
+                  color: "#fff",
+                  opacity: 0.7,
+                },
+              }}
             >
-              I Agree & Continue
+              I Agree — Continue to Registration
             </Button>
           </DialogActions>
         </Dialog>
@@ -1628,40 +1704,72 @@ const Register = () => {
           onClose={() => setOpenBranchDialog(false)}
           maxWidth="sm"
           fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: "6px",
+              overflow: "hidden",
+              boxShadow: "0 8px 40px rgba(0,0,0,0.28)",
+            },
+          }}
         >
-          <DialogTitle sx={dialogStyles.title}>
-            📢 Admissions Currently Closed
+          <DialogTitle
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+              backgroundColor: "#f5f5f5",
+              borderBottom: "1px solid #e0e0e0",
+              py: 1.5,
+              px: 2.5,
+            }}
+          >
+            <Box
+              sx={{
+                width: 28,
+                height: 28,
+                borderRadius: "50%",
+                backgroundColor: "#f5a623",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <CampaignIcon sx={{ color: "#fff", fontSize: 16 }} />
+            </Box>
+            <Typography sx={{ fontWeight: 700, fontSize: "15px", color: "#222" }}>
+              Admissions Currently Closed
+            </Typography>
           </DialogTitle>
 
-          <DialogContent>
-            <Typography sx={dialogStyles.contentText}>
-              We sincerely apologize that during this time, this campus is not
-              currently accepting applications. Registration is only available
-              during the officially designated hours, and any submissions
-              outside this period cannot be processed.
+          <DialogContent sx={{ px: 3, pt: 2.5, pb: 1 }}>
+            <Typography sx={{ fontSize: "13.5px", color: "#333", lineHeight: 1.6, mb: 1.5, mt: 3 }}>
+              We sincerely apologize that during this time, this campus is not currently
+              accepting applications. Registration is only available during the officially
+              designated hours, and any submissions outside this period cannot be processed.
             </Typography>
 
-            <Typography sx={{ ...dialogStyles.contentText, mt: 2 }}>
-              Kindly return during the authorized registration hours to complete
-              your application. We highly encourage reviewing the official
-              schedule to ensure timely submission.
+            <Typography sx={{ fontSize: "13.5px", color: "#333", lineHeight: 1.6 }}>
+              Kindly return during the authorized registration hours to complete your
+              application. We highly encourage reviewing the official schedule to ensure
+              timely submission.
             </Typography>
 
             {selectedBranch?.start_date && selectedBranch?.end_date && (
               <Box
                 sx={{
                   textAlign: "center",
-                  mt: 2.5,
+                  mt: 3,
                   p: 2,
-                  background: "#f8fafc",
-                  borderRadius: "12px",
+                  background: "#fff9ec",
+                  borderRadius: "4px",
                   border: "1.5px solid #e2e8f0",
                 }}
               >
                 <Typography
                   sx={{
-                    fontSize: "12px",
-                    color: "#94a3b8",
+                    fontSize: "11px",
+                    color: "red",
                     textTransform: "uppercase",
                     letterSpacing: "0.08em",
                     fontWeight: 700,
@@ -1672,45 +1780,64 @@ const Register = () => {
                 </Typography>
                 <Typography
                   sx={{
-                    fontSize: "28px",
+                    fontSize: "26px",
                     fontWeight: 700,
                     color: "#1a1a2e",
                     fontFamily: "'DM Sans', sans-serif",
                   }}
                 >
-                  {new Date(selectedBranch.start_date).toLocaleTimeString(
-                    "en-US",
-                    {
-                      hour: "numeric",
-                      minute: "2-digit",
-                      hour12: true,
-                      timeZone: "Asia/Manila",
-                    },
-                  )}
+                  {new Date(selectedBranch.start_date).toLocaleTimeString("en-US", {
+                    hour: "numeric",
+                    minute: "2-digit",
+                    hour12: true,
+                    timeZone: "Asia/Manila",
+                  })}
                   {" – "}
-                  {new Date(selectedBranch.end_date).toLocaleTimeString(
-                    "en-US",
-                    {
-                      hour: "numeric",
-                      minute: "2-digit",
-                      hour12: true,
-                      timeZone: "Asia/Manila",
-                    },
-                  )}
+                  {new Date(selectedBranch.end_date).toLocaleTimeString("en-US", {
+                    hour: "numeric",
+                    minute: "2-digit",
+                    hour12: true,
+                    timeZone: "Asia/Manila",
+                  })}
                 </Typography>
               </Box>
             )}
 
-            <Typography sx={dialogStyles.contentTextCenter}>
+            <Typography
+              sx={{
+                fontSize: "13.5px",
+                color: "#333",
+                lineHeight: 1.6,
+                textAlign: "center",
+                fontStyle: "italic",
+                mt: 2,
+                mb: 0.5,
+              }}
+            >
               We sincerely appreciate your patience and understanding.
             </Typography>
           </DialogContent>
 
-          <DialogActions sx={dialogStyles.actions}>
+          <DialogActions sx={{ justifyContent: "center", px: 3, pb: 2.5, pt: 1 }}>
             <Button
               variant="contained"
               onClick={() => setOpenBranchDialog(false)}
-              sx={dialogStyles.button}
+              sx={{
+                backgroundColor: mainButtonColor,
+                color: "#fff",
+                fontWeight: 600,
+                fontSize: "14px",
+                px: 4,
+                py: 1.25,
+                borderRadius: "4px",
+                textTransform: "none",
+                letterSpacing: "0.02em",
+                boxShadow: "none",
+                "&:hover": {
+                  backgroundColor: mainButtonColor,
+                  boxShadow: "none",
+                },
+              }}
             >
               Okay
             </Button>
