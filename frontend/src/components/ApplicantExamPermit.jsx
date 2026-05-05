@@ -11,7 +11,7 @@ import "../styles/Print.css";
 import API_BASE_URL from "../apiConfig";
 
 // ✅ Accept personId as a prop
-const ApplicantExamPermit = ({ personId }) => {
+const ApplicantExamPermit = ({ personId, steps, printRef }) => {
 
     const settings = useContext(SettingsContext);
 
@@ -74,79 +74,7 @@ const ApplicantExamPermit = ({ personId }) => {
     const firstLine = words.slice(0, middle).join(" ");
     const secondLine = words.slice(middle).join(" ");
 
-    const divToPrintRef = useRef();
 
-    const printDiv = () => {
-        const divToPrint = divToPrintRef.current;
-        if (divToPrint) {
-            const newWin = window.open("", "Print-Window");
-            newWin.document.open();
-            newWin.document.write(`
-      <html>
-        <head>
-          <title>Print</title>
-          <style>
-              @page {
-              size: A4;
-              margin: 0;
-            }
-
-            html, body {
-              margin: 0;
-              padding: 0;
-              width: 210mm;
-              height: 297mm;
-              font-family: Arial;
-              overflow: hidden;
-            }
-
-            *, *::before, *::after {
-              box-sizing: border-box;
-              margin: 0;
-              padding: 0;
-            }
-
-            .print-container {
-              width: 100%;
-              height: auto;
-              padding: 10px 20px;
-
-              /* 🔹 Apply 10% zoom out */
-              transform: scale(0.90);
-          
-            }
-
-            .student-table {
-              margin-top: -50px !important;
-            }
-
-            button {
-              display: none;
-            }
-
-            .dataField {
-              margin-top: 2px !important;
-            }
-
-            svg.MuiSvgIcon-root {
-              margin-top: -53px;
-              width: 70px !important;
-              height: 70px !important;
-            }
-          </style>
-        </head>
-        <body onload="window.print(); setTimeout(() => window.close(), 100);">
-          <div class="print-container">
-            ${divToPrint.innerHTML}
-          </div>
-        </body>
-      </html>
-    `);
-            newWin.document.close();
-        } else {
-            console.error("divToPrintRef is not set.");
-        }
-    };
     const [person, setPerson] = useState({
         campus: "",
         profile_img: "",
@@ -303,10 +231,6 @@ const ApplicantExamPermit = ({ personId }) => {
     useEffect(() => {
         const fetchScores = async () => {
             try {
-                // 1️⃣ Get applicant number first
-                const applicantRes = await axios.get(`${API_BASE_URL}/api/applicant_number/${personId}`);
-                const applicantNumber = applicantRes.data?.applicant_number;
-                if (!applicantNumber) return;
 
                 // 2️⃣ Entrance exam scores (already working)
                 const res = await axios.get(`${API_BASE_URL}/api/applicants-with-number`);
@@ -370,50 +294,20 @@ const ApplicantExamPermit = ({ personId }) => {
         <Box
             sx={{
                 height: "calc(100vh - 150px)",
-                overflowY: "auto",
+
                 paddingRight: 1,
                 backgroundColor: "transparent",
                 mt: 1,
                 padding: 2,
             }}
         >
-          
 
 
-            <button
-                onClick={printDiv}
-                style={{
-                    marginBottom: "1rem",
-                    padding: "10px 20px",
-                    border: "2px solid black",
-                    backgroundColor: "#f0f0f0",
-                    color: "black",
-                    borderRadius: "5px",
-                    marginTop: "20px",
-                    cursor: "pointer",
-                    fontSize: "16px",
-                    fontWeight: "bold",
-                    transition: "background-color 0.3s, transform 0.2s",
-                }}
-                onMouseEnter={(e) => (e.target.style.backgroundColor = "#d3d3d3")}
-                onMouseLeave={(e) => (e.target.style.backgroundColor = "#f0f0f0")}
-                onMouseDown={(e) => (e.target.style.transform = "scale(0.95)")}
-                onMouseUp={(e) => (e.target.style.transform = "scale(1)")}
-            >
-                <span
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                    }}
-                >
-                    <FcPrint size={20} />
-                    Print Admission Form
-                </span>
-            </button>
+
+
 
             <Container>
-                <div ref={divToPrintRef} style={{ marginBottom: "10%" }}>
+                <div ref={printRef} style={{ marginBottom: "10%" }}>
                     <Container>
                         <div
                             className="student-table"
@@ -463,15 +357,15 @@ const ApplicantExamPermit = ({ personId }) => {
                                         paddingBottom: 0,
                                     }}
                                 >
-                                    <div style={{ fontFamily: "Arial", fontSize: "13px" }}>
+                                    <div style={{ fontSize: "13px", fontFamily: "Arial", }}>
                                         Republic of the Philippines
                                     </div>
                                     <div
                                         style={{
-                                            letterSpacing: "2px",
                                             fontWeight: "bold",
                                             fontFamily: "Arial",
-                                            fontSize: "12px"
+                                            fontSize: "14px",
+                                            textTransform: "Uppercase"
                                         }}
                                     >
                                         {firstLine}
@@ -479,10 +373,10 @@ const ApplicantExamPermit = ({ personId }) => {
                                     {secondLine && (
                                         <div
                                             style={{
-                                                letterSpacing: "2px",
                                                 fontWeight: "bold",
                                                 fontFamily: "Arial",
-                                                fontSize: "12px"
+                                                fontSize: "14px",
+                                                textTransform: "Uppercase"
                                             }}
                                         >
                                             {secondLine}
@@ -491,16 +385,14 @@ const ApplicantExamPermit = ({ personId }) => {
                                     {campusAddress && (
                                         <div
                                             style={{
-                                                fontSize: "12px",
-                                                letterSpacing: "1px",
-                                                fontFamily: "Arial",
+                                                fontSize: "13px", fontFamily: "Arial",
                                             }}
                                         >
                                             {campusAddress}
                                         </div>
                                     )}
 
-                                    <div style={{ fontFamily: "Arial", letterSpacing: "1px" }}>
+                                    <div style={{ fontSize: "13px", fontFamily: "Arial", }}>
                                         <b>OFFICE OF THE ADMISSION SERVICES</b>
                                     </div>
 
@@ -508,8 +400,7 @@ const ApplicantExamPermit = ({ personId }) => {
 
                                     <div
                                         style={{
-                                            fontSize: "12px",
-                                            fontFamily: "Arial",
+                                            fontSize: "13px", fontFamily: "Arial",
                                             fontWeight: "bold",
                                             marginBottom: "5px",
                                             marginTop: "0",
@@ -1322,7 +1213,10 @@ const ApplicantExamPermit = ({ personId }) => {
                                         textAlign: "center",
                                         verticalAlign: "middle",
                                     }}
-                                ></td>
+                                >
+
+
+                                </td>
 
                                 <td
                                     colSpan={16}
@@ -1334,6 +1228,7 @@ const ApplicantExamPermit = ({ personId }) => {
                                         textAlign: "left",
                                     }}
                                 >
+
                                     {" "}
                                     <b>College Dean's Office</b>
                                     <br />
@@ -1347,7 +1242,9 @@ const ApplicantExamPermit = ({ personId }) => {
                                         verticalAlign: "middle",
                                         height: "35px",
                                     }}
-                                ></td>
+                                >
+
+                                </td>
                             </tr>
                             <tr>
                                 <td
@@ -1356,9 +1253,15 @@ const ApplicantExamPermit = ({ personId }) => {
                                         border: "1px solid black",
                                         textAlign: "center",
                                         padding: "8px",
-                                        fontSize: "12px",
+                                        fontSize: "18px",
                                     }}
-                                ></td>
+                                >
+                                    {steps.step1 && (
+                                        <span style={{ color: "green", fontWeight: "bold" }}>
+                                            ✔ DONE
+                                        </span>
+                                    )}
+                                </td>
                                 <td
                                     colSpan={5}
                                     style={{
@@ -1393,9 +1296,15 @@ const ApplicantExamPermit = ({ personId }) => {
                                         border: "1px solid black",
                                         textAlign: "center",
                                         padding: "8px",
-                                        fontSize: "12px",
+                                        fontSize: "18px",
                                     }}
-                                ></td>
+                                >
+                                    {steps.step2 && (
+                                        <span style={{ color: "green", fontWeight: "bold" }}>
+                                            ✔ DONE
+                                        </span>
+                                    )}
+                                </td>
                                 <td
                                     colSpan={5}
                                     style={{
@@ -1471,7 +1380,9 @@ const ApplicantExamPermit = ({ personId }) => {
                                         textAlign: "center",
                                         verticalAlign: "middle",
                                     }}
-                                ></td>
+                                >
+
+                                </td>
                                 <td
                                     colSpan={10}
                                     style={{
@@ -1496,9 +1407,15 @@ const ApplicantExamPermit = ({ personId }) => {
                                         border: "1px solid black",
                                         textAlign: "center",
                                         padding: "8px",
-                                        fontSize: "12px",
+                                        fontSize: "18px",
                                     }}
-                                ></td>
+                                >
+                                    {steps.step3 && (
+                                        <span style={{ color: "green", fontWeight: "bold" }}>
+                                            ✔ DONE
+                                        </span>
+                                    )}
+                                </td>
                                 <td
                                     colSpan={5}
                                     style={{
@@ -1522,13 +1439,19 @@ const ApplicantExamPermit = ({ personId }) => {
                                     colSpan={11}
                                     style={{
                                         height: "50px",
-                                        fontSize: "12px",
+                                        fontSize: "18px",
                                         fontFamily: "Arial",
                                         border: "1px solid black",
                                         padding: "8px",
-                                        textAlign: "left",
+                                        textAlign: "center",
                                     }}
-                                ></td>
+                                >
+                                       {steps.step4 && (
+                                        <span style={{ color: "green", fontWeight: "bold" }}>
+                                            ✔ DONE
+                                        </span>
+                                    )}
+                                </td>
                                 <td
                                     colSpan={5}
                                     style={{
@@ -1550,14 +1473,18 @@ const ApplicantExamPermit = ({ personId }) => {
                                 <td
                                     colSpan={10}
                                     style={{
-                                        fontSize: "12px",
+                                        fontSize: "18px",
                                         fontFamily: "Arial",
                                         border: "1px solid black",
                                         padding: "8px",
-                                        textAlign: "left",
+                                        textAlign: "center",
                                     }}
                                 >
-                                    {" "}
+                                    {steps.step5 && (
+                                        <span style={{ color: "green", fontWeight: "bold" }}>
+                                            ✔ DONE
+                                        </span>
+                                    )}
                                 </td>
                             </tr>
 
@@ -1644,13 +1571,15 @@ const ApplicantExamPermit = ({ personId }) => {
                                         paddingBottom: 0,
                                     }}
                                 >
-                                    <div style={{ fontFamily: "Arial", fontSize: "12px" }}>
+                                    <div style={{ fontSize: "13px", fontFamily: "Arial", }}>
                                         Republic of the Philippines
                                     </div>
                                     <div
                                         style={{
-                                            letterSpacing: "2px",
                                             fontWeight: "bold",
+                                            fontFamily: "Arial",
+                                            fontSize: "14px",
+                                            textTransform: "Uppercase"
                                         }}
                                     >
                                         {firstLine}
@@ -1658,8 +1587,10 @@ const ApplicantExamPermit = ({ personId }) => {
                                     {secondLine && (
                                         <div
                                             style={{
-                                                letterSpacing: "2px",
                                                 fontWeight: "bold",
+                                                fontFamily: "Arial",
+                                                fontSize: "14px",
+                                                textTransform: "Uppercase"
                                             }}
                                         >
                                             {secondLine}
@@ -1668,16 +1599,14 @@ const ApplicantExamPermit = ({ personId }) => {
                                     {campusAddress && (
                                         <div
                                             style={{
-                                                fontSize: "12px",
-                                                letterSpacing: "1px",
-                                                fontFamily: "Arial",
+                                                fontSize: "13px", fontFamily: "Arial",
                                             }}
                                         >
                                             {campusAddress}
                                         </div>
                                     )}
 
-                                    <div style={{ fontFamily: "Arial", letterSpacing: "1px" }}>
+                                    <div style={{ fontSize: "13px", fontFamily: "Arial", }}>
                                         <b>OFFICE OF THE ADMISSION SERVICES</b>
                                     </div>
 
@@ -1685,8 +1614,7 @@ const ApplicantExamPermit = ({ personId }) => {
 
                                     <div
                                         style={{
-                                            fontSize: "12px",
-                                            fontFamily: "Arial",
+                                            fontSize: "13px", fontFamily: "Arial",
                                             fontWeight: "bold",
                                             marginBottom: "5px",
                                             marginTop: "0",
@@ -2765,8 +2693,8 @@ const ApplicantExamPermit = ({ personId }) => {
                 </div>
             </Container>
         </Box>
-    
-);
+
+    );
 };
 
 export default ApplicantExamPermit;

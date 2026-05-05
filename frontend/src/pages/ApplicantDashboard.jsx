@@ -164,8 +164,9 @@ const ApplicantDashboard = (props) => {
     localStorage.getItem("requirementsCompleted") === "1",
   );
 
-  const [allRequirementsCompleted, setAllRequirementsCompleted] =
-    useState(false);
+  const [allRequirementsCompleted, setAllRequirementsCompleted] = useState(false);
+
+
   const fetchApplicantNumber = async (personID) => {
     try {
       const res = await axios.get(
