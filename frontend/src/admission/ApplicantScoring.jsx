@@ -999,10 +999,7 @@ const ApplicantScoring = () => {
                     );
                 });
 
-                const totalScore = subjectScores.reduce(
-                    (sum, score) => sum + score,
-                    0
-                );
+                const totalScore = subjectScores.reduce((sum, score) => sum + score, 0);
 
                 const maxTotal = subjects.reduce(
                     (sum, subject) => sum + Number(subject.max_score || 0),
@@ -1010,9 +1007,7 @@ const ApplicantScoring = () => {
                 );
 
                 const computedConvertedRating =
-                    maxTotal > 0
-                        ? (totalScore / maxTotal) * 100
-                        : 0;
+                    maxTotal > 0 ? (totalScore / maxTotal) * 100 : 0;
 
                 const computedFinalRating =
                     subjectScores.length > 0
@@ -2175,10 +2170,7 @@ const ApplicantScoring = () => {
                                 );
                             });
 
-                            const totalScore = subjectScores.reduce(
-                                (sum, score) => sum + score,
-                                0
-                            );
+                            const totalScore = subjectScores.reduce((sum, score) => sum + score, 0);
 
                             const maxTotal = subjects.reduce(
                                 (sum, subject) => sum + Number(subject.max_score || 0),
@@ -2186,15 +2178,13 @@ const ApplicantScoring = () => {
                             );
 
                             const computedConvertedRating =
-                                maxTotal > 0
-                                    ? (totalScore / maxTotal) * 100
-                                    : 0;
+                                maxTotal > 0 ? (totalScore / maxTotal) * 100 : 0;
 
                             const computedFinalRating =
                                 subjectScores.length > 0
                                     ? totalScore / subjectScores.length
                                     : 0;
-
+                                    
                             return (
                                 <TableRow
                                     key={person.person_id}

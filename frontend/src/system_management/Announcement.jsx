@@ -50,7 +50,8 @@ const AnnouncementPanel = () => {
         title: "",
         content: "",
         valid_days: "permanent",
-        target_role: ""
+        target_role: "",
+        campus: ""
     });
     const [editingId, setEditingId] = useState(null);
     const [image, setImage] = useState(null);
@@ -71,6 +72,14 @@ const AnnouncementPanel = () => {
     };
 
     const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+    const branches = Array.isArray(settings?.branches)
+        ? settings.branches
+        : [];
+    const getBranchName = (branchId) => {
+        if (!branchId) return "All Campus";
+        const branch = branches.find((b) => String(b.id) === String(branchId));
+        return branch?.branch || branchId;
+    };
 
     // Fetch settings colors
     useEffect(() => {
@@ -153,6 +162,7 @@ const AnnouncementPanel = () => {
             formData.append("content", form.content);
             formData.append("valid_days", form.valid_days);
             formData.append("target_role", form.target_role);
+            formData.append("campus", form.campus);
 
             if (image) formData.append("image", image);
 
@@ -180,7 +190,8 @@ const AnnouncementPanel = () => {
                 title: "",
                 content: "",
                 valid_days: "permanent",
-                target_role: ""
+                target_role: "",
+                campus: ""
             });
             setEditingId(null);
             setImage(null);
@@ -206,6 +217,7 @@ const AnnouncementPanel = () => {
                     ? "permanent"
                     : announcement.valid_days.toString(),
             target_role: announcement?.target_role ?? "",
+            campus: announcement?.campus ?? "",
         });
 
         setEditingId(announcement?.id ?? null);
@@ -409,7 +421,7 @@ const AnnouncementPanel = () => {
                     >
                         <TableRow>
                             <TableCell
-                                colSpan={6}
+                                colSpan={7}
                                 sx={{
                                     border: `1px solid ${borderColor}`,
                                     py: 0.5,
@@ -534,7 +546,8 @@ const AnnouncementPanel = () => {
                                                     title: "",
                                                     content: "",
                                                     valid_days: "permanent",
-                                                    target_role: "applicant"
+                                                    target_role: "applicant",
+                                                    campus: ""
                                                 });
                                                 setImage(null);
                                                 setOpenFormDialog(true);
@@ -626,6 +639,17 @@ const AnnouncementPanel = () => {
                                 >
                                     Target Role
                                 </th>
+                                <th
+                                    style={{
+                                        border: `1px solid ${borderColor}`,
+                                        padding: "12px",
+                                        backgroundColor: "#f5f5f5",
+                                        color: "black",
+                                        textAlign: "center",
+                                    }}
+                                >
+                                    Campus
+                                </th>
                                 {showActionColumn && (
                                 <th
                                     style={{
@@ -687,6 +711,9 @@ const AnnouncementPanel = () => {
                                     </td>
                                     <td style={{ border: `1px solid ${borderColor}`, padding: "8px", textAlign: "center" }}>
                                         {a.target_role}
+                                    </td>
+                                    <td style={{ border: `1px solid ${borderColor}`, padding: "8px", textAlign: "center" }}>
+                                        {getBranchName(a.campus)}
                                     </td>
 
                                     {/* Actions Cell */}
@@ -775,7 +802,7 @@ const AnnouncementPanel = () => {
                     >
                         <TableRow>
                             <TableCell
-                                colSpan={6}
+                                colSpan={7}
                                 sx={{
                                     border: `1px solid ${borderColor}`,
                                     py: 0.5,
@@ -1015,7 +1042,7 @@ const AnnouncementPanel = () => {
                             />
                         </Grid>
 
-                        <Grid item xs={6}>
+                        <Grid item xs={12} md={4}>
                             <Typography fontWeight={600}>Valid For</Typography>
                             <FormControl fullWidth>
                                 <InputLabel>Valid For</InputLabel>
@@ -1039,7 +1066,7 @@ const AnnouncementPanel = () => {
                             </FormControl>
                         </Grid>
 
-                        <Grid item xs={6}>
+                        <Grid item xs={12} md={4}>
                             <Typography fontWeight={600}>Target Role</Typography>
                             <FormControl fullWidth>
                                 <InputLabel>Target Role</InputLabel>
@@ -1056,6 +1083,30 @@ const AnnouncementPanel = () => {
                                     <MenuItem value="student">Student</MenuItem>
                                     <MenuItem value="faculty">Faculty</MenuItem>
                                     <MenuItem value="applicant">Applicant</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid>
+
+                        <Grid item xs={12} md={4}>
+                            <Typography fontWeight={600}>Campus</Typography>
+                            <FormControl fullWidth>
+                                <InputLabel>Campus</InputLabel>
+                                <Select
+                                    value={form.campus}
+                                    label="Campus"
+                                    onChange={(e) =>
+                                        setForm({
+                                            ...form,
+                                            campus: e.target.value
+                                        })
+                                    }
+                                >
+                                    <MenuItem value="">All Campus</MenuItem>
+                                    {branches.map((branch) => (
+                                        <MenuItem key={branch.id} value={String(branch.id)}>
+                                            {branch.branch}
+                                        </MenuItem>
+                                    ))}
                                 </Select>
                             </FormControl>
                         </Grid>

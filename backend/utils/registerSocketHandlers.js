@@ -1,5 +1,22 @@
 const nodemailer = require("nodemailer");
 
+const getConfiguredSenderAccounts = () =>
+  [
+    { user: process.env.CCS_EMAIL_USER1, pass: process.env.CCS_EMAIL_PASS1 },
+    { user: process.env.CCS_EMAIL_USER2, pass: process.env.CCS_EMAIL_PASS2 },
+  ].filter((account) => account.user && account.pass);
+
+const normalizeSenderEmail = (senderEmail) =>
+  String(senderEmail || "").trim().toLowerCase();
+
+const getSenderAccountForEmail = (senderEmail) => {
+  const normalizedSenderEmail = normalizeSenderEmail(senderEmail);
+
+  return getConfiguredSenderAccounts().find(
+    (account) => normalizeSenderEmail(account.user) === normalizedSenderEmail,
+  );
+};
+
 module.exports = function registerSocketHandlers({
   app,
   io,
@@ -334,7 +351,7 @@ WHERE proctor LIKE ?
     });
 
     // 2) PUT update (must exist)
-    // � Update single Qualifying/Interview scores + log notifications
+    //   Update single Qualifying/Interview scores + log notifications
 
     // ---------------------------------------------------------
     // 2) SAVE or UPDATE (UPSERT) using person_status_table
@@ -348,9 +365,9 @@ WHERE proctor LIKE ?
           qualifying_exam_score,
           qualifying_interview_score,
         } = req.body;
-        console.log("� Payload:", req.body);
+        console.log("  Payload:", req.body);
 
-        // 1� Find person_id of applicant
+        // 1  Find person_id of applicant
         const [rows] = await db.query(
           "SELECT person_id FROM applicant_numbering_table WHERE applicant_number = ?",
           [applicant_number],
@@ -360,12 +377,12 @@ WHERE proctor LIKE ?
         }
         const person_id = rows[0].person_id;
 
-        // 2� Compute new scores
+        // 2  Compute new scores
         const qExam = Number(qualifying_exam_score) || 0;
         const qInterview = Number(qualifying_interview_score) || 0;
         const totalAve = (qExam + qInterview) / 2;
 
-        // 3� Insert or update (Upsert)
+        // 3  Insert or update (Upsert)
         await db.query(
           `INSERT INTO person_status_table (person_id, qualifying_result, interview_result, exam_result)
        VALUES (?, ?, ?, ?)
@@ -376,7 +393,7 @@ WHERE proctor LIKE ?
           [person_id, qExam, qInterview, totalAve],
         );
 
-        // 4� Return success (no notification here)
+        // 4  Return success (no notification here)
         res.json({
           success: true,
           message: "Interview and exam scores saved successfully!",
@@ -766,7 +783,7 @@ WHERE proctor LIKE ?
         const mailOptions = {
           from: `"${companyShort} Enrollment Office" <${process.env.EMAIL_USER}>`,
           to: emailAddress,
-          subject: `� Welcome to ${companyName} - Acceptance Confirmation`,
+          subject: `  Welcome to ${companyName} - Acceptance Confirmation`,
           text: `
           Hi, ${first_name} ${middle_name || ""} ${last_name},
 
@@ -781,7 +798,7 @@ WHERE proctor LIKE ?
 
           You may change your password and keep it secure.
 
-          � Click the link below to log in:
+            Click the link below to log in:
           ${process.env.DB_HOST_LOCAL}:5173/login
           `.trim(),
         };
@@ -1143,7 +1160,7 @@ WHERE proctor LIKE ?
         return res.status(400).json({ message: "Missing applicant_id" });
       }
 
-      // 1� Reset exam_applicants table
+      // 1  Reset exam_applicants table
       await db.query(
         `UPDATE exam_applicants
        SET schedule_id = NULL, email_sent = 0
@@ -1151,7 +1168,7 @@ WHERE proctor LIKE ?
         [applicant_id],
       );
 
-      // 2� Reset person_status_table exam_status
+      // 2  Reset person_status_table exam_status
       await db.query(
         `UPDATE person_status_table
        SET exam_status = NULL
@@ -1174,7 +1191,7 @@ WHERE proctor LIKE ?
         return res.status(400).json({ message: "Missing applicant_id" });
       }
 
-      // 1� Reset interview_applicants table
+      // 1  Reset interview_applicants table
       await db.query(
         `UPDATE interview_applicants
        SET schedule_id = NULL, email_sent = 0
@@ -1182,7 +1199,7 @@ WHERE proctor LIKE ?
         [applicant_id],
       );
 
-      // 2� Reset person_status_table INTERVIEW STATUS
+      // 2  Reset person_status_table INTERVIEW STATUS
       await db.query(
         `UPDATE person_status_table
        SET interview_status = NULL
@@ -1217,7 +1234,7 @@ WHERE proctor LIKE ?
             return;
           }
 
-          // � 1. Get schedule info (quota)
+          //   1. Get schedule info (quota)
           const [[schedule]] = await db.query(
             `SELECT room_quota FROM interview_exam_schedule WHERE schedule_id = ?`,
             [schedule_id],
@@ -1231,7 +1248,7 @@ WHERE proctor LIKE ?
             return;
           }
 
-          // � 2. Get current occupancy
+          //   2. Get current occupancy
           const [[{ current_count }]] = await db.query(
             `SELECT COUNT(*) AS current_count FROM interview_applicants WHERE schedule_id = ?`,
             [schedule_id],
@@ -1246,7 +1263,7 @@ WHERE proctor LIKE ?
             return;
           }
 
-          // � 3. Trim applicant_numbers if more than available slots
+          //   3. Trim applicant_numbers if more than available slots
           const toAssign = applicant_numbers.slice(0, availableSlots);
 
           //  4. Update only those applicants
@@ -1264,7 +1281,7 @@ WHERE proctor LIKE ?
             skipped: applicant_numbers.length - toAssign.length,
           });
 
-          // � notify all clients
+          //   notify all clients
           io.emit("schedule_updated", { schedule_id });
         } catch (err) {
           console.error(" Error updating interview schedule:", err);
@@ -1369,7 +1386,7 @@ WHERE proctor LIKE ?
           const finalSubjectComputed =
             finalSubject || rows[0]?.dprtmnt_name || "Interview Schedule";
 
-          //  Use db3 (enrollment) �� user_accounts instead of prof
+          //  Use db3 (enrollment)    user_accounts instead of prof
           const [actorRows] = await db3.query(
             `SELECT
             email AS actor_email,
@@ -1404,26 +1421,13 @@ WHERE proctor LIKE ?
             throw new Error("User not assigned to college email.");
           }
 
-          const user = userEmail[0];
+          const senderEmail = userEmail[0].sender_name;
+          const senderAccount = getSenderAccountForEmail(senderEmail);
 
-          const senderAccountMap = {
-            CCS_EMAIL_USER1: {
-              user: process.env.CCS_EMAIL_USER1,
-              pass: process.env.CCS_EMAIL_PASS1,
-            },
-            CCS_EMAIL_USER2: {
-              user: process.env.CCS_EMAIL_USER2,
-              pass: process.env.CCS_EMAIL_PASS2,
-            },
-          };
-
-          const senderAccount = senderAccountMap[user.sender_name] || {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS,
-          };
-
-          if (!senderAccount.user || !senderAccount.pass) {
-            throw new Error("Email sender account is not configured.");
+          if (!senderAccount) {
+            throw new Error(
+              "Email sender account does not match a configured backend .env account.",
+            );
           }
 
           const transporter = nodemailer.createTransport({
@@ -1472,7 +1476,7 @@ WHERE proctor LIKE ?
            VALUES (?, ?, ?, ?, ?, NOW())`,
                 [
                   "email",
-                  `� Interview schedule email sent for Applicant #${row.applicant_number} (Schedule #${row.schedule_id})`,
+                  `  Interview schedule email sent for Applicant #${row.applicant_number} (Schedule #${row.schedule_id})`,
                   row.applicant_number,
                   actorEmail,
                   actorName,
@@ -1616,8 +1620,8 @@ WHERE proctor LIKE ?
         }
 
         console.log(" Assigned:", assigned);
-        console.log("� Updated:", updated);
-        console.log("�� Skipped:", skipped);
+        console.log("  Updated:", updated);
+        console.log("   Skipped:", skipped);
 
         socket.emit("update_schedule_result", {
           success: true,
@@ -1708,8 +1712,8 @@ WHERE proctor LIKE ?
           }
 
           console.log(" Assigned:", assigned);
-          console.log("� Updated:", updated);
-          console.log("�� Skipped:", skipped);
+          console.log("  Updated:", updated);
+          console.log("   Skipped:", skipped);
 
           socket.emit("update_schedule_result", {
             success: true,
@@ -1741,7 +1745,7 @@ WHERE proctor LIKE ?
         const { schedule_id, user_person_id, subject, message } = data;
 
         /* ================================
-           1� Get Actor Info
+           1  Get Actor Info
         ================================= */
         const [actorRows] = await db3.query(
           `SELECT email, role, employee_id, last_name, first_name, middle_name
@@ -1762,7 +1766,7 @@ WHERE proctor LIKE ?
         }
 
         /* ================================
-           2� Office Name
+           2  Office Name
         ================================= */
         const [[office]] = await db.query(
           "SELECT short_term FROM company_settings WHERE id = 1",
@@ -1772,7 +1776,7 @@ WHERE proctor LIKE ?
         const officeName = `${shortTerm} - Admission Office`;
 
         /* ================================
-           3� Get Applicants
+           3  Get Applicants
             FIXED JOIN HERE
         ================================= */
         const [rows] = await db.query(
@@ -1817,7 +1821,7 @@ WHERE proctor LIKE ?
         }
 
         /* ================================
-           4� Helpers
+           4  Helpers
         ================================= */
         const sent = [];
         const failed = [];
@@ -1845,7 +1849,7 @@ WHERE proctor LIKE ?
         };
 
         /* ================================
-           5� Send Email
+           5  Send Email
         ================================= */
         const sendEmail = async (row) => {
           if (!row.emailAddress) {
@@ -1880,7 +1884,7 @@ WHERE proctor LIKE ?
               [row.person_id],
             );
 
-            const logMsg = `� Schedule email sent to Applicant #${row.applicant_number}`;
+            const logMsg = `  Schedule email sent to Applicant #${row.applicant_number}`;
 
             await db.query(
               `INSERT INTO notifications
@@ -1897,7 +1901,7 @@ WHERE proctor LIKE ?
         };
 
         /* ================================
-           6� Batch Sending
+           6  Batch Sending
         ================================= */
         const batchSize = 5;
         const delayMs = 1000;
@@ -1912,7 +1916,7 @@ WHERE proctor LIKE ?
         }
 
         /* ================================
-           7� Result
+           7  Result
         ================================= */
         socket.emit("send_schedule_emails_result", {
           success: true,
@@ -3919,7 +3923,7 @@ WHERE proctor LIKE ?
 
       const like = `%${search}%`;
 
-      // � Allow reset via: student_number, name, person email, or user_accounts email
+      //   Allow reset via: student_number, name, person email, or user_accounts email
       const [rows] = await db3.query(
         `SELECT ua.email
        FROM user_accounts ua
@@ -4851,7 +4855,7 @@ WHERE proctor LIKE ?
         return res.status(404).json({ message: "Email template not found" });
       }
 
-      const senderAccountKey = templateRow.sender_name || senderName;
+      const senderEmail = templateRow.sender_name || senderName;
 
       const [depRows] = await db3.query(
         `SELECT dprtmnt_name 
@@ -4862,24 +4866,12 @@ WHERE proctor LIKE ?
 
       const depName = depRows.length > 0 ? depRows[0].dprtmnt_name : "Department";
 
-      const senderAccountMap = {
-        CCS_EMAIL_USER1: {
-          user: process.env.CCS_EMAIL_USER1,
-          pass: process.env.CCS_EMAIL_PASS1,
-        },
-        CCS_EMAIL_USER2: {
-          user: process.env.CCS_EMAIL_USER2,
-          pass: process.env.CCS_EMAIL_PASS2,
-        },
-      };
+      const senderAccount = getSenderAccountForEmail(senderEmail);
 
-      const senderAccount = senderAccountMap[senderAccountKey] || {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      };
-
-      if (!senderAccount.user || !senderAccount.pass) {
-        throw new Error("Email sender account is not configured.");
+      if (!senderAccount) {
+        throw new Error(
+          "Email sender account does not match a configured backend .env account.",
+        );
       }
 
       const transporter = nodemailer.createTransport({
@@ -4923,7 +4915,7 @@ WHERE proctor LIKE ?
       return res.status(400).json({ message: "Missing department ID" });
 
     try {
-      // 1� Select top applicants from Waiting List
+      // 1  Select top applicants from Waiting List
       const [rows] = await db3.query(
         `SELECT ps.applicant_id
        FROM admission.person_status_table ps
@@ -4944,7 +4936,7 @@ WHERE proctor LIKE ?
 
       const ids = rows.map((r) => r.applicant_id);
 
-      // 2� Update their status to Accepted
+      // 2  Update their status to Accepted
       const [updateResult] = await db3.query(
         `UPDATE admission.interview_applicants
        SET status = 'Accepted'
@@ -5049,7 +5041,7 @@ WHERE proctor LIKE ?
 
   // --------------------------------- FOR MIGRATION DATA PANEL
 
-  // � Get interviewer schedules + applicants
+  //   Get interviewer schedules + applicants
   app.get("/api/interviewers", async (req, res) => {
     const { query = "", schedule } = req.query;
 
@@ -5332,8 +5324,8 @@ WHERE proctor LIKE ?
         latest.evaluator_display = `BY: Unknown - System`;
       }
 
-      // � Create notification message
-      const message = `�️ Document status for Applicant #${applicant_number} set to "${finalStatus}"`;
+      //   Create notification message
+      const message = ` ️ Document status for Applicant #${applicant_number} set to "${finalStatus}"`;
 
       // // 💾 Insert notification (only if there's evaluator info)
       // await db.query(
@@ -5480,7 +5472,7 @@ WHERE proctor LIKE ?
       const requirementIds = reqRows.map((r) => r.id);
       const placeholders = requirementIds.map(() => "?").join(",");
 
-      // 3️�� Get applicant��s uploaded documents for those requirements
+      // 3️   Get applicant  s uploaded documents for those requirements
       const [docs] = await db.query(
         `
         SELECT requirements_id, document_status
@@ -5497,7 +5489,7 @@ WHERE proctor LIKE ?
         });
       }
 
-      // 4️�� Check if all are �Documents Verified & ECAT�
+      // 4️   Check if all are  Documents Verified & ECAT 
       const allVerified = docs.every(
         (d) => d.document_status === "Documents Verified & ECAT",
       );
@@ -5553,7 +5545,7 @@ WHERE proctor LIKE ?
     const { submitted_medical, user_person_id } = req.body;
 
     try {
-      // 1� Find person_id
+      // 1  Find person_id
       const [[row]] = await db.query(
         "SELECT person_id FROM requirement_uploads WHERE upload_id = ?",
         [upload_id],
@@ -5562,7 +5554,7 @@ WHERE proctor LIKE ?
 
       const person_id = row.person_id;
 
-      // 2� Applicant info
+      // 2  Applicant info
       const [[appInfo]] = await db.query(
         `
       SELECT ant.applicant_number, pt.last_name, pt.first_name, pt.middle_name
@@ -5576,13 +5568,13 @@ WHERE proctor LIKE ?
       const applicant_number = appInfo?.applicant_number || "Unknown";
       const fullName = `${appInfo?.last_name || ""}, ${appInfo?.first_name || ""} ${appInfo?.middle_name?.charAt(0) || ""}.`;
 
-      // 3� Update submitted_medical
+      // 3  Update submitted_medical
       await db.query(
         "UPDATE requirement_uploads SET submitted_medical = ? WHERE person_id = ?",
         [submitted_medical ? 1 : 0, person_id],
       );
 
-      // 4� Create message
+      // 4  Create message
       const type = submitted_medical ? "submit_medical" : "unsubmit_medical";
       const action = submitted_medical
         ? " Medical submitted"
@@ -5695,7 +5687,7 @@ WHERE proctor LIKE ?
       }
 
       const studentInfo = {
-        ...rows[0], // keep the first row�s data
+        ...rows[0], // keep the first row s data
         requirements: [
           ...new Set(rows.map((r) => r.requirements).filter(Boolean)),
         ],
@@ -5944,7 +5936,7 @@ WHERE proctor LIKE ?
 
       const person_id = personRow[0].person_id;
 
-      // 1� Get Admission Exam Score
+      // 1  Get Admission Exam Score
       const [examRow] = await db.query(
         "SELECT final_rating FROM exam_results WHERE person_id = ? LIMIT 1",
         [person_id],
@@ -5952,7 +5944,7 @@ WHERE proctor LIKE ?
 
       const entrance_exam_score = examRow.length ? examRow[0].final_rating : null;
 
-      // 2� Get Qualifying & Interview Results
+      // 2  Get Qualifying & Interview Results
       const [statusRow] = await db.query(
         `SELECT qualifying_result, interview_result
        FROM person_status_table
@@ -6003,7 +5995,7 @@ WHERE proctor LIKE ?
     const { applicant_number } = req.params;
 
     try {
-      // 1� Get person_id from applicant_numbering_table
+      // 1  Get person_id from applicant_numbering_table
       const [personRows] = await db.query(
         "SELECT person_id FROM applicant_numbering_table WHERE applicant_number = ? LIMIT 1",
         [applicant_number],
@@ -6017,7 +6009,7 @@ WHERE proctor LIKE ?
 
       const person_id = personRows[0].person_id;
 
-      // 2� Check if applicant has exam record in 
+      // 2  Check if applicant has exam record in 
       const [examRows] = await db.query(
         "SELECT final_rating FROM exam_results WHERE person_id = ? LIMIT 1",
         [person_id],
@@ -6031,7 +6023,7 @@ WHERE proctor LIKE ?
         });
       }
 
-      // 3� If applicant has any exam record, they are qualified
+      // 3  If applicant has any exam record, they are qualified
       const finalRating = examRows[0].final_rating;
 
       res.json({
@@ -6397,7 +6389,7 @@ WHERE proctor LIKE ?
         [student_number],
       );
 
-      // � If no uploads found
+      //   If no uploads found
       if (!rows || rows.length === 0) {
         return res.json({
           document_status: "On Process",
@@ -6408,7 +6400,7 @@ WHERE proctor LIKE ?
       const statuses = rows.map((r) => r.upload_document_status);
       const latest = rows[0];
 
-      // �� Determine final document status
+      //    Determine final document status
       let finalStatus = "On Process";
       if (statuses.every((s) => s === "Disapproved / Program Closed")) {
         finalStatus = "Disapproved / Program Closed";
@@ -6416,8 +6408,8 @@ WHERE proctor LIKE ?
         finalStatus = "Documents Verified & ECAT";
       }
 
-      // �� Build evaluator display name with employee ID
-      // �� Build evaluator display name with employee ID (no HTML tags)
+      //    Build evaluator display name with employee ID
+      //    Build evaluator display name with employee ID (no HTML tags)
       let actorEmail = null;
       let actorName = "Unknown - System";
 
@@ -6437,17 +6429,17 @@ WHERE proctor LIKE ?
         latest.evaluator_display = `BY: Unknown - System`;
       }
 
-      // � Create notification message
-      const message = `� Document status for Student #${student_number} set to "${finalStatus}"`;
+      //   Create notification message
+      const message = `  Document status for Student #${student_number} set to "${finalStatus}"`;
 
-      // �� Insert notification (only if there's evaluator info)
+      //    Insert notification (only if there's evaluator info)
       await db.query(
         `INSERT INTO notifications (type, message, applicant_number, actor_email, actor_name)
        VALUES (?, ?, ?, ?, ?)`,
         ["update", message, student_number, actorEmail, actorName],
       );
 
-      // �� Emit notification via socket.io
+      //    Emit notification via socket.io
       io.emit("notification", {
         type: "update",
         message,
@@ -6495,7 +6487,7 @@ WHERE proctor LIKE ?
     const { uploadId } = req.params;
 
     try {
-      // 1� Get upload row (file + person_id)
+      // 1  Get upload row (file + person_id)
       const [uploadRows] = await db3.query(
         "SELECT person_id, file_path FROM requirement_uploads WHERE upload_id = ?",
         [uploadId],
@@ -6506,7 +6498,7 @@ WHERE proctor LIKE ?
 
       const { person_id: personId, file_path: filePath } = uploadRows[0];
 
-      // 2� Student info
+      // 2  Student info
       const [[appInfo]] = await db3.query(
         `
       SELECT snt.student_number, pt.last_name, pt.first_name, pt.middle_name
@@ -6520,33 +6512,33 @@ WHERE proctor LIKE ?
       const student_number = appInfo?.student_number || "Unknown";
       const fullName = `${appInfo?.last_name || ""}, ${appInfo?.first_name || ""} ${appInfo?.middle_name?.charAt(0) || ""}.`;
 
-      // 3� Actor (admin performing the action)
+      // 3  Actor (admin performing the action)
       const user_person_id = req.headers["x-person-id"];
       const { actorEmail, actorName } = await getActorInfo(user_person_id);
 
-      // 4� Delete physical file
+      // 4  Delete physical file
       if (filePath) {
         const fullPath = path.join(applicantDocsDir, filePath);
 
         try {
           await fs.promises.unlink(fullPath);
-          console.log("��� File deleted:", fullPath);
+          console.log("    File deleted:", fullPath);
         } catch (err) {
           if (err.code === "ENOENT") {
-            console.warn("�� File already missing:", fullPath);
+            console.warn("   File already missing:", fullPath);
           } else {
             console.error("File delete error:", err);
           }
         }
       }
 
-      // 5� Delete DB record
+      // 5  Delete DB record
       await db.query("DELETE FROM requirement_uploads WHERE upload_id = ?", [
         uploadId,
       ]);
 
-      // 6� Log notification
-      const message = `��� Deleted document (Applicant #${student_number} - ${fullName})`;
+      // 6  Log notification
+      const message = `    Deleted document (Applicant #${student_number} - ${fullName})`;
       await db.query(
         "INSERT INTO notifications (type, message, applicant_number, actor_email, actor_name, timestamp) VALUES (?, ?, ?, ?, ?, NOW())",
         ["delete", message, student_number, actorEmail, actorName],

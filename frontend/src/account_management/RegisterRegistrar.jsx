@@ -30,6 +30,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
@@ -85,12 +86,19 @@ const RegisterRegistrar = () => {
     const [userRole, setUserRole] = useState("");
 
     const [hasAccess, setHasAccess] = useState(null);
+    const [canDelete, setCanDelete] = useState(false);
     const [loading, setLoading] = useState(false);
 
 
     const pageId = 71;
 
     const [employeeID, setEmployeeID] = useState("");
+    const permissionHeaders = {
+        headers: {
+            "x-employee-id": employeeID,
+            "x-page-id": pageId,
+        },
+    };
 
     useEffect(() => {
 
@@ -120,12 +128,15 @@ const RegisterRegistrar = () => {
             const response = await axios.get(`${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`);
             if (response.data && response.data.page_privilege === 1) {
                 setHasAccess(true);
+                setCanDelete(Number(response.data?.can_delete) === 1);
             } else {
                 setHasAccess(false);
+                setCanDelete(false);
             }
         } catch (error) {
             console.error('Error checking access:', error);
             setHasAccess(false);
+            setCanDelete(false);
             if (error.response && error.response.data.message) {
                 console.log(error.response.data.message);
             } else {
@@ -144,7 +155,9 @@ const RegisterRegistrar = () => {
 
     const [registrars, setRegistrars] = useState([]);
     const [openDialog, setOpenDialog] = useState(false);
+    const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [editData, setEditData] = useState(null);
+    const [registrarToDelete, setRegistrarToDelete] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
 
     const [form, setForm] = useState({
@@ -384,6 +397,45 @@ const RegisterRegistrar = () => {
         }
     };
 
+    const handleDeleteClick = (registrar) => {
+        if (!canDelete) {
+            setSnackbarMessage("You do not have permission to delete this item");
+            setSnackbarSeverity("error");
+            setOpenSnackbar(true);
+            return;
+        }
+
+        setRegistrarToDelete(registrar);
+        setOpenDeleteDialog(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!registrarToDelete) return;
+
+        try {
+            await axios.delete(
+                `${API_BASE_URL}/admin/delete_registrar/${registrarToDelete.id}`,
+                permissionHeaders,
+            );
+
+            setSnackbarMessage("Registrar deleted successfully.");
+            setSnackbarSeverity("success");
+            setOpenSnackbar(true);
+            setOpenDeleteDialog(false);
+            setRegistrarToDelete(null);
+            fetchRegistrars();
+        } catch (err) {
+            console.error("Delete registrar failed:", err);
+            setSnackbarMessage(
+                err.response?.data?.message ||
+                err.response?.data?.error ||
+                "Failed to delete registrar",
+            );
+            setSnackbarSeverity("error");
+            setOpenSnackbar(true);
+        }
+    };
+
     // Put this at the very bottom before the return 
     if (loading || hasAccess === null) {
         return <LoadingOverlay open={loading} message="Loading..." />;
@@ -446,7 +498,7 @@ const RegisterRegistrar = () => {
                                 <Box display="flex" justifyContent="space-between" alignItems="center">
                                     {/* Left: Registrar List Count */}
                                     <Typography fontSize="14px" fontWeight="bold" color="white">
-                                        Registrar's List:
+                                        Registrar's List: {filteredRegistrar.length} account{filteredRegistrar.length !== 1 ? 's' : ''}
                                     </Typography>
 
                                     {/* Right: Pagination Controls */}
@@ -790,22 +842,43 @@ const RegisterRegistrar = () => {
 
                                     {/* ✅ EDIT BUTTON */}
                                     <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center", }}>
-                                        <Button
-                                            onClick={() => handleEdit(r)}
-                                            sx={{
-                                                backgroundColor: "green",
-                                                color: "white",
-                                                borderRadius: "5px",
-                                                padding: "8px 14px",
-                                                width: "100px",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                gap: "5px",
-                                            }}
-                                        >
-                                            <EditIcon fontSize="small" /> Edit
-                                        </Button>
+                                        <Box sx={{ display: "flex", justifyContent: "center", gap: 1, flexWrap: "wrap" }}>
+                                            <Button
+                                                onClick={() => handleEdit(r)}
+                                                sx={{
+                                                    backgroundColor: "green",
+                                                    color: "white",
+                                                    borderRadius: "5px",
+                                                    padding: "8px 14px",
+                                                    width: "100px",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                    gap: "5px",
+                                                }}
+                                            >
+                                                <EditIcon fontSize="small" /> Edit
+                                            </Button>
+                                            {canDelete && (
+                                                <Button
+                                                    onClick={() => handleDeleteClick(r)}
+                                                    sx={{
+                                                    backgroundColor: "#9E0000",
+                                                        color: "white",
+                                                        borderRadius: "5px",
+                                                        padding: "8px 14px",
+                                                        width: "100px",
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        justifyContent: "center",
+                                                        gap: "5px",
+                                                     
+                                                    }}
+                                                >
+                                                    <DeleteIcon fontSize="small" /> Delete
+                                                </Button>
+                                            )}
+                                        </Box>
                                     </TableCell>
 
                                     {/* ✅ STATUS TOGGLE BUTTON */}
@@ -1080,6 +1153,51 @@ const RegisterRegistrar = () => {
                     >
 
                         <SaveIcon fontSize="small" /> Save
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog
+                open={openDeleteDialog}
+                onClose={() => {
+                    setOpenDeleteDialog(false);
+                    setRegistrarToDelete(null);
+                }}
+                maxWidth="xs"
+                fullWidth
+            >
+                <DialogTitle sx={{ backgroundColor: "#800000", color: "#fff" }}>
+                    Confirm Delete
+                </DialogTitle>
+                <DialogContent sx={{ pt: 3 }}>
+                    <Typography sx={{ mt: 1 }}>
+                        Are you sure you want to delete registrar{" "}
+                        <strong>
+                            {registrarToDelete
+                                ? `${registrarToDelete.first_name || ""} ${registrarToDelete.last_name || ""}`
+                                : ""}
+                        </strong>
+                        ?
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        onClick={() => {
+                            setOpenDeleteDialog(false);
+                            setRegistrarToDelete(null);
+                        }}
+                        color="error"
+                        variant="outlined"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleDeleteConfirm}
+                        color="error"
+                        variant="contained"
+                        startIcon={<DeleteIcon />}
+                    >
+                        Delete
                     </Button>
                 </DialogActions>
             </Dialog>

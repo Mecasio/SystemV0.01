@@ -5,7 +5,6 @@ import {
     Box,
     Button,
     TextField,
-    InputLabel,
     Typography,
     Paper,
     Divider,
@@ -19,25 +18,21 @@ import {
     TableContainer,
     MenuItem,
     Stack,
-} from "@mui/material";
-import API_BASE_URL from "../apiConfig";
-import Unauthorized from "../components/Unauthorized";
-import LoadingOverlay from "../components/LoadingOverlay";
-import EaristLogo from "../assets/EaristLogo.png";
-import {
     Dialog,
     DialogTitle,
     DialogContent,
     DialogActions,
 } from "@mui/material";
+import API_BASE_URL from "../apiConfig";
+import Unauthorized from "../components/Unauthorized";
+import LoadingOverlay from "../components/LoadingOverlay";
+import EaristLogo from "../assets/EaristLogo.png";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import SchoolIcon from "@mui/icons-material/School";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import UpdateIcon from "@mui/icons-material/Update";
+import SaveIcon from "@mui/icons-material/Save";
 
-// ─── Static design tokens (mirrors Settings.jsx pattern) ──────────────────
+// ─── Static design tokens ──────────────────────────────────────────────────
 const C = {
     cream: "#fafaf7",
     textMain: "#1a1a2e",
@@ -49,238 +44,12 @@ const C = {
     redMid: "#b52020",
 };
 
-// ─── SectionHeader — identical API to Settings.jsx ────────────────────────
-function SectionHeader({ icon, title, subtitle, headerColor }) {
-    return (
-        <Box
-            sx={{
-                backgroundColor: headerColor,
-                px: 3,
-                py: 1.75,
-                display: "flex",
-                alignItems: "center",
-                gap: 1.25,
-            }}
-        >
-            <Box sx={{ color: C.white, display: "flex", alignItems: "center", opacity: 0.9 }}>
-                {icon}
-            </Box>
-            <Box>
-                <Typography
-                    sx={{
-                        fontWeight: 700,
-                        fontSize: "0.97rem",
-                        color: C.white,
-                        letterSpacing: "0.02em",
-                        lineHeight: 1.2,
-                    }}
-                >
-                    {title}
-                </Typography>
-                {subtitle && (
-                    <Typography
-                        sx={{
-                            fontSize: "0.72rem",
-                            color: "rgba(255,255,255,0.60)",
-                            mt: 0.25,
-                            letterSpacing: "0.03em",
-                        }}
-                    >
-                        {subtitle}
-                    </Typography>
-                )}
-            </Box>
-        </Box>
-    );
-}
-
-// ─── LabeledField — identical API to Settings.jsx ─────────────────────────
-function LabeledField({ label, value, onChange, select, children, borderColor, width }) {
-    return (
-        <Stack spacing={0.75} sx={{ width: width || "100%" }}>
-            <InputLabel
-                sx={{
-                    fontSize: "0.72rem",
-                    fontWeight: 700,
-                    letterSpacing: "0.06em",
-                    textTransform: "uppercase",
-                    color: C.textMuted,
-                    whiteSpace: "nowrap",
-                }}
-            >
-                {label}
-            </InputLabel>
-            <TextField
-                value={value}
-                onChange={onChange}
-                fullWidth
-                size="small"
-                select={select}
-                sx={{
-                    "& .MuiOutlinedInput-root": {
-                        fontSize: "0.88rem",
-                        borderRadius: 2,
-                        backgroundColor: C.cream,
-                        "& fieldset": { borderColor: borderColor },
-                        "&:hover fieldset": { borderColor: borderColor, opacity: 0.7 },
-                        "&.Mui-focused fieldset": { borderColor: borderColor, borderWidth: "2px" },
-                    },
-                }}
-            >
-                {children}
-            </TextField>
-        </Stack>
-    );
-}
-
-// ─── SaveButton ───────────────────────────────────────────────────────────
-function SaveButton({ isEdit, onClick, headerColor, borderColor, disabled = false }) {
-    return (
-        <Button
-            variant="contained"
-            startIcon={isEdit
-                ? <UpdateIcon sx={{ fontSize: "16px" }} />
-                : <AddCircleOutlineIcon sx={{ fontSize: "16px" }} />
-            }
-            onClick={onClick}
-            disabled={disabled}
-            sx={{
-                fontWeight: 700,
-                fontSize: "0.78rem",
-                letterSpacing: "0.05em",
-                textTransform: "uppercase",
-                py: 1,
-                px: 2.5,
-                borderRadius: 2,
-                backgroundColor: headerColor,
-                color: C.white,
-                border: `1px solid ${borderColor}`,
-                boxShadow: "none",
-                whiteSpace: "nowrap",
-                alignSelf: "flex-end",
-                opacity: disabled ? 0.5 : 1,
-                "&:hover": {
-                    backgroundColor: headerColor,
-                    opacity: 0.88,
-                    boxShadow: "0 3px 10px rgba(0,0,0,0.18)",
-                },
-                transition: "all 0.2s ease",
-            }}
-        >
-            {isEdit ? "Update" : "Add Entry"}
-        </Button>
-    );
-}
-
-// ─── ActionButton ─────────────────────────────────────────────────────────
-function ActionButton({ label, icon, onClick, color = "green", disabled = false }) {
-    const isGreen = color === "green";
-    return (
-        <Button
-            variant="contained"
-            size="small"
-            startIcon={icon}
-            onClick={onClick}
-            disabled={disabled}
-            sx={{
-                fontWeight: 700,
-                fontSize: "0.75rem",
-                letterSpacing: "0.04em",
-                textTransform: "uppercase",
-                color: C.white,
-                borderRadius: 1.5,
-                px: 2,
-                py: 0.75,
-                minWidth: 88,
-                opacity: disabled ? 0.5 : 1,
-                background: isGreen
-                    ? `linear-gradient(135deg, ${C.greenDark}, ${C.greenMid})`
-                    : `linear-gradient(135deg, ${C.redDark}, ${C.redMid})`,
-                boxShadow: "none",
-                "&:hover": {
-                    background: isGreen
-                        ? `linear-gradient(135deg, #154d2e, #236041)`
-                        : `linear-gradient(135deg, #6e1414, #9e2020)`,
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.20)",
-                },
-                transition: "all 0.2s ease",
-            }}
-        >
-            {label}
-        </Button>
-    );
-}
-
-// ─── PillBadge ────────────────────────────────────────────────────────────
-function PillBadge({ label, bg, color }) {
-    return (
-        <Box
-            sx={{
-                display: "inline-block",
-                px: 1.4,
-                py: 0.25,
-                borderRadius: "20px",
-                background: bg,
-                fontSize: "0.72rem",
-                fontWeight: 700,
-                color: color,
-                whiteSpace: "nowrap",
-            }}
-        >
-            {label}
-        </Box>
-    );
-}
-
-// ─── ThCell ───────────────────────────────────────────────────────────────
-function ThCell({ children, headerColor, borderColor }) {
-    return (
-        <TableCell
-            sx={{
-                color: C.white,
-                backgroundColor: headerColor,
-                textAlign: "center",
-                py: 1.2,
-                px: 2,
-                fontSize: "0.72rem",
-                fontWeight: 700,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                border: `1px solid rgba(255,255,255,0.15)`,
-                whiteSpace: "nowrap",
-            }}
-        >
-            {children}
-        </TableCell>
-    );
-}
-
-// ─── TdCell ───────────────────────────────────────────────────────────────
-function TdCell({ children, borderColor, sx }) {
-    return (
-        <TableCell
-            sx={{
-                textAlign: "center",
-                border: `1px solid ${borderColor}`,
-                py: 1.1,
-                px: 2,
-                fontSize: "0.83rem",
-                color: C.textMain,
-                ...sx,
-            }}
-        >
-            {children}
-        </TableCell>
-    );
-}
-
 // ─── Main Component ────────────────────────────────────────────────────────
 const GradeConversionAdmin = () => {
     const settings = useContext(SettingsContext);
 
     // ── Settings state ──
     const [titleColor, setTitleColor] = useState("#000000");
-    const [subtitleColor, setSubtitleColor] = useState("#555555");
     const [borderColor, setBorderColor] = useState("#000000");
     const [mainButtonColor, setMainButtonColor] = useState("#1976d2");
     const [subButtonColor, setSubButtonColor] = useState("#ffffff");
@@ -299,24 +68,18 @@ const GradeConversionAdmin = () => {
     useEffect(() => {
         if (!settings) return;
         if (settings.title_color) setTitleColor(settings.title_color);
-        if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
         if (settings.border_color) setBorderColor(settings.border_color);
         if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
         if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);
         if (settings.stepper_color) setStepperColor(settings.stepper_color);
-        if (settings.logo_url) {
-            setFetchedLogo(`${API_BASE_URL}${settings.logo_url}`);
-        } else {
-            setFetchedLogo(EaristLogo);
-        }
+        if (settings.logo_url) setFetchedLogo(`${API_BASE_URL}${settings.logo_url}`);
+        else setFetchedLogo(EaristLogo);
         if (settings.company_name) setCompanyName(settings.company_name);
         if (settings.short_term) setShortTerm(settings.short_term);
         if (settings.campus_address) setCampusAddress(settings.campus_address);
         if (settings?.branches) {
             try {
-                const parsed = typeof settings.branches === "string"
-                    ? JSON.parse(settings.branches)
-                    : settings.branches;
+                const parsed = typeof settings.branches === "string" ? JSON.parse(settings.branches) : settings.branches;
                 setBranches(parsed);
             } catch (err) {
                 console.error("Failed to parse branches:", err);
@@ -325,7 +88,6 @@ const GradeConversionAdmin = () => {
         }
     }, [settings]);
 
-    // ── Resolved dynamic colors (same pattern as Settings.jsx) ──
     const resolvedHeader = settings?.header_color || mainButtonColor || "#1976d2";
     const resolvedBorder = borderColor || "#000000";
 
@@ -340,12 +102,7 @@ const GradeConversionAdmin = () => {
     const [loading, setLoading] = useState(false);
     const pageId = 144;
     const [employeeID, setEmployeeID] = useState("");
-    const permissionHeaders = {
-        headers: {
-            "x-employee-id": employeeID,
-            "x-page-id": pageId,
-        },
-    };
+    const permissionHeaders = { headers: { "x-employee-id": employeeID, "x-page-id": pageId } };
 
     useEffect(() => {
         const storedUser = localStorage.getItem("email");
@@ -357,11 +114,8 @@ const GradeConversionAdmin = () => {
             setUserRole(storedRole);
             setUserID(storedID);
             setEmployeeID(storedEmployeeID);
-            if (storedRole === "registrar") {
-                checkAccess(storedEmployeeID);
-            } else {
-                window.location.href = "/login";
-            }
+            if (storedRole === "registrar") checkAccess(storedEmployeeID);
+            else window.location.href = "/login";
         } else {
             window.location.href = "/login";
         }
@@ -369,9 +123,7 @@ const GradeConversionAdmin = () => {
 
     const checkAccess = async (employeeID) => {
         try {
-            const response = await axios.get(
-                `${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`
-            );
+            const response = await axios.get(`${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`);
             if (response.data && response.data.page_privilege === 1) {
                 setHasAccess(true);
                 setCanCreate(Number(response.data?.can_create) === 1);
@@ -379,29 +131,23 @@ const GradeConversionAdmin = () => {
                 setCanDelete(Number(response.data?.can_delete) === 1);
             } else {
                 setHasAccess(false);
-                setCanCreate(false);
-                setCanEdit(false);
-                setCanDelete(false);
+                setCanCreate(false); setCanEdit(false); setCanDelete(false);
             }
         } catch (error) {
             console.error("Error checking access:", error);
             setHasAccess(false);
-            setCanCreate(false);
-            setCanEdit(false);
-            setCanDelete(false);
+            setCanCreate(false); setCanEdit(false); setCanDelete(false);
             setLoading(false);
         }
     };
 
     // ── Grade Conversion state ──
     const [rows, setRows] = useState([]);
-    const [form, setForm] = useState({
-        id: null,
-        min_score: "",
-        max_score: "",
-        equivalent_grade: "",
-        descriptive_rating: "",
-    });
+    const EMPTY_GRADE_FORM = { id: null, min_score: "", max_score: "", equivalent_grade: "", descriptive_rating: "" };
+    const [gradeDialogOpen, setGradeDialogOpen] = useState(false);
+    const [gradeForm, setGradeForm] = useState(EMPTY_GRADE_FORM);
+    const [gradeDeleteDialogOpen, setGradeDeleteDialogOpen] = useState(false);
+    const [gradeToDelete, setGradeToDelete] = useState(null);
 
     const fetchData = async () => {
         try {
@@ -416,23 +162,30 @@ const GradeConversionAdmin = () => {
     };
 
     useEffect(() => {
-        if (hasAccess) fetchData();
+        if (hasAccess) { fetchData(); fetchHonors(); }
     }, [hasAccess]);
 
-    const handleSave = async () => {
-        if (form.id && !canEdit) {
-            setSnack({ open: true, message: "You do not have permission to edit this item", severity: "error" });
+    const openAddGradeDialog = () => {
+        if (!canCreate) { setSnack({ open: true, message: "You do not have permission to create items on this page", severity: "error" }); return; }
+        setGradeForm(EMPTY_GRADE_FORM);
+        setGradeDialogOpen(true);
+    };
+
+    const openEditGradeDialog = (row) => {
+        if (!canEdit) { setSnack({ open: true, message: "You do not have permission to edit this item", severity: "error" }); return; }
+        setGradeForm(row);
+        setGradeDialogOpen(true);
+    };
+
+    const handleSaveGrade = async () => {
+        if (!gradeForm.min_score || !gradeForm.max_score || !gradeForm.equivalent_grade) {
+            setSnack({ open: true, message: "Please fill in all required fields", severity: "warning" });
             return;
         }
-
-        if (!form.id && !canCreate) {
-            setSnack({ open: true, message: "You do not have permission to create items on this page", severity: "error" });
-            return;
-        }
-
         try {
-            await axios.post(`${API_BASE_URL}/admin/grade-conversion`, form, permissionHeaders);
-            setForm({ id: null, min_score: "", max_score: "", equivalent_grade: "", descriptive_rating: "" });
+            await axios.post(`${API_BASE_URL}/admin/grade-conversion`, gradeForm, permissionHeaders);
+            setGradeDialogOpen(false);
+            setGradeForm(EMPTY_GRADE_FORM);
             fetchData();
             setSnack({ open: true, message: "Grade entry saved successfully!", severity: "success" });
         } catch (err) {
@@ -441,33 +194,27 @@ const GradeConversionAdmin = () => {
         }
     };
 
-    const handleEdit = (row) => {
-        if (!canEdit) {
-            setSnack({ open: true, message: "You do not have permission to edit this item", severity: "error" });
-            return;
+    const handleDeleteGradeConfirm = async () => {
+        if (!gradeToDelete) return;
+        try {
+            await axios.delete(`${API_BASE_URL}/admin/grade-conversion/${gradeToDelete.id}`, permissionHeaders);
+            setGradeDeleteDialogOpen(false);
+            setGradeToDelete(null);
+            fetchData();
+            setSnack({ open: true, message: "Entry deleted.", severity: "info" });
+        } catch (err) {
+            console.error(err);
+            setSnack({ open: true, message: "Delete failed. Please try again.", severity: "error" });
         }
-        setForm(row);
-    };
-
-    const handleDelete = async (id) => {
-        if (!canDelete) {
-            setSnack({ open: true, message: "You do not have permission to delete this item", severity: "error" });
-            return;
-        }
-        await axios.delete(`${API_BASE_URL}/admin/grade-conversion/${id}`, permissionHeaders);
-        fetchData();
-        setSnack({ open: true, message: "Entry deleted.", severity: "info" });
     };
 
     // ── Honors state ──
     const [honors, setHonors] = useState([]);
-    const [honorForm, setHonorForm] = useState({
-        id: null,
-        title: "",
-        min_grade: "",
-        max_allowed_grade: "",
-        type: 0, // default = semester
-    });
+    const EMPTY_HONOR_FORM = { id: null, title: "", min_grade: "", max_allowed_grade: "", type: 1 };
+    const [honorDialogOpen, setHonorDialogOpen] = useState(false);
+    const [honorForm, setHonorForm] = useState(EMPTY_HONOR_FORM);
+    const [honorDeleteDialogOpen, setHonorDeleteDialogOpen] = useState(false);
+    const [honorToDelete, setHonorToDelete] = useState(null);
 
     const fetchHonors = async () => {
         try {
@@ -478,27 +225,27 @@ const GradeConversionAdmin = () => {
         }
     };
 
-    useEffect(() => {
-        if (hasAccess) {
-            fetchData();
-            fetchHonors();
-        }
-    }, [hasAccess]);
+    const openAddHonorDialog = () => {
+        if (!canCreate) { setSnack({ open: true, message: "You do not have permission to create items on this page", severity: "error" }); return; }
+        setHonorForm(EMPTY_HONOR_FORM);
+        setHonorDialogOpen(true);
+    };
+
+    const openEditHonorDialog = (row) => {
+        if (!canEdit) { setSnack({ open: true, message: "You do not have permission to edit this item", severity: "error" }); return; }
+        setHonorForm(row);
+        setHonorDialogOpen(true);
+    };
 
     const handleSaveHonor = async () => {
-        if (honorForm.id && !canEdit) {
-            setSnack({ open: true, message: "You do not have permission to edit this item", severity: "error" });
+        if (!honorForm.title) {
+            setSnack({ open: true, message: "Title is required", severity: "warning" });
             return;
         }
-
-        if (!honorForm.id && !canCreate) {
-            setSnack({ open: true, message: "You do not have permission to create items on this page", severity: "error" });
-            return;
-        }
-
         try {
             await axios.post(`${API_BASE_URL}/admin/honors-rules`, honorForm, permissionHeaders);
-            setHonorForm({ id: null, title: "", min_grade: "", max_allowed_grade: "", type: "semester" });
+            setHonorDialogOpen(false);
+            setHonorForm(EMPTY_HONOR_FORM);
             fetchHonors();
             setSnack({ open: true, message: "Honors rule saved!", severity: "success" });
         } catch (err) {
@@ -506,22 +253,70 @@ const GradeConversionAdmin = () => {
         }
     };
 
-    const handleDeleteHonor = async (id) => {
-        if (!canDelete) {
-            setSnack({ open: true, message: "You do not have permission to delete this item", severity: "error" });
-            return;
+    const handleDeleteHonorConfirm = async () => {
+        if (!honorToDelete) return;
+        try {
+            await axios.delete(`${API_BASE_URL}/admin/honors-rules/${honorToDelete.id}`, permissionHeaders);
+            setHonorDeleteDialogOpen(false);
+            setHonorToDelete(null);
+            fetchHonors();
+            setSnack({ open: true, message: "Honors rule deleted.", severity: "info" });
+        } catch (err) {
+            console.error(err);
+            setSnack({ open: true, message: "Delete failed. Please try again.", severity: "error" });
         }
-        await axios.delete(`${API_BASE_URL}/admin/honors-rules/${id}`, permissionHeaders);
-        fetchHonors();
-        setSnack({ open: true, message: "Honors rule deleted.", severity: "info" });
     };
 
-    // ── Guard renders ──
-    if (loading || hasAccess === null)
-        return <LoadingOverlay open={loading} message="Loading..." />;
+    // ── Shared styles ──
+    const thCellSx = {
+        textAlign: "center",
+        fontWeight: "bold",
+        fontSize: "0.83rem",
+        color: "black",
+        backgroundColor: "#F5F5F5",
+        border: `1px solid ${resolvedBorder}`,
+        py: 1.1,
+        px: 2,
+    };
+
+    const tdCellSx = {
+        textAlign: "center",
+        border: `1px solid ${resolvedBorder}`,
+        py: 1.1,
+        px: 2,
+        fontSize: "0.83rem",
+        color: C.textMain,
+    };
+
+    const pillSx = (bg, color) => ({
+        display: "inline-block",
+        px: 1.4,
+        py: 0.25,
+        borderRadius: "20px",
+        background: bg,
+        fontSize: "0.72rem",
+        fontWeight: 700,
+        color: color,
+        whiteSpace: "nowrap",
+    });
+
+    const actionBtnSx = (bgColor, hoverColor) => ({
+        backgroundColor: bgColor,
+        color: "white",
+        borderRadius: "5px",
+        padding: "8px 14px",
+        minWidth: "100px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "5px",
+        "&:hover": { backgroundColor: hoverColor },
+    });
+
+    // ── Guards ──
+    if (loading || hasAccess === null) return <LoadingOverlay open={loading} message="Loading..." />;
     if (!hasAccess) return <Unauthorized />;
 
-    const showCreateActions = canCreate;
     const showActionColumn = canEdit || canDelete;
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -536,138 +331,99 @@ const GradeConversionAdmin = () => {
                 paddingRight: 1,
                 "&::-webkit-scrollbar": { width: "6px" },
                 "&::-webkit-scrollbar-track": { background: "transparent" },
-                "&::-webkit-scrollbar-thumb": {
-                    background: "rgba(0,0,0,0.18)",
-                    borderRadius: "8px",
-                },
+                "&::-webkit-scrollbar-thumb": { background: "rgba(0,0,0,0.18)", borderRadius: "8px" },
             }}
         >
-            {/* ── Page Title (mirrors Settings.jsx) ── */}
-            <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    flexWrap: "wrap",
-                    mb: 2,
-                }}
-            >
-                <Typography
-                    variant="h4"
-                    sx={{ fontWeight: "bold", color: titleColor, fontSize: "36px" }}
-                >
+            {/* ── Page Title ── */}
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", mb: 2 }}>
+                <Typography variant="h4" sx={{ fontWeight: "bold", color: titleColor, fontSize: "36px" }}>
                     GRADE MANAGEMENT / ACADEMIC'S AWARD
                 </Typography>
             </Box>
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
-            <br />
-            <br />
+            <br /><br />
 
             {/* ══════════════════════════════════════════════
                 CARD 1 — GRADE CONVERSION
             ══════════════════════════════════════════════ */}
-            <Paper
-                elevation={1}
-                sx={{
-                    border: `1px solid ${resolvedBorder}`,
-                    borderRadius: 3,
-                    overflow: "hidden",
-                    mb: 3,
-                }}
-            >
-                <SectionHeader
-                    icon={<SchoolIcon fontSize="small" />}
-                    title="Grade Conversion Table"
-                    subtitle="Map raw scores to equivalent grades and descriptive ratings"
-                    headerColor={resolvedHeader}
-                />
 
-                {/* Form */}
-                <Box sx={{ px: 3, pt: 2.5, pb: 2 }}>
-                    <Typography
-                        sx={{
-                            fontSize: "0.72rem",
-                            fontWeight: 700,
-                            letterSpacing: "0.06em",
-                            textTransform: "uppercase",
-                            color: C.textMuted,
-                            mb: 1.5,
-                        }}
-                    >
-                        {form.id ? "Edit Entry" : "New Entry"}
-                    </Typography>
-                    <Stack direction="row" flexWrap="wrap" gap={2} alignItems="flex-end">
-                        <LabeledField
-                            label="Min Score"
-                            value={form.min_score}
-                            onChange={(e) => setForm({ ...form, min_score: e.target.value })}
-                            borderColor={resolvedBorder}
-                            width={110}
-                        />
-                        <LabeledField
-                            label="Max Score"
-                            value={form.max_score}
-                            onChange={(e) => setForm({ ...form, max_score: e.target.value })}
-                            borderColor={resolvedBorder}
-                            width={110}
-                        />
-                        <LabeledField
-                            label="Equivalent Grade"
-                            value={form.equivalent_grade}
-                            onChange={(e) => setForm({ ...form, equivalent_grade: e.target.value })}
-                            borderColor={resolvedBorder}
-                            width={150}
-                        />
-                        <LabeledField
-                            label="Descriptive Rating"
-                            value={form.descriptive_rating}
-                            onChange={(e) => setForm({ ...form, descriptive_rating: e.target.value })}
-                            borderColor={resolvedBorder}
-                            width={170}
-                        />
-                        {showCreateActions || (form.id && canEdit) ? (
-                            <SaveButton
-                                isEdit={!!form.id}
-                                onClick={handleSave}
-                                headerColor={resolvedHeader}
-                                borderColor={resolvedBorder}
-                                disabled={form.id ? !canEdit : !canCreate}
-                            />
-                        ) : null}
-                    </Stack>
-                </Box>
+            {/* Top bar with Add button */}
+            <TableContainer component={Paper} sx={{ width: "100%", borderRadius: 0, boxShadow: "none" }}>
+                <Table size="small">
+                    <TableHead>
+                        <TableRow>
+                            <TableCell
+                                colSpan={10}
+                                sx={{
+                                    py: 0.75,
+                                    border: `1px solid ${resolvedBorder}`,
+                                    backgroundColor: resolvedHeader,
+                                    color: "white",
+                                }}
+                            >
+                                <Box display="flex" justifyContent="space-between" alignItems="center">
+                                    <Typography fontSize="14px" fontWeight="bold" color="white">
+                                        Grade Management
+                                    </Typography>
+                                    {canCreate && (
+                                        <Button
+                                            variant="contained"
+                                            onClick={openAddGradeDialog}
+                                            sx={{
+                                                backgroundColor: "#1976d2",
+                                                color: "#fff",
+                                                fontWeight: "bold",
+                                                borderRadius: "8px",
+                                                width: "250px",
+                                                textTransform: "none",
+                                                px: 2,
+                                                mr: "15px",
+                                                "&:hover": { backgroundColor: "#1565c0" },
+                                            }}
+                                        >
+                                            + Add Grade Entry
+                                        </Button>
+                                    )}
+                                </Box>
+                            </TableCell>
+                        </TableRow>
+                    </TableHead>
+                </Table>
+            </TableContainer>
 
-                <Divider sx={{ borderColor: resolvedBorder }} />
+            <Divider sx={{ borderColor: resolvedBorder }} />
 
-                {/* Table */}
-                <TableContainer>
-                    <Table size="small">
-                        <TableHead>
+            {/* Grade Conversion Table */}
+            <TableContainer>
+                <Table size="small" sx={{ borderCollapse: "collapse" }}>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell sx={thCellSx}>Min Score</TableCell>
+                            <TableCell sx={thCellSx}>Max Score</TableCell>
+                            <TableCell sx={thCellSx}>Equivalent Grade</TableCell>
+                            <TableCell sx={thCellSx}>Descriptive Rating</TableCell>
+                            {showActionColumn && <TableCell sx={thCellSx}>Actions</TableCell>}
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {rows.length === 0 ? (
                             <TableRow>
-                                {["Min Score", "Max Score", "Equivalent Grade", "Descriptive Rating", ...(showActionColumn ? ["Actions"] : [])].map((h) => (
-                                    <ThCell key={h} headerColor={resolvedHeader} borderColor={resolvedBorder}>
-                                        {h}
-                                    </ThCell>
-                                ))}
+                                <TableCell
+                                    colSpan={showActionColumn ? 5 : 4}
+                                    sx={{
+                                        textAlign: "center",
+                                        py: 4,
+                                        color: "rgba(107,107,128,0.5)",
+                                        fontSize: "0.82rem",
+                                        fontStyle: "italic",
+                                        border: `1px solid ${resolvedBorder}`,
+                                    }}
+                                >
+                                    No grade conversion entries yet. Click "+ Add Grade Entry" to add one.
+                                </TableCell>
                             </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {rows.length === 0 ? (
-                                <TableRow>
-                                    <TableCell
-                                        colSpan={5}
-                                        sx={{
-                                            textAlign: "center",
-                                            py: 4,
-                                            color: "rgba(107,107,128,0.5)",
-                                            fontSize: "0.82rem",
-                                            fontStyle: "italic",
-                                        }}
-                                    >
-                                        No grade conversion entries yet. Use the form above to add one.
-                                    </TableCell>
-                                </TableRow>
-                            ) : rows.map((row, idx) => (
+                        ) : (
+                            rows.map((row, idx) => (
                                 <TableRow
                                     key={row.id}
                                     sx={{
@@ -676,153 +432,122 @@ const GradeConversionAdmin = () => {
                                         transition: "background 0.12s",
                                     }}
                                 >
-                                    <TdCell borderColor={resolvedBorder}>{row.min_score}</TdCell>
-                                    <TdCell borderColor={resolvedBorder}>{row.max_score}</TdCell>
-                                    <TdCell borderColor={resolvedBorder}>
+                                    <TableCell sx={tdCellSx}>{row.min_score}</TableCell>
+                                    <TableCell sx={tdCellSx}>{row.max_score}</TableCell>
+                                    <TableCell sx={tdCellSx}>
                                         <Box sx={{ fontWeight: 700, color: resolvedHeader }}>
                                             {row.equivalent_grade}
                                         </Box>
-                                    </TdCell>
-                                    <TdCell borderColor={resolvedBorder}>
-                                        <PillBadge
-                                            label={row.descriptive_rating}
-                                            bg={`${resolvedHeader}18`}
-                                            color={resolvedHeader}
-                                        />
-                                    </TdCell>
+                                    </TableCell>
+                                    <TableCell sx={tdCellSx}>
+                                        <Box sx={pillSx(`${resolvedHeader}18`, resolvedHeader)}>
+                                            {row.descriptive_rating}
+                                        </Box>
+                                    </TableCell>
                                     {showActionColumn && (
-                                        <TdCell borderColor={resolvedBorder}>
+                                        <TableCell sx={tdCellSx}>
                                             <Stack direction="row" spacing={1} justifyContent="center">
                                                 {canEdit && (
-                                                    <ActionButton
-                                                        label="Edit"
-                                                        icon={<EditIcon sx={{ fontSize: "14px" }} />}
-                                                        onClick={() => handleEdit(row)}
-                                                        color="green"
-                                                    />
+                                                    <Button
+                                                        variant="contained"
+                                                        sx={actionBtnSx("green", "#006400")}
+                                                        onClick={() => openEditGradeDialog(row)}
+                                                    >
+                                                        <EditIcon fontSize="small" /> Edit
+                                                    </Button>
                                                 )}
                                                 {canDelete && (
-                                                    <ActionButton
-                                                        label="Delete"
-                                                        icon={<DeleteIcon sx={{ fontSize: "14px" }} />}
-                                                        onClick={() => handleDelete(row.id)}
-                                                        color="red"
-                                                    />
+                                                    <Button
+                                                        variant="contained"
+                                                        sx={actionBtnSx("#9E0000", "#7a0000")}
+                                                        onClick={() => { setGradeToDelete(row); setGradeDeleteDialogOpen(true); }}
+                                                    >
+                                                        <DeleteIcon fontSize="small" /> Delete
+                                                    </Button>
                                                 )}
                                             </Stack>
-                                        </TdCell>
+                                        </TableCell>
                                     )}
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            </Paper>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+
+            <br />
+            <br />
 
             {/* ══════════════════════════════════════════════
                 CARD 2 — HONORS RULES
             ══════════════════════════════════════════════ */}
-            <Paper
-                elevation={1}
-                sx={{
-                    border: `1px solid ${resolvedBorder}`,
-                    borderRadius: 3,
-                    overflow: "hidden",
-                    mb: 3,
-                }}
-            >
-                <SectionHeader
-                    icon={<EmojiEventsIcon fontSize="small" />}
-                    title="Honors & Academic Awards Rules"
-                    subtitle="Define criteria for semester honors and graduation latin awards"
-                    headerColor={resolvedHeader}
-                />
+            <Paper elevation={1} sx={{ border: `1px solid ${resolvedBorder}`, overflow: "hidden", mb: 3 }}>
 
-                {/* Form */}
-                <Box sx={{ px: 3, pt: 2.5, pb: 2 }}>
-                    <Typography
-                        sx={{
-                            fontSize: "0.72rem",
-                            fontWeight: 700,
-                            letterSpacing: "0.06em",
-                            textTransform: "uppercase",
-                            color: C.textMuted,
-                            mb: 1.5,
-                        }}
-                    >
-                        {honorForm.id ? "Edit Honor Rule" : "New Honor Rule"}
-                    </Typography>
-                    <Stack direction="row" flexWrap="wrap" gap={2} alignItems="flex-end">
-                        <LabeledField
-                            label="Title (e.g. Dean's Lister)"
-                            value={honorForm.title}
-                            onChange={(e) => setHonorForm({ ...honorForm, title: e.target.value })}
-                            borderColor={resolvedBorder}
-                            width={200}
-                        />
-                        <LabeledField
-                            label="Max Allowed Grade"
-                            value={honorForm.max_allowed_grade}
-                            onChange={(e) => setHonorForm({ ...honorForm, max_allowed_grade: e.target.value })}
-                            borderColor={resolvedBorder}
-                            width={155}
-                        />
-                        <LabeledField
-                            label="Min Grade (Latin Honors)"
-                            value={honorForm.min_grade}
-                            onChange={(e) => setHonorForm({ ...honorForm, min_grade: e.target.value })}
-                            borderColor={resolvedBorder}
-                            width={170}
-                        />
-                        <LabeledField
-                            label="Max Grade"
-                            value={honorForm.max_allowed_grade}
-                            onChange={(e) => setHonorForm({ ...honorForm, max_allowed_grade: e.target.value })}
-                            borderColor={resolvedBorder}
-                            width={120}
-                        />
-                        <LabeledField
-                            label="Type"
-                            value={honorForm.type}
-                            onChange={(e) => setHonorForm({ ...honorForm, type: e.target.value })}
-                            borderColor={resolvedBorder}
-                            width={130}
-                            select
-                        >
-                            <MenuItem value={1}>Semester</MenuItem>
-                            <MenuItem value={2}>Graduation</MenuItem>
-                        </LabeledField>
-                        {showCreateActions || (honorForm.id && canEdit) ? (
-                            <SaveButton
-                                isEdit={!!honorForm.id}
-                                onClick={handleSaveHonor}
-                                headerColor={resolvedHeader}
-                                borderColor={resolvedBorder}
-                                disabled={honorForm.id ? !canEdit : !canCreate}
-                            />
-                        ) : null}
-                    </Stack>
-                </Box>
+                {/* Section Header */}
+
+                {/* Top bar with Add button */}
+                <TableContainer component={Paper} sx={{ width: "100%", borderRadius: 0, boxShadow: "none" }}>
+                    <Table size="small">
+                        <TableHead>
+                            <TableRow>
+                                <TableCell
+                                    colSpan={10}
+                                    sx={{
+                                        py: 0.75,
+                                        border: `1px solid ${resolvedBorder}`,
+                                        backgroundColor: resolvedHeader,
+                                        color: "white",
+                                    }}
+                                >
+                                    <Box display="flex" justifyContent="space-between" alignItems="center">
+                                        <Typography fontSize="14px" fontWeight="bold" color="white">
+                                            Academic's Award
+                                        </Typography>
+                                        {canCreate && (
+                                            <Button
+                                                variant="contained"
+                                                onClick={openAddHonorDialog}
+                                                sx={{
+                                                    backgroundColor: "#1976d2",
+                                                    color: "#fff",
+                                                    fontWeight: "bold",
+                                                    borderRadius: "8px",
+                                                    width: "250px",
+                                                    textTransform: "none",
+                                                    px: 2,
+                                                    mr: "15px",
+                                                    "&:hover": { backgroundColor: "#1565c0" },
+                                                }}
+                                            >
+                                                + Add Honor Rule
+                                            </Button>
+                                        )}
+                                    </Box>
+                                </TableCell>
+                            </TableRow>
+                        </TableHead>
+                    </Table>
+                </TableContainer>
 
                 <Divider sx={{ borderColor: resolvedBorder }} />
 
-                {/* Table */}
+                {/* Honors Table */}
                 <TableContainer>
                     <Table size="small">
                         <TableHead>
                             <TableRow>
-                                {["Title", "Max Grade", "Min Grade", "Type", ...(showActionColumn ? ["Actions"] : [])].map((h) => (
-                                    <ThCell key={h} headerColor={resolvedHeader} borderColor={resolvedBorder}>
-                                        {h}
-                                    </ThCell>
-                                ))}
+                                <TableCell sx={thCellSx}>Title</TableCell>
+                                <TableCell sx={thCellSx}>Max Grade</TableCell>
+                                <TableCell sx={thCellSx}>Min Grade</TableCell>
+                                <TableCell sx={thCellSx}>Type</TableCell>
+                                {showActionColumn && <TableCell sx={thCellSx}>Actions</TableCell>}
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {honors.length === 0 ? (
                                 <TableRow>
                                     <TableCell
-                                        colSpan={5}
+                                        colSpan={showActionColumn ? 5 : 4}
                                         sx={{
                                             textAlign: "center",
                                             py: 4,
@@ -831,7 +556,7 @@ const GradeConversionAdmin = () => {
                                             fontStyle: "italic",
                                         }}
                                     >
-                                        No honors rules configured yet. Use the form above to add one.
+                                        No honors rules configured yet. Click "+ Add Honor Rule" to add one.
                                     </TableCell>
                                 </TableRow>
                             ) : honors.map((row, idx) => (
@@ -843,62 +568,53 @@ const GradeConversionAdmin = () => {
                                         transition: "background 0.12s",
                                     }}
                                 >
-                                    <TdCell borderColor={resolvedBorder}>
+                                    <TableCell sx={tdCellSx}>
                                         <Stack direction="row" spacing={0.75} alignItems="center" justifyContent="center">
                                             <EmojiEventsIcon sx={{ fontSize: "14px", color: resolvedHeader, opacity: 0.75 }} />
                                             <Box sx={{ fontWeight: 700, color: C.textMain }}>{row.title}</Box>
                                         </Stack>
-                                    </TdCell>
-                                    <TdCell borderColor={resolvedBorder}>
-                                        <PillBadge
-                                            label={row.max_allowed_grade}
-                                            bg="rgba(139,26,26,0.09)"
-                                            color={C.redDark}
-                                        />
-                                    </TdCell>
-                                    <TdCell borderColor={resolvedBorder}>
-                                        <PillBadge
-                                            label={row.min_grade}
-                                            bg="rgba(26,92,54,0.09)"
-                                            color={C.greenDark}
-                                        />
-                                    </TdCell>
-                                    <TdCell borderColor={resolvedBorder}>
-                                        <PillBadge
-                                            label={row.type === 2 ? "Graduation" : "Semester"}
-                                            bg={
-                                                row.type === 2
-                                                    ? `${resolvedHeader}20`
-                                                    : "rgba(26,26,46,0.07)"
-                                            }
-                                            color={
-                                                row.type === 2 ? resolvedHeader : C.textMain
-                                            }
-                                        />
-                                    </TdCell>
+                                    </TableCell>
+                                    <TableCell sx={tdCellSx}>
+                                        <Box sx={pillSx("rgba(139,26,26,0.09)", C.redDark)}>
+                                            {row.max_allowed_grade}
+                                        </Box>
+                                    </TableCell>
+                                    <TableCell sx={tdCellSx}>
+                                        <Box sx={pillSx("rgba(26,92,54,0.09)", C.greenDark)}>
+                                            {row.min_grade}
+                                        </Box>
+                                    </TableCell>
+                                    <TableCell sx={tdCellSx}>
+                                        <Box sx={pillSx(
+                                            row.type === 2 ? `${resolvedHeader}20` : "rgba(26,26,46,0.07)",
+                                            row.type === 2 ? resolvedHeader : C.textMain
+                                        )}>
+                                            {row.type === 2 ? "Graduation" : "Semester"}
+                                        </Box>
+                                    </TableCell>
                                     {showActionColumn && (
-                                        <TdCell borderColor={resolvedBorder}>
+                                        <TableCell sx={tdCellSx}>
                                             <Stack direction="row" spacing={1} justifyContent="center">
                                                 {canEdit && (
-                                                    <ActionButton
-                                                        label="Edit"
-                                                        icon={<EditIcon sx={{ fontSize: "14px" }} />}
-                                                        onClick={() => {
-                                                            setHonorForm(row);
-                                                        }}
-                                                        color="green"
-                                                    />
+                                                    <Button
+                                                        variant="contained"
+                                                        sx={actionBtnSx("green", "#006400")}
+                                                        onClick={() => openEditHonorDialog(row)}
+                                                    >
+                                                        <EditIcon fontSize="small" /> Edit
+                                                    </Button>
                                                 )}
                                                 {canDelete && (
-                                                    <ActionButton
-                                                        label="Delete"
-                                                        icon={<DeleteIcon sx={{ fontSize: "14px" }} />}
-                                                        onClick={() => handleDeleteHonor(row.id)}
-                                                        color="red"
-                                                    />
+                                                    <Button
+                                                        variant="contained"
+                                                        sx={actionBtnSx("#9E0000", "#7a0000")}
+                                                        onClick={() => { setHonorToDelete(row); setHonorDeleteDialogOpen(true); }}
+                                                    >
+                                                        <DeleteIcon fontSize="small" /> Delete
+                                                    </Button>
                                                 )}
                                             </Stack>
-                                        </TdCell>
+                                        </TableCell>
                                     )}
                                 </TableRow>
                             ))}
@@ -907,18 +623,213 @@ const GradeConversionAdmin = () => {
                 </TableContainer>
             </Paper>
 
-            {/* ── Snackbar (mirrors Settings.jsx) ── */}
+            {/* ══════════════════════════════════════════════
+                DIALOGS — Grade Conversion
+            ══════════════════════════════════════════════ */}
+
+            {/* Add / Edit Grade Dialog */}
+            <Dialog open={gradeDialogOpen} onClose={() => setGradeDialogOpen(false)} maxWidth="sm" fullWidth>
+                <DialogTitle sx={{ fontWeight: "bold", backgroundColor: resolvedHeader, color: "white" }}>
+                    {gradeForm.id ? "Edit Grade Entry" : "Add Grade Entry"}
+                </DialogTitle>
+                <DialogContent sx={{ pt: 3 }}>
+                    <Stack spacing={2} sx={{ mt: 1 }}>
+
+                        <Typography fontWeight="bold" mb={1} mt={3}>
+                            Min Score
+                        </Typography>
+                        <TextField
+                            label="Min Score"
+                            fullWidth
+                            size="small"
+                            value={gradeForm.min_score}
+                            onChange={(e) => setGradeForm({ ...gradeForm, min_score: e.target.value })}
+                        />
+                        <Typography fontWeight="bold" mb={1} mt={3}>
+                            Max Score
+                        </Typography>
+                        <TextField
+                            label="Max Score"
+                            fullWidth
+                            size="small"
+                            value={gradeForm.max_score}
+                            onChange={(e) => setGradeForm({ ...gradeForm, max_score: e.target.value })}
+                        />
+                        <Typography fontWeight="bold" mb={1} mt={3}>
+                            Equivalent Grade
+                        </Typography>
+                        <TextField
+                            label="Equivalent Grade"
+                            fullWidth
+                            size="small"
+                            value={gradeForm.equivalent_grade}
+                            onChange={(e) => setGradeForm({ ...gradeForm, equivalent_grade: e.target.value })}
+                        />
+                        <Typography fontWeight="bold" mb={1} mt={3}>
+                            Descriptive Rating
+                        </Typography>
+                        <TextField
+                            label="Descriptive Rating"
+                            fullWidth
+                            size="small"
+                            value={gradeForm.descriptive_rating}
+                            onChange={(e) => setGradeForm({ ...gradeForm, descriptive_rating: e.target.value })}
+                        />
+                    </Stack>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 2 }}>
+                    <Button onClick={() => setGradeDialogOpen(false)} color="error"
+                        variant="outlined">
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleSaveGrade}
+                        variant="contained"
+                        startIcon={<SaveIcon />}
+                        sx={{
+                            px: 4,
+                            fontWeight: 600,
+                            textTransform: "none",
+                        }}
+                    >
+                        Save
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Delete Grade Dialog */}
+            <Dialog open={gradeDeleteDialogOpen} onClose={() => setGradeDeleteDialogOpen(false)} maxWidth="xs" fullWidth>
+                <DialogTitle sx={{ fontWeight: "bold" }}>Confirm Delete</DialogTitle>
+                <DialogContent>
+                    <Typography>
+                        Are you sure you want to delete grade entry{" "}
+                        <strong>{gradeToDelete?.equivalent_grade}</strong>?
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 2 }}>
+                    <Button onClick={() => setGradeDeleteDialogOpen(false)} color="error"
+                        variant="outlined">
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleDeleteGradeConfirm}
+                        variant="contained"
+                        sx={{ backgroundColor: "#9E0000", color: "white" }}
+                    >
+                        Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* ══════════════════════════════════════════════
+                DIALOGS — Honors
+            ══════════════════════════════════════════════ */}
+
+            {/* Add / Edit Honor Dialog */}
+            <Dialog open={honorDialogOpen} onClose={() => setHonorDialogOpen(false)} maxWidth="sm" fullWidth>
+                <DialogTitle sx={{ fontWeight: "bold", backgroundColor: resolvedHeader, color: "white" }}>
+                    {honorForm.id ? "Edit Honor Rule" : "Add Honor Rule"}
+                </DialogTitle>
+                <DialogContent sx={{ pt: 3 }}>
+                    <Stack spacing={2} sx={{ mt: 1 }}>
+                        <Typography fontWeight="bold" mb={1} mt={3}>
+                            Dean's Lister
+                        </Typography>
+                        <TextField
+                            label="Title (e.g. Dean's Lister)"
+                            fullWidth
+                            size="small"
+                            value={honorForm.title}
+                            onChange={(e) => setHonorForm({ ...honorForm, title: e.target.value })}
+                        />
+                        <Typography fontWeight="bold" mb={1} mt={3}>
+                            Min Grades
+                        </Typography>
+                        <TextField
+                            label="Min Grade (Latin Honors)"
+                            fullWidth
+                            size="small"
+                            value={honorForm.min_grade}
+                            onChange={(e) => setHonorForm({ ...honorForm, min_grade: e.target.value })}
+                        />
+                        <Typography fontWeight="bold" mb={1} mt={3}>
+                           Max Allowed Grades
+                        </Typography>
+                        <TextField
+                            label="Max Allowed Grade"
+                            fullWidth
+                            size="small"
+                            value={honorForm.max_allowed_grade}
+                            onChange={(e) => setHonorForm({ ...honorForm, max_allowed_grade: e.target.value })}
+                        />
+                         <Typography fontWeight="bold" mb={1} mt={3}>
+                           Type
+                        </Typography>
+                        <TextField
+                            label="Type"
+                            fullWidth
+                            size="small"
+                            select
+                            value={honorForm.type}
+                            onChange={(e) => setHonorForm({ ...honorForm, type: e.target.value })}
+                        >
+                            <MenuItem value={1}>Semester</MenuItem>
+                            <MenuItem value={2}>Graduation</MenuItem>
+                        </TextField>
+                    </Stack>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 2 }}>
+                    <Button onClick={() => setHonorDialogOpen(false)} color="error"
+                        variant="outlined">
+                        Cancel
+                    </Button>
+                    <Button
+                        startIcon={<SaveIcon />}
+                        onClick={handleSaveHonor}
+                        variant="contained"
+                        sx={{
+                            px: 4,
+                            fontWeight: 600,
+                            textTransform: "none",
+                        }}
+                    >
+                        Save
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Delete Honor Dialog */}
+            <Dialog open={honorDeleteDialogOpen} onClose={() => setHonorDeleteDialogOpen(false)} maxWidth="xs" fullWidth>
+                <DialogTitle sx={{ fontWeight: "bold" }}>Confirm Delete</DialogTitle>
+                <DialogContent>
+                    <Typography>
+                        Are you sure you want to delete honor rule{" "}
+                        <strong>{honorToDelete?.title}</strong>?
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 2 }}>
+                    <Button onClick={() => setHonorDeleteDialogOpen(false)} color="error"
+                        variant="outlined">
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleDeleteHonorConfirm}
+                        variant="contained"
+                        sx={{ backgroundColor: "#9E0000", color: "white" }}
+                    >
+                        Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* ── Snackbar ── */}
             <Snackbar
                 open={snack.open}
                 autoHideDuration={4000}
                 onClose={handleCloseSnack}
                 anchorOrigin={{ vertical: "top", horizontal: "center" }}
             >
-                <Alert
-                    severity={snack.severity}
-                    onClose={handleCloseSnack}
-                    sx={{ width: "100%", fontWeight: 500, borderRadius: 2.5 }}
-                >
+                <Alert severity={snack.severity} onClose={handleCloseSnack} sx={{ width: "100%", fontWeight: 500, borderRadius: 2.5 }}>
                     {snack.message}
                 </Alert>
             </Snackbar>

@@ -102,12 +102,19 @@ const RegisterProf = () => {
   const [userRole, setUserRole] = useState("");
 
   const [hasAccess, setHasAccess] = useState(null);
+  const [canDelete, setCanDelete] = useState(false);
   const [loading, setLoading] = useState(false);
 
 
   const pageId = 70;
 
   const [employeeID, setEmployeeID] = useState("");
+  const permissionHeaders = {
+    headers: {
+      "x-employee-id": employeeID,
+      "x-page-id": pageId,
+    },
+  };
 
   useEffect(() => {
 
@@ -137,12 +144,15 @@ const RegisterProf = () => {
       const response = await axios.get(`${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`);
       if (response.data && response.data.page_privilege === 1) {
         setHasAccess(true);
+        setCanDelete(Number(response.data?.can_delete) === 1);
       } else {
         setHasAccess(false);
+        setCanDelete(false);
       }
     } catch (error) {
       console.error('Error checking access:', error);
       setHasAccess(false);
+      setCanDelete(false);
       if (error.response && error.response.data.message) {
         console.log(error.response.data.message);
       } else {
@@ -158,7 +168,9 @@ const RegisterProf = () => {
   const [professors, setProfessors] = useState([]);
   const [department, setDepartment] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [editData, setEditData] = useState(null);
+  const [profToDelete, setProfToDelete] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
 
 
@@ -590,6 +602,45 @@ const RegisterProf = () => {
       fetchProfessors();
     } catch (err) {
       console.error("Status toggle failed:", err);
+    }
+  };
+
+  const handleDeleteClick = (prof) => {
+    if (!canDelete) {
+      setSnackbarMessage("You do not have permission to delete this item");
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
+      return;
+    }
+
+    setProfToDelete(prof);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!profToDelete) return;
+
+    try {
+      await axios.delete(
+        `${API_BASE_URL}/faculty/delete_prof/${profToDelete.prof_id}`,
+        permissionHeaders,
+      );
+
+      setSnackbarMessage("Professor deleted successfully!");
+      setSnackbarSeverity("success");
+      setOpenSnackbar(true);
+      setOpenDeleteDialog(false);
+      setProfToDelete(null);
+      fetchProfessors();
+    } catch (err) {
+      console.error("Delete professor failed:", err);
+      setSnackbarMessage(
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        "Failed to delete professor",
+      );
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
     }
   };
 
@@ -1178,22 +1229,43 @@ const RegisterProf = () => {
                 <TableCell sx={{ border: `1px solid ${borderColor}` }}>{prof.dprtmnt_name} ({prof.dprtmnt_code})</TableCell>
                 <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>{prof.role}</TableCell>
                 <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
-                  <Button
-                    onClick={() => handleEdit(prof)}
-                    sx={{
-                      backgroundColor: "green",
-                      color: "white",
-                      borderRadius: "5px",
-                      padding: "8px 14px",
-                      width: "100px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "5px",
-                    }}
-                  >
-                    <EditIcon fontSize="small" /> Edit
-                  </Button>
+                  <Box sx={{ display: "flex", justifyContent: "center", gap: 1, flexWrap: "wrap" }}>
+                    <Button
+                      onClick={() => handleEdit(prof)}
+                      sx={{
+                        backgroundColor: "green",
+                        color: "white",
+                        borderRadius: "5px",
+                        padding: "8px 14px",
+                        width: "100px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "5px",
+                      }}
+                    >
+                      <EditIcon fontSize="small" /> Edit
+                    </Button>
+                    {canDelete && (
+                      <Button
+                        onClick={() => handleDeleteClick(prof)}
+                        sx={{
+                          backgroundColor: "#9E0000",
+                          color: "white",
+                          borderRadius: "5px",
+                          padding: "8px 14px",
+                          width: "100px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "5px",
+
+                        }}
+                      >
+                        <DeleteIcon fontSize="small" /> Delete
+                      </Button>
+                    )}
+                  </Box>
                 </TableCell>
                 <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
                   <Button
@@ -1452,6 +1524,51 @@ const RegisterProf = () => {
               {editData ? "Save Changes" : "Save"}
             </Button>
           </Box>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openDeleteDialog}
+        onClose={() => {
+          setOpenDeleteDialog(false);
+          setProfToDelete(null);
+        }}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ backgroundColor: "#800000", color: "#fff" }}>
+          Confirm Delete
+        </DialogTitle>
+        <DialogContent sx={{ pt: 3 }}>
+          <Typography sx={{ mt: 1 }}>
+            Are you sure you want to delete professor{" "}
+            <strong>
+              {profToDelete
+                ? `${profToDelete.fname || ""} ${profToDelete.lname || ""}`
+                : ""}
+            </strong>
+            ?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setOpenDeleteDialog(false);
+              setProfToDelete(null);
+            }}
+            color="error"
+            variant="outlined"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            color="error"
+            variant="contained"
+            startIcon={<DeleteIcon />}
+          >
+            Delete
+          </Button>
         </DialogActions>
       </Dialog>
 

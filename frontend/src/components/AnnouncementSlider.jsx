@@ -10,7 +10,9 @@ import CloseIcon from "@mui/icons-material/Close";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 
-const AnnouncementSlider = () => {
+const normalizeCampusId = (value) => String(value || "").trim();
+
+const AnnouncementSlider = ({ campusId = "" }) => {
     const [slides, setSlides] = useState([]);
     const [index, setIndex] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
@@ -22,16 +24,26 @@ const AnnouncementSlider = () => {
     const [zoom, setZoom] = useState(1);
 
     useEffect(() => {
+        const selectedCampus = normalizeCampusId(campusId);
+
         axios
             .get(`${API_BASE_URL}/api/announcements`)
             .then(res => {
                 if (Array.isArray(res.data.data)) {
-                    setSlides(res.data.data);
+                    const filteredSlides = res.data.data.filter((announcement) => {
+                        const announcementCampus = normalizeCampusId(announcement.campus);
+
+                        if (!selectedCampus) return true;
+
+                        return !announcementCampus || announcementCampus === selectedCampus;
+                    });
+
+                    setSlides(filteredSlides);
                     setIndex(0);
                 }
             })
             .catch(err => console.error("Announcement fetch error:", err));
-    }, []);
+    }, [campusId]);
 
     // Auto-advance slider (paused when lightbox is open)
     useEffect(() => {

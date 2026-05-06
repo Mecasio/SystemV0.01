@@ -6,6 +6,7 @@ const path = require("path");
 const fs = require("fs");
 
 const { db, db3 } = require("../database/database");
+const { CanDelete } = require("../../middleware/pagePermissions");
 
 require("dotenv").config();
 
@@ -350,6 +351,75 @@ router.put("/update_prof_status/:id", async (req, res) => {
   }
 });
 
+router.delete("/delete_prof/:id", CanDelete, async (req, res) => {
+  const { id } = req.params;
+  let conn;
+
+  try {
+    conn = await db3.getConnection();
+    await conn.beginTransaction();
+
+    const [profRows] = await conn.query(
+      "SELECT prof_id, employee_id, profile_image FROM prof_table WHERE prof_id = ? LIMIT 1",
+      [id],
+    );
+
+    if (profRows.length === 0) {
+      await conn.rollback();
+      return res.status(404).json({ success: false, error: "Professor not found" });
+    }
+
+    const [scheduleRows] = await conn.query(
+      "SELECT id FROM time_table WHERE professor_id = ? LIMIT 1",
+      [id],
+    );
+
+    if (scheduleRows.length > 0) {
+      await conn.rollback();
+      return res.status(409).json({
+        success: false,
+        error: "Professor cannot be deleted because they are assigned to a schedule.",
+      });
+    }
+
+    await conn.query("DELETE FROM dprtmnt_profs_table WHERE prof_id = ?", [id]);
+    await conn.query("DELETE FROM prof_table WHERE prof_id = ?", [id]);
+
+    await conn.commit();
+
+    const profileImage = profRows[0].profile_image;
+    if (profileImage) {
+      const uploadDirs = [
+        path.join(__dirname, "uploads"),
+        path.join(__dirname, "../../uploads/Faculty1by1"),
+      ];
+
+      for (const uploadDir of uploadDirs) {
+        const imagePath = path.join(uploadDir, profileImage);
+        try {
+          if (fs.existsSync(imagePath)) {
+            await fs.promises.unlink(imagePath);
+          }
+        } catch (fileErr) {
+          console.error("Failed to delete professor image:", fileErr.message);
+        }
+      }
+    }
+
+    res.json({ success: true, message: "Professor deleted successfully" });
+  } catch (err) {
+    if (conn) await conn.rollback();
+    console.error("Professor delete error:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to delete professor",
+      details: err.message,
+    });
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
 
 router.post("/import_professors", async (req, res) => {
   const { professors } = req.body;
@@ -451,112 +521,133 @@ router.post("/import_professors", async (req, res) => {
 
 });
 
+
+// ─── Faculty: Password Reset Reminder ───────────────────────────────────────
 router.post("/notify_faculty", async (req, res) => {
   const { employee_id, email, password } = req.body;
 
   let conn;
 
   try {
-    if (!employee_id || !email) {
+    if (!employee_id || !email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Employee ID and Email are required"
+        message: "Missing required fields"
       });
     }
 
     conn = await db3.getConnection();
 
-    // ✅ USE employee_id instead of person_id
     const [prof] = await conn.query(
-      `SELECT fname, mname, lname, employee_id 
-       FROM prof_table 
+      `SELECT fname, mname, lname, employee_id
+       FROM prof_table
        WHERE employee_id = ?`,
       [employee_id]
     );
 
     if (prof.length === 0) {
-      return res.json({
-        success: false,
-        message: "Professor not found"
-      });
+      return res.json({ success: false, message: "Professor not found" });
     }
 
-    const finalPassword = password || generateRandomPassword();
-    const hashedPassword = await bcrypt.hash(finalPassword, 10);
-
-    await conn.beginTransaction();
-
-    // ✅ UPDATE using employee_id
-    await conn.query(
-      `UPDATE prof_table 
-       SET email = ?, password = ? 
-       WHERE employee_id = ?`,
-      [email, hashedPassword, employee_id]
-    );
-
-    const frontendUrl = process.env.FRONTEND_URL;
-
     const [companyRows] = await db.query(`
-      SELECT company_name, short_term
-      FROM company_settings
-      LIMIT 1
+      SELECT company_name, short_term FROM company_settings LIMIT 1
     `);
 
     const company_name = companyRows[0]?.company_name || "Company";
-    const short_term = companyRows[0]?.short_term || "System";
+    const short_term   = companyRows[0]?.short_term   || "System";
+    const frontendUrl  = process.env.FRONTEND_URL;
 
-    console.log("Sending email to:", email);
-    console.log("Password:", finalPassword);
+    const { fname, mname, lname, employee_id: empId } = prof[0];
+    const fullName = `${lname}, ${fname} ${mname || ""}`.trim();
 
     await transporter.sendMail({
-      from: `"${short_term} - Faculty Account" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: `${short_term} - Faculty Account Created`,
+      from:    `"${short_term} — Password Security" <${process.env.EMAIL_USER}>`,
+      to:      email,
+      subject: `${short_term} — Action Required: Change Your Password`,
       html: `
-        <h3>${company_name} Faculty Portal Account</h3>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; color: #222;">
+          <h2 style="margin-bottom: 4px;">${company_name} Faculty Portal</h2>
+          <p style="color: #777; margin-top: 0; font-size: 13px;">Password change reminder</p>
 
-        <p>Hello <b>${prof[0].lname}, ${prof[0].fname} ${prof[0].mname}</b>,</p>
+          <p>Hello <strong>${fullName}</strong>,</p>
 
-        <p>Your faculty account has been created.</p>
+          <p style="color: #555;">
+            This is a reminder that your account is currently using a
+            <strong style="color: #222;">temporary password</strong>.
+            For the security of your account, you are required to update
+            your password as soon as possible.
+          </p>
 
-        <h4>Login Credentials</h4>
+          <table style="background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 6px;
+                         width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <tr>
+              <td style="padding: 12px 16px; font-weight: bold; font-size: 14px;"
+                  colspan="2">Account details</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 16px; color: #777; width: 40%; font-size: 13px;">Username</td>
+              <td style="padding: 6px 16px; font-size: 13px;">
+                ${email} / ${empId}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 16px; color: #777; font-size: 13px;">Temporary password</td>
+              <td style="padding: 6px 16px; font-family: monospace; font-size: 13px;">${password}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 16px; color: #777; font-size: 13px;">Account type</td>
+              <td style="padding: 6px 16px; font-size: 13px;">Faculty</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 16px; color: #777; font-size: 13px;">Status</td>
+              <td style="padding: 6px 16px; font-size: 13px;">
+                <span style="background: #fff8e1; color: #856404; font-size: 12px;
+                              padding: 2px 10px; border-radius: 4px;">
+                  Requires password change
+                </span>
+              </td>
+            </tr>
+          </table>
 
-        <p>
-          <b>Username:</b> ${email} / ${prof[0].employee_id}<br/>
-          <b>Password:</b> ${finalPassword}
-        </p>
+          <p style="font-weight: bold; font-size: 14px; margin-bottom: 6px;">
+            Steps to change your password
+          </p>
+          <ol style="color: #555; font-size: 13px; line-height: 2;">
+            <li>Go to the login page using the link below</li>
+            <li>Log in with your username and temporary password</li>
+            <li>You will be prompted to set a new password immediately</li>
+            <li>Choose a strong password (min. 8 characters, with letters, numbers, and symbols)</li>
+          </ol>
 
-        <p style="color:red;">
-          Please change your password after your first login.
-        </p>
+          <div style="border-left: 3px solid #dc3545; padding-left: 12px; margin: 16px 0;">
+            <p style="color: #dc3545; font-size: 13px; margin: 0; line-height: 1.6;">
+              Do not share your password with anyone. This system will never ask
+              for your password via email or phone.
+            </p>
+          </div>
 
-        <p>
-          <a href="${frontendUrl}/login">${frontendUrl}/login</a>
-        </p>
+          <p style="font-size: 13px;">
+            Login link:<br/>
+            <a href="${frontendUrl}/login" style="color: #0d6efd;">${frontendUrl}/login</a>
+          </p>
+
+          <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 24px 0;" />
+          <p style="font-size: 12px; color: #aaa;">
+            If you did not request this or believe this was sent in error, please
+            contact the system administrator immediately. Do not reply to this email.
+          </p>
+        </div>
       `
     });
 
-    await conn.commit();
-
-    res.json({
-      success: true,
-      message: "Faculty notified successfully",
-      password: finalPassword
-    });
+    res.json({ success: true, message: "Faculty password reset reminder sent" });
 
   } catch (error) {
-    if (conn) await conn.rollback();
-
     console.error("EMAIL ERROR:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Server error"
-    });
+    res.status(500).json({ success: false, message: "Server error" });
   } finally {
     if (conn) conn.release();
   }
 });
-
 
 module.exports = router;

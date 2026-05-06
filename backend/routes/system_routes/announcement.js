@@ -37,6 +37,7 @@ router.get("/announcements", async (req, res) => {
     file_path,
     expires_at,
     target_role,
+    campus,
     created_at
   FROM announcements
   WHERE expires_at >= NOW() OR expires_at IS NULL
@@ -60,6 +61,7 @@ router.post("/announcements", CanCreate, announcementUpload.single("image"), asy
     content,
     valid_days,
     target_role,
+    campus,
   } = req.body;
 
   if(!title || !content) {
@@ -87,13 +89,13 @@ if (valid_days !== "permanent") {
 
 const [result] = await db.execute(
   `INSERT INTO announcements
-   (title, content, valid_days, target_role, expires_at)
-   VALUES (?, ?, ?, ?, ${
+   (title, content, valid_days, target_role, campus, expires_at)
+   VALUES (?, ?, ?, ?, ?, ${
      expiresAt ? "DATE_ADD(NOW(), INTERVAL ? DAY)" : "NULL"
    })`,
   expiresAt
-    ? [title, content, valid_days, target_role, valid_days]
-    : [title, content, null, target_role]
+    ? [title, content, valid_days, target_role, campus || null, valid_days]
+    : [title, content, null, target_role, campus || null]
 );
 
     const announcementId = result.insertId;
@@ -130,7 +132,7 @@ const [result] = await db.execute(
 //EDITED 4:40PM 14/03/2026
 router.put("/announcements/:id", CanEdit, announcementUpload.single("image"), async (req, res) => {
   const { id } = req.params;
-  const { title, content, valid_days, target_role } = req.body;
+  const { title, content, valid_days, target_role, campus } = req.body;
 
   if(!title || !content) {
     return res.status(400).json({message: "Missing Required Fields"})
@@ -155,23 +157,23 @@ router.put("/announcements/:id", CanEdit, announcementUpload.single("image"), as
     if (valid_days === "permanent") {
       query = `
         UPDATE announcements
-        SET title = ?, content = ?, valid_days = NULL, target_role = ?, expires_at = NULL
+        SET title = ?, content = ?, valid_days = NULL, target_role = ?, campus = ?, expires_at = NULL
         WHERE id = ?
       `;
 
-      params = [title, content, target_role, id];
+      params = [title, content, target_role, campus || null, id];
 
     } else {
 
       // ✅ Handle Normal Days
       query = `
         UPDATE announcements
-        SET title = ?, content = ?, valid_days = ?, target_role = ?, 
+        SET title = ?, content = ?, valid_days = ?, target_role = ?, campus = ?,
             expires_at = DATE_ADD(NOW(), INTERVAL ? DAY)
         WHERE id = ?
       `;
 
-      params = [title, content, valid_days, target_role, valid_days, id];
+      params = [title, content, valid_days, target_role, campus || null, valid_days, id];
     }
 
     const [result] = await db.execute(query, params);

@@ -8,6 +8,20 @@ const {
 
 const router = express.Router();
 
+const getConfiguredSenderEmails = () =>
+  [
+    process.env.CCS_EMAIL_USER1,
+    process.env.CCS_EMAIL_USER2,
+  ]
+    .filter(Boolean)
+    .map((email) => email.trim().toLowerCase());
+
+const normalizeSenderEmail = (senderEmail) =>
+  String(senderEmail || "").trim().toLowerCase();
+
+const isConfiguredSenderEmail = (senderEmail) =>
+  getConfiguredSenderEmails().includes(normalizeSenderEmail(senderEmail));
+
 // GET all templates with department name
 router.get("/api/email-templates", async (req, res) => {
   try {
@@ -29,14 +43,22 @@ router.get("/api/email-templates", async (req, res) => {
 router.post("/api/email-templates", CanCreate, async (req, res) => {
   try {
     const { sender_name, department_id, employee_id, is_active = 1 } = req.body;
-    if (!sender_name || !department_id)
+    const senderEmail = normalizeSenderEmail(sender_name);
+
+    if (!senderEmail || !department_id)
       return res
         .status(400)
-        .json({ error: "Sender name and department are required" });
+        .json({ error: "Gmail account and department are required" });
+
+    if (!isConfiguredSenderEmail(senderEmail)) {
+      return res.status(400).json({
+        error: "Gmail account must match a configured sender email in the backend .env file",
+      });
+    }
 
     const [result] = await db.query(
       "INSERT INTO email_templates (sender_name, department_id, employee_id, is_active) VALUES (?,  ?, ?, ?)",
-      [sender_name, department_id, employee_id || null, is_active ? 1 : 0],
+      [senderEmail, department_id, employee_id || null, is_active ? 1 : 0],
     );
     res.status(201).json({ template_id: result.insertId });
   } catch (err) {
@@ -49,6 +71,18 @@ router.post("/api/email-templates", CanCreate, async (req, res) => {
 router.put("/api/email-templates/:id", CanEdit, async (req, res) => {
   try {
     const { sender_name, department_id, employee_id, is_active } = req.body;
+    const senderEmail =
+      sender_name === undefined ? undefined : normalizeSenderEmail(sender_name);
+
+    if (senderEmail !== undefined && !senderEmail) {
+      return res.status(400).json({ error: "Gmail account is required" });
+    }
+
+    if (senderEmail !== undefined && !isConfiguredSenderEmail(senderEmail)) {
+      return res.status(400).json({
+        error: "Gmail account must match a configured sender email in the backend .env file",
+      });
+    }
 
     const [result] = await db.query(
       `UPDATE email_templates
@@ -57,7 +91,7 @@ router.put("/api/email-templates/:id", CanEdit, async (req, res) => {
            employee_id = COALESCE(?, employee_id),
            is_active = COALESCE(?, is_active)
        WHERE template_id = ?`,
-      [sender_name, department_id, employee_id, is_active, req.params.id],
+      [senderEmail, department_id, employee_id, is_active, req.params.id],
     );
 
     if (result.affectedRows === 0)

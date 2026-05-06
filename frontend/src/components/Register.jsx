@@ -150,6 +150,15 @@ const Register = () => {
   const [branchId, setBranchId] = useState("");
 
   useEffect(() => {
+    if (branchId || branches.length === 0) return;
+
+    const firstBranchId = branches[0]?.id;
+    if (firstBranchId != null) {
+      setBranchId(String(firstBranchId));
+    }
+  }, [branches, branchId]);
+
+  useEffect(() => {
     axios
       .get(`${API_BASE_URL}/api/branches`)
       .then((res) => setBranches(res.data))
@@ -274,6 +283,7 @@ const Register = () => {
 
 
   const [programAvailability, setProgramAvailability] = useState([]);
+  const [activeSchoolYearId, setActiveSchoolYearId] = useState(null);
   const [activeYearId, setActiveYearId] = useState(null);
   const [activeSemesterId, setActiveSemesterId] = useState(null);
 
@@ -284,6 +294,7 @@ const Register = () => {
       console.log(activeYear);
 
       if (activeYear) {
+        setActiveSchoolYearId(activeYear.school_year_id);
         setActiveYearId(activeYear.year_id);
         setActiveSemesterId(activeYear.semester_id);
 
@@ -457,6 +468,7 @@ const Register = () => {
         academicProgram,
         applyingAs,
         program: selectedCurriculum,
+        active_school_year_id: activeSchoolYearId,
         otp: otpValue,
       });
 
@@ -621,7 +633,7 @@ const Register = () => {
           }}
           maxWidth={false}
         >
-          <AnnouncementSlider style={{ marginTop: "-350px" }} />
+          <AnnouncementSlider campusId={branchId} style={{ marginTop: "-350px" }} />
           <div
             style={{
               border: "5px solid black",

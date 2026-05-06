@@ -711,7 +711,7 @@ const EvaluationCRUD = () => {
                                             <Button
                                                 variant="contained"
                                                 sx={{
-                                                    backgroundColor: "red",
+                                                    backgroundColor: "#9E0000",
                                                     color: "white",
                                                     borderRadius: "5px",
                                                     padding: "8px 14px",
@@ -720,7 +720,7 @@ const EvaluationCRUD = () => {
                                                     alignItems: "center",
                                                     justifyContent: "center",
                                                     gap: "5px",
-                                                    "&:hover": { backgroundColor: "#8B0000" },
+                                                    
                                                 }}
                                                 onClick={() => handleDeleteCategory(cat.id)}
                                             >
@@ -792,7 +792,7 @@ const EvaluationCRUD = () => {
                                             <Button
                                                 variant="contained"
                                                 sx={{
-                                                    backgroundColor: "red",
+                                                    backgroundColor: "#9E0000",
                                                     color: "white",
                                                     borderRadius: "5px",
                                                     padding: "8px 14px",
@@ -801,7 +801,7 @@ const EvaluationCRUD = () => {
                                                     alignItems: "center",
                                                     justifyContent: "center",
                                                     gap: "5px",
-                                                    "&:hover": { backgroundColor: "#8B0000" },
+                                            
                                                 }}
                                                 onClick={() => handleDeleteQuestion(q.question_id)}
                                             >

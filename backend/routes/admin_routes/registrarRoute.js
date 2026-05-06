@@ -4,6 +4,7 @@ const path = require("path");
 const fs = require("fs");
 const bcrypt = require("bcryptjs");
 const { db, db3 } = require('../database/database');
+const { CanDelete } = require("../../middleware/pagePermissions");
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -305,6 +306,73 @@ router.put("/update_registrar/:id", upload.single("profile_picture"), async (req
   } catch (error) {
     console.error("❌ Error updating registrar:", error);
     res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.delete("/delete_registrar/:id", CanDelete, async (req, res) => {
+  const { id } = req.params;
+  const requestEmployeeId = req.headers["x-employee-id"];
+  let conn;
+
+  try {
+    conn = await db3.getConnection();
+    await conn.beginTransaction();
+
+    const [registrarRows] = await conn.query(
+      `SELECT id, employee_id, profile_picture
+       FROM user_accounts
+       WHERE id = ? AND role IN ('registrar', 'admission', 'enrollment', 'clinic', 'superadmin')
+       LIMIT 1`,
+      [id],
+    );
+
+    if (registrarRows.length === 0) {
+      await conn.rollback();
+      return res.status(404).json({ success: false, message: "Registrar not found" });
+    }
+
+    const registrar = registrarRows[0];
+    if (String(registrar.employee_id) === String(requestEmployeeId)) {
+      await conn.rollback();
+      return res.status(400).json({
+        success: false,
+        message: "You cannot delete your own account while logged in.",
+      });
+    }
+
+    await conn.query("DELETE FROM page_access WHERE user_id = ?", [
+      registrar.employee_id,
+    ]);
+    await conn.query("DELETE FROM user_accounts WHERE id = ?", [id]);
+
+    await conn.commit();
+
+    if (registrar.profile_picture) {
+      const imagePath = path.join(
+        __dirname,
+        "../../uploads/Admin1by1",
+        registrar.profile_picture,
+      );
+
+      try {
+        if (fs.existsSync(imagePath)) {
+          await fs.promises.unlink(imagePath);
+        }
+      } catch (fileErr) {
+        console.error("Failed to delete registrar image:", fileErr.message);
+      }
+    }
+
+    res.json({ success: true, message: "Registrar deleted successfully" });
+  } catch (error) {
+    if (conn) await conn.rollback();
+    console.error("Error deleting registrar:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete registrar",
+    });
+  } finally {
+    if (conn) conn.release();
   }
 });
 

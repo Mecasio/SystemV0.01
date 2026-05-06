@@ -104,6 +104,7 @@ router.post("/register", async (req, res) => {
     academicProgram,
     applyingAs,
     program,
+    active_school_year_id,
   } = req.body;
   const normalizedEmail = email?.trim().toLowerCase();
 
@@ -388,10 +389,18 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 
     person_id = personResult.insertId;
 
+    let schoolYearId = Number(active_school_year_id);
+    if (!Number.isInteger(schoolYearId) || schoolYearId <= 0) {
+      const [[activeSchoolYear]] = await db3.query(
+        "SELECT id AS school_year_id FROM active_school_year_table WHERE astatus = 1 LIMIT 1",
+      );
+      schoolYearId = activeSchoolYear?.school_year_id || null;
+    }
+
     await db.query(
-      `INSERT INTO user_accounts (person_id, email, password, role, status)
-       VALUES (?, ?, ?, 'applicant', ?)`,
-      [person_id, normalizedEmail, hashedPassword, 1],
+      `INSERT INTO user_accounts (person_id, email, password, role, status, school_year_id)
+       VALUES (?, ?, ?, 'applicant', ?, ?)`,
+      [person_id, normalizedEmail, hashedPassword, 1, schoolYearId],
     );
 
     // ------------------

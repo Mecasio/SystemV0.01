@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useMemo } from "react";
 import { SettingsContext } from "../App";
 import axios from "axios";
 import {
@@ -101,21 +101,43 @@ const ScheduleHoverTile = () => {
 
 
     const [activeStep, setActiveStep] = useState(4);
-    const [clickedSteps, setClickedSteps] = useState(Array(tabs.length).fill(false));
 
     const handleStepClick = (index, to) => {
         setActiveStep(index);
         navigate(to); // this will actually change the page
     };
 
-    const branches = Array.isArray(settings?.branches)
-        ? settings.branches
-        : typeof settings?.branches === "string"
-            ? JSON.parse(settings.branches)
-            : [];
+    const branches = useMemo(() => {
+        if (Array.isArray(settings?.branches)) return settings.branches;
+        if (typeof settings?.branches !== "string") return [];
+
+        try {
+            const parsed = JSON.parse(settings.branches);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (err) {
+            console.error("Failed to parse branches:", err);
+            return [];
+        }
+    }, [settings?.branches]);
 
     const [selectedBranch, setSelectedBranch] = useState("");
 
+
+    useEffect(() => {
+        const validBranchIds = branches
+            .map((branch) => branch?.id)
+            .filter((id) => id !== undefined && id !== null)
+            .map(String);
+
+        if (validBranchIds.length === 0) {
+            if (selectedBranch) setSelectedBranch("");
+            return;
+        }
+
+        if (!validBranchIds.includes(selectedBranch)) {
+            setSelectedBranch(validBranchIds[0]);
+        }
+    }, [branches, selectedBranch]);
 
     useEffect(() => {
         if (!settings) return;
@@ -157,9 +179,11 @@ const ScheduleHoverTile = () => {
         const fetchSchedules = async () => {
             if (!selectedSchoolYear || !selectedSchoolSemester) return;
             try {
-                const url = selectedBranch
-                    ? `${API_BASE_URL}/exam_schedules_with_count/${selectedSchoolYear}/${selectedSchoolSemester}?branch=${selectedBranch}`
-                    : `${API_BASE_URL}/exam_schedules_with_count/${selectedSchoolYear}/${selectedSchoolSemester}`;
+                const params = new URLSearchParams();
+                if (selectedBranch) params.set("branch", selectedBranch);
+
+                const queryString = params.toString();
+                const url = `${API_BASE_URL}/exam_schedules_with_count/${selectedSchoolYear}/${selectedSchoolSemester}${queryString ? `?${queryString}` : ""}`;
 
                 const res = await axios.get(url);
                 setSchedules(res.data);
@@ -167,6 +191,9 @@ const ScheduleHoverTile = () => {
 
                 const uniqueBuildings = [...new Set(res.data.map(s => s.building_description))];
                 setBuildingList(uniqueBuildings);
+                setSelectedBuilding((currentBuilding) =>
+                    uniqueBuildings.includes(currentBuilding) ? currentBuilding : "",
+                );
             } catch (err) {
                 console.error("Error fetching schedule tiles:", err);
             }
@@ -393,11 +420,13 @@ const ScheduleHoverTile = () => {
                             <FormControl size="small" sx={{ minWidth: 150 }}>
                                 <Select
                                     value={selectedBranch}
-                                    onChange={(e) => setSelectedBranch(e.target.value)}
+                                    onChange={(e) => {
+                                        setSelectedBranch(e.target.value);
+                                        setSelectedBuilding("");
+                                    }}
                                 >
-                                    <MenuItem value="">All Branches</MenuItem>
                                     {branches.map((b) => (
-                                        <MenuItem key={b.id} value={b.branch}>
+                                        <MenuItem key={b.id} value={String(b.id)}>
                                             {b.branch}
                                         </MenuItem>
                                     ))}

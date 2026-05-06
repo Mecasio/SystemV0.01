@@ -1010,10 +1010,10 @@ export default function StudentAccounts() {
                                     >
                                         <Button
                                             variant="contained"
-                                            color="success"
+                                            
                                             size="small"
                                             onClick={() => handleOpen(row)}
-                                            sx={{ minWidth: 140, height: 40 }}
+                                            sx={{ minWidth: 140, height: 40, backgroundColor: "green" }}
                                         >
                                            SEND EMAIL
                                         </Button>

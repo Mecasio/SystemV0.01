@@ -15,24 +15,17 @@ import {
     Snackbar,
     Alert,
     InputAdornment,
-    IconButton,
     Tooltip,
     Chip,
     Divider,
-    Collapse,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
     Paper,
 } from "@mui/material";
-
 import SearchIcon from "@mui/icons-material/Search";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
 import SubjectIcon from "@mui/icons-material/Subject";
-import ScoreIcon from "@mui/icons-material/Score";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import BarChartIcon from "@mui/icons-material/BarChart";
 import CircleIcon from "@mui/icons-material/Circle";
 import SchoolIcon from "@mui/icons-material/School";
 import Unauthorized from "../components/Unauthorized";
@@ -41,7 +34,9 @@ import CampaignIcon from "@mui/icons-material/Campaign";
 import KeyIcon from "@mui/icons-material/Key";
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import PeopleIcon from "@mui/icons-material/People";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import { useNavigate } from "react-router-dom";
+import SaveIcon from '@mui/icons-material/Save';
 
 const AdminSubjects = () => {
     const settings = useContext(SettingsContext);
@@ -50,8 +45,8 @@ const AdminSubjects = () => {
     const [subtitleColor, setSubtitleColor] = useState("#555555");
     const [borderColor, setBorderColor] = useState("#000000");
     const [mainButtonColor, setMainButtonColor] = useState("#1976d2");
-    const [subButtonColor, setSubButtonColor] = useState("#ffffff"); // ✅ NEW
-    const [stepperColor, setStepperColor] = useState("#000000"); // ✅ NEW
+    const [subButtonColor, setSubButtonColor] = useState("#ffffff");
+    const [stepperColor, setStepperColor] = useState("#000000");
 
     const [fetchedLogo, setFetchedLogo] = useState(null);
     const [companyName, setCompanyName] = useState("");
@@ -61,36 +56,19 @@ const AdminSubjects = () => {
 
     useEffect(() => {
         if (!settings) return;
-
-        // 🎨 Colors
         if (settings.title_color) setTitleColor(settings.title_color);
         if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
         if (settings.border_color) setBorderColor(settings.border_color);
-        if (settings.main_button_color)
-            setMainButtonColor(settings.main_button_color);
+        if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
         if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);
         if (settings.stepper_color) setStepperColor(settings.stepper_color);
-
-        // 🏫 Logo
-        if (settings.logo_url) {
-            setFetchedLogo(`${API_BASE_URL}${settings.logo_url}`);
-        } else {
-            setFetchedLogo(EaristLogo);
-        }
-
-        // 🏷️ School Info
+        if (settings.logo_url) setFetchedLogo(`${API_BASE_URL}${settings.logo_url}`);
         if (settings.company_name) setCompanyName(settings.company_name);
         if (settings.short_term) setShortTerm(settings.short_term);
         if (settings.campus_address) setCampusAddress(settings.campus_address);
-
-        // ✅ Branches (JSON stored in DB)
         if (settings?.branches) {
             try {
-                const parsed =
-                    typeof settings.branches === "string"
-                        ? JSON.parse(settings.branches)
-                        : settings.branches;
-
+                const parsed = typeof settings.branches === "string" ? JSON.parse(settings.branches) : settings.branches;
                 setBranches(parsed);
             } catch (err) {
                 console.error("Failed to parse branches:", err);
@@ -99,30 +77,24 @@ const AdminSubjects = () => {
         }
     }, [settings]);
 
-
-
     const [userID, setUserID] = useState("");
     const [user, setUser] = useState("");
     const [userRole, setUserRole] = useState("");
     const [hasAccess, setHasAccess] = useState(null);
     const [loading, setLoading] = useState(false);
     const pageId = 145;
-
     const [employeeID, setEmployeeID] = useState("");
 
     useEffect(() => {
-
         const storedUser = localStorage.getItem("email");
         const storedRole = localStorage.getItem("role");
         const storedID = localStorage.getItem("person_id");
         const storedEmployeeID = localStorage.getItem("employee_id");
-
         if (storedUser && storedRole && storedID) {
             setUser(storedUser);
             setUserRole(storedRole);
             setUserID(storedID);
             setEmployeeID(storedEmployeeID);
-
             if (storedRole === "registrar") {
                 checkAccess(storedEmployeeID);
             } else {
@@ -142,77 +114,41 @@ const AdminSubjects = () => {
                 setHasAccess(false);
             }
         } catch (error) {
-            console.error('Error checking access:', error);
+            console.error("Error checking access:", error);
             setHasAccess(false);
-            if (error.response && error.response.data.message) {
-                console.log(error.response.data.message);
-            } else {
-                console.log("An unexpected error occurred.");
-            }
             setLoading(false);
         }
     };
 
     const tabs = [
-        {
-            label: "Room Registration",
-            to: "/room_registration",
-            icon: <KeyIcon fontSize="large" />,
-        },
-        {
-            label: "Verify Documents Room Assignment",
-            to: "/verify_document_schedule",
-            icon: <MeetingRoomIcon fontSize="large" />,
-        },
-
-        {
-            label: "Evaluator's Applicant List",
-            to: "/evaluator_schedule_room_list",
-            icon: <PeopleIcon fontSize="large" />,
-        },
-        {
-            label: "Entrance Exam Room Assignment",
-            to: "/assign_entrance_exam",
-            icon: <MeetingRoomIcon fontSize="large" />,
-        },
-
-        {
-            label: "Proctor's Applicant List",
-            to: "/admission_schedule_room_list",
-            icon: <PeopleIcon fontSize="large" />,
-        },
-
-        {
-            label: "Subject Management",
-            to: "/applicant_exam_subjects",
-            icon: <SchoolIcon fontSize="large" />,
-        },
-
-        {
-            label: "Announcement",
-            to: "/announcement_for_admission",
-            icon: <CampaignIcon fontSize="large" />,
-        },
+        { label: "Room Registration", to: "/room_registration", icon: <KeyIcon fontSize="large" /> },
+        { label: "Verify Documents Room Assignment", to: "/verify_document_schedule", icon: <MeetingRoomIcon fontSize="large" /> },
+        { label: "Evaluator's Applicant List", to: "/evaluator_schedule_room_list", icon: <PeopleIcon fontSize="large" /> },
+        { label: "Entrance Exam Room Assignment", to: "/assign_entrance_exam", icon: <MeetingRoomIcon fontSize="large" /> },
+        { label: "Proctor's Applicant List", to: "/admission_schedule_room_list", icon: <PeopleIcon fontSize="large" /> },
+        { label: "Subject Management", to: "/applicant_exam_subjects", icon: <SchoolIcon fontSize="large" /> },
+        { label: "Announcement", to: "/announcement_for_admission", icon: <CampaignIcon fontSize="large" /> },
     ];
 
     const navigate = useNavigate();
     const [activeStep, setActiveStep] = useState(5);
-    const [clickedSteps, setClickedSteps] = useState(
-        Array(tabs.length).fill(false),
-    );
 
     const handleStepClick = (index, to) => {
         setActiveStep(index);
-        navigate(to); // this will actually change the page
+        navigate(to);
     };
 
-
-
+    // ── Subjects State ──
     const [subjects, setSubjects] = useState([]);
-    const [newSubject, setNewSubject] = useState({ name: "", max_score: "" });
     const [searchQuery, setSearchQuery] = useState("");
-    const [showCreate, setShowCreate] = useState(false);
     const [snack, setSnack] = useState({ open: false, message: "", severity: "success" });
+
+    // ── Modal State ──
+    const [openDialog, setOpenDialog] = useState(false);
+    const [editingSubject, setEditingSubject] = useState(null); // null = Add, object = Edit
+    const [modalName, setModalName] = useState("");
+    const [modalMaxScore, setModalMaxScore] = useState("");
+    const [modalIsActive, setModalIsActive] = useState(1);
 
     useEffect(() => {
         fetchSubjects();
@@ -227,35 +163,74 @@ const AdminSubjects = () => {
         }
     };
 
-    const handleChange = (index, field, value) => {
-        const updated = [...subjects];
-        updated[index][field] = value;
-        setSubjects(updated);
+    const openAddDialog = () => {
+        setEditingSubject(null);
+        setModalName("");
+        setModalMaxScore("");
+        setModalIsActive(1);
+        setOpenDialog(true);
     };
 
-    const handleUpdate = async (subject) => {
-        try {
-            await axios.put(`${API_BASE_URL}/api/subjects/${subject.id}`, subject);
-            setSnack({ open: true, message: "Subject updated successfully.", severity: "success" });
-            fetchSubjects();
-        } catch {
-            setSnack({ open: true, message: "Failed to update subject.", severity: "error" });
-        }
+    const openEditDialog = (subject) => {
+        setEditingSubject(subject);
+        setModalName(subject.name);
+        setModalMaxScore(subject.max_score);
+        setModalIsActive(subject.is_active);
+        setOpenDialog(true);
     };
 
-    const handleCreate = async () => {
-        if (!newSubject.name || !newSubject.max_score) {
+    const handleCloseDialog = () => {
+        setOpenDialog(false);
+        setEditingSubject(null);
+    };
+
+    const handleSave = async () => {
+        if (!modalName || !modalMaxScore) {
             setSnack({ open: true, message: "Please fill in all fields.", severity: "warning" });
             return;
         }
+
+        if (editingSubject) {
+            // UPDATE
+            try {
+                await axios.put(`${API_BASE_URL}/api/subjects/${editingSubject.id}`, {
+                    ...editingSubject,
+                    name: modalName,
+                    max_score: modalMaxScore,
+                    is_active: modalIsActive,
+                });
+                setSnack({ open: true, message: "Subject updated successfully.", severity: "success" });
+                handleCloseDialog();
+                fetchSubjects();
+            } catch {
+                setSnack({ open: true, message: "Failed to update subject.", severity: "error" });
+            }
+        } else {
+            // CREATE
+            try {
+                await axios.post(`${API_BASE_URL}/api/subjects`, {
+                    name: modalName,
+                    max_score: modalMaxScore,
+                    is_active: modalIsActive,
+                });
+                setSnack({ open: true, message: "Subject created successfully.", severity: "success" });
+                handleCloseDialog();
+                fetchSubjects();
+            } catch {
+                setSnack({ open: true, message: "Failed to create subject.", severity: "error" });
+            }
+        }
+    };
+
+    // Quick toggle active without opening modal
+    const handleToggleActive = async (subject) => {
+        const updated = { ...subject, is_active: subject.is_active === 1 ? 0 : 1 };
         try {
-            await axios.post(`${API_BASE_URL}/api/subjects`, newSubject);
-            setSnack({ open: true, message: "Subject created successfully.", severity: "success" });
-            setNewSubject({ name: "", max_score: "" });
-            setShowCreate(false);
+            await axios.put(`${API_BASE_URL}/api/subjects/${subject.id}`, updated);
+            setSnack({ open: true, message: "Status updated.", severity: "success" });
             fetchSubjects();
         } catch {
-            setSnack({ open: true, message: "Failed to create subject.", severity: "error" });
+            setSnack({ open: true, message: "Failed to update status.", severity: "error" });
         }
     };
 
@@ -268,52 +243,23 @@ const AdminSubjects = () => {
         ? Math.round(subjects.reduce((a, s) => a + Number(s.max_score || 0), 0) / subjects.length)
         : 0;
 
-
     if (loading || hasAccess === null) return <LoadingOverlay open={loading} message="Loading..." />;
     if (!hasAccess) return <Unauthorized />;
 
-
     return (
-        <Box
-            sx={{
-                height: "calc(100vh - 150px)",
-                overflowY: "auto",
-                backgroundColor: "transparent",
-                mt: 1,
-                padding: 2,
-                paddingRight: 1,
-            }}
-        >
+        <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", backgroundColor: "transparent", mt: 1, padding: 2, paddingRight: 1 }}>
+
             {/* ── Header ── */}
-            <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    flexWrap: "wrap",
-                    gap: 2,
-                    mb: 2,
-                }}
-            >
-                <Typography
-                    variant="h4"
-                    sx={{ fontWeight: "bold", color: titleColor, fontSize: "36px" }}
-                >
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2, mb: 2 }}>
+                <Typography variant="h4" sx={{ fontWeight: "bold", color: titleColor, fontSize: "36px" }}>
                     SUBJECT MANAGEMENT
                 </Typography>
-
                 <TextField
                     size="small"
                     placeholder="Search subjects…"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    sx={{
-                        width: 320,
-                        backgroundColor: "#fff",
-                        borderRadius: 1,
-                        minWidth: 220,
-                        "& .MuiOutlinedInput-root": { borderRadius: "10px" },
-                    }}
+                    sx={{ width: 320, backgroundColor: "#fff", borderRadius: 1, minWidth: 220, "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
                     InputProps={{
                         startAdornment: (
                             <InputAdornment position="start">
@@ -327,23 +273,14 @@ const AdminSubjects = () => {
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
 
-            <br />
-            <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    flexWrap: "nowrap", // ❌ prevent wrapping
-                    width: "100%",
-                    mt: 1,
-                    gap: 2,
-                }}
-            >
+            {/* ── Nav Tabs ── */}
+            <Box sx={{ display: "flex", justifyContent: "space-between", flexWrap: "nowrap", width: "100%", mt: 1, gap: 2 }}>
                 {tabs.map((tab, index) => (
                     <Card
                         key={index}
                         onClick={() => handleStepClick(index, tab.to)}
                         sx={{
-                            flex: `1 1 ${100 / tabs.length}%`, // evenly divide row
+                            flex: `1 1 ${100 / tabs.length}%`,
                             height: 135,
                             display: "flex",
                             alignItems: "center",
@@ -351,32 +288,16 @@ const AdminSubjects = () => {
                             cursor: "pointer",
                             borderRadius: 2,
                             border: `1px solid ${borderColor}`,
-                            backgroundColor:
-                                activeStep === index
-                                    ? settings?.header_color || "#1976d2"
-                                    : "#E8C999",
+                            backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
                             color: activeStep === index ? "#fff" : "#000",
-                            boxShadow:
-                                activeStep === index
-                                    ? "0px 4px 10px rgba(0,0,0,0.3)"
-                                    : "0px 2px 6px rgba(0,0,0,0.15)",
+                            boxShadow: activeStep === index ? "0px 4px 10px rgba(0,0,0,0.3)" : "0px 2px 6px rgba(0,0,0,0.15)",
                             transition: "0.3s ease",
-                            "&:hover": {
-                                backgroundColor: activeStep === index ? "#000000" : "#f5d98f",
-                            },
+                            "&:hover": { backgroundColor: activeStep === index ? "#000000" : "#f5d98f" },
                         }}
                     >
-                        <Box
-                            sx={{
-                                display: "flex",
-                                flexDirection: "column",
-                                alignItems: "center",
-                            }}
-                        >
+                        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                             <Box sx={{ fontSize: 40, mb: 1 }}>{tab.icon}</Box>
-                            <Typography
-                                sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}
-                            >
+                            <Typography sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}>
                                 {tab.label}
                             </Typography>
                         </Box>
@@ -386,91 +307,18 @@ const AdminSubjects = () => {
             <br />
             <br />
 
-            {/* ── Add Subject Toggle ── */}
-            <Box sx={{ mb: 2 }}>
+            {/* ── Stats + Add Button Row ── */}
+            <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2} mb={2}>
+               
                 <Button
-                    variant={showCreate ? "outlined" : "contained"}
-                    color={showCreate ? "error" : "primary"}
-                    startIcon={showCreate ? <ExpandLessIcon /> : <AddCircleOutlineIcon />}
-                    endIcon={showCreate ? null : <ExpandMoreIcon />}
-                    onClick={() => setShowCreate((p) => !p)}
-                    sx={{
-                        borderRadius: 2,
-                        textTransform: "none",
-                        fontWeight: 600
-                    }}
+                    variant="contained"
+                    
+                    onClick={openAddDialog}
+                    sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600 }}
                 >
-                    {showCreate ? "Cancel" : "Add New Subject"}
+                    + Add New Subject
                 </Button>
-                <Collapse in={showCreate}>
-                    <Card
-                        elevation={0}
-                        sx={{
-                            mt: 2,
-                            p: 2.5,
-                            borderRadius: 2,
-                            border: "1px dashed",
-                            borderColor: "primary.main",
-                            backgroundColor: "#f5f9ff",
-                        }}
-                    >
-                        <Typography
-                            variant="subtitle2"
-                            sx={{ mb: 2, color: "text.secondary", fontWeight: 600, textTransform: "uppercase", letterSpacing: 1 }}
-                        >
-                            New Subject
-                        </Typography>
-                        <Grid container spacing={2} alignItems="flex-end">
-                            <Grid item xs={12} sm={5}>
-                                <TextField
-                                    fullWidth
-                                    size="small"
-                                    label="Subject Name"
-                                    value={newSubject.name}
-                                    onChange={(e) => setNewSubject({ ...newSubject, name: e.target.value })}
-                                    InputProps={{
-                                        startAdornment: (
-                                            <InputAdornment position="start">
-                                                <SubjectIcon fontSize="small" sx={{ color: "gray" }} />
-                                            </InputAdornment>
-                                        ),
-                                    }}
-                                    sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-                                />
-                            </Grid>
-                            <Grid item xs={12} sm={4}>
-                                <TextField
-                                    fullWidth
-                                    size="small"
-                                    label="Max Score"
-                                    type="number"
-                                    value={newSubject.max_score}
-                                    onChange={(e) => setNewSubject({ ...newSubject, max_score: e.target.value })}
-                                    InputProps={{
-                                        startAdornment: (
-                                            <InputAdornment position="start">
-                                                <ScoreIcon fontSize="small" sx={{ color: "gray" }} />
-                                            </InputAdornment>
-                                        ),
-                                    }}
-                                    sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-                                />
-                            </Grid>
-                            <Grid item xs={12} sm={3}>
-                                <Button
-                                    fullWidth
-                                    variant="contained"
-                                    startIcon={<AddCircleOutlineIcon />}
-                                    onClick={handleCreate}
-                                    sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600, height: 40 }}
-                                >
-                                    Create Subject
-                                </Button>
-                            </Grid>
-                        </Grid>
-                    </Card>
-                </Collapse>
-            </Box>
+            </Stack>
 
             {/* ── Subject Cards ── */}
             {filtered.length === 0 ? (
@@ -480,8 +328,7 @@ const AdminSubjects = () => {
                 </Box>
             ) : (
                 <Grid container spacing={2}>
-                    {filtered.map((subj, i) => {
-                        const realIndex = subjects.findIndex((s) => s.id === subj.id);
+                    {filtered.map((subj) => {
                         const isActive = subj.is_active === 1;
                         return (
                             <Grid item xs={12} md={6} key={subj.id}>
@@ -499,9 +346,7 @@ const AdminSubjects = () => {
                                     {/* Card Header */}
                                     <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
                                         <Stack direction="row" alignItems="center" gap={1}>
-                                            <CircleIcon
-                                                sx={{ fontSize: 10, color: isActive ? "success.main" : "text.disabled" }}
-                                            />
+                                            <CircleIcon sx={{ fontSize: 10, color: isActive ? "success.main" : "text.disabled" }} />
                                             <Typography variant="subtitle1" fontWeight={700}>
                                                 {subj.name || "Unnamed Subject"}
                                             </Typography>
@@ -517,44 +362,25 @@ const AdminSubjects = () => {
 
                                     <Divider sx={{ mb: 2 }} />
 
-                                    {/* Fields */}
-                                    <Grid container spacing={1.5} sx={{ mb: 2 }}>
-                                        <Grid item xs={12} sm={7}>
-                                            <TextField
-                                                fullWidth
-                                                size="small"
-                                                label="Subject Name"
-                                                value={subj.name}
-                                                onChange={(e) => handleChange(realIndex, "name", e.target.value)}
-                                                InputProps={{
-                                                    startAdornment: (
-                                                        <InputAdornment position="start">
-                                                            <SubjectIcon fontSize="small" sx={{ color: "gray" }} />
-                                                        </InputAdornment>
-                                                    ),
-                                                }}
-                                                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} sm={5}>
-                                            <TextField
-                                                fullWidth
-                                                size="small"
-                                                type="number"
-                                                label="Max Score"
-                                                value={subj.max_score}
-                                                onChange={(e) => handleChange(realIndex, "max_score", e.target.value)}
-                                                InputProps={{
-                                                    startAdornment: (
-                                                        <InputAdornment position="start">
-                                                            <ScoreIcon fontSize="small" sx={{ color: "gray" }} />
-                                                        </InputAdornment>
-                                                    ),
-                                                }}
-                                                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-                                            />
-                                        </Grid>
-                                    </Grid>
+                                    {/* Info Display */}
+                                    <Stack direction="row" gap={2} mb={2}>
+                                        <Box sx={{ flex: 1, backgroundColor: "#f5f7ff", borderRadius: 2, p: 1.5 }}>
+                                            <Typography variant="caption" color="text.secondary" fontWeight={600} textTransform="uppercase" letterSpacing={0.5}>
+                                                Subject Name
+                                            </Typography>
+                                            <Typography variant="body1" fontWeight={700} mt={0.5}>
+                                                {subj.name}
+                                            </Typography>
+                                        </Box>
+                                        <Box sx={{ width: 110, backgroundColor: "#f5f7ff", borderRadius: 2, p: 1.5 }}>
+                                            <Typography variant="caption" color="text.secondary" fontWeight={600} textTransform="uppercase" letterSpacing={0.5}>
+                                                Max Score
+                                            </Typography>
+                                            <Typography variant="body1" fontWeight={700} mt={0.5}>
+                                                {subj.max_score}
+                                            </Typography>
+                                        </Box>
+                                    </Stack>
 
                                     {/* Footer */}
                                     <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -564,9 +390,7 @@ const AdminSubjects = () => {
                                                     size="small"
                                                     checked={isActive}
                                                     color="success"
-                                                    onChange={(e) =>
-                                                        handleChange(realIndex, "is_active", e.target.checked ? 1 : 0)
-                                                    }
+                                                    onChange={() => handleToggleActive(subj)}
                                                 />
                                                 <Typography variant="caption" color="text.secondary">
                                                     {isActive ? "Active" : "Inactive"}
@@ -575,19 +399,13 @@ const AdminSubjects = () => {
                                         </Tooltip>
 
                                         <Button
-                                            variant="contained"
+                                            variant="outlined"
                                             size="small"
-                                            startIcon={<SaveOutlinedIcon fontSize="small" />}
-                                            onClick={() => handleUpdate(subj)}
-                                            sx={{
-                                                borderRadius: 2,
-                                                textTransform: "none",
-                                                fontWeight: 600,
-                                                fontSize: 13,
-                                                px: 2,
-                                            }}
+                                            startIcon={<EditOutlinedIcon fontSize="small" />}
+                                            onClick={() => openEditDialog(subj)}
+                                            sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600, fontSize: 13, px: 2 }}
                                         >
-                                            Save
+                                            Edit
                                         </Button>
                                     </Stack>
                                 </Card>
@@ -597,6 +415,61 @@ const AdminSubjects = () => {
                 </Grid>
             )}
 
+            {/* ── Add / Edit Dialog ── */}
+            <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+                <DialogTitle sx={{ fontWeight: "bold", backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+                    {editingSubject ? "Edit Subject" : "Add New Subject"}
+                </DialogTitle>
+                <DialogContent sx={{ pt: 3 }}>
+                    <Typography fontWeight="bold" mb={1} mt={2}>
+                        Subject Name
+                    </Typography>
+                    <TextField
+                        label="Subject Name"
+                        fullWidth
+                        value={modalName}
+                        onChange={(e) => setModalName(e.target.value)}
+                       
+                        sx={{ mb: 2, mt: 1 }}
+                    />
+
+                    <Typography fontWeight="bold" mb={1} mt={1}>
+                        Max Score
+                    </Typography>
+                    <TextField
+                        label="Max Score"
+                        fullWidth
+                        type="number"
+                        value={modalMaxScore}
+                        onChange={(e) => setModalMaxScore(e.target.value)}
+                       
+                        sx={{ mb: 2 }}
+                    />
+
+                    <Typography fontWeight="bold" mb={1} mt={1}>
+                        Status
+                    </Typography>
+                    <Stack direction="row" alignItems="center" spacing={1} mt={1}>
+                        <Switch
+                            checked={modalIsActive === 1}
+                            color="success"
+                            onChange={(e) => setModalIsActive(e.target.checked ? 1 : 0)}
+                        />
+                        <Typography variant="body2" color="text.secondary">
+                            {modalIsActive === 1 ? "Active" : "Inactive"}
+                        </Typography>
+                    </Stack>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 2 }}>
+                    <Button onClick={handleCloseDialog} variant="outlined" color="error">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleSave} startIcon={<SaveIcon />} variant="contained" >
+                        Save
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
             {/* ── Snackbar ── */}
             <Snackbar
                 open={snack.open}
@@ -604,12 +477,7 @@ const AdminSubjects = () => {
                 onClose={() => setSnack((s) => ({ ...s, open: false }))}
                 anchorOrigin={{ vertical: "top", horizontal: "center" }}
             >
-                <Alert
-                    severity={snack.severity}
-                    variant="filled"
-                    onClose={() => setSnack((s) => ({ ...s, open: false }))}
-                    sx={{ borderRadius: 2 }}
-                >
+                <Alert severity={snack.severity} variant="filled" onClose={() => setSnack((s) => ({ ...s, open: false }))} sx={{ borderRadius: 2 }}>
                     {snack.message}
                 </Alert>
             </Snackbar>

@@ -184,6 +184,16 @@ const StudentCurriculumSubjects = () => {
     };
 
 
+    const formatUnit = (value) => {
+        if (value === null || value === undefined) return "0";
+
+        const num = Number(value);
+
+        if (isNaN(num)) return "0";
+
+        // remove trailing .0
+        return Number.isInteger(num) ? num.toString() : num.toString();
+    };
 
     const rawTerms = [...new Set(subjects.map(
         (row) => `${row.year_level_description} ${row.semester_description}`
@@ -415,22 +425,23 @@ const StudentCurriculumSubjects = () => {
 
                                                 <TableCell sx={{ ...colStyle, width: "90px" }}></TableCell>
 
-                                                <TableCell sx={{ ...colStyle, width: "90px" }}>
-                                                    {row.lec_unit}
+                                                <TableCell sx={{ ...colStyle, width: "90px", textAlign: "center" }}>
+                                                    {formatUnit(row.lec_unit)}
                                                 </TableCell>
 
-                                                <TableCell sx={{ ...colStyle, width: "90px" }}>
-                                                    {row.lab_unit}
+                                                <TableCell sx={{ ...colStyle, width: "90px", textAlign: "center" }}>
+                                                    {formatUnit(row.lab_unit)}
                                                 </TableCell>
 
-                                                <TableCell sx={{ ...colStyle, width: "110px" }}>
-                                                    {row.course_unit}
+                                                <TableCell sx={{ ...colStyle, width: "110px", textAlign: "center" }}>
+                                                    {formatUnit(row.course_unit)}
                                                 </TableCell>
 
                                                 <TableCell
                                                     sx={{
                                                         ...colStyle,
                                                         width: "220px",
+                                                        textAlign: "center",
                                                         whiteSpace: "pre-line", // IMPORTANT for schedules
                                                     }}
                                                 >

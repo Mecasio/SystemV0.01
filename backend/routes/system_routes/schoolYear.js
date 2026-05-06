@@ -274,11 +274,26 @@ router.put("/school_years/:id", async (req, res) => {
         ]);
       }
 
+      await db.query(
+        "UPDATE user_accounts SET status = 0 WHERE school_year_id IS NOT NULL AND school_year_id != ?",
+        [id],
+      );
+
+      await db.query(
+        "UPDATE user_accounts SET status = 1 WHERE school_year_id = ?",
+        [id],
+      );
+
       return res.status(200).json({ message: "School year activated" });
     } else {
       // Deactivate selected
       await db3.query(
         "UPDATE active_school_year_table SET astatus = 0 WHERE id = ?",
+        [id],
+      );
+
+      await db.query(
+        "UPDATE user_accounts SET status = 0 WHERE school_year_id IS NOT NULL AND school_year_id != ?",
         [id],
       );
 
