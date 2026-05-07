@@ -120,6 +120,7 @@ router.get("/student-info/:student_number", async (req, res) => {
 		      cst.course_code,
           cst.course_description,
           cst.course_unit,
+          es.is_regular,
           es.remarks,
           sst.id AS student_status_id
         FROM enrolled_subject es
@@ -1211,6 +1212,7 @@ router.get("/student_enrollment/:student_number", async (req, res) => {
           sst.year_level_id,
           ylt.year_level_description,
           sy.id AS active_school_year_id,
+          es.is_regular,
           smt.semester_description,
           st.description AS section_description,
           CONCAT(yt.year_description, '-', yt.year_description + 1) AS current_academic_year
@@ -1245,6 +1247,45 @@ router.get("/student_enrollment/:student_number", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed fetching students" });
+  }
+});
+
+router.put("/student-enrollment/status", async (req, res) => {
+  const { student_number, active_school_year_id, is_regular } = req.body;
+
+  if (!student_number || !active_school_year_id || ![0, 1].includes(Number(is_regular))) {
+    return res.status(400).json({
+      success: false,
+      message: "student_number, active_school_year_id, and is_regular are required",
+    });
+  }
+
+  try {
+    const [result] = await db3.query(
+      `UPDATE enrolled_subject
+       SET is_regular = ?
+       WHERE student_number = ? AND active_school_year_id = ?`,
+      [Number(is_regular), student_number, active_school_year_id],
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No enrolled subjects found for this student and school year",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Student status changed to ${Number(is_regular) === 1 ? "Regular" : "Irregular"}`,
+      affectedRows: result.affectedRows,
+    });
+  } catch (err) {
+    console.error("Failed to change student enrollment status:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to change student enrollment status",
+    });
   }
 });
 

@@ -2,6 +2,24 @@ const express = require("express");
 const router = express.Router();
 const { db, db3 } = require("../database/database");
 
+const isNstpRelatedCourse = (subject) => {
+    const code = String(subject?.course_code || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+    const description = String(subject?.course_description || "").toUpperCase();
+
+    return (
+        /^NSTP/.test(code) ||
+        /^NST/.test(code) ||
+        code.includes("CWTS") ||
+        code.includes("CTWS") ||
+        code.includes("LTS") ||
+        code.includes("MTS") ||
+        description.includes("NATIONAL SERVICE TRAINING") ||
+        description.includes("CIVIC WELFARE TRAINING") ||
+        description.includes("LITERACY TRAINING SERVICE") ||
+        description.includes("RESERVE OFFICERS TRAINING")
+    );
+};
+
 router.get("/api/student-assessment/:person_id", async (req, res) => {
 
     const { person_id } = req.params;
@@ -75,10 +93,12 @@ router.get("/api/student-assessment/:person_id", async (req, res) => {
                         pt.iscomputer_lab,
                         pt.islaboratory_fee
                     FROM program_tagging_table pt
-                    LEFT JOIN course_table c ON pt.course_id = c.course_id
+                    INNER JOIN course_table c ON pt.course_id = c.course_id
                     WHERE pt.curriculum_id = ?
                       AND pt.year_level_id = ?
                       AND pt.semester_id = ?
+                      AND c.course_id IS NOT NULL
+                      AND TRIM(COALESCE(c.course_code, '')) <> ''
                     ORDER BY c.course_code ASC
                 `, [s.active_curriculum, s.year_level_id, semesterId]);
 
@@ -95,7 +115,9 @@ router.get("/api/student-assessment/:person_id", async (req, res) => {
                 //////////////////////////////////////////////////////////
                 // NSTP FEE = tosf.nstp_fees (matches program tagging)
                 //////////////////////////////////////////////////////////
-                const hasNSTP = subjects.some(s => Number(s.is_nstp) === 1);
+                const hasNSTP = subjects.some((subject) =>
+                    Number(subject.is_nstp) === 1 || isNstpRelatedCourse(subject)
+                );
                 const nstpFee = hasNSTP ? Number(tosf.nstp_fees || 0) : 0;
 
                 //////////////////////////////////////////////////////////
@@ -128,6 +150,18 @@ router.get("/api/student-assessment/:person_id", async (req, res) => {
                     schoolIdFee                             +
                     computerFee;
 
+                const miscellaneousBreakdown = [
+                    { label: "Athletic Fee", amount: Number(tosf.athletic_fee || 0) },
+                    { label: "Cultural Fee", amount: Number(tosf.cultural_fee || 0) },
+                    { label: "Developmental Fee", amount: Number(tosf.developmental_fee || 0) },
+                    { label: "Guidance Fee", amount: Number(tosf.guidance_fee || 0) },
+                    { label: "Library Fee", amount: Number(tosf.library_fee || 0) },
+                    { label: "Medical & Dental Fee", amount: Number(tosf.medical_and_dental_fee || 0) },
+                    { label: "Registration Fee", amount: Number(tosf.registration_fee || 0) },
+                    { label: "School ID Fee", amount: schoolIdFee },
+                    { label: "Computer Fee", amount: computerFee },
+                ].filter((fee) => Number(fee.amount) > 0);
+
                 //////////////////////////////////////////////////////////
                 // TOTALS
                 //////////////////////////////////////////////////////////
@@ -142,6 +176,10 @@ router.get("/api/student-assessment/:person_id", async (req, res) => {
                 console.log("Grand Total:", grandTotal);
 
                 return {
+                    active_school_year_id: s.active_school_year_id,
+                    curriculum_id: s.active_curriculum,
+                    year_level_id: s.year_level_id,
+                    semester_id: semesterId,
                     school_year : s.year_description        || "",
                     semester    : s.semester_description    || "First Semester",
                     year_level  : s.year_level_description  || "",
@@ -152,6 +190,7 @@ router.get("/api/student-assessment/:person_id", async (req, res) => {
                         computerFee,
                         schoolIdFee,
                         miscellaneousFee,
+                        miscellaneousBreakdown,
                         totalTuition,
                         grandTotal,
                     },

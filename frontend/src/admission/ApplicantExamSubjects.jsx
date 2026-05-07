@@ -36,7 +36,9 @@ import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import PeopleIcon from "@mui/icons-material/People";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import { useNavigate } from "react-router-dom";
-import SaveIcon from '@mui/icons-material/Save';
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import SaveIcon from "@mui/icons-material/Save";
 
 const AdminSubjects = () => {
     const settings = useContext(SettingsContext);
@@ -222,17 +224,30 @@ const AdminSubjects = () => {
         }
     };
 
+    const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+    const [subjectToDelete, setSubjectToDelete] = useState(null);
+
     // Quick toggle active without opening modal
-    const handleToggleActive = async (subject) => {
-        const updated = { ...subject, is_active: subject.is_active === 1 ? 0 : 1 };
+    const handleDeleteSubject = async (subject) => {
         try {
-            await axios.put(`${API_BASE_URL}/api/subjects/${subject.id}`, updated);
-            setSnack({ open: true, message: "Status updated.", severity: "success" });
+            await axios.delete(`${API_BASE_URL}/api/subjects/${subject.id}`);
+
+            setSnack({
+                open: true,
+                message: "Subject set to inactive successfully.",
+                severity: "success",
+            });
+
             fetchSubjects();
-        } catch {
-            setSnack({ open: true, message: "Failed to update status.", severity: "error" });
+        } catch (err) {
+            setSnack({
+                open: true,
+                message: "Failed to delete subject.",
+                severity: "error",
+            });
         }
     };
+
 
     const filtered = subjects.filter((s) =>
         s.name?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -309,10 +324,10 @@ const AdminSubjects = () => {
 
             {/* ── Stats + Add Button Row ── */}
             <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2} mb={2}>
-               
+
                 <Button
                     variant="contained"
-                    
+
                     onClick={openAddDialog}
                     sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600 }}
                 >
@@ -398,15 +413,48 @@ const AdminSubjects = () => {
                                             </Stack>
                                         </Tooltip>
 
-                                        <Button
-                                            variant="outlined"
-                                            size="small"
-                                            startIcon={<EditOutlinedIcon fontSize="small" />}
-                                            onClick={() => openEditDialog(subj)}
-                                            sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600, fontSize: 13, px: 2 }}
-                                        >
-                                            Edit
-                                        </Button>
+                                        <Stack direction="row" spacing={1}>
+                                            <Button
+                                                variant="contained"
+                                                size="small"
+                                                sx={{
+                                                    backgroundColor: "green",
+                                                    color: "white",
+                                                    borderRadius: "5px",
+                                                    padding: "8px 14px",
+                                                    width: "100px",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                    gap: "5px",
+                                                }}
+                                                onClick={() => openEditDialog(subj)}
+                                            >
+                                                <EditIcon fontSize="small" /> Edit
+                                            </Button>
+
+                                            <Button
+                                                variant="contained"
+                                                size="small"
+                                                sx={{
+                                                    backgroundColor: "#9E0000",
+                                                    color: "white",
+                                                    borderRadius: "5px",
+                                                    padding: "8px 14px",
+                                                    width: "100px",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                    gap: "5px",
+                                                }}
+                                                onClick={() => {
+                                                    setSubjectToDelete(subj);
+                                                    setOpenDeleteDialog(true);
+                                                }}
+                                            >
+                                                <DeleteIcon fontSize="small" /> Delete
+                                            </Button>
+                                        </Stack>
                                     </Stack>
                                 </Card>
                             </Grid>
@@ -429,7 +477,7 @@ const AdminSubjects = () => {
                         fullWidth
                         value={modalName}
                         onChange={(e) => setModalName(e.target.value)}
-                       
+
                         sx={{ mb: 2, mt: 1 }}
                     />
 
@@ -442,7 +490,7 @@ const AdminSubjects = () => {
                         type="number"
                         value={modalMaxScore}
                         onChange={(e) => setModalMaxScore(e.target.value)}
-                       
+
                         sx={{ mb: 2 }}
                     />
 
@@ -461,7 +509,8 @@ const AdminSubjects = () => {
                     </Stack>
                 </DialogContent>
                 <DialogActions sx={{ px: 3, pb: 2 }}>
-                    <Button onClick={handleCloseDialog} variant="outlined" color="error">
+                    <Button onClick={handleCloseDialog} color="error"
+                        variant="outlined">
                         Cancel
                     </Button>
                     <Button onClick={handleSave} startIcon={<SaveIcon />} variant="contained" >
@@ -481,6 +530,71 @@ const AdminSubjects = () => {
                     {snack.message}
                 </Alert>
             </Snackbar>
+
+            <Dialog
+                open={openDeleteDialog}
+                onClose={() => {
+                    setOpenDeleteDialog(false);
+                    setSubjectToDelete(null);
+                }}
+            >
+                <DialogTitle>Confirm Delete Subject</DialogTitle>
+
+                <DialogContent>
+                    <Typography>
+                        Are you sure you want to delete the subject{" "}
+                        <b>{subjectToDelete?.name}</b>?
+                        <br />
+                        This will set it to <b>Inactive</b> only (soft delete).
+                    </Typography>
+                </DialogContent>
+
+                <DialogActions>
+                    <Button
+                        color="inherit"
+                        variant="outlined"
+                        onClick={() => {
+                            setOpenDeleteDialog(false);
+                            setSubjectToDelete(null);
+                        }}
+                    >
+                        Cancel
+                    </Button>
+
+                    <Button
+                        color="error"
+                        variant="contained"
+                        onClick={async () => {
+                            if (!subjectToDelete) return;
+
+                            try {
+                                await axios.delete(
+                                    `${API_BASE_URL}/api/subjects/${subjectToDelete.id}`
+                                );
+
+                                setSnack({
+                                    open: true,
+                                    message: "Subject set to inactive successfully ✅",
+                                    severity: "success",
+                                });
+
+                                fetchSubjects();
+                            } catch (err) {
+                                setSnack({
+                                    open: true,
+                                    message: "Failed to delete subject ❌",
+                                    severity: "error",
+                                });
+                            }
+
+                            setOpenDeleteDialog(false);
+                            setSubjectToDelete(null);
+                        }}
+                    >
+                        Yes, Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 };

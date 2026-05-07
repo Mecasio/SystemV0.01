@@ -9,14 +9,17 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    Button,
 } from "@mui/material";
 
 import axios from "axios";
 import API_BASE_URL from "../apiConfig";
 import { SettingsContext } from "../App";
+import { useNavigate } from "react-router-dom";
 
 const ProgramPayment = () => {
     const settings = useContext(SettingsContext);
+    const navigate = useNavigate();
 
     const [assessmentData, setAssessmentData] = useState([]);
     const [student, setStudent] = useState(null);
@@ -63,6 +66,7 @@ const ProgramPayment = () => {
                 // MAP ALL ROWS
                 setAssessmentData(
                     (response.data.rows || []).map((row) => ({
+                        ...row,
                         school_year: row.school_year || "",
                         semester: row.semester || "",
                         year_level: row.year_level || "",
@@ -209,10 +213,32 @@ const ProgramPayment = () => {
                                 assessmentData.map((row, index) => (
                                     <TableRow key={index}>
                                         <TableCell sx={{ border: `1px solid ${borderColor}` }}>
-                                            {row.school_year} - {row.school_year + 1}
+                                            {row.school_year} - {Number(row.school_year) + 1}
                                         </TableCell>
                                         <TableCell sx={{ border: `1px solid ${borderColor}`, color: "#b22222" }}>
-                                            {row.semester}
+                                            <Button
+                                                variant="text"
+                                                onClick={() => {
+                                                    const params = new URLSearchParams({
+                                                        school_year: String(row.school_year || ""),
+                                                        semester: String(row.semester || ""),
+                                                        active_school_year_id: String(row.active_school_year_id || ""),
+                                                    });
+                                                    navigate(`/student_account_balance/info?${params.toString()}`, {
+                                                        state: { assessmentRow: row, student },
+                                                    });
+                                                }}
+                                                sx={{
+                                                    color: "#b22222",
+                                                    fontWeight: 700,
+                                                    textTransform: "none",
+                                                    textDecoration: "underline",
+                                                    p: 0,
+                                                    minWidth: "auto",
+                                                }}
+                                            >
+                                                {row.semester}
+                                            </Button>
                                         </TableCell>
                                         <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                                             {row.year_level}

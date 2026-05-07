@@ -94,6 +94,9 @@ const FacultyMasterList = () => {
   const [sortOrder, setSortOrder] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const getStudentRegularStatus = (student) => Number(student.is_regular ?? student.status);
+  const getStudentRegularLabel = (student) =>
+    getStudentRegularStatus(student) === 1 ? "Regular" : "Irregular";
 
   useEffect(() => {
     const storedUser = localStorage.getItem("email");
@@ -372,8 +375,8 @@ const FacultyMasterList = () => {
 
       const matchesStatus =
         selectedStatusFilter === "" ||
-        (selectedStatusFilter === "Regular" && Number(s.status) === 1) ||
-        (selectedStatusFilter === "Irregular" && Number(s.status) !== 1);
+        (selectedStatusFilter === "Regular" && getStudentRegularStatus(s) === 1) ||
+        (selectedStatusFilter === "Irregular" && getStudentRegularStatus(s) !== 1);
 
       return (
         matchesSearch &&
@@ -1189,7 +1192,7 @@ const FacultyMasterList = () => {
                       border: `1px solid ${borderColor}`,
                     }}
                   >
-                    {student.status === 1 ? "Regular" : "Irregular"}
+                    {getStudentRegularLabel(student)}
                   </TableCell>
                   <TableCell
                     sx={{
@@ -1847,7 +1850,7 @@ const FacultyMasterList = () => {
                         textAlign: "center",
                       }}
                     >
-                      {Number(s.status) === 1 ? "Regular" : "Irregular"}
+                      {getStudentRegularLabel(s)}
                     </td>
                   </tr>
                 ))

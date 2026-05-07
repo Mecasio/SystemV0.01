@@ -39,6 +39,7 @@ import {
 import PrintIcon from "@mui/icons-material/Print";
 import VpnKeyIcon from "@mui/icons-material/VpnKey";
 import SendIcon from "@mui/icons-material/Send";
+import SaveIcon from "@mui/icons-material/Save";
 
 const rowsPerPage = 100;
 
@@ -242,6 +243,101 @@ export default function StudentAccounts() {
         setGeneratedPassword("");
 
         setOpen(true);
+    };
+
+    const updateSelectedPersonField = (field, value) => {
+        setSelectedPerson((prev) => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
+    const handleSaveStudentAccount = async ({ silent = false } = {}) => {
+        try {
+            if (!selectedPerson?.person_id) {
+                setSnackbar({
+                    open: true,
+                    message: "Please select a student first",
+                    severity: "warning"
+                });
+                return false;
+            }
+
+            const trimmedEmail = email.trim();
+
+            if (!trimmedEmail) {
+                setSnackbar({
+                    open: true,
+                    message: "Email address is required",
+                    severity: "warning"
+                });
+                return false;
+            }
+
+            setLoading(true);
+
+            const payload = {
+                first_name: selectedPerson.first_name || "",
+                middle_name: selectedPerson.middle_name || "",
+                last_name: selectedPerson.last_name || "",
+                email: trimmedEmail,
+                password: generatedPassword || ""
+            };
+
+            const res = await axios.put(
+                `${API_BASE_URL}/api/student_account/${selectedPerson.person_id}`,
+                payload
+            );
+
+            if (!res.data.success) {
+                setSnackbar({
+                    open: true,
+                    message: res.data.message || "Failed to save student account",
+                    severity: "error"
+                });
+                return false;
+            }
+
+            setSelectedPerson((prev) => ({
+                ...prev,
+                ...payload,
+                emailAddress: trimmedEmail
+            }));
+
+            setPersons((prev) =>
+                prev.map((person) =>
+                    person.person_id === selectedPerson.person_id
+                        ? {
+                            ...person,
+                            first_name: payload.first_name,
+                            middle_name: payload.middle_name,
+                            last_name: payload.last_name,
+                            emailAddress: trimmedEmail
+                        }
+                        : person
+                )
+            );
+
+            if (!silent) {
+                setSnackbar({
+                    open: true,
+                    message: res.data.message || "Student account saved successfully",
+                    severity: "success"
+                });
+            }
+
+            return true;
+        } catch (error) {
+            console.error("Save student account error:", error);
+            setSnackbar({
+                open: true,
+                message: error.response?.data?.message || "Failed to save student account",
+                severity: "error"
+            });
+            return false;
+        } finally {
+            setLoading(false);
+        }
     };
 
 
@@ -458,6 +554,9 @@ export default function StudentAccounts() {
                 });
                 return;
             }
+
+            const saved = await handleSaveStudentAccount({ silent: true });
+            if (!saved) return;
 
             setLoading(true);
 
@@ -1246,7 +1345,9 @@ export default function StudentAccounts() {
                                 label="Last Name"
                                 fullWidth
                                 value={selectedPerson?.last_name || ""}
-                                InputProps={{ readOnly: true }}
+                                onChange={(e) =>
+                                    updateSelectedPersonField("last_name", e.target.value)
+                                }
                             />
                         </Grid>
 
@@ -1255,7 +1356,9 @@ export default function StudentAccounts() {
                                 label="First Name"
                                 fullWidth
                                 value={selectedPerson?.first_name || ""}
-                                InputProps={{ readOnly: true }}
+                                onChange={(e) =>
+                                    updateSelectedPersonField("first_name", e.target.value)
+                                }
                             />
                         </Grid>
 
@@ -1264,7 +1367,9 @@ export default function StudentAccounts() {
                                 label="Middle Name"
                                 fullWidth
                                 value={selectedPerson?.middle_name || ""}
-                                InputProps={{ readOnly: true }}
+                                onChange={(e) =>
+                                    updateSelectedPersonField("middle_name", e.target.value)
+                                }
                             />
                         </Grid>
                     </Grid>
@@ -1283,6 +1388,15 @@ export default function StudentAccounts() {
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                    />
+
+                    <TextField
+                        label="Password"
+                        fullWidth
+                        sx={{ mt: 2 }}
+                        value={generatedPassword}
+                        onChange={(e) => setGeneratedPassword(e.target.value)}
+                        helperText="Generate a password or type one here before saving."
                     />
 
                     {generatedPassword && (
@@ -1380,6 +1494,21 @@ export default function StudentAccounts() {
                             sx={{ fontWeight: 600 }}
                         >
                             Print
+                        </Button>
+
+                        <Button
+                            variant="contained"
+                            size="small"
+                            startIcon={<SaveIcon />}
+                            disabled={!email}
+                            onClick={() => handleSaveStudentAccount()}
+                            sx={{
+                                fontWeight: 700,
+                                px: 2.5,
+                                backgroundColor: "green"
+                            }}
+                        >
+                            Save
                         </Button>
 
                         <Button

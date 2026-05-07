@@ -4613,6 +4613,7 @@ WHERE proctor LIKE ?
         dpt.dprtmnt_id,
         dpt.dprtmnt_code,
         es.status,
+        es.is_regular,
         sy.year_id,
         sy.semester_id,
         es.en_remarks,
@@ -4651,6 +4652,7 @@ WHERE proctor LIKE ?
       SELECT
         snt.student_number,
         es.status,
+        es.is_regular,
         ct.course_unit,
         ct.lab_unit,
         pst.first_name,

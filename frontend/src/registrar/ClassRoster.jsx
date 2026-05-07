@@ -106,6 +106,9 @@ const ClassRoster = () => {
   const [activeStep, setActiveStep] = useState(2);
 
   const remarksMap = { 0: "Ongoing", 1: "Passed", 2: "Failed", 3: "Incomplete", 4: "Drop" };
+  const getStudentRegularStatus = (student) => Number(student.is_regular ?? student.status);
+  const getStudentRegularLabel = (student) =>
+    getStudentRegularStatus(student) === 1 ? "Regular" : "Irregular";
 
   const tabs1 = [
     { label: "Applicant List", to: "/super_admin_applicant_list", icon: <ListAltIcon /> },
@@ -359,8 +362,8 @@ const ClassRoster = () => {
       const matchYear = selectedSchoolYear === "" || String(s.year_id) === String(selectedSchoolYear);
       const matchSemester = selectedSchoolSemester === "" || String(s.semester_id) === String(selectedSchoolSemester);
       const matchStatus = selectedStatusFilter === ""
-        || (selectedStatusFilter === "Regular" && Number(s.status) === 1)
-        || (selectedStatusFilter === "Irregular" && Number(s.status) !== 1);
+        || (selectedStatusFilter === "Regular" && getStudentRegularStatus(s) === 1)
+        || (selectedStatusFilter === "Irregular" && getStudentRegularStatus(s) !== 1);
       const matchRemark = selectedRemarkFilter === "" || remarksMap[s.en_remarks] === selectedRemarkFilter;
 
       return matchCampus && matchDept && matchProgram && matchYear && matchSemester && matchStatus && matchRemark;
@@ -439,7 +442,7 @@ const ClassRoster = () => {
               <td>${sem?.semester_description ?? "N/A"}</td>
               <td>${remarksMap[s.en_remarks] ?? "N/A"}</td>
               <td>${s.created_at ? new Date(s.created_at).toLocaleDateString("en-PH") : "N/A"}</td>
-              <td>${Number(s.status) === 1 ? "Regular" : "Irregular"}</td>
+              <td>${getStudentRegularLabel(s)}</td>
             </tr>`;
     }).join("")}
         </tbody>
@@ -775,7 +778,7 @@ const ClassRoster = () => {
                 <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{remarksMap[s.en_remarks] || ""}</TableCell>
                 <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{s.created_at || ""}</TableCell>
                 <TableCell sx={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
-                  {Number(s.status) === 1 ? "Regular" : "Irregular"}
+                  {getStudentRegularLabel(s)}
                 </TableCell>
               </TableRow>
             ))}

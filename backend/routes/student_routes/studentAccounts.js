@@ -219,6 +219,145 @@ LIMIT 1
 
 
 // ─── Student: Password Reset Reminder ───────────────────────────────────────
+router.put("/student_account/:person_id", async (req, res) => {
+  const { person_id } = req.params;
+  const { email, password, first_name, middle_name, last_name } = req.body;
+
+  let conn;
+
+  try {
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+
+    if (!person_id || !normalizedEmail) {
+      return res.status(400).json({
+        success: false,
+        message: "Person ID and email are required",
+      });
+    }
+
+    conn = await db3.getConnection();
+    await conn.beginTransaction();
+
+    const [personRows] = await conn.query(
+      `SELECT person_id, first_name, middle_name, last_name
+       FROM person_table
+       WHERE person_id = ?
+       LIMIT 1`,
+      [person_id],
+    );
+
+    if (personRows.length === 0) {
+      await conn.rollback();
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    const [duplicateAccounts] = await conn.query(
+      `SELECT id
+       FROM user_accounts
+       WHERE LOWER(email) = ? AND person_id != ?
+       LIMIT 1`,
+      [normalizedEmail, person_id],
+    );
+
+    if (duplicateAccounts.length > 0) {
+      await conn.rollback();
+      return res.status(400).json({
+        success: false,
+        message: "Email already exists",
+      });
+    }
+
+    const current = personRows[0];
+    const nextFirstName = first_name ?? current.first_name;
+    const nextMiddleName = middle_name ?? current.middle_name;
+    const nextLastName = last_name ?? current.last_name;
+
+    await conn.query(
+      `UPDATE person_table
+       SET first_name = ?, middle_name = ?, last_name = ?, emailAddress = ?
+       WHERE person_id = ?`,
+      [
+        nextFirstName,
+        nextMiddleName || null,
+        nextLastName,
+        normalizedEmail,
+        person_id,
+      ],
+    );
+
+    const [accountRows] = await conn.query(
+      `SELECT id
+       FROM user_accounts
+       WHERE person_id = ? AND role = 'student'
+       LIMIT 1`,
+      [person_id],
+    );
+
+    const hashedPassword = password
+      ? await bcrypt.hash(String(password), 10)
+      : null;
+
+    if (accountRows.length > 0) {
+      const params = [
+        nextLastName,
+        nextMiddleName || null,
+        nextFirstName,
+        normalizedEmail,
+      ];
+      let passwordSql = "";
+
+      if (hashedPassword) {
+        passwordSql = ", password = ?";
+        params.push(hashedPassword);
+      }
+
+      params.push(accountRows[0].id);
+
+      await conn.query(
+        `UPDATE user_accounts
+         SET last_name = ?, middle_name = ?, first_name = ?, email = ?${passwordSql}
+         WHERE id = ?`,
+        params,
+      );
+    } else if (hashedPassword) {
+      await conn.query(
+        `INSERT INTO user_accounts
+          (person_id, role, last_name, middle_name, first_name, email, password, status)
+         VALUES (?, 'student', ?, ?, ?, ?, ?, 1)`,
+        [
+          person_id,
+          nextLastName,
+          nextMiddleName || null,
+          nextFirstName,
+          normalizedEmail,
+          hashedPassword,
+        ],
+      );
+    }
+
+    await conn.commit();
+
+    res.json({
+      success: true,
+      message: hashedPassword
+        ? "Student account saved successfully"
+        : "Student information saved successfully",
+    });
+  } catch (error) {
+    if (conn) await conn.rollback();
+    console.error("Student account save error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to save student account",
+    });
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
 router.post("/notify_student", async (req, res) => {
   const { person_id, email, password } = req.body;
 

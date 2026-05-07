@@ -157,7 +157,7 @@ const AssignScheduleToApplicantsQualifyingInterviewer = lazy(
   () => import("./enrollment_management/AssignScheduleToApplicantsQualifyingInterviewer"),
 );
 const ClassRoster = lazy(() => import("./registrar/ClassRoster"));
-const ClassRosterForEnrollment = lazy(() => import("./registrar/ClassRosterForEnrollment"));
+const ClassRosterForEnrollment = lazy(() => import("./enrollment_management/ClassRosterForEnrollment"));
 const DepartmentRegistration = lazy(
   () => import("./department_management/DprtmntRegistration"),
 );
@@ -272,6 +272,7 @@ const ApplicantResetPassword = lazy(
 );
 const StudentSchedule = lazy(() => import("./student/StudentSchedule"));
 const StudentBalanceManagement = lazy(() => import("./student/StudentBalanceManagement"));
+const StudentBalanceInfo = lazy(() => import("./student/StudentBalanceInfo"));
 const StudentGradingPage = lazy(() => import("./student/StudentGrade"));
 const StudentFacultyEvaluation = lazy(
   () => import("./student/StudentFacultyEval"),
@@ -1420,6 +1421,14 @@ function App() {
                         element={
                           <ProtectedRoute allowedRoles={"student"}>
                             <StudentBalanceManagement />
+                          </ProtectedRoute>
+                        }
+                      />
+                     <Route
+                        path="/student_account_balance/info"
+                        element={
+                          <ProtectedRoute allowedRoles={"student"}>
+                            <StudentBalanceInfo />
                           </ProtectedRoute>
                         }
                       />
