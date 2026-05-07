@@ -130,6 +130,7 @@ const changePassword = require("./routes/auth_routes/changePassword");
 const facultyDegree = require("./routes/faculty_routes/facultyDegree");
 const feeRules = require("./routes/payment/feeRules");
 const registerStudent = require("./routes/student_routes/registerStudent");
+const studentPaymentModule = require("./routes/student_routes/studentPaymentModule");
 const studentAccountRoute = require("./routes/student_routes/studentAccounts");
 const curriculum = require("./routes/system_routes/curriculumRoute");
 const schoolYear = require("./routes/system_routes/schoolYear");
@@ -147,6 +148,7 @@ app.use("/", statistics);
 app.use("/", schoolYear);
 app.use("/", curriculum)
 app.use("/", registerStudent);
+app.use("/", studentPaymentModule);
 app.use("/", feeRules);
 app.use("/", facultyDegree);
 app.use("/", changePassword);

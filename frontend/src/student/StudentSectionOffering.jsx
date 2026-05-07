@@ -460,15 +460,15 @@ const StudentCurriculumSubjects = () => {
                                                 TOTAL
                                             </TableCell>
 
-                                            <TableCell sx={{ ...bodyCell, fontWeight: 700 }}>
+                                            <TableCell sx={{ ...bodyCell, fontWeight: 700, textAlign: "center" }}>
                                                 {totalLec}
                                             </TableCell>
 
-                                            <TableCell sx={{ ...bodyCell, fontWeight: 700 }}>
+                                            <TableCell sx={{ ...bodyCell, fontWeight: 700, textAlign: "center" }}>
                                                 {totalLab}
                                             </TableCell>
 
-                                            <TableCell sx={{ ...bodyCell, fontWeight: 700 }}>
+                                            <TableCell sx={{ ...bodyCell, fontWeight: 700, textAlign: "center" }}>
                                                 {totalCourse}
                                             </TableCell>
 

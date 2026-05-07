@@ -80,6 +80,9 @@ router.get("/api/subjects", async (req, res) => {
 //////////////////////////////////////////////////////////////
 // GET APPLICANT SCORING
 //////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+// GET APPLICANT SCORING
+//////////////////////////////////////////////////////////////
 router.get("/api-applicant-scoring", async (req, res) => {
   try {
 
@@ -91,7 +94,6 @@ router.get("/api-applicant-scoring", async (req, res) => {
       ORDER BY id ASC
     `);
 
- 
     const [rows] = await db.query(`
       SELECT DISTINCT
         p.person_id,
@@ -161,42 +163,47 @@ router.get("/api-applicant-scoring", async (req, res) => {
         });
 
       // compute total dynamically
-      const total = Object.values(scores).reduce((sum, val) => sum + val, 0);
+      const total = Object.values(scores)
+        .reduce((sum, val) => sum + val, 0);
 
       const maxTotal = subjects.reduce(
         (sum, sub) => sum + Number(sub.max_score || 0),
         0
       );
 
+      // ✅ Guidance Office Formula
       const percentage =
-        row.percentage ??
-        (maxTotal > 0 ? (total / maxTotal) * 100 : 0);
+        maxTotal > 0
+          ? ((total / maxTotal) * 50) + 50
+          : 0;
 
+      // Final rating same as percentage
       const final_rating =
-        row.final_rating ??
-        (subjects.length > 0 ? total / subjects.length : 0);
-
+        subjects.length > 0
+          ? total / subjects.length
+          : 0;
+          
       return {
         ...row,
-        scores,        // ✅ dynamic subjects
+        scores,
         total,
         percentage,
         final_rating
       };
     });
 
-    // ✅ SEND EVERYTHING (same structure + subjects)
+    // ✅ SEND EVERYTHING
     res.json({
-      subjects,   // 👈 needed for frontend columns
+      subjects,
       data: formatted
     });
 
   } catch (err) {
     console.error("Error fetching applicant scoring:", err);
+
     res.status(500).send("Server error");
   }
 });
-
 
 //////////////////////////////////////////////////////////////
 // SAVE EXAM
@@ -274,6 +281,9 @@ router.post("/api/exam/save", verifyToken, async (req, res) => {
     //--------------------------------------
     // GET MAX TOTAL
     //--------------------------------------
+    //--------------------------------------
+    // GET MAX TOTAL
+    //--------------------------------------
     const [maxRows] = await db.query(`
       SELECT SUM(max_score) AS max_total
       FROM subjects
@@ -282,11 +292,13 @@ router.post("/api/exam/save", verifyToken, async (req, res) => {
 
     const maxTotal = Number(maxRows[0].max_total || 0);
 
+    // Guidance Office Formula
     const percentage =
       maxTotal > 0
-        ? (totalScore / maxTotal) * 100
+        ? ((totalScore / maxTotal) * 50) + 50
         : 0;
 
+    // Final rating same as percentage
     const finalRating =
       scores.length > 0
         ? totalScore / scores.length

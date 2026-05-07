@@ -3234,9 +3234,10 @@ Thank you, best regards
 
                 const computedConvertedRating =
                   maxTotal > 0
-                    ? (totalScore / maxTotal) * 100
+                    ? ((totalScore / maxTotal) * 50) + 50
                     : 0;
 
+                // Final rating same as converted rating
                 const computedFinalRating =
                   subjectScores.length > 0
                     ? totalScore / subjectScores.length

@@ -271,6 +271,7 @@ const ApplicantResetPassword = lazy(
   () => import("./applicant/ApplicantResetPassword"),
 );
 const StudentSchedule = lazy(() => import("./student/StudentSchedule"));
+const StudentBalanceManagement = lazy(() => import("./student/StudentBalanceManagement"));
 const StudentGradingPage = lazy(() => import("./student/StudentGrade"));
 const StudentFacultyEvaluation = lazy(
   () => import("./student/StudentFacultyEval"),
@@ -1411,6 +1412,14 @@ function App() {
                         element={
                           <ProtectedRoute allowedRoles={"student"}>
                             <StudentSchedule />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/student_account_balance"
+                        element={
+                          <ProtectedRoute allowedRoles={"student"}>
+                            <StudentBalanceManagement />
                           </ProtectedRoute>
                         }
                       />
