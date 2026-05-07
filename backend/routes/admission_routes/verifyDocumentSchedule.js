@@ -1,7 +1,54 @@
 const express = require("express");
 const { db, db3 } = require("../database/database");
+const {
+  formatAuditTimestamp,
+  insertAuditLogAdmission,
+} = require("../../utils/auditLogger");
 
 const router = express.Router();
+
+const formatActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getVerifyScheduleLabel = async (scheduleId) => {
+  if (!scheduleId) return "No schedule";
+
+  const [rows] = await db.query(
+    `
+    SELECT schedule_id, schedule_date, building_description, room_description, start_time, end_time
+    FROM verify_document_schedule
+    WHERE schedule_id = ?
+    LIMIT 1
+    `,
+    [scheduleId],
+  );
+
+  const schedule = rows?.[0];
+  if (!schedule) return `Schedule ${scheduleId}`;
+
+  return `Schedule ${schedule.schedule_id} (${schedule.schedule_date}, ${schedule.building_description || "N/A"} ${schedule.room_description || ""}, ${schedule.start_time || ""}-${schedule.end_time || ""})`;
+};
+
+const insertVerifyScheduleAuditLog = async ({
+  actorId,
+  actorRole,
+  message,
+}) => {
+  await insertAuditLogAdmission({
+    actorId: actorId || "unknown",
+    role: actorRole || "registrar",
+    action: "VERIFY_SCHEDULE",
+    severity: "INFO",
+    message,
+  });
+};
 
 // ASSIGN VERIFY DOCUMENTS SCHEDULE //
 router.post("/create_verify_document_schedule", async (req, res) => {
@@ -249,13 +296,30 @@ router.get("/verified-for-verify-schedule", async (req, res) => {
 });
 
 router.post("/unassign_verify", async (req, res) => {
-  const { applicant_number } = req.body;
+  const { applicant_number, audit_actor_id, audit_actor_role } = req.body;
 
   try {
+    const [[currentAssignment]] = await db.query(
+      `SELECT schedule_id FROM verify_applicants WHERE applicant_id = ? LIMIT 1`,
+      [applicant_number],
+    );
+
     await db.query(
       `UPDATE verify_applicants SET schedule_id = NULL WHERE applicant_id = ?`,
       [applicant_number]
     );
+
+    if (currentAssignment?.schedule_id) {
+      const safeActor = audit_actor_id || "unknown";
+      const roleLabel = formatActorRole(audit_actor_role);
+      const scheduleLabel = await getVerifyScheduleLabel(currentAssignment.schedule_id);
+
+      await insertVerifyScheduleAuditLog({
+        actorId: safeActor,
+        actorRole: audit_actor_role,
+        message: `${roleLabel} (${safeActor}) unassigned Applicant (${applicant_number}) from document verification ${scheduleLabel} at ${formatAuditTimestamp()}.`,
+      });
+    }
 
     res.json({
       success: true,
@@ -268,13 +332,30 @@ router.post("/unassign_verify", async (req, res) => {
 });
 
 router.post("/unassign_all_from_verify", async (req, res) => {
-  const { schedule_id } = req.body;
+  const { schedule_id, audit_actor_id, audit_actor_role } = req.body;
 
   try {
+    const [assignedRows] = await db.query(
+      `SELECT applicant_id FROM verify_applicants WHERE schedule_id = ?`,
+      [schedule_id],
+    );
+
     await db.query(
       `UPDATE verify_applicants SET schedule_id = NULL WHERE schedule_id = ?`,
       [schedule_id]
     );
+
+    if (assignedRows.length > 0) {
+      const safeActor = audit_actor_id || "unknown";
+      const roleLabel = formatActorRole(audit_actor_role);
+      const scheduleLabel = await getVerifyScheduleLabel(schedule_id);
+
+      await insertVerifyScheduleAuditLog({
+        actorId: safeActor,
+        actorRole: audit_actor_role,
+        message: `${roleLabel} (${safeActor}) unassigned ${assignedRows.length} applicant(s) from document verification ${scheduleLabel} at ${formatAuditTimestamp()}.`,
+      });
+    }
 
     res.json({
       success: true,
@@ -385,6 +466,7 @@ router.get("/verify_schedules_with_count", async (req, res) => {
         s.start_time,
         s.end_time,
         s.evaluator,
+        s.branch,
         s.room_quota
       ORDER BY s.created_at DESC
     `);
@@ -463,13 +545,31 @@ AND (va.email_sent IS NULL OR va.email_sent = 1)
 });
 
 router.post("/unassign_verify_evaluator_applicant_list", async (req, res) => {
-  const { applicant_number } = req.body;
+  const { applicant_number, audit_actor_id, audit_actor_role } = req.body;
 
   if (!applicant_number) {
     return res.status(400).json({ message: "Missing applicant_number" });
   }
 
   try {
+    const [[currentAssignment]] = await db.query(
+      `
+      SELECT
+        va.schedule_id,
+        pt.last_name,
+        pt.first_name,
+        pt.middle_name
+      FROM verify_applicants va
+      LEFT JOIN applicant_numbering_table an
+        ON an.applicant_number = va.applicant_id
+      LEFT JOIN person_table pt
+        ON pt.person_id = an.person_id
+      WHERE va.applicant_id = ?
+      LIMIT 1
+      `,
+      [applicant_number],
+    );
+
     await db.query(
       `
       UPDATE verify_applicants
@@ -479,6 +579,28 @@ router.post("/unassign_verify_evaluator_applicant_list", async (req, res) => {
       `,
       [applicant_number]
     );
+
+    if (currentAssignment?.schedule_id) {
+      const safeActor = audit_actor_id || "unknown";
+      const roleLabel = formatActorRole(audit_actor_role);
+      const scheduleLabel = await getVerifyScheduleLabel(currentAssignment.schedule_id);
+      const applicantName = [
+        currentAssignment.last_name,
+        currentAssignment.first_name,
+        currentAssignment.middle_name,
+      ]
+        .filter(Boolean)
+        .join(", ");
+      const applicantLabel = applicantName
+        ? `${applicant_number} - ${applicantName}`
+        : applicant_number;
+
+      await insertVerifyScheduleAuditLog({
+        actorId: safeActor,
+        actorRole: audit_actor_role,
+        message: `${roleLabel} (${safeActor}) removed Applicant (${applicantLabel}) from evaluator applicant list for document verification ${scheduleLabel} at ${formatAuditTimestamp()}.`,
+      });
+    }
 
     res.json({
       success: true,
@@ -541,6 +663,7 @@ router.get("/verify_schedules_with_count/:yearId/:semesterId", async (req, res) 
         s.start_time,
         s.end_time,
         s.evaluator,
+        s.branch,
         s.room_quota,
         s.created_at,
         sy.year_id,
@@ -552,7 +675,19 @@ router.get("/verify_schedules_with_count/:yearId/:semesterId", async (req, res) 
       LEFT JOIN verify_applicants a
         ON s.schedule_id = a.schedule_id
       WHERE sy.year_id = ? AND sy.semester_id = ?${branchClause}
-      GROUP BY s.schedule_id
+      GROUP BY
+        s.schedule_id,
+        s.schedule_date,
+        s.building_description,
+        s.room_description,
+        s.start_time,
+        s.end_time,
+        s.evaluator,
+        s.branch,
+        s.room_quota,
+        s.created_at,
+        sy.year_id,
+        sy.semester_id
       ORDER BY s.schedule_date, s.start_time
     `,
       queryParams

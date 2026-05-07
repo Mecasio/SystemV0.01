@@ -291,6 +291,16 @@ const AdminDashboard1 = () => {
 
   const [employeeID, setEmployeeID] = useState("");
 
+  const withAuditActor = (payload) => ({
+    ...payload,
+    audit_actor_id:
+      employeeID ||
+      localStorage.getItem("employee_id") ||
+      localStorage.getItem("email") ||
+      "unknown",
+    audit_actor_role: userRole || localStorage.getItem("role") || "registrar",
+  });
+
   useEffect(() => {
 
     const storedUser = localStorage.getItem("email");
@@ -559,7 +569,7 @@ const AdminDashboard1 = () => {
       }
 
       // ✅ Send update request
-      await axios.put(`${API_BASE_URL}/api/person/${targetId}`, cleanedData);
+      await axios.put(`${API_BASE_URL}/api/person/${targetId}`, withAuditActor(cleanedData));
 
       console.log(`✅ SuperAdmin updated person_id: ${targetId} successfully.`);
     } catch (error) {
@@ -730,7 +740,7 @@ const AdminDashboard1 = () => {
       }
 
       // ✅ Execute safe update
-      await axios.put(`${API_BASE_URL}/api/person/${targetId}`, cleanedData);
+      await axios.put(`${API_BASE_URL}/api/person/${targetId}`, withAuditActor(cleanedData));
       console.log(`💾 Auto-saved (on blur) for person_id: ${targetId}`);
     } catch (err) {
       console.error("❌ Auto-save (on blur) failed:", {
@@ -808,7 +818,7 @@ const AdminDashboard1 = () => {
         return;
       }
 
-      await axios.put(`${API_BASE_URL}/api/person/${targetId}`, cleanedData);
+      await axios.put(`${API_BASE_URL}/api/person/${targetId}`, withAuditActor(cleanedData));
       console.log(`💾 Auto-saved (manual) for person_id: ${targetId}`);
     } catch (err) {
       console.error("❌ Auto-save (manual) failed:", {
@@ -1944,6 +1954,7 @@ const AdminDashboard1 = () => {
                         label="Year Level"
                         onChange={handleChange}
                         onBlur={() => handleUpdate(person)}
+                        readOnly
                       >
                         <MenuItem value="">
                           <em>Select Year Level</em>

@@ -531,6 +531,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
         { title: "Grade Conversion Management", link: "/grade_conversion_admin", icon: Email, page_id: 144 },
         { title: "Email Sender", link: "/email_template_manager", icon: Email, page_id: 67 },
         { title: "Announcement", link: "/announcement", icon: Campaign, page_id: 66 },
+        { title: "Audit Logs", link: "/audit_logs", icon: HistoryEdu, page_id: 95 },
         { title: "Signature Upload", link: "/signature_upload", icon: Settings, page_id: 114 },
       ]
     },

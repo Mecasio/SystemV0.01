@@ -249,6 +249,7 @@ const Register = () => {
     try {
       await axios.post(`${API_BASE_URL}/auth/request-otp`, {
         email: usersData.email,
+        audit_log_db: "db",
       });
 
       setTempEmail(usersData.email);
@@ -417,6 +418,7 @@ const Register = () => {
 
       await axios.post(`${API_BASE_URL}/auth/request-otp`, {
         email: tempEmail,
+        audit_log_db: "db",
       });
 
       startResendTimer();
@@ -461,6 +463,7 @@ const Register = () => {
         program: selectedCurriculum,
         active_school_year_id: activeSchoolYearId,
         otp: otpValue,
+        audit_log_db: "db",
       });
 
       if (!response.data.success) {

@@ -206,6 +206,12 @@ const ProgramTagging = () => {
     headers: {
       ...extraHeaders,
       "x-employee-id": employeeID,
+      "x-audit-actor-id":
+        employeeID ||
+        localStorage.getItem("employee_id") ||
+        localStorage.getItem("email") ||
+        "unknown",
+      "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
       "x-page-id": pageId,
     },
   });

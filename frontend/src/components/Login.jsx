@@ -90,7 +90,7 @@ const Login = ({ setIsAuthenticated }) => {
 
       const response = await axios.post(
         apiUrl,
-        { email, password },
+        { email, password, audit_log_db: "db" },
         { headers: { "Content-Type": "application/json" } },
       );
 

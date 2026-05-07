@@ -165,6 +165,7 @@ const SystemDashboardPanel = () => {
         },
         { title: "EMAIL SENDER", link: "/email_template_manager", icon: Email, page_id: 67 },
         { title: "ANNOUNCEMENT", link: "/announcement", icon: Campaign, page_id: 66 },
+        { title: "AUDIT LOGS", link: "/audit_logs", icon: HelpOutlineIcon, page_id: 95 },
         {
           title: `SIGNATURE UPLOAD`,
           link: "/signature_upload",

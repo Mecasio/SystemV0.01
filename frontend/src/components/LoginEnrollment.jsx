@@ -164,7 +164,11 @@ const LoginEnrollment = ({ setIsAuthenticated }) => {
           ? `${API_BASE_URL}/auth/login_applicant`
           : `${API_BASE_URL}/auth/login`;
 
-      const res = await axios.post(apiUrl, { email, password });
+      const res = await axios.post(apiUrl, {
+        email,
+        password,
+        audit_log_db: "db3",
+      });
 
       // 🔒 If locked, block login
       if (res.data.message?.includes("Locked")) {

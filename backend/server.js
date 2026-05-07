@@ -13,6 +13,10 @@ const {
   getGradeConversions,
   getStoredNumericGrade,
 } = require("./utils/gradeConversion");
+const {
+  formatAuditTimestamp,
+  insertAuditLogAdmission,
+} = require("./utils/auditLogger");
 const nodemailer = require("nodemailer");
 const { error } = require("console");
 
@@ -55,11 +59,11 @@ const applicantDocsDir = path.join(
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "http://192.168.50.64:5173",
+  "http://192.168.50.146:5173",
   "http://192.168.50.55:5173",
   "http://192.168.50.211:5173",
   "http://136.239.248.62:5173",
-  "http://192.168.50.64:5173",
+  "http://192.168.50.146:5173",
   "http://192.168.1.9:5173",
 ];
 
@@ -141,6 +145,7 @@ const yearLevelRoute = require("./routes/system_routes/yearLevel");
 const gradeConversionRoute = require("./routes/system_routes/gradeConversion");
 const nstpTagging = require("./routes/system_routes/nstpTagging");
 const departmentSectionTagging = require("./routes/system_routes/departmentSectionTagging");
+const auditLogsRoute = require("./routes/system_routes/auditLogsRoute");
 
 app.use("/", evaluation);
 app.use("/", payment);
@@ -184,6 +189,7 @@ app.use("/", importRoutes);
 app.use("/", templateRoute);
 app.use("/", nstpTagging);
 app.use("/", departmentSectionTagging)
+app.use("/", auditLogsRoute);
 app.use("/", applicantRoutesResetPassword);
 app.use("/", studentRoutesResetPassword);
 app.use("/", facultyRoutesResetPassword);
@@ -657,9 +663,14 @@ app.put("/uploads/remarks/:upload_id", async (req, res) => {
 //  Update status only
 app.put("/uploads/status/:upload_id", async (req, res) => {
   const { upload_id } = req.params;
-  const { status, user_id } = req.body;
+  const { status, user_id, audit_actor_id, audit_actor_role } = req.body;
 
   try {
+    const uploadBefore = await getRequirementUploadAuditInfo(upload_id);
+    if (!uploadBefore) {
+      return res.status(404).json({ message: "Upload not found" });
+    }
+
     // 1. Update single row status
     await db.query(
       `UPDATE requirement_uploads
@@ -668,17 +679,7 @@ app.put("/uploads/status/:upload_id", async (req, res) => {
       [status, user_id, upload_id]
     );
 
-    // 2. Get person_id of that upload
-    const [[upload]] = await db.query(
-      `SELECT person_id FROM requirement_uploads WHERE upload_id = ?`,
-      [upload_id]
-    );
-
-    if (!upload) {
-      return res.status(404).json({ message: "Upload not found" });
-    }
-
-    const person_id = upload.person_id;
+    const person_id = uploadBefore.person_id;
 
     // 3. Get all verifiable documents of this applicant
     const [docs] = await db.query(
@@ -711,10 +712,125 @@ app.put("/uploads/status/:upload_id", async (req, res) => {
       );
     }
 
+    if (String(uploadBefore.status ?? "0") !== String(status ?? "0")) {
+      const safeActor = audit_actor_id || user_id || "unknown";
+      const roleLabel = formatAuditActorRole(audit_actor_role || "registrar");
+      await insertRequirementAuditLog({
+        actorId: safeActor,
+        actorRole: audit_actor_role || "registrar",
+        message: `${roleLabel} (${safeActor}) changed document status of Applicant (${applicantAuditLabel(uploadBefore)}) for ${uploadBefore.description || "document"} from ${requirementStatusLabel(uploadBefore.status)} to ${requirementStatusLabel(status)} at ${formatAuditTimestamp()}.`,
+      });
+    }
+
     res.json({ message: "Status updated and auto-sync checked." });
 
   } catch (err) {
     console.error("Error updating status:", err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+app.get("/api/document_status/:applicant_number", async (req, res) => {
+  const { applicant_number } = req.params;
+
+  try {
+    const [rows] = await db.query(
+      `
+      SELECT
+        COALESCE(ru.document_status, 'On process') AS document_status,
+        ua.email AS evaluator_email,
+        pr.lname AS evaluator_lname,
+        pr.fname AS evaluator_fname,
+        pr.mname AS evaluator_mname,
+        ru.created_at
+      FROM applicant_numbering_table ant
+      INNER JOIN person_table pt ON pt.person_id = ant.person_id
+      LEFT JOIN requirement_uploads ru ON ru.person_id = pt.person_id
+      LEFT JOIN enrollment.user_accounts ua ON ua.person_id = ru.last_updated_by
+      LEFT JOIN enrollment.prof_table pr ON pr.person_id = ua.person_id
+      WHERE ant.applicant_number = ?
+      ORDER BY ru.upload_id DESC
+      LIMIT 1
+      `,
+      [applicant_number],
+    );
+
+    const row = rows?.[0] || {};
+    res.json({
+      document_status: row.document_status || "On process",
+      evaluator: row.evaluator_email
+        ? {
+          evaluator_email: row.evaluator_email,
+          evaluator_lname: row.evaluator_lname,
+          evaluator_fname: row.evaluator_fname,
+          evaluator_mname: row.evaluator_mname,
+          created_at: row.created_at,
+        }
+        : null,
+    });
+  } catch (err) {
+    console.error("Error fetching document status:", err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+app.put("/api/document_status/:applicant_number", async (req, res) => {
+  const { applicant_number } = req.params;
+  const {
+    document_status,
+    user_id,
+    audit_actor_id,
+    audit_actor_role,
+  } = req.body;
+
+  if (!document_status || !user_id) {
+    return res.status(400).json({
+      message: "document_status and user_id are required",
+    });
+  }
+
+  try {
+    const applicantBefore = await getApplicantDocumentStatusInfo(applicant_number);
+
+    if (!applicantBefore) {
+      return res.status(404).json({ message: "Applicant not found" });
+    }
+
+    const [result] = await db.query(
+      `
+      UPDATE requirement_uploads ru
+      INNER JOIN applicant_numbering_table ant ON ant.person_id = ru.person_id
+      SET ru.document_status = ?, ru.last_updated_by = ?
+      WHERE ant.applicant_number = ?
+      `,
+      [document_status, user_id, applicant_number],
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Applicant uploads not found" });
+    }
+
+    if (
+      String(applicantBefore.document_status || "On process") !==
+      String(document_status || "On process")
+    ) {
+      const safeActor = audit_actor_id || user_id || "unknown";
+      const roleLabel = formatAuditActorRole(audit_actor_role || "registrar");
+
+      await insertRequirementAuditLog({
+        actorId: safeActor,
+        actorRole: audit_actor_role || "registrar",
+        message: `${roleLabel} (${safeActor}) changed overall document status of Applicant (${applicantAuditLabel(applicantBefore)}) from ${applicantBefore.document_status || "On process"} to ${document_status} at ${formatAuditTimestamp()}.`,
+      });
+    }
+
+    res.json({
+      success: true,
+      document_status,
+      message: "Document status updated successfully",
+    });
+  } catch (err) {
+    console.error("Error updating document status:", err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
@@ -2159,6 +2275,181 @@ const allowedFields = new Set([
   "current_step",
 ]);
 
+const applicantCourseFields = ["program", "program2", "program3"];
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getApplicantCurriculumLabel = async (curriculumId) => {
+  if (!curriculumId) return "None";
+
+  try {
+    const [rows] = await db3.query(
+      `
+      SELECT
+        pt.program_code,
+        pt.program_description,
+        pt.major,
+        yt.year_description,
+        yt2.year_description AS next_year
+      FROM curriculum_table ct
+      LEFT JOIN program_table pt ON ct.program_id = pt.program_id
+      LEFT JOIN year_table yt ON ct.year_id = yt.year_id
+      LEFT JOIN year_table yt2 ON yt2.year_id = yt.year_id + 1
+      WHERE ct.curriculum_id = ?
+      LIMIT 1
+      `,
+      [curriculumId],
+    );
+
+    const curriculum = rows?.[0];
+    if (!curriculum) return `Curriculum ${curriculumId}`;
+
+    const programCode = curriculum.program_code || "N/A";
+    const description = curriculum.program_description || "Unknown Program";
+    const major = curriculum.major ? ` (${curriculum.major})` : "";
+    const year = curriculum.year_description
+      ? ` ${curriculum.year_description}${curriculum.next_year ? `-${curriculum.next_year}` : ""}`
+      : "";
+
+    return `(${programCode}) ${description}${major}${year}`;
+  } catch (error) {
+    console.error("Curriculum label lookup failed:", error);
+    return `Curriculum ${curriculumId}`;
+  }
+};
+
+const insertApplicantCourseChangeAuditLog = async ({
+  actorId,
+  actorRole,
+  applicant,
+  changes,
+}) => {
+  if (!changes.length) return;
+
+  const safeActor = actorId || "unknown";
+  const roleLabel = formatAuditActorRole(actorRole);
+  const applicantName = [
+    applicant?.last_name,
+    applicant?.first_name,
+    applicant?.middle_name,
+  ]
+    .filter(Boolean)
+    .join(", ");
+  const applicantLabel =
+    applicant?.applicant_number ||
+    applicantName ||
+    applicant?.emailAddress ||
+    `person_id ${applicant?.person_id || "unknown"}`;
+  const changeText = changes
+    .map((change) => `${change.label} from ${change.fromLabel} to ${change.toLabel}`)
+    .join("; ");
+
+  await insertAuditLogAdmission({
+    actorId: safeActor,
+    role: actorRole || "registrar",
+    action: "APPLICANT_COURSE_CHANGE",
+    severity: "INFO",
+    message: `${roleLabel} (${safeActor}) changed course of Applicant (${applicantLabel}) ${changeText} at ${formatAuditTimestamp()}.`,
+  });
+};
+
+const requirementStatusLabel = (status) => {
+  if (Number(status) === 1) return "Verified";
+  if (Number(status) === 2) return "Rejected";
+  return "Pending";
+};
+
+const getRequirementUploadAuditInfo = async (uploadId) => {
+  const [rows] = await db.query(
+    `
+    SELECT
+      ru.upload_id,
+      ru.person_id,
+      ru.status,
+      ru.document_status,
+      rt.description,
+      ant.applicant_number,
+      pt.first_name,
+      pt.middle_name,
+      pt.last_name,
+      pt.emailAddress
+    FROM requirement_uploads ru
+    LEFT JOIN requirements_table rt ON rt.id = ru.requirements_id
+    LEFT JOIN person_table pt ON pt.person_id = ru.person_id
+    LEFT JOIN applicant_numbering_table ant ON ant.person_id = ru.person_id
+    WHERE ru.upload_id = ?
+    LIMIT 1
+    `,
+    [uploadId],
+  );
+
+  return rows?.[0] || null;
+};
+
+const getApplicantDocumentStatusInfo = async (applicantNumber) => {
+  const [rows] = await db.query(
+    `
+    SELECT
+      ant.applicant_number,
+      pt.person_id,
+      pt.first_name,
+      pt.middle_name,
+      pt.last_name,
+      pt.emailAddress,
+      ru.document_status
+    FROM applicant_numbering_table ant
+    INNER JOIN person_table pt ON pt.person_id = ant.person_id
+    LEFT JOIN requirement_uploads ru ON ru.person_id = pt.person_id
+    WHERE ant.applicant_number = ?
+    ORDER BY ru.upload_id DESC
+    LIMIT 1
+    `,
+    [applicantNumber],
+  );
+
+  return rows?.[0] || null;
+};
+
+const applicantAuditLabel = (applicant) => {
+  const applicantName = [
+    applicant?.last_name,
+    applicant?.first_name,
+    applicant?.middle_name,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+  return (
+    applicant?.applicant_number ||
+    applicantName ||
+    applicant?.emailAddress ||
+    `person_id ${applicant?.person_id || "unknown"}`
+  );
+};
+
+const insertRequirementAuditLog = async ({
+  actorId,
+  actorRole,
+  message,
+  severity = "INFO",
+}) => {
+  await insertAuditLogAdmission({
+    actorId: actorId || "unknown",
+    role: actorRole || "registrar",
+    action: "APPLICANT_REQUIREMENTS",
+    severity,
+    message,
+  });
+};
+
 //  PUT update person details by person_id (SAFE VERSION)
 app.put("/api/person/:id", async (req, res) => {
   const { id } = req.params;
@@ -2178,6 +2469,25 @@ app.put("/api/person/:id", async (req, res) => {
       return res.status(400).json({ error: "No valid fields to update" });
     }
 
+    const courseUpdateFields = cleanedEntries
+      .filter(([key]) => applicantCourseFields.includes(key))
+      .map(([key]) => key);
+    let applicantBefore = null;
+
+    if (courseUpdateFields.length > 0) {
+      const [beforeRows] = await db.query(
+        `
+        SELECT pt.*, ant.applicant_number
+        FROM person_table pt
+        LEFT JOIN applicant_numbering_table ant ON ant.person_id = pt.person_id
+        WHERE pt.person_id = ?
+        LIMIT 1
+        `,
+        [id],
+      );
+      applicantBefore = beforeRows?.[0] || null;
+    }
+
     const setClause = cleanedEntries.map(([key]) => `${key}=?`).join(", ");
     const values = cleanedEntries.map(([_, val]) => val);
     values.push(id);
@@ -2189,6 +2499,40 @@ app.put("/api/person/:id", async (req, res) => {
       return res
         .status(404)
         .json({ error: "Person not found or no changes made" });
+    }
+
+    if (applicantBefore && courseUpdateFields.length > 0) {
+      const cleanedData = Object.fromEntries(cleanedEntries);
+      const changes = [];
+
+      for (const field of courseUpdateFields) {
+        const oldValue = applicantBefore[field] ?? null;
+        const newValue = cleanedData[field] ?? null;
+
+        if (String(oldValue || "") !== String(newValue || "")) {
+          const [fromLabel, toLabel] = await Promise.all([
+            getApplicantCurriculumLabel(oldValue),
+            getApplicantCurriculumLabel(newValue),
+          ]);
+
+          changes.push({
+            label: field === "program" ? "course applied" : field,
+            fromLabel,
+            toLabel,
+          });
+        }
+      }
+
+      await insertApplicantCourseChangeAuditLog({
+        actorId:
+          req.body.audit_actor_id ||
+          req.body.actor_id ||
+          req.body.employee_id ||
+          "unknown",
+        actorRole: req.body.audit_actor_role || req.body.role || "registrar",
+        applicant: applicantBefore,
+        changes,
+      });
     }
 
     res.json({ message: " Person updated successfully" });

@@ -9,6 +9,10 @@ const {
   deriveRemarkAndStatusFromNumeric,
 } = require("../utils/gradeConversion");
 const {
+  formatAuditTimestamp,
+  insertAuditLogEnrollment,
+} = require("../utils/auditLogger");
+const {
   XLSX_IMPORT_LIMITS,
   validateSpreadsheetUpload,
   readWorkbookSafely,
@@ -23,6 +27,40 @@ const {
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const insertEnrollmentImportAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogEnrollment({
+    actorId,
+    role: actorRole,
+    action,
+    severity: "INFO",
+    message,
+  });
+};
 
 const normalizeText = (value) => String(value ?? "").trim();
 
@@ -1253,6 +1291,14 @@ router.post("/import-program-xlsx", upload.single("file"), async (req, res) => {
       }
     });
 
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertEnrollmentImportAuditLog({
+      req,
+      action: "PROGRAM_IMPORT",
+      message: `${roleLabel} (${actorId}) imported ${importedCount} program(s) from XLSX at ${formatAuditTimestamp()}. Skipped row(s): ${skippedItems.length}.`,
+    });
+
     return res.json(
       buildImportResponse(
         "Program import finished",
@@ -1615,6 +1661,14 @@ router.post(
           );
           importedCount += 1;
         }
+      });
+
+      const { actorId, actorRole } = getAuditActor(req);
+      const roleLabel = formatAuditActorRole(actorRole);
+      await insertEnrollmentImportAuditLog({
+        req,
+        action: "PROGRAM_TAGGING_IMPORT",
+        message: `${roleLabel} (${actorId}) imported ${importedCount} program tagging record(s) from XLSX at ${formatAuditTimestamp()}. Skipped row(s): ${skippedItems.length}.`,
       });
 
       return res.json(

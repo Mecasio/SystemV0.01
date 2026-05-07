@@ -7,6 +7,11 @@ const fs = require("fs");
 const QRCode = require("qrcode");
 const { db, db3 } = require("../database/database");
 const { CanDelete, CanEdit } = require("../../middleware/pagePermissions");
+const {
+  formatAuditTimestamp,
+  insertAuditLogAdmission,
+  insertAuditLogEnrollment,
+} = require("../../utils/auditLogger");
 const router = express.Router();
 
 let otpStore = {};
@@ -26,22 +31,6 @@ const calculateAge = (birthDate) => {
   return age;
 };
 
-const AUTH_ACTION = "AUTH";
-
-function buildAuthMessage({ outcome, role, actorId, reason }) {
-  const safeActor = actorId || "unknown";
-  const safeRole = role || "unknown";
-  const base = `LOGIN ${outcome} - ${safeRole} (${safeActor})`;
-  return reason ? `${base} | Reason: ${reason}` : base;
-}
-
-function getAuthSeverity({ outcome }) {
-  if (outcome === "LOCKED") return "CRITICAL";
-  if (outcome === "FAILED") return "WARN";
-  if (outcome === "SUCCESS_AFTER_FAILURES") return "WARN";
-  return "INFO";
-}
-
 async function getApplicantNumberByPersonId(personId) {
   if (!personId) return null;
   try {
@@ -56,39 +45,40 @@ async function getApplicantNumberByPersonId(personId) {
   }
 }
 
-async function insertAuditLog({
-  actorId,
-  role,
-  outcome,
-  reason,
-  messageOverride,
-}) {
-  try {
-    const message =
-      messageOverride ||
-      buildAuthMessage({
-        outcome,
-        role,
-        actorId,
-        reason,
-      });
+const getLoginAuditLogger = (req) => (
+  req.body?.audit_log_db === "db3"
+    ? insertAuditLogEnrollment
+    : insertAuditLogAdmission
+);
 
-    await db.query(
-      `INSERT INTO audit_logs
-        (actor_id, role, action, message, severity)
-       VALUES (?, ?, ?, ?, ?)`,
-      [
-        actorId || "unknown",
-        role || "unknown",
-        AUTH_ACTION,
-        message,
-        getAuthSeverity({ outcome }),
-      ],
-    );
-  } catch (err) {
-    console.error("Audit log insert failed:", err);
-  }
-}
+const buildRegistrationAuditMessage = ({ actorId, event, reason }) => {
+  const safeActor = actorId || "unknown";
+  const timeLabel = formatAuditTimestamp();
+  const reasonText = reason ? ` Reason: ${reason}.` : "";
+
+  return `Applicant (${safeActor}) ${event} at ${timeLabel}.${reasonText}`;
+};
+
+const insertRegistrationAuditLog = ({
+  actorId,
+  event,
+  outcome = "SUCCESS",
+  severity,
+  reason,
+}) =>
+  insertAuditLogAdmission({
+    actorId,
+    role: "applicant",
+    action: "REGISTER",
+    outcome,
+    severity,
+    reason,
+    message: buildRegistrationAuditMessage({
+      actorId,
+      event,
+      reason,
+    }),
+  });
 
 // POST REGISTER (APPLICANT ONLY)
 router.post("/register", async (req, res) => {
@@ -279,11 +269,10 @@ router.post("/register", async (req, res) => {
   const now = Date.now();
 
   if (!normalizedEmail || !password || !campus || !academicProgram || !applyingAs || !program) {
-    await insertAuditLog({
+    await insertRegistrationAuditLog({
       actorId: normalizedEmail || "unknown",
-      role: "applicant",
       outcome: "FAILED",
-      messageOverride: `REGISTER FAILED - ${normalizedEmail || "unknown"}`,
+      event: "failed to register",
       reason: "Missing required fields",
     });
     return res.json({
@@ -293,11 +282,10 @@ router.post("/register", async (req, res) => {
   }
 
   if (!stored) {
-    await insertAuditLog({
+    await insertRegistrationAuditLog({
       actorId: normalizedEmail || "unknown",
-      role: "applicant",
       outcome: "FAILED",
-      messageOverride: `REGISTER FAILED - ${normalizedEmail || "unknown"}`,
+      event: "failed to register",
       reason: "No OTP request found",
     });
     return res
@@ -307,11 +295,10 @@ router.post("/register", async (req, res) => {
 
   if (stored.expiresAt < now) {
     delete otpStore[normalizedEmail];
-    await insertAuditLog({
+    await insertRegistrationAuditLog({
       actorId: normalizedEmail || "unknown",
-      role: "applicant",
       outcome: "FAILED",
-      messageOverride: `REGISTER FAILED - ${normalizedEmail || "unknown"}`,
+      event: "failed to register",
       reason: "OTP expired",
     });
     return res
@@ -323,11 +310,10 @@ router.post("/register", async (req, res) => {
   }
 
   if (stored.otp !== otp.trim()) {
-    await insertAuditLog({
+    await insertRegistrationAuditLog({
       actorId: normalizedEmail || "unknown",
-      role: "applicant",
       outcome: "FAILED",
-      messageOverride: `REGISTER FAILED - ${normalizedEmail || "unknown"}`,
+      event: "failed to register",
       reason: "Invalid OTP",
     });
     return res.status(400).json({ success: false, message: "Invalid OTP" });
@@ -351,11 +337,10 @@ router.post("/register", async (req, res) => {
     );
 
     if (existingUser.length > 0) {
-      await insertAuditLog({
+      await insertRegistrationAuditLog({
         actorId: normalizedEmail || "unknown",
-        role: "applicant",
         outcome: "FAILED",
-        messageOverride: `REGISTER FAILED - ${normalizedEmail || "unknown"}`,
+        event: "failed to register",
         reason: "Email already registered",
       });
       return res.json({
@@ -492,11 +477,10 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       campus: campus,
     });
 
-    await insertAuditLog({
+    await insertRegistrationAuditLog({
       actorId: normalizedEmail || "unknown",
-      role: "applicant",
       outcome: "SUCCESS",
-      messageOverride: `REGISTER SUCCESS - ${normalizedEmail || "unknown"}`,
+      event: "successfully registered",
     });
   } catch (error) {
     if (person_id) {
@@ -505,11 +489,10 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       ]);
     }
     console.log(error);
-    await insertAuditLog({
+    await insertRegistrationAuditLog({
       actorId: normalizedEmail || "unknown",
-      role: "applicant",
       outcome: "FAILED",
-      messageOverride: `REGISTER FAILED - ${normalizedEmail || "unknown"} `,
+      event: "failed to register",
       reason: "Internal server error",
     });
     res.json({
@@ -710,6 +693,7 @@ router.delete("/permanent-delete-account/:person_id", CanDelete, async (req, res
 // POST LOGIN (FACULTY, ADMIN, STFF AND STUDENT)
 router.post("/login", async (req, res) => {
   const { email: loginCredentials, password } = req.body;
+  const insertLoginAuditLog = getLoginAuditLogger(req);
 
   if (!loginCredentials || !password) {
     return res.status(400).json({ message: "All fields are required" });
@@ -723,7 +707,7 @@ router.post("/login", async (req, res) => {
 
   if (record.lockUntil && record.lockUntil > now) {
     const sec = Math.ceil((record.lockUntil - now) / 1000);
-    await insertAuditLog({
+    await insertLoginAuditLog({
       actorId: loginCredentials,
       role: "unknown",
       outcome: "LOCKED",
@@ -796,7 +780,7 @@ WHERE (ua.email = ? OR ua.employee_id = ?)
       if (record.count >= 3) {
         record.lockUntil = now + 3 * 60 * 1000;
         loginAttempts[loginCredentials] = record;
-        await insertAuditLog({
+        await insertLoginAuditLog({
           actorId: loginCredentials,
           role: "unknown",
           outcome: "LOCKED",
@@ -808,7 +792,7 @@ WHERE (ua.email = ? OR ua.employee_id = ?)
         });
       }
       loginAttempts[loginCredentials] = record;
-      await insertAuditLog({
+      await insertLoginAuditLog({
         actorId: loginCredentials,
         role: "unknown",
         outcome: "FAILED",
@@ -837,7 +821,7 @@ WHERE (ua.email = ? OR ua.employee_id = ?)
       if (record.count >= 3) {
         record.lockUntil = now + 3 * 60 * 1000;
         loginAttempts[loginCredentials] = record;
-        await insertAuditLog({
+        await insertLoginAuditLog({
           actorId,
           role: user.role,
           outcome: "LOCKED",
@@ -850,7 +834,7 @@ WHERE (ua.email = ? OR ua.employee_id = ?)
       }
 
       loginAttempts[loginCredentials] = record;
-      await insertAuditLog({
+      await insertLoginAuditLog({
         actorId,
         role: user.role,
         outcome: "FAILED",
@@ -865,7 +849,7 @@ WHERE (ua.email = ? OR ua.employee_id = ?)
 
     // status check
     if (user.status === 0) {
-      await insertAuditLog({
+      await insertLoginAuditLog({
         actorId,
         role: user.role,
         outcome: "FAILED",
@@ -914,7 +898,7 @@ WHERE (ua.email = ? OR ua.employee_id = ?)
       otpStore[user.email].auditContext = {
         actorId,
         role: user.role,
-
+        auditLogger: insertLoginAuditLog,
       };
       delete loginAttempts[loginCredentials];
 
@@ -968,7 +952,7 @@ WHERE (ua.email = ? OR ua.employee_id = ?)
     // NO OTP REQUIRED
     const successOutcome =
       failureCount >= 2 ? "SUCCESS_AFTER_FAILURES" : "SUCCESS";
-    await insertAuditLog({
+    await insertLoginAuditLog({
       actorId,
       role: user.role,
 
@@ -996,6 +980,7 @@ WHERE (ua.email = ? OR ua.employee_id = ?)
 // POST LOGIN (APPLICANT ONLY)
 router.post("/login_applicant", async (req, res) => {
   const { email, password } = req.body;
+  const insertLoginAuditLog = getLoginAuditLogger(req);
 
   if (!email || !password) {
     return res.status(400).json({ message: "All fields are required" });
@@ -1006,7 +991,7 @@ router.post("/login_applicant", async (req, res) => {
 
   if (record.lockUntil && record.lockUntil > now) {
     const sec = Math.ceil((record.lockUntil - now) / 1000);
-    await insertAuditLog({
+    await insertLoginAuditLog({
       actorId: loginKey,
       role: "applicant",
 
@@ -1034,7 +1019,7 @@ router.post("/login_applicant", async (req, res) => {
       if (record.count >= 3) {
         record.lockUntil = now + 3 * 60 * 1000;
         loginAttempts[loginKey] = record;
-        await insertAuditLog({
+        await insertLoginAuditLog({
           actorId: loginKey,
           role: "applicant",
 
@@ -1047,7 +1032,7 @@ router.post("/login_applicant", async (req, res) => {
         });
       }
       loginAttempts[loginKey] = record;
-      await insertAuditLog({
+      await insertLoginAuditLog({
         actorId: loginKey,
         role: "applicant",
 
@@ -1069,7 +1054,7 @@ router.post("/login_applicant", async (req, res) => {
       if (record.count >= 3) {
         record.lockUntil = now + 3 * 60 * 1000;
         loginAttempts[loginKey] = record;
-        await insertAuditLog({
+        await insertLoginAuditLog({
           actorId: applicantActor,
           role: "applicant",
 
@@ -1082,7 +1067,7 @@ router.post("/login_applicant", async (req, res) => {
         });
       }
       loginAttempts[loginKey] = record;
-      await insertAuditLog({
+      await insertLoginAuditLog({
         actorId: applicantActor,
         role: "applicant",
 
@@ -1092,7 +1077,7 @@ router.post("/login_applicant", async (req, res) => {
       return res.json({ success: false, message: "Invalid Password or Email" });
     }
     if (user.status === 0) {
-      await insertAuditLog({
+      await insertLoginAuditLog({
         actorId: applicantActor,
         role: "applicant",
 
@@ -1181,7 +1166,7 @@ router.post("/login_applicant", async (req, res) => {
 
     const successOutcome =
       record.count >= 2 ? "SUCCESS_AFTER_FAILURES" : "SUCCESS";
-    await insertAuditLog({
+    await insertLoginAuditLog({
       actorId: applicantNumber,
       role: user.role,
 
@@ -1260,7 +1245,8 @@ router.post("/verify-otp", async (req, res) => {
   const auditContext = stored?.auditContext || {};
   const successOutcome =
     failureCount >= 2 ? "SUCCESS_AFTER_FAILURES" : "SUCCESS";
-  await insertAuditLog({
+  const insertOtpAuditLog = auditContext.auditLogger || insertAuditLogAdmission;
+  await insertOtpAuditLog({
     actorId: auditContext.actorId || email,
     role: auditContext.role || "unknown",
     outcome: successOutcome,
@@ -1277,6 +1263,12 @@ router.post("/request-otp", async (req, res) => {
   const { email } = req.body;
   const normalizedEmail = email?.trim().toLowerCase();
   if (!normalizedEmail) {
+    await insertRegistrationAuditLog({
+      actorId: "unknown",
+      outcome: "FAILED",
+      event: "failed to request registration OTP",
+      reason: "Email is required",
+    });
     return res.status(400).json({ message: "Email is required" });
   }
 
@@ -1287,6 +1279,12 @@ router.post("/request-otp", async (req, res) => {
   );
 
   if (existingUser.length > 0) {
+    await insertRegistrationAuditLog({
+      actorId: normalizedEmail,
+      outcome: "FAILED",
+      event: "failed to request registration OTP",
+      reason: "Email has already been used",
+    });
     return res
       .status(400)
       .json({
@@ -1300,6 +1298,12 @@ router.post("/request-otp", async (req, res) => {
 
   if (existing && existing.cooldownUntil > now) {
     const secondsLeft = Math.ceil((existing.cooldownUntil - now) / 1000);
+    await insertRegistrationAuditLog({
+      actorId: normalizedEmail,
+      outcome: "FAILED",
+      event: "failed to request registration OTP",
+      reason: `OTP cooldown active for ${secondsLeft}s`,
+    });
     return res
       .status(429)
       .json({ message: `OTP already sent. Please wait ${secondsLeft}s.` });
@@ -1334,10 +1338,21 @@ router.post("/request-otp", async (req, res) => {
     });
 
     console.log(`✅ OTP sent to ${normalizedEmail}: ${otp}`);
+    await insertRegistrationAuditLog({
+      actorId: normalizedEmail,
+      outcome: "SUCCESS",
+      event: "requested registration OTP",
+    });
     res.json({ message: `${shortTerm} OTP sent to your email` });
   } catch (err) {
     console.error("⚠️ OTP email error:", err);
     delete otpStore[email];
+    await insertRegistrationAuditLog({
+      actorId: normalizedEmail,
+      outcome: "FAILED",
+      event: "failed to request registration OTP",
+      reason: "Failed to send OTP email",
+    });
     res.status(500).json({ message: "Failed to send OTP" });
   }
 });

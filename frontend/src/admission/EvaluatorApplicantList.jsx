@@ -172,6 +172,16 @@ const EvaluatorApplicantList = () => {
 
   const [employeeID, setEmployeeID] = useState("");
 
+  const withAuditActor = (payload = {}) => ({
+    ...payload,
+    audit_actor_id:
+      employeeID ||
+      localStorage.getItem("employee_id") ||
+      localStorage.getItem("email") ||
+      "unknown",
+    audit_actor_role: userRole || localStorage.getItem("role") || "registrar",
+  });
+
   useEffect(() => {
 
     const storedUser = localStorage.getItem("email");
@@ -814,7 +824,9 @@ const EvaluatorApplicantList = () => {
                     try {
                       await axios.post(
                         `${API_BASE_URL}/unassign_verify_evaluator_applicant_list`,
-                        { applicant_number: applicantToDelete.applicant_number }
+                        withAuditActor({
+                          applicant_number: applicantToDelete.applicant_number,
+                        })
                       );
 
                       // ✅ Success Snackbar

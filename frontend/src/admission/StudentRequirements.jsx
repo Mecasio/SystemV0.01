@@ -439,8 +439,24 @@ const StudentRequirements = () => {
 
 
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [confirmAction, setConfirmAction] = useState(null); // "upload" or "delete"
+  const [confirmAction, setConfirmAction] = useState(null); // upload | delete | status | documentStatus
   const [targetDoc, setTargetDoc] = useState(null); // document info
+
+  const withAuditActor = (payload) => ({
+    ...payload,
+    audit_actor_id:
+      employeeID ||
+      localStorage.getItem("employee_id") ||
+      localStorage.getItem("email") ||
+      "unknown",
+    audit_actor_role: userRole || localStorage.getItem("role") || "registrar",
+  });
+
+  const getUploadStatusLabel = (status) => {
+    if (String(status) === "1") return "Verified";
+    if (String(status) === "2") return "Rejected";
+    return "Pending";
+  };
 
 
   // When clicking upload
@@ -460,14 +476,20 @@ const StudentRequirements = () => {
   // Execute action after confirm
   const handleConfirmAction = async () => {
     if (confirmAction === "upload") {
-      // call your upload logic here
       await handleUploadSubmit(targetDoc);
-      console.log(`📂 Document uploaded by: ${localStorage.getItem("username")}`);
+      console.log(`Document uploaded by: ${localStorage.getItem("username")}`);
     } else if (confirmAction === "delete") {
       await handleDelete(targetDoc.upload_id);
-      console.log(`🗑️ Document deleted by: ${localStorage.getItem("username")}`);
+      console.log(`Document deleted by: ${localStorage.getItem("username")}`);
+    } else if (confirmAction === "status") {
+      await performStatusChange(targetDoc.upload_id, targetDoc.nextStatus);
+    } else if (confirmAction === "documentStatus") {
+      await performDocumentStatusChange(targetDoc.nextStatus);
     }
+
     setConfirmOpen(false);
+    setConfirmAction(null);
+    setTargetDoc(null);
   };
 
 
@@ -602,13 +624,26 @@ const StudentRequirements = () => {
   };
 
   const handleStatusChange = async (uploadId, remarkValue) => {
+    const uploaded = uploads.find((item) => item.upload_id === uploadId);
+    setTargetDoc({
+      upload_id: uploadId,
+      label: uploaded?.description || "Document",
+      currentStatus: uploaded?.status || 0,
+      nextStatus: remarkValue,
+    });
+    setConfirmAction("status");
+    setConfirmOpen(true);
+  };
+
+  const performStatusChange = async (uploadId, remarkValue) => {
     try {
       await axios.put(`${API_BASE_URL}/uploads/status/${uploadId}`, {
-        status: remarkValue,
-        user_id: userID,
+        ...withAuditActor({
+          status: remarkValue,
+          user_id: userID,
+        }),
       });
 
-      // ✅ Optimistic update for UI
       setUploads((prev) =>
         prev.map((u) =>
           u.upload_id === uploadId
@@ -617,7 +652,6 @@ const StudentRequirements = () => {
         )
       );
 
-      // ✅ Refresh from backend to ensure sync
       if (selectedPerson?.applicant_number) {
         await fetchUploadsByApplicantNumber(selectedPerson.applicant_number);
       }
@@ -628,21 +662,30 @@ const StudentRequirements = () => {
 
   const handleDocumentStatus = async (event) => {
     const newStatus = event.target.value;
-    setDocumentStatus(newStatus);
+    if (!newStatus || newStatus === documentStatus) return;
 
+    setTargetDoc({
+      label: "Overall Document Status",
+      currentStatus: documentStatus || "On process",
+      nextStatus: newStatus,
+    });
+    setConfirmAction("documentStatus");
+    setConfirmOpen(true);
+  };
+
+  const performDocumentStatusChange = async (newStatus) => {
     try {
       await axios.put(
         `${API_BASE_URL}/api/document_status/${person.applicant_number}`,
-        {
+        withAuditActor({
           document_status: newStatus,
           user_id: localStorage.getItem("person_id"),
-        }
+        })
       );
+      setDocumentStatus(newStatus);
 
-      // ✅ Refresh evaluator and document status
       await fetchDocumentStatus(person.applicant_number);
 
-      // ✅ Also refresh uploads list to update row values in the table
       if (person.applicant_number) {
         await fetchUploadsByApplicantNumber(person.applicant_number);
       }
@@ -652,7 +695,6 @@ const StudentRequirements = () => {
       console.error("Error updating document status:", err);
     }
   };
-
 
   const handleUploadSubmit = async () => {
     if (!selectedFiles.requirements_id || !selectedPerson?.person_id) {
@@ -1606,16 +1648,32 @@ const StudentRequirements = () => {
         {/* Confirmation Dialog */}
         <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
           <DialogTitle>
-            {confirmAction === "upload" ? "Confirm Upload" : "Confirm Deletion"}
+            {confirmAction === "upload"
+              ? "Confirm Upload"
+              : confirmAction === "delete"
+                ? "Confirm Deletion"
+                : "Confirm Status Change"}
           </DialogTitle>
           <DialogContent>
             {confirmAction === "upload" ? (
               <>Are you sure you want to upload <strong>{targetDoc?.label}</strong>?<br />
                 Added by: <strong>{localStorage.getItem("username")}</strong></>
-            ) : (
+            ) : confirmAction === "delete" ? (
               <>Are you sure you want to delete
                 <strong>{targetDoc?.label || targetDoc?.short_label || targetDoc?.file_path}</strong>?<br />
                 Deleted by: <strong>{localStorage.getItem("username")}</strong></>
+            ) : confirmAction === "status" ? (
+              <>
+                Are you sure you want to change <strong>{targetDoc?.label}</strong> from{" "}
+                <strong>{getUploadStatusLabel(targetDoc?.currentStatus)}</strong> to{" "}
+                <strong>{getUploadStatusLabel(targetDoc?.nextStatus)}</strong>?
+              </>
+            ) : (
+              <>
+                Are you sure you want to change this applicant's document status from{" "}
+                <strong>{targetDoc?.currentStatus}</strong> to{" "}
+                <strong>{targetDoc?.nextStatus}</strong>?
+              </>
             )}
           </DialogContent>
           <DialogActions>

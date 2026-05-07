@@ -6,6 +6,10 @@ const { db, db3 } = require('../database/database');
 const bcrypt = require("bcrypt");
 const router = express.Router();
 const QRCode = require("qrcode");
+const {
+  formatAuditTimestamp,
+  insertAuditLogAdmission,
+} = require("../../utils/auditLogger");
 const upload = multer({ storage: multer.memoryStorage() });
 
 const uploadProfile = multer({
@@ -63,6 +67,92 @@ const allowedFields = new Set([
   "remarks", "termsOfAgreement", "created_at", "current_step"
 ]);
 
+const courseFields = ["program", "program2", "program3"];
+
+const formatActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getCurriculumLabel = async (curriculumId) => {
+  if (!curriculumId) return "None";
+
+  try {
+    const [rows] = await db3.query(
+      `
+      SELECT
+        pt.program_code,
+        pt.program_description,
+        pt.major,
+        yt.year_description,
+        yt2.year_description AS next_year
+      FROM curriculum_table ct
+      LEFT JOIN program_table pt ON ct.program_id = pt.program_id
+      LEFT JOIN year_table yt ON ct.year_id = yt.year_id
+      LEFT JOIN year_table yt2 ON yt2.year_id = yt.year_id + 1
+      WHERE ct.curriculum_id = ?
+      LIMIT 1
+      `,
+      [curriculumId],
+    );
+
+    const curriculum = rows?.[0];
+    if (!curriculum) return `Curriculum ${curriculumId}`;
+
+    const programCode = curriculum.program_code || "N/A";
+    const description = curriculum.program_description || "Unknown Program";
+    const major = curriculum.major ? ` (${curriculum.major})` : "";
+    const year = curriculum.year_description
+      ? ` ${curriculum.year_description}${curriculum.next_year ? `-${curriculum.next_year}` : ""}`
+      : "";
+
+    return `(${programCode}) ${description}${major}${year}`;
+  } catch (error) {
+    console.error("Curriculum label lookup failed:", error);
+    return `Curriculum ${curriculumId}`;
+  }
+};
+
+const insertApplicantCourseChangeAuditLog = async ({
+  actorId,
+  actorRole,
+  applicant,
+  changes,
+}) => {
+  if (!changes.length) return;
+
+  const safeActor = actorId || "unknown";
+  const roleLabel = formatActorRole(actorRole);
+  const applicantName = [
+    applicant?.last_name,
+    applicant?.first_name,
+    applicant?.middle_name,
+  ]
+    .filter(Boolean)
+    .join(", ");
+  const applicantLabel =
+    applicant?.applicant_number ||
+    applicantName ||
+    applicant?.emailAddress ||
+    `person_id ${applicant?.person_id || "unknown"}`;
+  const changeText = changes
+    .map((change) => `${change.label} from ${change.fromLabel} to ${change.toLabel}`)
+    .join("; ");
+
+  await insertAuditLogAdmission({
+    actorId: safeActor,
+    role: actorRole || "registrar",
+    action: "APPLICANT_COURSE_CHANGE",
+    severity: "INFO",
+    message: `${roleLabel} (${safeActor}) changed course of Applicant (${applicantLabel}) ${changeText} at ${formatAuditTimestamp()}.`,
+  });
+};
+
 router.get("/person/:id", async (req, res) => {
   const { id } = req.params;
 
@@ -105,6 +195,25 @@ router.put("/person/:id", async (req, res) => {
       return res.status(400).json({ error: "No valid fields to update" });
     }
 
+    const courseUpdateFields = cleanedEntries
+      .filter(([key]) => courseFields.includes(key))
+      .map(([key]) => key);
+    let applicantBefore = null;
+
+    if (courseUpdateFields.length > 0) {
+      const [beforeRows] = await db.query(
+        `
+        SELECT pt.*, ant.applicant_number
+        FROM person_table pt
+        LEFT JOIN applicant_numbering_table ant ON ant.person_id = pt.person_id
+        WHERE pt.person_id = ?
+        LIMIT 1
+        `,
+        [id],
+      );
+      applicantBefore = beforeRows?.[0] || null;
+    }
+
     const setClause = cleanedEntries.map(([key]) => `${key}=?`).join(", ");
     const values = cleanedEntries.map(([_, val]) => val);
     values.push(id);
@@ -116,6 +225,39 @@ router.put("/person/:id", async (req, res) => {
       return res.status(404).json({ error: "Person not found or no changes made" });
     }
 
+    if (applicantBefore && courseUpdateFields.length > 0) {
+      const cleanedData = Object.fromEntries(cleanedEntries);
+      const changes = [];
+
+      for (const field of courseUpdateFields) {
+        const oldValue = applicantBefore[field] ?? null;
+        const newValue = cleanedData[field] ?? null;
+
+        if (String(oldValue || "") !== String(newValue || "")) {
+          const [fromLabel, toLabel] = await Promise.all([
+            getCurriculumLabel(oldValue),
+            getCurriculumLabel(newValue),
+          ]);
+
+          changes.push({
+            label: field === "program" ? "course applied" : field,
+            fromLabel,
+            toLabel,
+          });
+        }
+      }
+
+      await insertApplicantCourseChangeAuditLog({
+        actorId:
+          req.body.audit_actor_id ||
+          req.body.actor_id ||
+          req.body.employee_id ||
+          "unknown",
+        actorRole: req.body.audit_actor_role || req.body.role || "registrar",
+        applicant: applicantBefore,
+        changes,
+      });
+    }
     res.json({ message: "✅ Person updated successfully" });
   } catch (error) {
     console.error("❌ Error updating person:", error);

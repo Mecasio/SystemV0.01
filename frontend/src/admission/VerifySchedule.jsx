@@ -310,6 +310,16 @@ const AssignScheduleToApplicants = () => {
 
     const [employeeID, setEmployeeID] = useState("");
 
+    const withAuditActor = (payload = {}) => ({
+        ...payload,
+        audit_actor_id:
+            employeeID ||
+            localStorage.getItem("employee_id") ||
+            localStorage.getItem("email") ||
+            "unknown",
+        audit_actor_role: userRole || localStorage.getItem("role") || "registrar",
+    });
+
     useEffect(() => {
 
         const storedUser = localStorage.getItem("email");
@@ -555,8 +565,10 @@ const AssignScheduleToApplicants = () => {
         }
 
         socket.current.emit("update_verify_schedule", {
-            schedule_id: selectedSchedule,
-            applicant_numbers: [applicantNumber],
+            ...withAuditActor({
+                schedule_id: selectedSchedule,
+                applicant_numbers: [applicantNumber],
+            }),
         });
 
         socket.current.once("update_verify_schedule_result", (res) => {
@@ -617,8 +629,10 @@ const AssignScheduleToApplicants = () => {
         }
 
         socket.current.emit("update_verify_schedule", {
-            schedule_id: selectedSchedule,
-            applicant_numbers: unassigned,
+            ...withAuditActor({
+                schedule_id: selectedSchedule,
+                applicant_numbers: unassigned,
+            }),
         });
 
         socket.current.once("update_verify_schedule_result", async (res) => {
@@ -636,7 +650,9 @@ const AssignScheduleToApplicants = () => {
     const handleUnassignImmediate = async (applicantNumber) => {
         try {
             await axios.post(`${API_BASE_URL}/unassign_verify`, {
-                applicant_number: applicantNumber,
+                ...withAuditActor({
+                    applicant_number: applicantNumber,
+                }),
             });
 
             await fetchAllApplicants();
@@ -694,7 +710,7 @@ const AssignScheduleToApplicants = () => {
             return;
         }
 
-        socket.current.emit("update_verify_schedule", { schedule_id: selectedSchedule, applicant_numbers: unassigned });
+        socket.current.emit("update_verify_schedule", withAuditActor({ schedule_id: selectedSchedule, applicant_numbers: unassigned }));
 
         socket.current.once("update_verify_schedule_result", (res) => {
             if (res.success) {
@@ -726,7 +742,7 @@ const AssignScheduleToApplicants = () => {
         try {
             const res = await axios.post(
                 `${API_BASE_URL}/unassign_all_from_verify`,
-                { schedule_id: selectedSchedule }
+                withAuditActor({ schedule_id: selectedSchedule })
             );
 
             setSnack({ open: true, message: res.data.message, severity: "success" });
@@ -904,14 +920,14 @@ ${officeName}`;
         console.log("Assigned Applicants: ", assignedApplicants);
 
         // SEND EMAIL (socket)
-        socket.current.emit("send_verify_schedule_emails", {
+        socket.current.emit("send_verify_schedule_emails", withAuditActor({
             schedule_id: selectedSchedule,
             applicant_numbers: assignedApplicants,
             user_person_id: localStorage.getItem("person_id"),
 
             subject: emailSubject,
             message: finalEmailMessage,
-        });
+        }));
 
         socket.current.once("send_verify_schedule_emails_result", async (res) => {
 

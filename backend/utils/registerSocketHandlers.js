@@ -1,4 +1,8 @@
 const nodemailer = require("nodemailer");
+const {
+  formatAuditTimestamp,
+  insertAuditLogAdmission,
+} = require("./auditLogger");
 
 const getConfiguredSenderAccounts = () =>
   [
@@ -15,6 +19,16 @@ const getSenderAccountForEmail = (senderEmail) => {
   return getConfiguredSenderAccounts().find(
     (account) => normalizeSenderEmail(account.user) === normalizedSenderEmail,
   );
+};
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
 };
 
 module.exports = function registerSocketHandlers({
@@ -36,6 +50,25 @@ module.exports = function registerSocketHandlers({
   baseDir,
 }) {
   const __dirname = baseDir;
+
+  const getVerifyScheduleLabel = async (scheduleId) => {
+    if (!scheduleId) return "No schedule";
+
+    const [rows] = await db.query(
+      `
+      SELECT schedule_id, schedule_date, building_description, room_description, start_time, end_time
+      FROM verify_document_schedule
+      WHERE schedule_id = ?
+      LIMIT 1
+      `,
+      [scheduleId],
+    );
+
+    const schedule = rows?.[0];
+    if (!schedule) return `Schedule ${scheduleId}`;
+
+    return `Schedule ${schedule.schedule_id} (${schedule.schedule_date}, ${schedule.building_description || "N/A"} ${schedule.room_description || ""}, ${schedule.start_time || ""}-${schedule.end_time || ""})`;
+  };
 
   io.on("connection", (socket) => {
     console.log(" Socket.IO client connected");
@@ -7291,6 +7324,8 @@ WHERE proctor LIKE ?
         subject,
         message,
         user_person_id,
+        audit_actor_id,
+        audit_actor_role,
       }) => {
         console.log(applicant_numbers);
 
@@ -7384,6 +7419,23 @@ WHERE proctor LIKE ?
             }
           }
 
+          const safeActor = audit_actor_id || user_person_id || "unknown";
+          const roleLabel = formatAuditActorRole(audit_actor_role);
+          const scheduleLabel = await getVerifyScheduleLabel(schedule_id);
+          const sentList = sent.length > 0 ? sent.join(", ") : "None";
+          const failedNote =
+            failed.length > 0
+              ? ` Failed applicant(s): ${failed.join(", ")}.`
+              : "";
+
+          await insertAuditLogAdmission({
+            actorId: safeActor,
+            role: audit_actor_role || "registrar",
+            action: "VERIFY_SCHEDULE_EMAIL",
+            severity: sent.length > 0 ? "INFO" : "WARNING",
+            message: `${roleLabel} (${safeActor}) sent document verification schedule email to ${sent.length} applicant(s) for ${scheduleLabel} at ${formatAuditTimestamp()}. Applicant(s): ${sentList}.${failedNote}`,
+          });
+
           //  Return result
           socket.emit("send_verify_schedule_emails_result", {
             success: true,
@@ -7406,7 +7458,7 @@ WHERE proctor LIKE ?
 
     socket.on(
       "update_verify_schedule",
-      async ({ schedule_id, applicant_numbers }) => {
+      async ({ schedule_id, applicant_numbers, audit_actor_id, audit_actor_role }) => {
         try {
           if (!schedule_id || !applicant_numbers?.length) {
             return socket.emit("update_verify_schedule_result", {
@@ -7474,6 +7526,21 @@ WHERE proctor LIKE ?
               assigned.push(applicant_number);
               runningCount++; // increase count
             }
+          }
+
+          const changedApplicants = [...assigned, ...updated];
+          if (changedApplicants.length > 0) {
+            const safeActor = audit_actor_id || "unknown";
+            const roleLabel = formatAuditActorRole(audit_actor_role);
+            const scheduleLabel = await getVerifyScheduleLabel(schedule_id);
+
+            await insertAuditLogAdmission({
+              actorId: safeActor,
+              role: audit_actor_role || "registrar",
+              action: "VERIFY_SCHEDULE",
+              severity: "INFO",
+              message: `${roleLabel} (${safeActor}) assigned ${changedApplicants.length} applicant(s) to document verification ${scheduleLabel} at ${formatAuditTimestamp()}. Applicant(s): ${changedApplicants.join(", ")}.`,
+            });
           }
 
           socket.emit("update_verify_schedule_result", {

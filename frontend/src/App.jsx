@@ -68,6 +68,7 @@ const ApplicantDashboard = lazy(() => import("./pages/ApplicantDashboard"));
 const AccountDashboard = lazy(() => import("./pages/AccountDashboard"));
 const ScheduleFilterer = lazy(() => import("./pages/SchedulePlottingFilter"));
 const HistoryLogs = lazy(() => import("./pages/HistoryLogs"));
+const AuditLogs = lazy(() => import("./system_management/AuditLogs"));
 const EnrollmentOfficerDashboard = lazy(
   () => import("./pages/EnrollmentOfficerDashboard"),
 );
@@ -1030,6 +1031,14 @@ function App() {
                         element={
                           <ProtectedRoute>
                             <HistoryLogs />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/audit_logs"
+                        element={
+                          <ProtectedRoute>
+                            <AuditLogs />
                           </ProtectedRoute>
                         }
                       />

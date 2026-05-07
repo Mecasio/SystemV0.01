@@ -231,11 +231,19 @@ const ScheduleHoverTile = () => {
         navigate(to); // this will actually change the page
     };
 
-    const branches = Array.isArray(settings?.branches)
-        ? settings.branches
-        : typeof settings?.branches === "string"
-            ? JSON.parse(settings.branches)
-            : [];
+    const branches = React.useMemo(() => {
+        try {
+            if (Array.isArray(settings?.branches)) return settings.branches;
+            if (typeof settings?.branches === "string") {
+                const parsed = JSON.parse(settings.branches);
+                return Array.isArray(parsed) ? parsed : [];
+            }
+        } catch (err) {
+            console.error("Failed to parse branches:", err);
+        }
+
+        return [];
+    }, [settings?.branches]);
 
     const [selectedBranch, setSelectedBranch] = useState("");
 
@@ -280,11 +288,12 @@ const ScheduleHoverTile = () => {
         const fetchSchedules = async () => {
             if (!selectedSchoolYear || !selectedSchoolSemester) return;
             try {
-                const url = selectedBranch
-                    ? `${API_BASE_URL}/verify_schedules_with_count/${selectedSchoolYear}/${selectedSchoolSemester}?branch=${selectedBranch}`
-                    : `${API_BASE_URL}/verify_schedules_with_count/${selectedSchoolYear}/${selectedSchoolSemester}`;
-
-                const res = await axios.get(url);
+                const res = await axios.get(
+                    `${API_BASE_URL}/verify_schedules_with_count/${selectedSchoolYear}/${selectedSchoolSemester}`,
+                    {
+                        params: selectedBranch ? { branch: selectedBranch } : {},
+                    }
+                );
                 setSchedules(res.data);
                 setFilteredSchedules(res.data);
 
@@ -537,7 +546,7 @@ const ScheduleHoverTile = () => {
                                 >
                                     <MenuItem value="">All Branches</MenuItem>
                                     {branches.map((b) => (
-                                        <MenuItem key={b.id} value={b.branch}>
+                                        <MenuItem key={b.id} value={String(b.id)}>
                                             {b.branch}
                                         </MenuItem>
                                     ))}

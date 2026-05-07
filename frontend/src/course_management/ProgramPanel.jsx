@@ -97,6 +97,12 @@ const ProgramPanel = () => {
 
   const getPermissionHeaders = () => ({
     "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+    "x-audit-actor-id":
+      employeeID ||
+      localStorage.getItem("employee_id") ||
+      localStorage.getItem("email") ||
+      "unknown",
+    "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
     "x-page-id": pageId,
   });
 
@@ -353,7 +359,10 @@ const ProgramPanel = () => {
         `${API_BASE_URL}/import-program-xlsx`,
         formData,
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: {
+            ...getPermissionHeaders(),
+            "Content-Type": "multipart/form-data",
+          },
         },
       );
       if (response.data?.success) {
