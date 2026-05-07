@@ -36,7 +36,11 @@ router.post("/adding_course", CanCreate, async (req, res) => {
 
   try {
     const normalizeCode = (code) =>
-      (code || "").replace(/[^A-Za-z0-9-_\.]/g, "").toUpperCase();
+    (code || "")
+      .replace(/[^A-Za-z0-9-_\. ]/g, "") 
+      .replace(/(\S) +(\S)/g, "$1 $2")    
+      .replace(/^ +| +$/g, "")          
+      .toUpperCase();
 
     const normalizeDescription = (desc) => (desc || "").trim();
 
@@ -148,7 +152,11 @@ router.put("/update_course/:id", CanEdit, async (req, res) => {
 
     // Same normalization as adding
     const normalizeCode = (code) =>
-      (code || "").replace(/[^A-Za-z0-9-_\.]/g, "").toUpperCase();
+    (code || "")
+      .replace(/[^A-Za-z0-9-_\. ]/g, "")
+      .replace(/(\S) +(\S)/g, "$1 $2") 
+      .replace(/^ +| +$/g, "")           
+      .toUpperCase();
 
     const normalizeDescription = (desc) => (desc || "").trim();
 

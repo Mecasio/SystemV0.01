@@ -11,8 +11,9 @@ import {
   MenuBook, Numbers, PersonAdd, Psychology, School, Score, Search,
   Security, SupervisorAccount, TableChart, Timeline, Update, Apartment,
   Business, LibraryBooks, People, LogoutOutlined, Settings, ExpandMore,
-  ExpandLess, Menu as MenuIcon, ChevronLeft,
+  ExpandLess,
 } from "@mui/icons-material";
+import PaymentIcon from "@mui/icons-material/Payment";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import AssignmentIndIcon from "@mui/icons-material/AssignmentInd";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
@@ -30,17 +31,13 @@ import AddCircleIcon from "@mui/icons-material/AddCircle";
 import API_BASE_URL from "../apiConfig";
 import EaristLogo from "../assets/EaristLogo.png";
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import PaymentIcon from '@mui/icons-material/Payment';
 
 const GLOBAL_PAGE_IDS = [13, 15, 17, 38, 39, 40, 41, 42, 50, 56, 59, 62, 73, 80, 92, 96, 101, 104, 105, 106, 117];
 const GLOBAL_ACCESS_THRESHOLD = 10;
 const CLASS_ROSTER_DEPT = "/class_roster_enrollment";
 const CLASS_ROSTER_GLOBAL = "/class_roster";
 
-const COLLAPSED_WIDTH = "68px";
-const EXPANDED_WIDTH = "290px";
-
-function buildSidebarStyles(s = {}, hasDepartment = true, collapsed = false) {
+function buildSidebarStyles(s = {}, hasDepartment = true) {
   const accent = s.main_button_color || "#7c3aed";
   const border = s.border_color || "#e8e8e8";
   const titleColor = s.title_color || "#111111";
@@ -53,14 +50,11 @@ function buildSidebarStyles(s = {}, hasDepartment = true, collapsed = false) {
     ? `
   .sb-profile {
     display: flex; align-items: center; gap: 15px;
-    padding: ${collapsed ? "10px 8px" : "14px 18px"}; margin: 12px 8px 12px;
+    padding: 14px 18px; margin: 12px 12px 12px;
     background: ${profileBg}; border-radius: 10px;
     position: relative; flex-shrink: 0;
-    justify-content: ${collapsed ? "center" : "flex-start"};
-    transition: padding 0.25s, justify-content 0.25s;
-    overflow: hidden;
   }
-  .sb-profile-info { overflow: hidden; display: ${collapsed ? "none" : "block"}; }
+  .sb-profile-info { overflow: hidden; }
   .sb-profile-name {
     font-size: 16px; font-weight: 600; color: ${titleColor};
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;
@@ -77,14 +71,11 @@ function buildSidebarStyles(s = {}, hasDepartment = true, collapsed = false) {
     : `
   .sb-profile {
     display: flex; align-items: center; gap: 11px;
-    padding: ${collapsed ? "10px 8px" : "14px 18px"}; margin: 12px 8px 12px;
+    padding: 14px 18px; margin: 12px 12px 12px;
     background: ${profileBg}; border-radius: 10px;
     position: relative; flex-shrink: 0;
-    justify-content: ${collapsed ? "center" : "flex-start"};
-    transition: padding 0.25s;
-    overflow: hidden;
   }
-  .sb-profile-info { overflow: hidden; display: ${collapsed ? "none" : "block"}; }
+  .sb-profile-info { overflow: hidden; }
   .sb-profile-name {
     font-size: 15px; font-weight: 600; color: ${titleColor};
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;
@@ -101,27 +92,12 @@ function buildSidebarStyles(s = {}, hasDepartment = true, collapsed = false) {
 
   .sb-root {
     font-family: 'Poppins', sans-serif;
-    width: ${collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH};
-    height: calc(100vh - 64px - 42px);
+    width: 290px; height: calc(100vh - 64px - 42px);
     background: #ffffff; display: flex; flex-direction: column;
     border-right: 1px solid ${border};
     position: fixed; top: 64px; bottom: 42px; left: 0;
     z-index: 100; overflow: hidden;
-    transition: width 0.25s ease;
   }
-
-  .sb-toggle-btn {
-    display: flex; align-items: center; justify-content: center;
-    margin: 10px auto 4px;
-    width: 38px; height: 38px;
-    border-radius: 8px;
-    border: 1px solid ${border};
-    background: transparent; cursor: pointer;
-    color: ${subColor};
-    transition: background 0.15s, color 0.15s;
-    flex-shrink: 0;
-  }
-  .sb-toggle-btn:hover { background: ${mainButtonColor}; color: #fff; }
 
   ${profileCardStyles}
 
@@ -135,179 +111,110 @@ function buildSidebarStyles(s = {}, hasDepartment = true, collapsed = false) {
 
   .sb-scroll {
     flex: 1; overflow-y: auto; overflow-x: hidden;
-    padding: 10px 8px 0;
+    padding: 10px 10px 0;
     scrollbar-width: thin; scrollbar-color: ${border} transparent;
   }
   .sb-scroll::-webkit-scrollbar { width: 4px; }
   .sb-scroll::-webkit-scrollbar-track { background: transparent; }
   .sb-scroll::-webkit-scrollbar-thumb { background: ${border}; border-radius: 4px; }
 
+  
   .sb-section-label {
     font-size: 14px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: -.02em; color: #000;
-    padding: ${collapsed ? "0" : "10px 8px 4px"};
-    height: ${collapsed ? "0" : "auto"};
-    opacity: ${collapsed ? "0" : "1"};
-    overflow: hidden;
-    transition: opacity 0.15s, height 0.15s, padding 0.15s;
+    letter-spacing: -.02em; color: #000; padding: 10px 8px 4px;
   }
 
   .sb-item {
-    display: flex; align-items: center;
-    gap: ${collapsed ? "0" : "10px"};
-    padding: ${collapsed ? "9px" : "9px 10px"};
-    justify-content: ${collapsed ? "center" : "flex-start"};
-    border-radius: 8px; cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px; border-radius: 8px; cursor: pointer;
     color: black; font-size: 16px; font-weight: 400;
-    transition: background .15s, color .15s, padding .2s, gap .2s, justify-content .2s;
+    transition: background .15s, color .15s;
     text-decoration: none; margin-bottom: 1px;
     white-space: nowrap; overflow: hidden; line-height: 1;
-    position: relative;
   }
   .sb-item .sb-icon {
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0; opacity: .75; color: ${mainButtonColor};
   }
-  .sb-item .sb-icon svg { font-size: ${collapsed ? "28px" : "16px"} !important; transition: font-size 0.2s; }
   .sb-item:hover { background: ${mainButtonColor}; color: white; }
-  .sb-item:hover .sb-icon { background: ${mainButtonColor}; color: white; opacity: 1; }
+  .sb-item:hover .sb-icon { background: ${mainButtonColor}; color: white; }
   .sb-item.active { background: ${accent}; color: #fff !important; }
   .sb-item.active:hover { background: ${accent}; }
   .sb-item.active .sb-icon { opacity: 1; color: #fff !important; }
-  .sb-item-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; display: ${collapsed ? "none" : "block"}; }
+  .sb-item-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 
   .sb-group-btn {
-    display: flex; align-items: center;
-    gap: ${collapsed ? "0" : "8px"};
-    justify-content: ${collapsed ? "center" : "flex-start"};
-    width: 100%; padding: ${collapsed ? "9px" : "8px 10px"};
-    border-radius: 8px; border: none; background: transparent; cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; padding: 8px 10px; border-radius: 8px;
+    border: none; background: transparent; cursor: pointer;
     color: black; font-size: 16px; font-weight: 400;
-    font-family: 'Poppins', sans-serif; transition: background .15s, padding .2s, gap .2s;
+    font-family: 'Poppins', sans-serif; transition: background .15s;
     text-align: left; margin-bottom: 1px; line-height: 1; vertical-align: middle;
-    position: relative;
   }
   .sb-group-btn .sb-icon { color: ${titleColor}; }
-  .sb-group-btn .sb-icon svg { font-size: ${collapsed ? "28px" : "18px"} !important; transition: font-size 0.2s; }
   .sb-group-btn:hover { background: ${mainButtonColor}; color: white; }
   .sb-group-btn:hover .sb-icon { color: white; }
   .sb-group-btn.open { color: ${accent}; background: ${subBtnColor}; }
   .sb-group-btn.open .sb-icon { color: ${titleColor}; }
-  .sb-group-label { flex: 1; display: ${collapsed ? "none" : "block"}; }
-  .sb-group-chevron { flex-shrink: 0; opacity: .5; display: ${collapsed ? "none" : "flex"}; }
+  .sb-group-label { flex: 1; }
+  .sb-group-chevron { flex-shrink: 0; opacity: .5; }
   .sb-group-chevron svg { font-size: 16px !important; }
 
-  .sb-sub-item { padding-left: ${collapsed ? "9px" : "22px"}; justify-content: ${collapsed ? "center" : "flex-start"}; }
+  .sb-sub-item { padding-left: 22px; }
   .sb-divider { height: 1px; background: #f0f0f0; margin: 8px 0; }
 
-  .sb-footer { padding: 10px 8px; border-top: 1px solid #f0f0f0; flex-shrink: 0; }
+  .sb-footer { padding: 10px; border-top: 1px solid #f0f0f0; flex-shrink: 0; }
   .sb-logout {
-    display: flex; align-items: center;
-    gap: ${collapsed ? "0" : "10px"};
-    justify-content: ${collapsed ? "center" : "flex-start"};
-    padding: ${collapsed ? "9px" : "8px 10px"};
-    border-radius: 8px; cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 8px; cursor: pointer;
     font-size: 12.5px; font-weight: 500; color: ${mainButtonColor};
-    transition: background .15s, padding .2s, gap .2s;
+    transition: background .15s;
   }
-  .sb-logout .sb-logout-icon svg { font-size: ${collapsed ? "28px" : "19px"} !important; transition: font-size 0.2s; }
-  .sb-logout-label { display: ${collapsed ? "none" : "block"}; }
   .sb-footer .sb-logout:hover { background: ${mainButtonColor}; color: white; }
-  .sb-footer .sb-logout:hover .sb-logout-icon svg { color: white; }
-
-  .sb-tooltip-wrap { position: relative; display: block; }
-  .sb-tooltip {
-    position: fixed;
-    left: calc(${COLLAPSED_WIDTH} + 8px);
-    background: ${titleColor}; color: #fff;
-    font-size: 12px; padding: 4px 10px;
-    border-radius: 6px; white-space: nowrap;
-    pointer-events: none; opacity: 0;
-    transition: opacity 0.15s; z-index: 9999;
-    display: ${collapsed ? "block" : "none"};
-  }
-  .sb-tooltip-wrap:hover .sb-tooltip { opacity: ${collapsed ? "1" : "0"}; }
   `;
 }
 
-function injectStyles(settings, hasDepartment, collapsed) {
+function injectStyles(settings, hasDepartment) {
   let tag = document.getElementById("sb-styles");
   if (!tag) {
     tag = document.createElement("style");
     tag.id = "sb-styles";
     document.head.appendChild(tag);
   }
-  tag.textContent = buildSidebarStyles(settings, hasDepartment, collapsed);
+  tag.textContent = buildSidebarStyles(settings, hasDepartment);
 }
 
-function NavItem({ to, icon: Icon, label, active, onClick, sub = false, collapsed = false }) {
+function NavItem({ to, icon: Icon, label, active, onClick, sub = false }) {
   const cls = ["sb-item", active ? "active" : "", sub ? "sb-sub-item" : ""]
     .filter(Boolean).join(" ");
 
-  const [tooltipTop, setTooltipTop] = useState(0);
-  const ref = React.useRef(null);
-
-  const handleMouseEnter = () => {
-    if (ref.current) {
-      const rect = ref.current.getBoundingClientRect();
-      setTooltipTop(rect.top + rect.height / 2 - 12);
-    }
-  };
-
-  const inner = (
-    <>
-      {Icon && <span className="sb-icon"><Icon /></span>}
-      <span className="sb-item-label">{label}</span>
-      {collapsed && (
-        <span className="sb-tooltip" style={{ top: tooltipTop }}>{label}</span>
-      )}
-    </>
-  );
-
   if (onClick) {
     return (
-      <div className="sb-tooltip-wrap" ref={ref} onMouseEnter={handleMouseEnter}>
-        <div className={cls} onClick={onClick}>{inner}</div>
+      <div className={cls} onClick={onClick}>
+        {Icon && <span className="sb-icon"><Icon sx={{ fontSize: 16 }} /></span>}
+        <span className="sb-item-label">{label}</span>
       </div>
     );
   }
   return (
-    <div className="sb-tooltip-wrap" ref={ref} onMouseEnter={handleMouseEnter}>
-      <Link to={to} className={cls}>{inner}</Link>
-    </div>
+    <Link to={to} className={cls}>
+      {Icon && <span className="sb-icon"><Icon sx={{ fontSize: 16 }} /></span>}
+      <span className="sb-item-label">{label}</span>
+    </Link>
   );
 }
 
-function GroupToggle({ label, icon: Icon, open, onToggle, collapsed = false }) {
-  const [tooltipTop, setTooltipTop] = useState(0);
-  const ref = React.useRef(null);
-
-  const handleMouseEnter = () => {
-    if (ref.current) {
-      const rect = ref.current.getBoundingClientRect();
-      setTooltipTop(rect.top + rect.height / 2 - 12);
-    }
-  };
-
+function GroupToggle({ label, icon: Icon, open, onToggle }) {
   return (
-    <div className="sb-tooltip-wrap" ref={ref} onMouseEnter={handleMouseEnter}>
-      <button
-        type="button"
-        className={`sb-group-btn ${open ? "open" : ""}`}
-        onClick={onToggle}
-      >
-        {Icon && (
-          <span className="sb-icon" style={{ opacity: 1, display: "flex", alignItems: "center" }}>
-            <Icon />
-          </span>
-        )}
-        <span className="sb-group-label">{label}</span>
-        <span className="sb-group-chevron">{open ? <ExpandLess /> : <ExpandMore />}</span>
-      </button>
-      {collapsed && (
-        <span className="sb-tooltip" style={{ top: tooltipTop }}>{label}</span>
+    <button type="button" className={`sb-group-btn ${open ? "open" : ""}`} onClick={onToggle}>
+      {Icon && (
+        <span className="sb-icon" style={{ opacity: 1, display: "flex", alignItems: "center" }}>
+          <Icon sx={{ fontSize: 18 }} />
+        </span>
       )}
-    </div>
+      <span className="sb-group-label">{label}</span>
+      <span className="sb-group-chevron">{open ? <ExpandLess /> : <ExpandMore />}</span>
+    </button>
   );
 }
 
@@ -322,7 +229,6 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
   const accentColor = settings?.main_button_color || "#7c3aed";
   const shortTerm = settings?.short_term || "EARIST";
 
-  const [collapsed, setCollapsed] = useState(false);
   const [role, setRole] = useState("");
   const [userRole, setUserRole] = useState("");
   const [employeeID, setEmployeeID] = useState("");
@@ -339,8 +245,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
 
   const hasDepartment = !!(personData?.dprtmnt_code);
 
-  useEffect(() => { injectStyles(settings, hasDepartment, collapsed); }, [settings, hasDepartment, collapsed]);
-
+  useEffect(() => { injectStyles(settings, hasDepartment); }, [settings, hasDepartment]);
   useEffect(() => {
     const token = localStorage.getItem("token");
     const savedRole = localStorage.getItem("role");
@@ -368,6 +273,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
     }
   }, []);
 
+  // ── access + scope ──
   useEffect(() => {
     const email = localStorage.getItem("email");
     const r = localStorage.getItem("role");
@@ -380,26 +286,34 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
     setEmployeeID(empID);
     fetchUserAccessList(empID);
 
+    // ── Determine Class Roster scope for this user ──────────────────────────
+    // We also need the admin's department info to apply Rule 2.
     const determineScope = async (empId) => {
       try {
+        // 1. Full page-access list (uses existing /api/employee/:id endpoint)
         const accessRes = await axios.get(`${API_BASE_URL}/api/employee/${empId}`);
         const accessList = accessRes.data?.accessList ?? [];
         const matchCount = accessList.filter((pid) => GLOBAL_PAGE_IDS.includes(pid)).length;
         setGlobalAccessCount(matchCount);
+
         if (matchCount > GLOBAL_ACCESS_THRESHOLD) {
+          // Rule 1 — broad access → Global
           setClassRosterScope("GLOBAL");
           return;
         }
+
+        // 2. Admin profile → check for dprtmnt_id
         const userEmail = localStorage.getItem("email");
         const adminRes = await axios.get(`${API_BASE_URL}/api/admin_data/${userEmail}`);
         const deptId = adminRes.data?.dprtmnt_id;
+
         if (deptId) {
           setClassRosterScope("DEPARTMENT");
         } else {
           setClassRosterScope("GLOBAL");
         }
       } catch {
-        setClassRosterScope("GLOBAL");
+        setClassRosterScope("GLOBAL"); // safe fallback
       }
     };
 
@@ -531,6 +445,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
         { title: "Search COR", link: "/search_cor_for_college", icon: Search, page_id: 125 },
         { title: "Class List", link: classRosterEnrollmentLink, icon: Class, page_id: 15, activeCheck: () => isClassRosterActive(classRosterEnrollmentLink) },
         { title: "Qualifying Room Mgmt", link: "/assign_qualifying_interview_exam", icon: AccessTimeIcon, page_id: 10 },
+
         { title: "Interviewer Applicant List", link: "/enrollment_schedule_room_list", icon: People, page_id: 36 },
       ]
     },
@@ -559,7 +474,10 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
         { title: "Student List", link: "/student_list", icon: ListAltOutlined, page_id: 104 },
         { title: "Student Profile", link: "/readmission_dashboard1", icon: AccountCircle, page_id: 38 },
         { title: "Student Online Requirements", link: "/submitted_documents", icon: FolderCopy, page_id: 106 },
-        { title: "Class List", link: classRosterRegistrarLink, icon: Class, page_id: 15, activeCheck: () => isClassRosterActive(classRosterRegistrarLink) },
+        {
+          title: "Class List", link: classRosterRegistrarLink, icon: Class, page_id: 15,
+          activeCheck: () => isClassRosterActive(classRosterRegistrarLink)
+        },
         { title: "Search COR", link: "/search_cor", icon: Search, page_id: 56 },
         { title: "Report of Grades", link: "/report_of_grades", icon: Assessment, page_id: 50 },
         { title: "Transcript of Records", link: "/transcript_of_records", icon: HistoryEdu, page_id: 62 },
@@ -650,18 +568,23 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
         { title: "Settings", link: "/registrar_reset_password", icon: Settings, page_id: 73 },
         { title: "Student Grade File", link: "/student_grade_file", icon: Settings, page_id: 126 },
         { title: "Migration Data Panel", link: "/migration_data_panel", icon: Settings, page_id: 114 },
+
       ]
+
     },
     {
       key: "accountCreation", label: "Account Creation", icon: PersonAdd, items: [
+
         { title: "Add Faculty Accounts", link: "/register_prof", icon: PersonAdd, page_id: 70 },
         { title: "Add Registrar Account", link: "/register_registrar", icon: PersonAdd, page_id: 71 },
+        // { title: "Add Student Account", link: "/register_student", icon: PersonAdd, page_id: 72 },
         { title: "Create Student Account", link: "/student_accounts", icon: Info, page_id: 143 },
         { title: "Professor Education", link: "/superadmin_professor_education", icon: PersonAdd, page_id: 109 },
       ]
     },
     {
       key: "accountInformation", label: "Account Information", icon: Info, items: [
+
         { title: "Applicant Information", link: "/super_admin_applicant_dashboard1", icon: Info, page_id: 75 },
         { title: "Upload Requirements", link: "/super_admin_requirements_uploader", icon: Info, page_id: 84 },
         { title: "Student Information", link: "/super_admin_student_dashboard1", icon: Info, page_id: 86 },
@@ -712,20 +635,8 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
   return (
     <div className="sb-root hidden-print">
 
-      {/* ── Toggle Button ── */}
-      <button
-        className="sb-toggle-btn"
-        onClick={() => setCollapsed((p) => !p)}
-        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-      >
-        {collapsed
-          ? <MenuIcon sx={{ fontSize: 20 }} />
-          : <ChevronLeft sx={{ fontSize: 20 }} />
-        }
-      </button>
-
       {/* ── Profile ── */}
-      <Tooltip title={collapsed ? `${personData?.fname || ""} ${personData?.lname || ""}`.trim() : ""} placement="right" arrow>
+      <Tooltip arrow>
         <div className="sb-profile">
           <div className="sb-avatar-wrap">
             {avatarSrc ? (
@@ -735,7 +646,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
                 {personData?.fname?.[0] || "?"}
               </Avatar>
             )}
-            {showUploadFor && !collapsed && (
+            {showUploadFor && (
               <>
                 <label htmlFor="sb-upload" className="sb-upload-btn">
                   <AddCircleIcon sx={{ fontSize: 14, color: accentColor }} />
@@ -775,13 +686,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
         {role === "registrar" && (
           <>
             <div className="sb-section-label">Navigation</div>
-            <NavItem
-              to={registrarDashboard}
-              icon={DashboardIcon}
-              label="Dashboard"
-              active={isActive(registrarDashboard)}
-              collapsed={collapsed}
-            />
+            <NavItem to={registrarDashboard} icon={DashboardIcon} label="Dashboard" active={isActive(registrarDashboard)} />
             <Divider sx={{ bgcolor: "#4a4a4a", my: 1 }} />
 
             {managementItems.map((item) => {
@@ -820,7 +725,6 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
                           icon={si.icon}
                           label={si.title}
                           active={si.activeCheck ? si.activeCheck() : isActive(si.link)}
-                          collapsed={collapsed}
                         />
                       ))
                   ) : groups ? (
@@ -838,27 +742,15 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
                             icon={group.icon}
                             open={open}
                             onToggle={() => toggleGroup(gKey)}
-                            collapsed={collapsed}
                           />
-                          {open && !collapsed && visibleItems.map((si) => (
+                          {open && visibleItems.map((si) => (
                             <NavItem
                               key={si.link}
                               to={si.link}
                               icon={si.icon}
                               label={si.title}
+                              // ── Per-item active override for Class Roster ──
                               active={si.activeCheck ? si.activeCheck() : isActive(si.link)}
-                              collapsed={collapsed}
-                              sub
-                            />
-                          ))}
-                          {collapsed && visibleItems.map((si) => (
-                            <NavItem
-                              key={si.link}
-                              to={si.link}
-                              icon={si.icon}
-                              label={si.title}
-                              active={si.activeCheck ? si.activeCheck() : isActive(si.link)}
-                              collapsed={collapsed}
                               sub
                             />
                           ))}
@@ -871,7 +763,6 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
                       icon={item.icon}
                       label={`Open ${item.title}`}
                       active={isActive(item.path)}
-                      collapsed={collapsed}
                     />
                   )}
 
@@ -888,18 +779,11 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
         {role === "applicant" && (
           <>
             <div className="sb-section-label">Navigation</div>
-            <NavItem
-              to="/applicant_dashboard"
-              icon={DashboardIcon}
-              label="Dashboard"
-              active={isActivePrefix("/applicant_dashboard")}
-              collapsed={collapsed}
-            />
+            <NavItem to="/applicant_dashboard" icon={DashboardIcon} label="Dashboard" active={isActivePrefix("/applicant_dashboard")} />
             <NavItem
               icon={AssignmentIndIcon}
               label="Applicant Profile"
               active={isActivePrefix("/dashboard/")}
-              collapsed={collapsed}
               onClick={() => {
                 let keys = JSON.parse(localStorage.getItem("dashboardKeys"));
                 if (!keys) {
@@ -910,21 +794,9 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
                 window.location.href = `/dashboard/${keys.step1}`;
               }}
             />
-            <NavItem
-              to="/requirements_uploader"
-              icon={CloudUploadIcon}
-              label="Upload Requirements"
-              active={isActivePrefix("/requirements_uploader")}
-              collapsed={collapsed}
-            />
+            <NavItem to="/requirements_uploader" icon={CloudUploadIcon} label="Upload Requirements" active={isActivePrefix("/requirements_uploader")} />
             <div className="sb-section-label">Setting</div>
-            <NavItem
-              to="/applicant_reset_password"
-              icon={LockResetIcon}
-              label="Change Password"
-              active={isActivePrefix("/applicant_reset_password")}
-              collapsed={collapsed}
-            />
+            <NavItem to="/applicant_reset_password" icon={LockResetIcon} label="Change Password" active={isActivePrefix("/applicant_reset_password")} />
           </>
         )}
 
@@ -932,13 +804,13 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
         {role === "faculty" && (
           <>
             <div className="sb-section-label">Navigation</div>
-            <NavItem to="/faculty_dashboard" icon={DashboardIcon} label="Dashboard" active={isActive("/faculty_dashboard")} collapsed={collapsed} />
-            <NavItem to="/faculty_workload" icon={WorkIcon} label="Workload" active={isActive("/faculty_workload")} collapsed={collapsed} />
-            <NavItem to="/faculty_masterlist" icon={ListAltIcon} label="Class List" active={isActive("/faculty_masterlist")} collapsed={collapsed} />
-            <NavItem to="/grading_sheet" icon={AssignmentTurnedInIcon} label="Grading Management" active={isActive("/grading_sheet")} collapsed={collapsed} />
-            <NavItem to="/faculty_evaluation" icon={SchoolIcon} label="Faculty Evaluation" active={isActive("/faculty_evaluation")} collapsed={collapsed} />
+            <NavItem to="/faculty_dashboard" icon={DashboardIcon} label="Dashboard" active={isActive("/faculty_dashboard")} />
+            <NavItem to="/faculty_workload" icon={WorkIcon} label="Workload" active={isActive("/faculty_workload")} />
+            <NavItem to="/faculty_masterlist" icon={ListAltIcon} label="Class List" active={isActive("/faculty_masterlist")} />
+            <NavItem to="/grading_sheet" icon={AssignmentTurnedInIcon} label="Grading Management" active={isActive("/grading_sheet")} />
+            <NavItem to="/faculty_evaluation" icon={SchoolIcon} label="Faculty Evaluation" active={isActive("/faculty_evaluation")} />
             <div className="sb-section-label">Setting</div>
-            <NavItem to="/faculty_reset_password" icon={Settings} label="Settings" active={isActive("/faculty_reset_password")} collapsed={collapsed} />
+            <NavItem to="/faculty_reset_password" icon={Settings} label="Settings" active={isActive("/faculty_reset_password")} />
           </>
         )}
 
@@ -946,16 +818,16 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
         {role === "student" && (
           <>
             <div className="sb-section-label">Navigation</div>
-            <NavItem to="/student_dashboard" icon={DashboardIcon} label="Dashboard" active={isActive("/student_dashboard")} collapsed={collapsed} />
-            <NavItem to="/student_schedule" icon={EventNoteIcon} label="Schedule" active={isActive("/student_schedule")} collapsed={collapsed} />
-            <NavItem to="/grades_page" icon={GradeIcon} label="Grades" active={isActive("/grades_page")} collapsed={collapsed} />
-            <NavItem to="/student_section_offering" icon={MenuBook} label="Curriculum" active={isActive("/student_section_offering")} collapsed={collapsed} />
-            <NavItem to="/student_faculty_evaluation" icon={AssignmentTurnedInIcon} label="Faculty Evaluation" active={isActive("/student_faculty_evaluation")} collapsed={collapsed} />
-            <NavItem to="/student_dashboard1" icon={PersonIcon} label="Student Profile" active={/^\/student_dashboard[1-5]$/.test(loc)} collapsed={collapsed} />
-            <NavItem to="/student_online_requirements" icon={FolderCopy} label="Student Online Requirements" active={isActive("/student_online_requirements")} collapsed={collapsed} />
-            <NavItem to="/student_account_balance" icon={PaymentIcon} label="Student Account Balance" active={isActive("/student_account_balance")} collapsed={collapsed} />
+            <NavItem to="/student_dashboard" icon={DashboardIcon} label="Dashboard" active={isActive("/student_dashboard")} />
+            <NavItem to="/student_schedule" icon={EventNoteIcon} label="Schedule" active={isActive("/student_schedule")} />
+            <NavItem to="/grades_page" icon={GradeIcon} label="Grades" active={isActive("/grades_page")} />
+            <NavItem to="/student_section_offering" icon={MenuBook} label="Curriculum" active={isActive("/student_section_offering")} />
+            <NavItem to="/student_faculty_evaluation" icon={AssignmentTurnedInIcon} label="Faculty Evaluation" active={isActive("/student_faculty_evaluation")} />
+            <NavItem to="/student_dashboard1" icon={PersonIcon} label="Student Profile" active={/^\/student_dashboard[1-5]$/.test(loc)} />
+            <NavItem to="/student_online_requirements" icon={FolderCopy} label="Student Online Requirements" active={isActive("/student_online_requirements")} />
+             <NavItem to="/student_account_balance" icon={PaymentIcon} label="Student Account Balance" active={isActive("/student_account_balance")} />
             <div className="sb-section-label">Setting</div>
-            <NavItem to="/student_reset_password" icon={Settings} label="Settings" active={isActive("/student_reset_password")} collapsed={collapsed} />
+            <NavItem to="/student_reset_password" icon={Settings} label="Settings" active={isActive("/student_reset_password")} />
           </>
         )}
 
@@ -964,12 +836,10 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
 
       {/* ── Footer / Logout ── */}
       <div className="sb-footer">
-        <Tooltip title={collapsed ? "Logout" : ""} placement="right" arrow>
-          <div className="sb-logout" onClick={Logout}>
-            <span className="sb-logout-icon"><LogoutOutlined sx={{ fontSize: 19 }} /></span>
-            <span className="sb-logout-label">Logout</span>
-          </div>
-        </Tooltip>
+        <div className="sb-logout" onClick={Logout}>
+          <span className="sb-icon"><LogoutOutlined sx={{ fontSize: 19 }} /></span>
+          <span>Logout</span>
+        </div>
       </div>
     </div>
   );

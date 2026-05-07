@@ -63,12 +63,12 @@ const ProgramPayment = () => {
                 // MAP ALL ROWS
                 setAssessmentData(
                     (response.data.rows || []).map((row) => ({
-                        school_year : row.school_year || "",
-                        semester    : row.semester    || "",
-                        year_level  : row.year_level  || "",
-                        assessment  : Number(row.fees?.grandTotal || 0),
-                        payment     : 0,
-                        balance     : Number(row.fees?.grandTotal || 0),
+                        school_year: row.school_year || "",
+                        semester: row.semester || "",
+                        year_level: row.year_level || "",
+                        assessment: Number(row.fees?.grandTotal || 0),
+                        payment: 0,
+                        balance: Number(row.fees?.grandTotal || 0),
                     }))
                 );
 
@@ -90,15 +90,46 @@ const ProgramPayment = () => {
     );
 
     return (
-        <Box sx={{ p: 2, backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
+        <Box
+            sx={{
+                height: "calc(100vh - 150px)",
+                overflowY: "auto",
+                paddingRight: 1,
+                backgroundColor: "transparent",
+                mt: 1,
+                padding: 2,
+            }}
+        >
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    flexWrap: "wrap",
 
-            <hr />
+                    mb: 2,
+                }}
+            >
+                <Typography
+                    variant="h4"
+                    sx={{
+                        fontWeight: "bold",
+                        color: titleColor,
+                        fontSize: "36px",
+                    }}
+                >
+                    STUDENT ACCOUNT BALANCE
+                </Typography>
+            </Box>
+            <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+            <br />
+            <br />
 
             <Paper
                 sx={{
                     mt: 3,
                     p: 3,
-                    border: "1px solid red",
+                   border: `1px solid ${borderColor}`,
                     minHeight: "75vh",
                     backgroundColor: "white",
                 }}
@@ -135,7 +166,7 @@ const ProgramPayment = () => {
                     <Table>
                         <TableHead>
                             <TableRow sx={{ backgroundColor: "#990000" }}>
-                                {[  
+                                {[
                                     "School Year",
                                     "Semester",
                                     "Year Level",
@@ -225,7 +256,7 @@ const ProgramPayment = () => {
                                     sx={{
                                         fontWeight: "bold",
                                         border: `1px solid ${borderColor}`,
-                                        fontSize: "20px",
+                                        fontSize: "16px",
                                     }}
                                 >
                                     Grand Total Balance/(Refund) :
@@ -235,7 +266,7 @@ const ProgramPayment = () => {
                                     sx={{
                                         fontWeight: "bold",
                                         color: "red",
-                                        fontSize: "38px",
+                                        fontSize: "16px",
                                         border: `1px solid ${borderColor}`,
                                     }}
                                 >

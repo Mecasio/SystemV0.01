@@ -3232,6 +3232,7 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
 
     // Validate all course codes exist
     const allCourseCodes = [];
+    const courseDetailsByCode = new Map();
 
     for (const block of results) {
       for (const subj of block.subjects) {
@@ -3240,6 +3241,15 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
           allCourseCodes.push("(blank course code)");
         } else {
           allCourseCodes.push(code);
+          if (!courseDetailsByCode.has(code)) {
+            courseDetailsByCode.set(code, {
+              course_code: code,
+              course_description: subj.description || "",
+              lec_unit: subj.lec_unit ?? "",
+              lab_unit: subj.lab_unit ?? "",
+              course_unit: subj.course_unit ?? subj.units ?? "",
+            });
+          }
         }
       }
     }
@@ -3265,11 +3275,35 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
       console.log("missing course codes", missingCourseCodes);
 
       if (missingCourseCodes.length > 0) {
+        const uniqueMissingCourseCodes = [...new Set(missingCourseCodes)];
+        const missingCourses = uniqueMissingCourseCodes.map((code) => {
+          if (code === "(blank course code)") {
+            return {
+              course_code: code,
+              course_description: "",
+              lec_unit: "",
+              lab_unit: "",
+              course_unit: "",
+            };
+          }
+
+          return (
+            courseDetailsByCode.get(code) || {
+              course_code: code,
+              course_description: "",
+              lec_unit: "",
+              lab_unit: "",
+              course_unit: "",
+            }
+          );
+        });
+
         await connection.rollback();
         connection.release();
         return res.status(400).json({
           error: "Upload failed. Some course codes do not exist.",
-          missing_course_codes: [...new Set(missingCourseCodes)],
+          missing_course_codes: uniqueMissingCourseCodes,
+          missing_courses: missingCourses,
         });
       }
     }

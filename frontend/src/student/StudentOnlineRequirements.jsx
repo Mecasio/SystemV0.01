@@ -419,9 +419,9 @@ const StudentOnlineRequirements = () => {
                             onClick={() => handleDelete(uploaded.upload_id)}
                             startIcon={<DeleteIcon />}
                             sx={{
-                                backgroundColor: "#600000",
+                                backgroundColor: "#9E0000",
                                 color: "white",
-                                "&:hover": { backgroundColor: "#600000" },
+                           
                                 fontWeight: "bold",
                                 height: "40px",
                                 textTransform: "none",

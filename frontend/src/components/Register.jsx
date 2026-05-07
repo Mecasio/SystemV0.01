@@ -150,15 +150,6 @@ const Register = () => {
   const [branchId, setBranchId] = useState("");
 
   useEffect(() => {
-    if (branchId || branches.length === 0) return;
-
-    const firstBranchId = branches[0]?.id;
-    if (firstBranchId != null) {
-      setBranchId(String(firstBranchId));
-    }
-  }, [branches, branchId]);
-
-  useEffect(() => {
     axios
       .get(`${API_BASE_URL}/api/branches`)
       .then((res) => setBranches(res.data))
@@ -633,7 +624,7 @@ const Register = () => {
           }}
           maxWidth={false}
         >
-          <AnnouncementSlider campusId={branchId} style={{ marginTop: "-350px" }} />
+          <AnnouncementSlider campusId={branchId} targetRole="applicant" />
           <div
             style={{
               border: "5px solid black",

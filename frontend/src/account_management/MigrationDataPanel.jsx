@@ -1,9 +1,14 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { SettingsContext } from "../App";
 import axios from 'axios';
-import { Box, Button, Typography, TextField, Paper, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Select, MenuItem } from '@mui/material';
-import { Search as SearchIcon } from '@mui/icons-material';
+import {
+    Box, Button, Typography, Paper,
+    TableContainer, Table, TableHead, TableBody, TableRow, TableCell,
+    Snackbar, Alert, Select, MenuItem, FormControl, InputLabel,
+    Chip, Fade
+} from '@mui/material';
 import { FaFileExcel } from "react-icons/fa";
+import { FileUpload, Download, PictureAsPdf } from '@mui/icons-material';
 import API_BASE_URL from '../apiConfig';
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
@@ -13,650 +18,681 @@ import EaristLogo from "../assets/EaristLogo.png";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+/* ─────────────────────────────────────────────
+   Main Component
+───────────────────────────────────────────── */
 const MigrationDataPanel = () => {
     const settings = useContext(SettingsContext);
 
     const [titleColor, setTitleColor] = useState("#000000");
-    const [subtitleColor, setSubtitleColor] = useState("#555555");
     const [borderColor, setBorderColor] = useState("#000000");
     const [mainButtonColor, setMainButtonColor] = useState("#1976d2");
-    const [subButtonColor, setSubButtonColor] = useState("#ffffff");   // ✅ NEW
-    const [stepperColor, setStepperColor] = useState("#000000");       // ✅ NEW
-
     const [fetchedLogo, setFetchedLogo] = useState(null);
     const [companyName, setCompanyName] = useState("");
-    const [shortTerm, setShortTerm] = useState("");
     const [campusAddress, setCampusAddress] = useState("");
-
-    useEffect(() => {
-        if (!settings) return;
-
-        // 🎨 Colors
-        if (settings.title_color) setTitleColor(settings.title_color);
-        if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
-        if (settings.border_color) setBorderColor(settings.border_color);
-        if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
-        if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);   // ✅ NEW
-        if (settings.stepper_color) setStepperColor(settings.stepper_color);           // ✅ NEW
-
-        // 🏫 Logo
-        if (settings.logo_url) {
-            setFetchedLogo(`${API_BASE_URL}${settings.logo_url}`);
-        } else {
-            setFetchedLogo(EaristLogo);
-        }
-
-        // 🏷️ School Information
-        if (settings.company_name) setCompanyName(settings.company_name);
-        if (settings.short_term) setShortTerm(settings.short_term);
-        if (settings.campus_address) setCampusAddress(settings.campus_address);
-        if (settings?.branches) {
-            try {
-                const parsed =
-                    typeof settings.branches === "string"
-                        ? JSON.parse(settings.branches)
-                        : settings.branches;
-                setBranches(parsed);
-                setCampusFilter((prev) => prev || parsed?.[0]?.id || "");
-            } catch (err) {
-                console.error("Failed to parse branches:", err);
-                setBranches([]);
-            }
-        }
-
-    }, [settings]);
-
-
-    const [searchQuery, setSearchQuery] = useState("");
-    const [studentInfo, setStudentInfo] = useState(null);
-    const [studentGradeList, setStudentGradeList] = useState([]);
     const [campusFilter, setCampusFilter] = useState("");
     const [branches, setBranches] = useState([]);
-    const [openAddSubjectDialog, setOpenAddSubjectDialog] = useState(false);
-    const [openViewDialog, setOpenViewDialog] = useState(false);
-    const [courseList, setCourseList] = useState([]);
-    const [selectedCourse, setSelectedCourse] = useState("");
-    const [loadingCourses, setLoadingCourses] = useState(false);
 
-    const [snackbar, setSnackbar] = useState({
-        open: false,
-        message: "",
-        severity: "success",
-    });
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [excelFile, setExcelFile] = useState(null);
+    const [missingCourses, setMissingCourses] = useState([]);
 
-    // Also put it at the very top
+    const [skippedNotFoundStudents, setSkippedNotFoundStudents] = useState([]);
+    const [skippedNotFoundCount, setSkippedNotFoundCount] = useState(0);
+
+    const [snack1, setSnack1] = useState({ open: false, message: "", severity: "success" });
+    const [snack2, setSnack2] = useState({ open: false, message: "", severity: "success" });
+
     const [userID, setUserID] = useState("");
-    const [user, setUser] = useState("");
     const [userRole, setUserRole] = useState("");
-
+    const [employeeID, setEmployeeID] = useState("");
     const [hasAccess, setHasAccess] = useState(null);
     const [loading, setLoading] = useState(false);
 
-    // ✅ For Excel Import
-    const [excelFile, setExcelFile] = useState(null);
-
-    const handleExcelChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setExcelFile(file);
-        }
-    };
-
-  const exportExcel = async () => {
-  const res = await axios.get(`${API_BASE_URL}/get_students_grouped`);
-  const students = res.data;
-
-  const workbook = new ExcelJS.Workbook();
-
-  // GROUP BY PROGRAM
-  const grouped = {};
-  students.forEach(s => {
-    if (!grouped[s.program_code]) grouped[s.program_code] = [];
-    grouped[s.program_code].push(s);
-  });
-
-  for (const program in grouped) {
-    const list = grouped[program];
-    const first = list[0];
-
-    // Sheet name = Program Code
-    const ws = workbook.addWorksheet(program);
-
-    // ===== HEADER INFO =====
-    ws.mergeCells("A1:D1");
-    ws.getCell("A1").value = companyName || "SCHOOL NAME";
-    ws.getCell("A1").font = { bold: true, size: 16 };
-    ws.getCell("A1").alignment = { horizontal: "center" };
-
-    ws.mergeCells("A2:D2");
-    ws.getCell("A2").value = campusAddress || "";
-    ws.getCell("A2").alignment = { horizontal: "center" };
-
-    ws.mergeCells("A4:D4");
-    ws.getCell("A4").value = `${first.dprtmnt_code} - ${first.dprtmnt_name}`;
-    ws.getCell("A4").font = { bold: true };
-    ws.getCell("A4").alignment = { horizontal: "center" };
-
-    ws.mergeCells("A5:D5");
-    ws.getCell("A5").value = `${first.program_code} - ${first.program_description} ${first.major || ""}`;
-    ws.getCell("A5").font = { bold: true };
-    ws.getCell("A5").alignment = { horizontal: "center" };
-
-    ws.mergeCells("A6:D6");
-    ws.getCell("A6").value = "STUDENT LIST";
-    ws.getCell("A6").font = { bold: true, size: 14 };
-    ws.getCell("A6").alignment = { horizontal: "center" };
-
-    // ===== TABLE HEADER =====
-    ws.addRow([]);
-    ws.addRow(["#", "Student Number", "Name", "Year Level"]);
-
-    ws.columns = [
-      { width: 5 },
-      { width: 20 },
-      { width: 35 },
-      { width: 15 },
-    ];
-
-    // ===== DATA =====
-    list.forEach((s, i) => {
-      ws.addRow([
-        i + 1,
-        s.student_number,
-        `${s.last_name}, ${s.first_name} ${s.middle_name || ""}`,
-        s.year_level_description
-      ]);
-    });
-
-    // ===== BORDERS =====
-    ws.eachRow((row) => {
-      row.eachCell((cell) => {
-        cell.border = {
-          top: { style: "thin" },
-          left: { style: "thin" },
-          bottom: { style: "thin" },
-          right: { style: "thin" },
-        };
-      });
-    });
-  }
-
-  const buffer = await workbook.xlsx.writeBuffer();
-  saveAs(new Blob([buffer]), "Students_By_Program.xlsx");
-};
-
-
-    const getBase64FromUrl = async (url) => {
-  const data = await fetch(url);
-  const blob = await data.blob();
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result);
-    reader.readAsDataURL(blob);
-  });
-};
-
-const exportPDF = async () => {
-  try {
-    const res = await axios.get(`${API_BASE_URL}/get_students_grouped`);
-    const students = res.data;
-    if (!students.length) return alert("No students found");
-
-    const doc = new jsPDF("landscape", "mm", "a4");
-
-    // GROUP BY PROGRAM
-    const grouped = {};
-    students.forEach(s => {
-      if (!grouped[s.program_code]) grouped[s.program_code] = [];
-      grouped[s.program_code].push(s);
-    });
-
-    const school = companyName || "School Name";
-    const address = campusAddress || "";
-
-    let logoBase64 = null;
-    if (fetchedLogo) {
-      try {
-        logoBase64 = await getBase64FromUrl(fetchedLogo);
-      } catch (e) {
-        console.warn("Logo failed, using default");
-      }
-    }
-
-    let firstPage = true;
-
-    for (const program in grouped) {
-      if (!firstPage) doc.addPage();
-      firstPage = false;
-
-      const list = grouped[program];
-      const first = list[0];
-
-      const deptLine = `${first.dprtmnt_code} - ${first.dprtmnt_name}`;
-      const programLine = `${first.program_code} - ${first.program_description} ${first.major || ""}`;
-
-      // LOGO
-      if (logoBase64) doc.addImage(logoBase64, "PNG", 10, 10, 25, 25);
-
-      // HEADER
-      doc.setFont("Times", "Bold");
-      doc.setFontSize(12);
-      doc.text("Republic of the Philippines", 150, 15, { align: "center" });
-
-      doc.setFontSize(18);
-      doc.text(school, 150, 25, { align: "center" });
-
-      doc.setFontSize(11);
-      doc.text(address, 150, 32, { align: "center" });
-
-      doc.setFontSize(14);
-      doc.text(deptLine, 150, 45, { align: "center" });
-
-      doc.setFontSize(12);
-      doc.text(programLine, 150, 52, { align: "center" });
-
-      doc.setFontSize(16);
-      doc.text("STUDENT LIST", 150, 62, { align: "center" });
-
-      const tableData = list.map((s, i) => [
-        i + 1,
-        s.student_number,
-        `${s.last_name}, ${s.first_name} ${s.middle_name || ""}`,
-        s.year_level_description
-      ]);
-
-      autoTable(doc, {
-        startY: 70,
-        head: [["#", "Student Number", "Name", "Year Level"]],
-        body: tableData,
-        theme: "grid",
-        styles: { fontSize: 9 },
-        headStyles: { fillColor: [128, 0, 0] },
-      });
-    }
-
-    doc.save("Students_By_Program.pdf");
-
-  } catch (err) {
-    console.error("PDF ERROR FULL:", err);
-    alert("PDF export failed");
-  }
-};
-
-    const handleImportExcel = async () => {
-        try {
-            if (!selectedFile) {
-                setSnackbar({
-                    open: true,
-                    message: "Please choose a file first!",
-                    severity: "warning",
-                });
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append("file", selectedFile);
-
-            const res = await axios.post(`${API_BASE_URL}/api/person/import`, formData, {
-                headers: { "Content-Type": "multipart/form-data" },
-            });
-
-            if (res.data.success) {
-                setSnackbar({
-                    open: true,
-                    message: res.data.message || "Excel imported successfully!",
-                    severity: "success",
-                });
-                setExcelFile(null);
-            } else {
-                setSnackbar({
-                    open: true,
-                    message: res.data.error || "Failed to import",
-                    severity: "error",
-                });
-            }
-        } catch (err) {
-            console.error("❌ Import error:", err);
-            setSnackbar({
-                open: true,
-                message: "Import failed: " + (err.response?.data?.error || err.message),
-                severity: "error",
-            });
-        }
-    };
-
-
-    const divToPrintRef = useRef();
-    const [showPrintView, setShowPrintView] = useState(false);
-
+    const excelInputRef = useRef(null);
     const pageId = 114;
-    const [employeeID, setEmployeeID] = useState("");
 
-    useEffect(() => {
-        const storedUser = localStorage.getItem("email");
-        const storedRole = localStorage.getItem("role");
-        const storedID = localStorage.getItem("person_id");
-        const storedEmployeeID = localStorage.getItem("employee_id");
-
-        if (storedUser && storedRole && storedID) {
-            setUser(storedUser);
-            setUserRole(storedRole);
-            setUserID(storedID);
-            setEmployeeID(storedEmployeeID);
-
-            if (storedRole === "registrar") {
-                checkAccess(storedEmployeeID);
-            } else {
-                window.location.href = "/login";
-            }
-        } else {
-            window.location.href = "/login";
-        }
-    }, []);
-
-    const checkAccess = async (employeeID) => {
-        try {
-            const response = await axios.get(`${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`);
-            if (response.data && response.data.page_privilege === 1) {
-                setHasAccess(true);
-            } else {
-                setHasAccess(false);
-            }
-        } catch (error) {
-            console.error('Error checking access:', error);
-            setHasAccess(false);
-            if (error.response && error.response.data.message) {
-                console.log(error.response.data.message);
-            } else {
-                console.log("An unexpected error occurred.");
-            }
-            setLoading(false);
-        }
-    };
-
-    const [openDialog, setOpenDialog] = useState(false);
-    const [selectedSubjectId, setSelectedSubjectId] = useState(null);
-    const [selectedTermContext, setSelectedTermContext] = useState(null);
-    const [selectedFile, setSelectedFile] = useState(null);
-
+    /* ── settings ── */
     useEffect(() => {
         if (!settings) return;
-        settings.title_color && setTitleColor(settings.title_color);
-        settings.subtitle_color && setSubtitleColor(settings.subtitle_color);
-        settings.border_color && setBorderColor(settings.border_color);
-        settings.main_button_color && setMainButtonColor(settings.main_button_color);
+        if (settings.title_color) setTitleColor(settings.title_color);
+        if (settings.border_color) setBorderColor(settings.border_color);
+        if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
+        setFetchedLogo(settings.logo_url ? `${API_BASE_URL}${settings.logo_url}` : EaristLogo);
+        if (settings.company_name) setCompanyName(settings.company_name);
+        if (settings.campus_address) setCampusAddress(settings.campus_address);
+        if (settings?.branches) {
+            try {
+                const parsed = typeof settings.branches === "string"
+                    ? JSON.parse(settings.branches) : settings.branches;
+                setBranches(parsed);
+                setCampusFilter(prev => prev || parsed?.[0]?.id || "");
+            } catch (err) { console.error(err); setBranches([]); }
+        }
     }, [settings]);
 
-    const handleFileChange = (e) => {
-        if (e.target.files && e.target.files.length > 0) {
-            setSelectedFile(e.target.files[0]);
-        }
+    /* ── auth ── */
+    useEffect(() => {
+        const email = localStorage.getItem("email");
+        const role = localStorage.getItem("role");
+        const id = localStorage.getItem("person_id");
+        const empID = localStorage.getItem("employee_id");
+        if (email && role && id) {
+            setUserRole(role); setUserID(id); setEmployeeID(empID);
+            if (role === "registrar") checkAccess(empID);
+            else window.location.href = "/login";
+        } else window.location.href = "/login";
+    }, []);
+
+    const checkAccess = async (empID) => {
+        try {
+            const res = await axios.get(`${API_BASE_URL}/api/page_access/${empID}/${pageId}`);
+            setHasAccess(res.data?.page_privilege === 1);
+        } catch { setHasAccess(false); }
     };
 
+    /* ── helpers ── */
+    const displayValue = (v) => (v === null || v === undefined || v === "" ? "—" : v);
+
+    const getBase64FromUrl = async (url) => {
+        const blob = await (await fetch(url)).blob();
+        return new Promise(res => { const r = new FileReader(); r.onloadend = () => res(r.result); r.readAsDataURL(blob); });
+    };
+
+    const handleRemoveFile = () => {
+        setSelectedFile(null);
+        const el = document.getElementById("grades-excel-upload");
+        if (el) el.value = "";
+    };
+
+    /* ── import grades ── */
     const handleImport = async () => {
+        setMissingCourses([]);
+        if (!selectedFile) {
+            setSnack1({ open: true, message: "Please choose a file first!", severity: "warning" });
+            return;
+        }
         try {
-            if (!selectedFile) {
-                setSnackbar({
-                    open: true,
-                    message: "Please choose a file first!",
-                    severity: "warning",
-                });
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append("file", selectedFile);
-            formData.append("campus", campusFilter);
-
-            const res = await axios.post(`${API_BASE_URL}/api/import-xlsx`, formData, {
-                headers: { "Content-Type": "multipart/form-data" },
+            const fd = new FormData();
+            fd.append("file", selectedFile);
+            fd.append("campus", campusFilter);
+            const res = await axios.post(`${API_BASE_URL}/api/import-xlsx`, fd, {
+                headers: { "Content-Type": "multipart/form-data" }
             });
-
             if (res.data.success) {
-                setSnackbar({
-                    open: true,
-                    message: res.data.message || "Excel imported successfully!",
-                    severity: "success",
-                });
+                setSnack1({ open: true, message: res.data.message || "Grades imported successfully!", severity: "success" });
                 setSelectedFile(null);
             } else {
-                setSnackbar({
-                    open: true,
-                    message: res.data.error || "Failed to import",
-                    severity: "error",
-                });
+                setSnack1({ open: true, message: res.data.error || "Failed to import", severity: "error" });
             }
         } catch (err) {
-            console.error("❌ Import error:", err);
-            setSnackbar({
-                open: true,
-                message: "Import failed: " + (err.response?.data?.error || err.message),
-                severity: "error",
-            });
+            const rd = err.response?.data || {};
+            const missing = rd.missing_courses?.length
+                ? rd.missing_courses
+                : (rd.missing_course_codes || []).map(c => ({ course_code: c, course_description: "", course_unit: "" }));
+            setMissingCourses(missing);
+            setSnack1({ open: true, message: "Import failed: " + (rd.error || err.message), severity: "error" });
         }
     };
 
-
-    const formatFileSize = (bytes) => {
-        if (!bytes) return "";
-        const kb = bytes / 1024;
-        if (kb < 1024) return `${kb.toFixed(2)} KB`;
-        return `${(kb / 1024).toFixed(2)} MB`;
+    /* ── import personal info ── */
+    const handleImportExcel = async () => {
+        if (!excelFile) {
+            setSnack2({ open: true, message: "Please select a file to import.", severity: "warning" });
+            return;
+        }
+        const formData = new FormData();
+        formData.append("file", excelFile);
+        try {
+            const res = await axios.post(`${API_BASE_URL}/api/person/import`, formData, {
+                headers: { "Content-Type": "multipart/form-data" }
+            });
+            if (res.data.success) {
+                setSnack2({
+                    open: true,
+                    message: `Imported: ${res.data.totalRows} · Updated: ${res.data.updated} · Skipped: ${res.data.skipped}`,
+                    severity: "success"
+                });
+                setSkippedNotFoundCount(res.data.missingStudents?.length || 0);
+                setSkippedNotFoundStudents(res.data.missingStudents || []);
+                setExcelFile(null);
+                if (excelInputRef.current) excelInputRef.current.value = "";
+            } else {
+                setSnack2({ open: true, message: res.data.error || "Import failed.", severity: "warning" });
+            }
+        } catch (error) {
+            console.error(error);
+            setSnack2({ open: true, message: "Server error while importing Excel.", severity: "error" });
+            setSkippedNotFoundCount(0);
+            setSkippedNotFoundStudents([]);
+        }
     };
 
-    // Put this at the very bottom before the return 
-    if (loading || hasAccess === null) {
-        return <LoadingOverlay open={loading} message="Loading..." />;
-    }
+    /* ── export excel ── */
+    const exportExcel = async () => {
+        const { data: students } = await axios.get(`${API_BASE_URL}/get_students_grouped`);
+        const wb = new ExcelJS.Workbook();
+        const grouped = students.reduce((acc, s) => { (acc[s.program_code] ||= []).push(s); return acc; }, {});
+        for (const program in grouped) {
+            const list = grouped[program]; const first = list[0]; const ws = wb.addWorksheet(program);
+            ws.mergeCells("A1:D1"); ws.getCell("A1").value = companyName || "School Name"; ws.getCell("A1").font = { bold: true, size: 16 }; ws.getCell("A1").alignment = { horizontal: "center" };
+            ws.mergeCells("A2:D2"); ws.getCell("A2").value = campusAddress || ""; ws.getCell("A2").alignment = { horizontal: "center" };
+            ws.mergeCells("A4:D4"); ws.getCell("A4").value = `${first.dprtmnt_code} - ${first.dprtmnt_name}`; ws.getCell("A4").font = { bold: true }; ws.getCell("A4").alignment = { horizontal: "center" };
+            ws.mergeCells("A5:D5"); ws.getCell("A5").value = `${first.program_code} - ${first.program_description} ${first.major || ""}`; ws.getCell("A5").font = { bold: true }; ws.getCell("A5").alignment = { horizontal: "center" };
+            ws.mergeCells("A6:D6"); ws.getCell("A6").value = "STUDENT LIST"; ws.getCell("A6").font = { bold: true, size: 14 }; ws.getCell("A6").alignment = { horizontal: "center" };
+            ws.addRow([]); ws.addRow(["#", "Student Number", "Name", "Year Level"]);
+            ws.columns = [{ width: 5 }, { width: 20 }, { width: 35 }, { width: 15 }];
+            list.forEach((s, i) => ws.addRow([i + 1, s.student_number, `${s.last_name}, ${s.first_name} ${s.middle_name || ""}`, s.year_level_description]));
+            ws.eachRow(row => row.eachCell(cell => { cell.border = { top: { style: "thin" }, left: { style: "thin" }, bottom: { style: "thin" }, right: { style: "thin" } }; }));
+        }
+        saveAs(new Blob([await wb.xlsx.writeBuffer()]), "Students_By_Program.xlsx");
+    };
 
-    if (!hasAccess) {
-        return (
-            <Unauthorized />
-        );
-    }
+    /* ── export pdf ── */
+    const exportPDF = async () => {
+        try {
+            const { data: students } = await axios.get(`${API_BASE_URL}/get_students_grouped`);
+            if (!students.length) return alert("No students found");
+            const doc = new jsPDF("landscape", "mm", "a4");
+            const grouped = students.reduce((acc, s) => { (acc[s.program_code] ||= []).push(s); return acc; }, {});
+            let logoBase64 = null;
+            if (fetchedLogo) { try { logoBase64 = await getBase64FromUrl(fetchedLogo); } catch { } }
+            let firstPage = true;
+            for (const program in grouped) {
+                if (!firstPage) doc.addPage(); firstPage = false;
+                const list = grouped[program]; const first = list[0];
+                if (logoBase64) doc.addImage(logoBase64, "PNG", 10, 10, 25, 25);
+                doc.setFont("Times", "Bold"); doc.setFontSize(12); doc.text("Republic of the Philippines", 150, 15, { align: "center" });
+                doc.setFontSize(18); doc.text(companyName || "School Name", 150, 25, { align: "center" });
+                doc.setFontSize(11); doc.text(campusAddress || "", 150, 32, { align: "center" });
+                doc.setFontSize(14); doc.text(`${first.dprtmnt_code} - ${first.dprtmnt_name}`, 150, 45, { align: "center" });
+                doc.setFontSize(12); doc.text(`${first.program_code} - ${first.program_description} ${first.major || ""}`, 150, 52, { align: "center" });
+                doc.setFontSize(16); doc.text("STUDENT LIST", 150, 62, { align: "center" });
+                autoTable(doc, {
+                    startY: 70, head: [["#", "Student Number", "Name", "Year Level"]],
+                    body: list.map((s, i) => [i + 1, s.student_number, `${s.last_name}, ${s.first_name} ${s.middle_name || ""}`, s.year_level_description]),
+                    theme: "grid", styles: { fontSize: 9 }, headStyles: { fillColor: [128, 0, 0] },
+                });
+            }
+            doc.save("Students_By_Program.pdf");
+        } catch (err) { console.error(err); alert("PDF export failed"); }
+    };
 
+    /* ── guards ── */
+    if (loading || hasAccess === null) return <LoadingOverlay open={loading} message="Loading..." />;
+    if (!hasAccess) return <Unauthorized />;
+
+    /* ── render ── */
     return (
-        <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
-            <div style={{ height: "10px" }}></div>
-
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2} >
-                <Typography variant="h4" fontWeight="bold" style={{ color: titleColor, }}>
-                    MIGRATION DATA PANEL
+        <Box
+            sx={{
+                height: "calc(100vh - 150px)",
+                overflowY: "auto",
+                paddingRight: 1,
+                backgroundColor: "transparent",
+                mt: 1,
+                padding: 2,
+            }}
+        >
+            {/* ═══════════════════════════════════
+                HEADER
+            ═══════════════════════════════════ */}
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                <Typography variant="h4" fontWeight="bold" sx={{ color: titleColor }}>
+                    MIGRATION PANEL
                 </Typography>
             </Box>
 
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
-            <br />
 
-            <Box>
-                <Typography>
-                    Student Grades Migration Button
-                </Typography>
-                <Box display="flex" alignItems="center" gap={1} sx={{ minWidth: 200, mt: 2 }}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: 2.5, marginRight: 2 }}>
-                        <Typography>
-                            Campus:
-                        </Typography>
-                        <TextField
-                            select
-                            label="Campus"
-                            size="small"
-                            value={campusFilter}
-                            onChange={(e) => setCampusFilter(e.target.value)}
-                            SelectProps={{ native: true }}
-                            sx={{ width: 150 }}
-                        >
-                            {branches.map((branch) => (
-                                <option key={branch.id ?? branch.branch} value={branch.id ?? ""}>
-                                    {branch.branch}
-                                </option>
-                            ))}
-                        </TextField>
-                    </Box>
-
-                    <Box display="flex" alignItems="center" gap={1} sx={{ minWidth: 200 }}>
-
-                        <input
-                            type="file"
-                            accept=".xlsx,.xls"
-                            onChange={handleFileChange}
-                            style={{ display: "none" }}
-                            id="grades-excel-upload"
-                        />
-
-
-                        <div ref={divToPrintRef} style={{ position: "absolute", left: "-9999px", top: 0 }}></div>
-                        <button
-                            onClick={() => document.getElementById("grades-excel-upload").click()}
-                            style={{
-                                border: "2px solid green",
-                                backgroundColor: "#f0fdf4",
-                                color: "green",
-                                borderRadius: "5px",
-                                cursor: "pointer",
-                                fontSize: "14px",
-                                fontWeight: "bold",
-                                height: "50px",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "8px",
-                                justifyContent: "center",
-                                userSelect: "none",
-                                width: "200px",
-
-                            }}
-                            type="button"
-                        >
-                            <FaFileExcel size={20} />
-                            Choose Excel
-                        </button>
-
-                        {selectedFile && (
-                            <Typography
-                                sx={{
-                                    mt: 1,
-                                    fontSize: "13px",
-                                    color: "#333",
-                                    fontStyle: "italic"
-                                }}
-                            >
-                                📄 {selectedFile.name} ({formatFileSize(selectedFile.size)})
+            {/* ═══════════════════════════════════
+                MISSING STUDENTS TABLE
+            ═══════════════════════════════════ */}
+            {skippedNotFoundStudents.length > 0 && (
+                <Fade in>
+                    <Box mt={2.5} mb={1}>
+                        <Box display="flex" alignItems="center" gap={1.5} mb={1.5}>
+                            <Typography variant="h6" sx={{ fontWeight: 700, color: "#8B0000" }}>
+                                Missing Students List
                             </Typography>
-                        )}
+                            <Chip
+                                label={skippedNotFoundStudents.length}
+                                size="small"
+                                sx={{
+                                    backgroundColor: "#fecaca",
+                                    color: "#7f1d1d",
+                                    fontWeight: 700,
+                                    fontSize: 12,
+                                    height: 22,
+                                }}
+                            />
+                        </Box>
+
+                        <TableContainer
+                            component={Paper}
+                            elevation={0}
+                            sx={{ border: "1px solid #fecaca", overflow: "hidden" }}
+                        >
+                            <Table size="small">
+                                <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
+                                    <TableRow>
+                                        {["#", "Student Number", "Student Name"].map((h) => (
+                                            <TableCell
+                                                key={h}
+                                                sx={{
+                                                    color: "white",
+                                                    fontWeight: 700,
+                                                    fontSize: 12,
+                                                    letterSpacing: "0.04em",
+                                                    border: `1px solid ${borderColor}`,
+                                                }}
+                                            >
+                                                {h}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {skippedNotFoundStudents.map((student, index) => (
+                                        <TableRow
+                                            key={index}
+                                            sx={{ "&:nth-of-type(even)": { backgroundColor: "lightgray" } }}
+                                        >
+                                            <TableCell sx={{ fontWeight: 600, border: `1px solid ${borderColor}`, color: "#7f1d1d", width: 50 }}>
+                                                {index + 1}
+                                            </TableCell>
+                                            <TableCell sx={{ fontWeight: 600, border: `1px solid ${borderColor}` }}>
+                                                {student.studentNumber}
+                                            </TableCell>
+                                            <TableCell sx={{ fontWeight: 600, border: `1px solid ${borderColor}` }}>
+                                                {student.last_name}, {student.first_name} {student.middle_name}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
                     </Box>
+                </Fade>
+            )}
 
-                    <Button
-                        variant="contained"
-                        fullWidth
-                        sx={{
-                            background: `${mainButtonColor}`,
-                            color: "white",
-                            height: "50px",
-                            width: "200px",
-                            fontWeight: "bold",
-                            border: "2px solid black"
-                        }}
-                        onClick={handleImport}
-                    >
-                        IMPORT
-                    </Button>
-
+            {/* ═══════════════════════════════════
+                SECTION 1 — Student Grades Migration
+            ═══════════════════════════════════ */}
+            <Paper
+                elevation={0}
+                sx={{
+                    p: 3, mt: 3, mb: 3, borderRadius: 4,
+                    border: `1px solid ${borderColor}`,
+                    backgroundColor: "#fff",
+                }}
+            >
+                <Box mb={3}>
+                    <Typography variant="h6" fontWeight={700}>
+                        Student Grades Migration
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" mt={0.5}>
+                        Upload Excel files containing student grades and academic records.
+                    </Typography>
                 </Box>
-            </Box>
 
+                <input
+                    type="file"
+                    accept=".xlsx,.xls"
+                    onChange={(e) => e.target.files?.[0] && setSelectedFile(e.target.files[0])}
+                    style={{ display: "none" }}
+                    id="grades-excel-upload"
+                />
 
-            <Box sx={{ mt: 5 }}>
-                <Typography>
-                    Upload Personal Information
-                </Typography>
                 <Box
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    width="100%"
-                    mb={2}
+                    sx={{
+                        border: "1px dashed #cbd5e1",
+                        borderRadius: 4,
+                        p: 3,
+                        background: "linear-gradient(135deg, #f8fafc 0%, #ffffff 100%)",
+                    }}
                 >
-                    {/* RIGHT SIDE — Choose Excel + Import */}
-                    <Box display="flex" alignItems="center" gap={2}>
-                        <input
-                            type="file"
-                            accept=".xlsx,.xls"
-                            onChange={handleExcelChange}
-                            style={{ display: "none" }}
-                            id="excel-upload"
-                        />
-
-                        {/* Choose Excel Button */}
-                        <button
-                            onClick={() => document.getElementById("excel-upload").click()}
-                            style={{
-                                padding: "5px 20px",
-                                border: "2px solid green",
-                                backgroundColor: "#f0fdf4",
-                                color: "green",
-                                borderRadius: "5px",
-                                cursor: "pointer",
-                                fontSize: "14px",
-                                fontWeight: "bold",
-                                height: "50px",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                gap: "8px",
-                                width: "175px",
-                            }}
-                            type="button"
-                        >
-                            <FaFileExcel size={20} />
-                            Choose Excel
-                        </button>
-
-                        {excelFile && (
-                            <Typography
-                                sx={{
-                                    mt: 1,
-                                    fontSize: "13px",
-                                    color: "#333",
-                                    fontStyle: "italic"
-                                }}
-                            >
-                                📄 {excelFile.name} ({formatFileSize(excelFile.size)})
-                            </Typography>
-                        )}
-
-                        {/* Import Button */}
-                        <Button
-                            onClick={handleImportExcel}
-                            variant="contained"
+                    <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
+                        {/* CAMPUS */}
+                        <FormControl
+                            size="small"
                             sx={{
-                                backgroundColor: settings?.header_color || "#1976d2",
-                                border: `1px solid ${borderColor}`,
-                                color: "white",
-                                height: "50px",
-                                width: "175px",
-                                fontWeight: "bold",
+                                minWidth: 180,
+                                "& .MuiOutlinedInput-root": { borderRadius: 2, backgroundColor: "#fff" },
                             }}
                         >
-                            Import
+                            <InputLabel>Campus</InputLabel>
+                            <Select
+                                value={campusFilter}
+                                label="Campus"
+                                onChange={(e) => setCampusFilter(e.target.value)}
+                            >
+                                {branches.map((b) => (
+                                    <MenuItem key={b.id ?? b.branch} value={b.id ?? ""}>
+                                        {b.branch}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        {/* CHOOSE */}
+                        <Button
+                            variant="outlined"
+                            startIcon={<FaFileExcel />}
+                            onClick={() => document.getElementById("grades-excel-upload").click()}
+                            sx={{
+                                height: 42, px: 3, borderRadius: 2.5,
+                                textTransform: "none", fontWeight: 700,
+                                border: "2px solid #16a34a", color: "#15803d",
+                                backgroundColor: "#f0fdf4",
+                                "&:hover": { backgroundColor: "#dcfce7", borderColor: "#15803d" },
+                            }}
+                        >
+                            Choose Excel File
+                        </Button>
+
+                        {/* IMPORT */}
+                        <Button
+                            variant="contained"
+                            disabled={!selectedFile}
+                            startIcon={<FileUpload />}
+                            onClick={handleImport}
+                            sx={{
+                                height: 42, px: 3, borderRadius: 2.5,
+                                textTransform: "none", fontWeight: 700, boxShadow: "none",
+                                background: selectedFile
+                                    ? "linear-gradient(to right, #16a34a, #15803d)"
+                                    : undefined,
+                                "&:hover": {
+                                    background: "linear-gradient(to right, #15803d, #166534)",
+                                    boxShadow: "0 6px 16px rgba(22,163,74,0.25)",
+                                },
+                            }}
+                        >
+                            Import Grades
                         </Button>
                     </Box>
+
+                    {/* FILE PREVIEW */}
+                    {selectedFile && (
+                        <Fade in>
+                            <Box
+                                mt={2.5}
+                                sx={{
+                                    display: "flex", alignItems: "center", gap: 2, p: 2,
+                                    borderRadius: 3, border: "1px solid #bbf7d0",
+                                    background: "linear-gradient(to right, #f0fdf4, #ffffff)",
+                                }}
+                            >
+                                <Box
+                                    sx={{
+                                        width: 52, height: 52, borderRadius: 2,
+                                        backgroundColor: "#dcfce7",
+                                        display: "flex", alignItems: "center", justifyContent: "center",
+                                    }}
+                                >
+                                    <FaFileExcel size={28} color="#16a34a" />
+                                </Box>
+                                <Box flex={1} minWidth={0}>
+                                    <Typography sx={{ fontWeight: 700, fontSize: 14, color: "#14532d", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                        {selectedFile.name}
+                                    </Typography>
+                                    <Typography sx={{ fontSize: 12, color: "#15803d", mt: 0.3 }}>
+                                        {selectedFile.type || "Excel Workbook"} •{" "}
+                                        {selectedFile.size < 1024 * 1024
+                                            ? (selectedFile.size / 1024).toFixed(1) + " KB"
+                                            : (selectedFile.size / (1024 * 1024)).toFixed(1) + " MB"}
+                                    </Typography>
+                                </Box>
+                                <Button
+                                    size="small"
+                                    onClick={handleRemoveFile}
+                                    sx={{
+                                        textTransform: "none", borderRadius: 2, fontWeight: 600,
+                                        color: "#dc2626", border: "1px solid #fecaca", backgroundColor: "#fff",
+                                        "&:hover": { backgroundColor: "#fef2f2" },
+                                    }}
+                                >
+                                    Remove
+                                </Button>
+                            </Box>
+                        </Fade>
+                    )}
                 </Box>
 
+                {/* MISSING COURSES */}
+                {missingCourses.length > 0 && (
+                    <Paper
+                        elevation={0}
+                        sx={{ mt: 3, overflow: "hidden", borderRadius: 3, border: "1px solid #fecaca" }}
+                    >
+                        <Box
+                            sx={{
+                                p: 2,
+                                background: "linear-gradient(to right, #fff1f2, #ffffff)",
+                                borderBottom: "1px solid #fecaca",
+                                display: "flex", alignItems: "center", gap: 1.5,
+                            }}
+                        >
+                            <Box>
+                                <Typography fontWeight={700} color="error.main" fontSize={14}>
+                                    Missing courses detected
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary" mt={0.5}>
+                                    Please add these courses first before re-importing the file.
+                                </Typography>
+                            </Box>
+                            <Chip
+                                label={`${missingCourses.length} course${missingCourses.length !== 1 ? "s" : ""}`}
+                                size="small"
+                                sx={{ ml: "auto", backgroundColor: "#fecaca", color: "#7f1d1d", fontWeight: 700 }}
+                            />
+                        </Box>
+                        <TableContainer sx={{ maxHeight: 320 }}>
+                            <Table stickyHeader size="small">
+                                <TableHead>
+                                    <TableRow>
+                                        {["Course Code", "Description", "Units"].map(h => (
+                                            <TableCell
+                                                key={h}
+                                                align={h === "Units" ? "center" : "left"}
+                                                sx={{ fontWeight: 700, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", backgroundColor: "#fafafa" }}
+                                            >
+                                                {h}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {missingCourses.map((c, i) => (
+                                        <TableRow key={`${c.course_code}-${i}`} hover>
+                                            <TableCell>{displayValue(c.course_code)}</TableCell>
+                                            <TableCell>{displayValue(c.course_description || c.description)}</TableCell>
+                                            <TableCell align="center">{displayValue(c.course_unit || c.units)}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </Paper>
+                )}
+            </Paper>
 
-                <Button onClick={exportExcel}>Export Excel</Button>
-                <Button onClick={exportPDF}>Export PDF</Button>
-            </Box>
-
-            <Snackbar
-                open={snackbar.open}
-                autoHideDuration={3000}
-                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-                onClose={() => setSnackbar({ ...snackbar, open: false })}
+            {/* ═══════════════════════════════════
+                SECTION 2 — Personal Information
+            ═══════════════════════════════════ */}
+            <Paper
+                elevation={0}
+                sx={{
+                    p: 3, borderRadius: 4,
+                    backgroundColor: "#fff",
+                    border: `1px solid ${borderColor}`
+                }}
             >
-                <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
+                <Box mb={3}>
+                    <Typography variant="h6" fontWeight={700}>
+                        Upload Personal Information
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" mt={0.5}>
+                        Import student personal records from Excel.
+                    </Typography>
+                </Box>
+
+                <input
+                    ref={excelInputRef}
+                    type="file"
+                    accept=".xlsx,.xls"
+                    onChange={(e) => e.target.files?.[0] && setExcelFile(e.target.files[0])}
+                    style={{ display: "none" }}
+                    id="excel-upload"
+                />
+
+                <Box sx={{ border: "1px dashed #cbd5e1", borderRadius: 4, p: 3, background: "linear-gradient(135deg, #f8faff 0%, #ffffff 100%)" }}>
+                    <Box display="flex" gap={2} flexWrap="wrap" alignItems="center">
+                        <Button
+                            variant="outlined"
+                            startIcon={<FaFileExcel />}
+                            onClick={() => document.getElementById("excel-upload").click()}
+                            sx={{
+                                height: 42, px: 3, borderRadius: 2.5,
+                                textTransform: "none", fontWeight: 700,
+                                border: "2px solid #2563eb", color: "#2563eb",
+                                backgroundColor: "#eff6ff",
+                                "&:hover": { backgroundColor: "#dbeafe", borderColor: "#1d4ed8" },
+                            }}
+                        >
+                            Choose Excel File
+                        </Button>
+
+                        <Button
+                            variant="contained"
+                            startIcon={<FileUpload />}
+                            onClick={handleImportExcel}
+                            sx={{
+                                height: 42, px: 3, borderRadius: 2.5,
+                                textTransform: "none", fontWeight: 700, boxShadow: "none",
+                                background: "linear-gradient(to right, #2563eb, #1d4ed8)",
+                                "&:hover": {
+                                    background: "linear-gradient(to right, #1d4ed8, #1e40af)",
+                                    boxShadow: "0 6px 16px rgba(37,99,235,0.25)",
+                                },
+                            }}
+                        >
+                            Import Information
+                        </Button>
+                    </Box>
+
+                    {/* FILE PREVIEW — Section 2 */}
+                    {excelFile && (
+                        <Fade in>
+                            <Box
+                                mt={2.5}
+                                sx={{
+                                    display: "flex", alignItems: "center", gap: 2, p: 2,
+                                    borderRadius: 3, border: "1px solid #bfdbfe",
+                                    background: "linear-gradient(to right, #eff6ff, #ffffff)",
+                                }}
+                            >
+                                <Box
+                                    sx={{
+                                        width: 52, height: 52, borderRadius: 2,
+                                        backgroundColor: "#dbeafe",
+                                        display: "flex", alignItems: "center", justifyContent: "center",
+                                    }}
+                                >
+                                    <FaFileExcel size={28} color="#2563eb" />
+                                </Box>
+                                <Box flex={1} minWidth={0}>
+                                    <Typography sx={{ fontWeight: 700, fontSize: 14, color: "#1e3a8a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                        {excelFile.name}
+                                    </Typography>
+                                    <Typography sx={{ fontSize: 12, color: "#2563eb", mt: 0.3 }}>
+                                        {excelFile.type || "Excel Workbook"} •{" "}
+                                        {excelFile.size < 1024 * 1024
+                                            ? (excelFile.size / 1024).toFixed(1) + " KB"
+                                            : (excelFile.size / (1024 * 1024)).toFixed(1) + " MB"}
+                                    </Typography>
+                                </Box>
+                                <Button
+                                    size="small"
+                                    onClick={() => { setExcelFile(null); if (excelInputRef.current) excelInputRef.current.value = ""; }}
+                                    sx={{
+                                        textTransform: "none", borderRadius: 2, fontWeight: 600,
+                                        color: "#dc2626", border: "1px solid #fecaca", backgroundColor: "#fff",
+                                        "&:hover": { backgroundColor: "#fef2f2" },
+                                    }}
+                                >
+                                    Remove
+                                </Button>
+                            </Box>
+                        </Fade>
+                    )}
+
+                    {/* EXPORT */}
+                    <Box mt={3} pt={2} sx={{ borderTop: "1px solid #e2e8f0" }}>
+                        <Typography fontSize={13} fontWeight={600} mb={1.5} color="text.secondary">
+                            Export Student List
+                        </Typography>
+                        <Box display="flex" gap={1.5}>
+                            <Button
+                                variant="outlined"
+                                startIcon={<Download />}
+                                onClick={exportExcel}
+                                sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600 }}
+                            >
+                                Export Excel
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                startIcon={<PictureAsPdf />}
+                                onClick={exportPDF}
+                                sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600 }}
+                            >
+                                Export PDF
+                            </Button>
+                        </Box>
+                    </Box>
+                </Box>
+            </Paper>
+
+            {/* ═══════════════════════════════════
+                SNACKBAR — Section 1 (Grades)
+            ═══════════════════════════════════ */}
+            <Snackbar
+                open={snack1.open}
+                onClose={() => setSnack1(s => ({ ...s, open: false }))}
+                anchorOrigin={{ vertical: "top", horizontal: "center" }}
+                autoHideDuration={4000}
+            >
+                <Alert
+                    onClose={() => setSnack1(s => ({ ...s, open: false }))}
+                    severity={snack1.severity}
+                    sx={{ width: "100%" }}
+                >
+                    {snack1.message}
+                </Alert>
             </Snackbar>
+
+            {/* ═══════════════════════════════════
+                SNACKBAR — Section 2 (Personal Info)
+            ═══════════════════════════════════ */}
+            <Snackbar
+                open={snack2.open}
+                onClose={() => setSnack2(s => ({ ...s, open: false }))}
+                anchorOrigin={{ vertical: "top", horizontal: "center" }}
+                autoHideDuration={4000}
+            >
+                <Alert
+                    onClose={() => setSnack2(s => ({ ...s, open: false }))}
+                    severity={snack2.severity}
+                    sx={{ width: "100%" }}
+                >
+                    {snack2.message}
+                </Alert>
+            </Snackbar>
+
         </Box>
-    )
-}
+    );
+};
 
 export default MigrationDataPanel;
