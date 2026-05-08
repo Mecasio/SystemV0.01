@@ -89,6 +89,15 @@ const EvaluationCRUD = () => {
 
     const [employeeID, setEmployeeID] = useState("");
 
+    const getAuditHeaders = () => ({
+        headers: {
+            "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+            "x-page-id": pageId,
+            "x-audit-actor-id": employeeID || localStorage.getItem("employee_id") || "",
+            "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+        },
+    });
+
     useEffect(() => {
 
         const storedUser = localStorage.getItem("email");
@@ -267,7 +276,8 @@ const EvaluationCRUD = () => {
             if (editMode) {
                 const response = await axios.put(
                     `${API_BASE_URL}/update_question/${selectedId}`,
-                    formData
+                    formData,
+                    getAuditHeaders()
                 );
                 setSnackbarMessage(response.data.message);
                 setOpenSnackbar(true);
@@ -275,7 +285,7 @@ const EvaluationCRUD = () => {
                 const response = await axios.post(`${API_BASE_URL}/insert_question`, {
                     ...formData,
                     school_year_id: selectedActiveSchoolYear, // ✅ include this
-                });
+                }, getAuditHeaders());
                 setSnackbarMessage(response.data.message);
                 setOpenSnackbar(true);
             }
@@ -293,10 +303,10 @@ const EvaluationCRUD = () => {
     const handleSaveCategory = async () => {
         try {
             if (categoryEditMode) {
-                await axios.put(`${API_BASE_URL}/update_category/${selectedCategoryId}`, categoryFormData);
+                await axios.put(`${API_BASE_URL}/update_category/${selectedCategoryId}`, categoryFormData, getAuditHeaders());
                 setSnackbarMessage("Category updated successfully");
             } else {
-                await axios.post(`${API_BASE_URL}/insert_category`, categoryFormData);
+                await axios.post(`${API_BASE_URL}/insert_category`, categoryFormData, getAuditHeaders());
                 setSnackbarMessage("Category created successfully");
             }
             setOpenSnackbar(true);
@@ -333,7 +343,7 @@ const EvaluationCRUD = () => {
     const handleDeleteCategory = async (categoryId) => {
         if (window.confirm("Are you sure you want to delete this category?")) {
             try {
-                await axios.delete(`${API_BASE_URL}/delete_category/${categoryId}`);
+                await axios.delete(`${API_BASE_URL}/delete_category/${categoryId}`, getAuditHeaders());
                 setSnackbarMessage("Category deleted successfully");
                 setOpenSnackbar(true);
                 fetchCategories();
@@ -347,7 +357,7 @@ const EvaluationCRUD = () => {
     const handleDeleteQuestion = async (questionId) => {
         if (window.confirm("Are you sure you want to delete this question?")) {
             try {
-                await axios.delete(`${API_BASE_URL}/delete_question/${questionId}`);
+                await axios.delete(`${API_BASE_URL}/delete_question/${questionId}`, getAuditHeaders());
                 setSnackbarMessage("Question deleted successfully");
                 setOpenSnackbar(true);
                 fetchQuestions();

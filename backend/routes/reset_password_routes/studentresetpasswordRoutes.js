@@ -2,8 +2,43 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const { db, db3 } = require("../database/database");
+const { insertAuditLogEnrollment } = require("../../utils/auditLogger");
 
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const insertResetAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogEnrollment({
+    actorId,
+    role: actorRole,
+    action,
+    severity: "INFO",
+    message,
+  });
+};
 
 /* =====================================
    SUPER ADMIN: GET SINGLE STUDENT
@@ -77,6 +112,14 @@ router.post("/superadmin-update-status-student", async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Student not found" });
     }
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertResetAuditLog({
+      req,
+      action: "STUDENT_RESET_STATUS_UPDATE",
+      message: `${roleLabel} (${actorId}) set Student (${email}) to ${Number(status) === 1 ? "Active" : "Inactive"}.`,
+    });
 
     res.json({
       message: "Student status updated successfully",
@@ -172,6 +215,14 @@ router.post("/superadmin-reset-student", async (req, res) => {
       to: email,
       subject: "Your Password Has Been Reset",
       text: `Your new temporary password is: ${newPassword}\n\nPlease change it after logging in.`,
+    });
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertResetAuditLog({
+      req,
+      action: "STUDENT_PASSWORD_RESET",
+      message: `${roleLabel} (${actorId}) reset password for Student (${email}).`,
     });
 
     res.json({

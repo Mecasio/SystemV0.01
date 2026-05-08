@@ -117,6 +117,8 @@ const DepartmentSection = () => {
   const getPermissionHeaders = () => ({
     "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
     "x-page-id": pageId,
+    "x-audit-actor-id": employeeID || localStorage.getItem("employee_id") || "",
+    "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
   });
 
   useEffect(() => {

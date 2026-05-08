@@ -5,7 +5,73 @@ const {
   CanDelete,
   CanEdit,
 } = require("../../middleware/pagePermissions");
+const { insertAuditLogEnrollment } = require("../../utils/auditLogger");
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole: req.headers["x-audit-actor-role"] || "registrar",
+});
+
+const getCurriculumLabel = async (curriculumId, fallback = {}) => {
+  try {
+    const [rows] = await db3.query(
+      `
+      SELECT
+        ct.curriculum_id,
+        p.program_code,
+        p.program_description,
+        p.major,
+        y.year_description
+      FROM curriculum_table ct
+      LEFT JOIN program_table p ON p.program_id = ct.program_id
+      LEFT JOIN year_table y ON y.year_id = ct.year_id
+      WHERE ct.curriculum_id = ?
+      LIMIT 1
+      `,
+      [curriculumId],
+    );
+
+    const curriculum = rows?.[0];
+    if (curriculum) {
+      const programCode = curriculum.program_code || "N/A";
+      const programDescription =
+        curriculum.program_description || "Unknown Program";
+      const major = curriculum.major ? ` (${curriculum.major})` : "";
+      const year = curriculum.year_description || "Unknown Year";
+      return `${programCode} - ${programDescription}${major}, ${year}`;
+    }
+  } catch (err) {
+    console.error("Curriculum audit label lookup failed:", err);
+  }
+
+  return `Curriculum ${curriculumId || fallback.curriculum_id || "unknown"}`;
+};
+
+const insertCurriculumAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogEnrollment({
+    actorId,
+    role: actorRole,
+    action,
+    severity: "INFO",
+    message,
+  });
+};
 
 router.post("/curriculum", CanCreate, async (req, res) => {
   const { year_id, program_id } = req.body;
@@ -29,6 +95,17 @@ router.post("/curriculum", CanCreate, async (req, res) => {
     const sql =
       "INSERT INTO curriculum_table (year_id, program_id) VALUES (?, ?)";
     const [result] = await db3.query(sql, [year_id, program_id]);
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    const curriculumLabel = await getCurriculumLabel(result.insertId, {
+      curriculum_id: result.insertId,
+    });
+
+    await insertCurriculumAuditLog({
+      req,
+      action: "CURRICULUM_CREATE",
+      message: `${roleLabel} (${actorId}) created curriculum ${curriculumLabel}.`,
+    });
 
     res.status(201).json({
       message: "Curriculum created successfully",
@@ -85,6 +162,15 @@ router.put("/update_curriculum/:id", CanEdit, async (req, res) => {
       return res.status(404).json({ message: "Curriculum not found" });
     }
 
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    const curriculumLabel = await getCurriculumLabel(id);
+    await insertCurriculumAuditLog({
+      req,
+      action: "CURRICULUM_STATUS_UPDATE",
+      message: `${roleLabel} (${actorId}) set curriculum ${curriculumLabel} to ${lock_status === 1 ? "Active" : "Inactive"}.`,
+    });
+
     res.status(200).json({ message: "Curriculum status updated successfully" });
   } catch (error) {
     console.error("❌ Error updating curriculum status:", error);
@@ -106,6 +192,15 @@ router.put("/update_curriculum_data/:id", CanEdit, async (req, res) => {
       return res.status(404).json({ message: "Curriculum not found" });
     }
 
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    const curriculumLabel = await getCurriculumLabel(id);
+    await insertCurriculumAuditLog({
+      req,
+      action: "CURRICULUM_UPDATE",
+      message: `${roleLabel} (${actorId}) updated curriculum ${curriculumLabel}.`,
+    });
+
     res.json({ message: "Curriculum updated successfully" });
   } catch (err) {
     console.error(err);
@@ -117,6 +212,7 @@ router.delete("/delete_curriculum/:id", CanDelete, async (req, res) => {
   const { id } = req.params;
 
   try {
+    const curriculumLabel = await getCurriculumLabel(id);
     const [result] = await db3.query(
       "DELETE FROM curriculum_table WHERE curriculum_id = ?",
       [id],
@@ -125,6 +221,14 @@ router.delete("/delete_curriculum/:id", CanDelete, async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Curriculum not found" });
     }
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertCurriculumAuditLog({
+      req,
+      action: "CURRICULUM_DELETE",
+      message: `${roleLabel} (${actorId}) deleted curriculum ${curriculumLabel}.`,
+    });
 
     res.json({ message: "Curriculum deleted successfully" });
   } catch (err) {

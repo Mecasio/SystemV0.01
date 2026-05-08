@@ -72,6 +72,16 @@ const CourseTagging = () => {
   const [userRole, setUserRole] = useState("");
   const pageId = 17;
   const [employeeID, setEmployeeID] = useState("");
+  const auditConfig = {
+    headers: {
+      "x-audit-actor-id":
+        employeeID ||
+        localStorage.getItem("employee_id") ||
+        localStorage.getItem("email") ||
+        "unknown",
+      "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+    },
+  };
 
   useEffect(() => {
     const storedUser = localStorage.getItem("email");
@@ -256,7 +266,7 @@ const CourseTagging = () => {
     if (isEnrolledCourse(course.course_id)) return;
     const payload = { subject_id: course.course_id, department_section_id: selectedSection };
     try {
-      await axios.post(`${API_BASE_URL}/add-to-enrolled-courses/${userId}/${currId}/`, payload);
+      await axios.post(`${API_BASE_URL}/add-to-enrolled-courses/${userId}/${currId}/`, payload, auditConfig);
       const { data } = await axios.get(`${API_BASE_URL}/enrolled_courses/${userId}/${currId}`);
       setEnrolled(data);
       setSnack({ open: true, message: `Enrolled ${course.course_code} successfully.`, severity: "success" });
@@ -266,7 +276,7 @@ const CourseTagging = () => {
   const deleteFromCart = async (id) => {
     if (!id) return;
     try {
-      await axios.delete(`${API_BASE_URL}/courses/delete/${id}`);
+      await axios.delete(`${API_BASE_URL}/courses/delete/${id}`, auditConfig);
       const { data } = await axios.get(`${API_BASE_URL}/enrolled_courses/${userId}/${currId}`);
       setEnrolled(data);
       setSnack({ open: true, message: "Subject unenrolled successfully.", severity: "success" });
@@ -282,7 +292,7 @@ const CourseTagging = () => {
     try {
       await Promise.all(newCourses.map(async (course) => {
         try {
-          await axios.post(`${API_BASE_URL}/add-all-to-enrolled-courses`, { subject_id: course.course_id, user_id: userId, curriculumID: currId, departmentSectionID: selectedSection, year_level: yearLevelId });
+          await axios.post(`${API_BASE_URL}/add-all-to-enrolled-courses`, { subject_id: course.course_id, user_id: userId, curriculumID: currId, departmentSectionID: selectedSection, year_level: yearLevelId }, auditConfig);
           enrolledCount++;
           setDisableYearButtons(true);
         } catch (err) { console.error("Error enrolling course in bulk:", err); }
@@ -296,7 +306,7 @@ const CourseTagging = () => {
 
   const deleteAllCart = async () => {
     try {
-      await axios.delete(`${API_BASE_URL}/courses/user/${userId}`);
+      await axios.delete(`${API_BASE_URL}/courses/user/${userId}`, auditConfig);
       const { data } = await axios.get(`${API_BASE_URL}/enrolled_courses/${userId}/${currId}`);
       setEnrolled(data);
       setDisableYearButtons(false);

@@ -325,6 +325,17 @@ const SuperAdminProfessorEducation = () => {
     const pageId = 109;
     const accent = mainButtonColor;
 
+    const auditConfig = {
+        headers: {
+            "x-audit-actor-id":
+                employeeID ||
+                localStorage.getItem("employee_id") ||
+                localStorage.getItem("email") ||
+                "unknown",
+            "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+        },
+    };
+
     useEffect(() => {
         if (!settings) return;
         if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
@@ -386,7 +397,7 @@ const SuperAdminProfessorEducation = () => {
     const handleAdd = async () => {
         if (!personId) { showSnack("Please select a professor", "warning"); return; }
         try {
-            await axios.post(`${API_BASE_URL}/person_prof`, { person_id: personId, bachelor, master, doctor });
+            await axios.post(`${API_BASE_URL}/person_prof`, { person_id: personId, bachelor, master, doctor }, auditConfig);
             showSnack("Education record added", "success");
             resetForm(); fetchList();
         } catch { showSnack("Failed to add record", "error"); }
@@ -402,7 +413,7 @@ const SuperAdminProfessorEducation = () => {
 
     const handleUpdate = async () => {
         try {
-            await axios.put(`${API_BASE_URL}/person_prof/${editing}`, { bachelor, master, doctor });
+            await axios.put(`${API_BASE_URL}/person_prof/${editing}`, { bachelor, master, doctor }, auditConfig);
             showSnack("Record updated", "success");
             resetForm(); fetchList();
         } catch { showSnack("Failed to update record", "error"); }
@@ -410,7 +421,7 @@ const SuperAdminProfessorEducation = () => {
 
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`${API_BASE_URL}/person_prof/${id}`);
+            await axios.delete(`${API_BASE_URL}/person_prof/${id}`, auditConfig);
             showSnack("Record deleted", "success");
             fetchList();
         } catch { showSnack("Failed to delete record", "error"); }

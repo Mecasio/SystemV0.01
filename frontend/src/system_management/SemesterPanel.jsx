@@ -79,6 +79,15 @@ const SemesterPanel = () => {
 
   const pageId = 58;
 
+  const getAuditHeaders = () => ({
+    headers: {
+      "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+      "x-page-id": pageId,
+      "x-audit-actor-id": employeeID || localStorage.getItem("employee_id") || "",
+      "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+    },
+  });
+
   // ── Data ─────────────────────────────────────────────────────────────────────
   const [semesters, setSemesters] = useState([]);
 
@@ -198,14 +207,14 @@ const SemesterPanel = () => {
         await axios.put(`${API_BASE_URL}/semesters/${editingSemester.semester_id}`, {
           semester_description: editDescription,
           semester_code: editCode,
-        });
+        }, getAuditHeaders());
         setSnackbar({ open: true, message: "Semester updated successfully!", severity: "success" });
       } else {
         // Add new
         await axios.post(`${API_BASE_URL}/semesters`, {
           semester_description: editDescription,
           semester_code: editCode,
-        });
+        }, getAuditHeaders());
         setSnackbar({ open: true, message: "Semester added successfully!", severity: "success" });
       }
 
@@ -221,7 +230,7 @@ const SemesterPanel = () => {
   const handleDeleteConfirm = async () => {
     if (!semesterToDelete) return;
     try {
-      await axios.delete(`${API_BASE_URL}/semesters/${semesterToDelete.semester_id}`);
+      await axios.delete(`${API_BASE_URL}/semesters/${semesterToDelete.semester_id}`, getAuditHeaders());
       setSnackbar({ open: true, message: "Semester deleted successfully!", severity: "success" });
       setOpenDeleteDialog(false);
       setSemesterToDelete(null);

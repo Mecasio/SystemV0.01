@@ -573,7 +573,15 @@ const StudentNumbering = () => {
 
   const confirmAssignNumber = async () => {
     try {
-      socket.current.emit("assign-student-number", selectedPerson.person_id);
+      socket.current.emit("assign-student-number", {
+        person_id: selectedPerson.person_id,
+        audit_actor_id:
+          employeeID ||
+          localStorage.getItem("employee_id") ||
+          localStorage.getItem("email") ||
+          "unknown",
+        audit_actor_role: userRole || localStorage.getItem("role") || "registrar",
+      });
 
       socket.current.once("assign-student-number-result", (data) => {
         if (data.success) {

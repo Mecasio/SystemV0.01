@@ -2,8 +2,43 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const { db } = require("../database/database");
+const { insertAuditLogAdmission } = require("../../utils/auditLogger");
 
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const insertResetAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogAdmission({
+    actorId,
+    role: actorRole,
+    action,
+    severity: "INFO",
+    message,
+  });
+};
 
 
 // ---------------- Applicant: Get Info ----------------
@@ -109,6 +144,14 @@ router.post("/superadmin-reset-applicant", async (req, res) => {
       text: `Your new temporary password is: ${newPassword}\n\nPlease change it after logging in.`,
     });
 
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertResetAuditLog({
+      req,
+      action: "APPLICANT_PASSWORD_RESET",
+      message: `${roleLabel} (${actorId}) reset password for Applicant (${email}).`,
+    });
+
     res.json({
       message: "Password reset successfully. Check your email for the new password.",
     });
@@ -125,10 +168,20 @@ router.post("/superadmin-update-status-applicant", async (req, res) => {
   const { email, status } = req.body;
 
   try {
-    await db.query(
+    const [result] = await db.query(
       `UPDATE user_accounts SET status = ? WHERE email = ? AND role = 'applicant'`,
       [status, email]
     );
+
+    if (result.affectedRows > 0) {
+      const { actorId, actorRole } = getAuditActor(req);
+      const roleLabel = formatAuditActorRole(actorRole);
+      await insertResetAuditLog({
+        req,
+        action: "APPLICANT_RESET_STATUS_UPDATE",
+        message: `${roleLabel} (${actorId}) set Applicant (${email}) to ${Number(status) === 1 ? "Active" : "Inactive"}.`,
+      });
+    }
 
     res.json({ message: "Applicant status updated successfully" });
 

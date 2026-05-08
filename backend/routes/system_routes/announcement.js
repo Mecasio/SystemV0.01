@@ -4,6 +4,7 @@ const multer = require("multer");
 const fs = require("fs");
 const { db, db3 } = require("../database/database");
 const { announcementUpload } = require("../../middleware/uploads");
+const { insertAuditLogAdmission } = require("../../utils/auditLogger");
 const {
   CanCreate,
   CanDelete,
@@ -25,6 +26,43 @@ const announcementStorage = multer.diskStorage({
 
 
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const announcementLabel = (announcement) =>
+  announcement?.title ? `"${announcement.title}"` : `Announcement ${announcement?.id || "unknown"}`;
+
+const insertAnnouncementAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogAdmission({
+    actorId,
+    role: actorRole,
+    action,
+    severity: "INFO",
+    message,
+  });
+};
 
 router.get("/announcements", async (req, res) => {
   try {
@@ -117,6 +155,14 @@ const [result] = await db.execute(
       );
     }
 
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertAnnouncementAuditLog({
+      req,
+      action: "ANNOUNCEMENT_CREATE",
+      message: `${roleLabel} (${actorId}) created announcement ${announcementLabel({ id: announcementId, title })}. Target: ${target_role}. Campus: ${campus || "All"}.`,
+    });
+
     res.json({
       message: "Announcement created",
       id: announcementId,
@@ -149,6 +195,10 @@ router.put("/announcements/:id", CanEdit, announcementUpload.single("image"), as
   }
 
   try {
+    const [[announcementBefore]] = await db.execute(
+      "SELECT id, title, target_role, campus FROM announcements WHERE id = ? LIMIT 1",
+      [id],
+    );
 
     let query;
     let params;
@@ -199,6 +249,14 @@ router.put("/announcements/:id", CanEdit, announcementUpload.single("image"), as
       );
     }
 
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertAnnouncementAuditLog({
+      req,
+      action: "ANNOUNCEMENT_UPDATE",
+      message: `${roleLabel} (${actorId}) updated announcement ${announcementLabel(announcementBefore)} to ${announcementLabel({ id, title })}. Target: ${target_role}. Campus: ${campus || "All"}.`,
+    });
+
     res.json({ message: "Announcement updated successfully" });
 
   } catch (err) {
@@ -211,6 +269,11 @@ router.delete("/announcements/:id", CanDelete, async (req, res) => {
   const { id } = req.params;
 
   try {
+    const [[announcementBefore]] = await db.execute(
+      "SELECT id, title, target_role, campus FROM announcements WHERE id = ? LIMIT 1",
+      [id],
+    );
+
     const [result] = await db.execute(
       "DELETE FROM announcements WHERE id = ?",
       [id],
@@ -219,6 +282,14 @@ router.delete("/announcements/:id", CanDelete, async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: "Announcement not found" });
     }
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertAnnouncementAuditLog({
+      req,
+      action: "ANNOUNCEMENT_DELETE",
+      message: `${roleLabel} (${actorId}) deleted announcement ${announcementLabel(announcementBefore)}.`,
+    });
 
     res.json({ message: "Announcement deleted" });
   } catch (err) {

@@ -1,6 +1,48 @@
 const express = require("express");
 const { db3 } = require("../database/database");
+const { insertAuditLogEnrollment } = require("../../utils/auditLogger");
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const nstpLabel = (component) => {
+  if (Number(component) === 1) return "ROTC";
+  if (Number(component) === 2) return "CWTS";
+  if (Number(component) === 3) return "LTS";
+  return `Component ${component}`;
+};
+
+const insertNstpAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogEnrollment({
+    actorId,
+    role: actorRole,
+    action,
+    severity: "INFO",
+    message,
+  });
+};
 
 router.get("/get_student_per_section", async (req, res) => {
   const { department_section_id, active_school_year_id } = req.query;
@@ -109,12 +151,21 @@ router.put("/enroll_nstp_component", async (req, res) => {
       )
     `;
 
-    await db3.execute(sql, [
+    const [result] = await db3.execute(sql, [
       nstp_type,
       department_section_id,
       active_school_year_id,
       curriculum_id,
     ]);
+    if (result.affectedRows > 0) {
+      const { actorId, actorRole } = getAuditActor(req);
+      const roleLabel = formatAuditActorRole(actorRole);
+      await insertNstpAuditLog({
+        req,
+        action: "NSTP_TAGGING_ENROLL_ALL",
+        message: `${roleLabel} (${actorId}) enrolled ${result.affectedRows} student(s) in ${nstpLabel(nstp_type)} for department section ${department_section_id}.`,
+      });
+    }
     res.json({
       message: "NSTP components updated successfully for the section",
     });
@@ -163,13 +214,22 @@ router.put("/enroll_nstp_component/:student_number", async (req, res) => {
       )
     `;
 
-    await db3.execute(sql, [
+    const [result] = await db3.execute(sql, [
       nstp_type,
       student_number,
       department_section_id,
       active_school_year_id,
       curriculum_id,
     ]);
+    if (result.affectedRows > 0) {
+      const { actorId, actorRole } = getAuditActor(req);
+      const roleLabel = formatAuditActorRole(actorRole);
+      await insertNstpAuditLog({
+        req,
+        action: "NSTP_TAGGING_ENROLL",
+        message: `${roleLabel} (${actorId}) enrolled Student (${student_number}) in ${nstpLabel(nstp_type)}.`,
+      });
+    }
     res.json({
       message: "NSTP component updated successfully for the student",
     });
@@ -198,11 +258,20 @@ router.put("/unenroll_nstp_component", async (req, res) => {
       )
     `;
 
-    await db3.execute(sql, [
+    const [result] = await db3.execute(sql, [
       department_section_id,
       active_school_year_id,
       curriculum_id,
     ]);
+    if (result.affectedRows > 0) {
+      const { actorId, actorRole } = getAuditActor(req);
+      const roleLabel = formatAuditActorRole(actorRole);
+      await insertNstpAuditLog({
+        req,
+        action: "NSTP_TAGGING_UNENROLL_ALL",
+        message: `${roleLabel} (${actorId}) unenrolled ${result.affectedRows} student(s) from NSTP for department section ${department_section_id}.`,
+      });
+    }
     res.json({
       message: "NSTP components unenrolled successfully for the section",
     });
@@ -235,12 +304,21 @@ router.put("/unenroll_nstp_component/:student_number", async (req, res) => {
       )
     `;
 
-    await db3.execute(sql, [
+    const [result] = await db3.execute(sql, [
       student_number,
       department_section_id,
       active_school_year_id,
       curriculum_id,
     ]);
+    if (result.affectedRows > 0) {
+      const { actorId, actorRole } = getAuditActor(req);
+      const roleLabel = formatAuditActorRole(actorRole);
+      await insertNstpAuditLog({
+        req,
+        action: "NSTP_TAGGING_UNENROLL",
+        message: `${roleLabel} (${actorId}) unenrolled Student (${student_number}) from NSTP.`,
+      });
+    }
     res.json({
       message: "NSTP component unenrolled successfully for the student",
     });

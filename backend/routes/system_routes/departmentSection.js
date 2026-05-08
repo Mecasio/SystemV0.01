@@ -1,8 +1,51 @@
 const express = require("express");
 const { db3 } = require("../database/database");
 const { CanCreate } = require("../../middleware/pagePermissions");
+const { insertAuditLogEnrollment } = require("../../utils/auditLogger");
 
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const insertDepartmentSectionAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogEnrollment({
+    actorId,
+    role: actorRole,
+    action,
+    message,
+    severity: "INFO",
+  });
+};
+
+const getActorLabel = (req) => {
+  const { actorId, actorRole } = getAuditActor(req);
+  return {
+    actorId,
+    roleLabel: formatAuditActorRole(actorRole),
+  };
+};
 
 // ACTIVE CURRICULUM
 router.get("/get_active_curriculum", async (req, res) => {
@@ -41,6 +84,13 @@ router.post("/section_table", async (req, res) => {
     const insertQuery = "INSERT INTO section_table (description) VALUES (?)";
     const [result] = await db3.query(insertQuery, [description]);
 
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertDepartmentSectionAuditLog({
+      req,
+      action: "SECTION_CREATE",
+      message: `${roleLabel} (${actorId}) created section ${description}.`,
+    });
+
     res.status(201).json({
       message: "Section created successfully",
       sectionId: result.insertId,
@@ -72,7 +122,18 @@ router.put("/section_table/:id", async (req, res) => {
     }
 
     const updateQuery = "UPDATE section_table SET description = ? WHERE id = ?";
-    await db3.query(updateQuery, [description, id]);
+    const [result] = await db3.query(updateQuery, [description, id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Section not found" });
+    }
+
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertDepartmentSectionAuditLog({
+      req,
+      action: "SECTION_UPDATE",
+      message: `${roleLabel} (${actorId}) updated section ${description}.`,
+    });
 
     res.status(200).json({ message: "Section updated successfully" });
   } catch (err) {
@@ -86,8 +147,25 @@ router.delete("/section_table/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
+    const [[section]] = await db3.query(
+      "SELECT description FROM section_table WHERE id = ? LIMIT 1",
+      [id],
+    );
+
     const deleteQuery = "DELETE FROM section_table WHERE id = ?";
-    await db3.query(deleteQuery, [id]);
+    const [result] = await db3.query(deleteQuery, [id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Section not found" });
+    }
+
+    const sectionLabel = section?.description || `section ID ${id}`;
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertDepartmentSectionAuditLog({
+      req,
+      action: "SECTION_DELETE",
+      message: `${roleLabel} (${actorId}) deleted section ${sectionLabel}.`,
+    });
 
     res.status(200).json({ message: "Section deleted successfully" });
   } catch (err) {
@@ -164,6 +242,27 @@ router.post("/department_section", CanCreate, async (req, res) => {
     `;
 
     const [result] = await db3.query(query, [curriculum_id, section_id]);
+
+    const [[details]] = await db3.query(
+      `SELECT y.year_description, p.program_code, st.description AS section_description
+       FROM curriculum_table c
+       INNER JOIN year_table y ON c.year_id = y.year_id
+       INNER JOIN program_table p ON c.program_id = p.program_id
+       INNER JOIN section_table st ON st.id = ?
+       WHERE c.curriculum_id = ?`,
+      [section_id, curriculum_id],
+    );
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    const curriculumLabel = details
+      ? `${details.year_description} ${details.program_code}`
+      : `curriculum ID ${curriculum_id}`;
+    const sectionLabel = details?.section_description || `section ID ${section_id}`;
+    await insertDepartmentSectionAuditLog({
+      req,
+      action: "DEPARTMENT_SECTION_CREATE",
+      message: `${roleLabel} (${actorId}) created department section ${curriculumLabel} - ${sectionLabel}.`,
+    });
 
     res.status(201).json({
       message: "Department section created successfully",

@@ -1,7 +1,7 @@
 const nodemailer = require("nodemailer");
 const {
-  formatAuditTimestamp,
   insertAuditLogAdmission,
+  insertAuditLogEnrollment,
 } = require("./auditLogger");
 
 const getConfiguredSenderAccounts = () =>
@@ -50,6 +50,40 @@ module.exports = function registerSocketHandlers({
   baseDir,
 }) {
   const __dirname = baseDir;
+
+  const getEntranceExamScheduleLabel = async (scheduleId) => {
+    if (!scheduleId) return "No schedule";
+
+    const [rows] = await db.query(
+      `SELECT schedule_id, day_description, building_description, room_description, start_time, end_time
+       FROM entrance_exam_schedule
+       WHERE schedule_id = ?
+       LIMIT 1`,
+      [scheduleId],
+    );
+
+    const schedule = rows?.[0];
+    if (!schedule) return `Schedule ${scheduleId}`;
+
+    return `Schedule ${schedule.schedule_id} (${schedule.day_description}, ${schedule.building_description || "N/A"} ${schedule.room_description || ""}, ${schedule.start_time || ""}-${schedule.end_time || ""})`;
+  };
+
+  const getInterviewScheduleLabel = async (scheduleId) => {
+    if (!scheduleId) return "No schedule";
+
+    const [rows] = await db.query(
+      `SELECT schedule_id, day_description, building_description, room_description, start_time, end_time
+       FROM interview_exam_schedule
+       WHERE schedule_id = ?
+       LIMIT 1`,
+      [scheduleId],
+    );
+
+    const schedule = rows?.[0];
+    if (!schedule) return `Schedule ${scheduleId}`;
+
+    return `Schedule ${schedule.schedule_id} (${schedule.day_description}, ${schedule.building_description || "N/A"} ${schedule.room_description || ""}, ${schedule.start_time || ""}-${schedule.end_time || ""})`;
+  };
 
   const getVerifyScheduleLabel = async (scheduleId) => {
     if (!scheduleId) return "No schedule";
@@ -477,8 +511,21 @@ WHERE proctor LIKE ?
 
     // ---------------------- Assign Student Number ----------------------
 
-    socket.on("assign-student-number", async (person_id) => {
+    socket.on("assign-student-number", async (payload) => {
       try {
+        const person_id =
+          typeof payload === "object" && payload !== null
+            ? payload.person_id
+            : payload;
+        const auditActorId =
+          typeof payload === "object" && payload !== null
+            ? payload.audit_actor_id || "unknown"
+            : "unknown";
+        const auditActorRole =
+          typeof payload === "object" && payload !== null
+            ? payload.audit_actor_role || "registrar"
+            : "registrar";
+
         //  Fetch person info
         const [rows] = await db.query(
           `SELECT * FROM person_table AS pt WHERE person_id = ?`,
@@ -789,6 +836,18 @@ WHERE proctor LIKE ?
           width: 300,
         });
 
+        const roleLabel = formatAuditActorRole(auditActorRole);
+        const studentName = [last_name, first_name, middle_name]
+          .filter(Boolean)
+          .join(", ");
+        await insertAuditLogEnrollment({
+          actorId: auditActorId,
+          role: auditActorRole,
+          action: "STUDENT_NUMBER_ASSIGN",
+          severity: "INFO",
+          message: `${roleLabel} (${auditActorId}) assigned student number ${student_number} to ${studentName || `person_id ${person_id}`}.`,
+        });
+
         //  Emit success result
         socket.emit("assign-student-number-result", {
           success: true,
@@ -880,7 +939,22 @@ WHERE proctor LIKE ?
   app.post("/forgot-password", async (req, res) => {
     const { email, identifier } = req.body;
 
+    const insertForgotPasswordAuditLog = async ({ outcome }) => {
+      await insertAuditLogEnrollment({
+        actorId: identifier || email || "unknown",
+        role: "unknown",
+        action: "FORGOT_PASSWORD",
+        outcome,
+        severity: outcome === "SUCCESS" ? "INFO" : "WARN",
+        message:
+          outcome === "SUCCESS"
+            ? "The user successfully reset its password through forgot password"
+            : "The user failed to reset its password in forgot password",
+      });
+    };
+
     if (!email || !identifier) {
+      await insertForgotPasswordAuditLog({ outcome: "FAILED" });
       return res.status(400).json({ message: "Email and ID are required" });
     }
 
@@ -891,10 +965,10 @@ WHERE proctor LIKE ?
       ).join("");
     };
 
-    const newPassword = generateTempPassword();
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
     try {
+      const newPassword = generateTempPassword();
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
       const [company] = await db.query(
         "SELECT short_term FROM company_settings WHERE id = 1"
       );
@@ -919,6 +993,7 @@ WHERE proctor LIKE ?
         );
 
         await sendResetEmail(email, newPassword, shortTerm);
+        await insertForgotPasswordAuditLog({ outcome: "SUCCESS" });
 
         return res.json({
           message: `${shortTerm} (Student) password reset successfully.`,
@@ -937,6 +1012,7 @@ WHERE proctor LIKE ?
 
       if (registrarResult.affectedRows > 0) {
         await sendResetEmail(email, newPassword, shortTerm);
+        await insertForgotPasswordAuditLog({ outcome: "SUCCESS" });
 
         return res.json({
           message: `${shortTerm} (Registrar) password reset successfully.`,
@@ -955,6 +1031,7 @@ WHERE proctor LIKE ?
 
       if (facultyResult.affectedRows > 0) {
         await sendResetEmail(email, newPassword, shortTerm);
+        await insertForgotPasswordAuditLog({ outcome: "SUCCESS" });
 
         return res.json({
           message: `${shortTerm} (Faculty) password reset successfully.`,
@@ -964,12 +1041,14 @@ WHERE proctor LIKE ?
       // =========================
       // ? NOT FOUND
       // =========================
+      await insertForgotPasswordAuditLog({ outcome: "FAILED" });
       return res.status(404).json({
         message: `${shortTerm} account not found. Check your credentials.`,
       });
 
     } catch (err) {
       console.error("Forgot password error:", err);
+      await insertForgotPasswordAuditLog({ outcome: "FAILED" });
       res.status(500).json({ message: "Internal server error" });
     }
   });
@@ -1187,11 +1266,26 @@ WHERE proctor LIKE ?
 
   app.put("/api/exam/remove_applicant", async (req, res) => {
     try {
-      const { applicant_id } = req.body;
+      const { applicant_id, audit_actor_id, audit_actor_role } = req.body;
 
       if (!applicant_id) {
         return res.status(400).json({ message: "Missing applicant_id" });
       }
+
+      const [[assignedBefore]] = await db.query(
+        `SELECT
+           ea.schedule_id,
+           ant.applicant_number,
+           pt.first_name,
+           pt.middle_name,
+           pt.last_name
+         FROM exam_applicants ea
+         LEFT JOIN applicant_numbering_table ant ON ant.applicant_number = ea.applicant_id
+         LEFT JOIN person_table pt ON pt.person_id = ant.person_id
+         WHERE ea.applicant_id = ?
+         LIMIT 1`,
+        [applicant_id],
+      );
 
       // 1  Reset exam_applicants table
       await db.query(
@@ -1208,6 +1302,29 @@ WHERE proctor LIKE ?
        WHERE applicant_id = ?`,
         [applicant_id],
       );
+
+      if (assignedBefore?.schedule_id) {
+        const safeActor = audit_actor_id || "unknown";
+        const roleLabel = formatAuditActorRole(audit_actor_role);
+        const scheduleLabel = await getEntranceExamScheduleLabel(
+          assignedBefore.schedule_id,
+        );
+        const applicantName = [
+          assignedBefore.last_name,
+          assignedBefore.first_name,
+          assignedBefore.middle_name,
+        ]
+          .filter(Boolean)
+          .join(", ");
+
+        await insertAuditLogAdmission({
+          actorId: safeActor,
+          role: audit_actor_role || "registrar",
+          action: "ENTRANCE_EXAM_PROCTOR_REMOVE",
+          severity: "INFO",
+          message: `${roleLabel} (${safeActor}) removed Applicant (${applicant_id}${applicantName ? ` - ${applicantName}` : ""}) from proctor entrance examination list for ${scheduleLabel}.`,
+        });
+      }
 
       res.json({ message: "Applicant removed from exam schedule successfully." });
     } catch (error) {
@@ -1369,6 +1486,8 @@ WHERE proctor LIKE ?
         senderName,
         message,
         user_person_id,
+        audit_actor_id,
+        audit_actor_role,
       }) => {
         try {
           //  Fetch applicants linked to the interview schedule
@@ -1530,6 +1649,23 @@ WHERE proctor LIKE ?
             }
           }
 
+          const safeActor = audit_actor_id || actor?.employee_id || user_person_id || "unknown";
+          const roleLabel = formatAuditActorRole(audit_actor_role || actor?.role);
+          const scheduleLabel = await getInterviewScheduleLabel(schedule_id);
+          const sentList = sent.length > 0 ? sent.join(", ") : "None";
+          const failedNote =
+            failed.length > 0
+              ? ` Failed applicant(s): ${failed.join(", ")}.`
+              : "";
+
+          await insertAuditLogEnrollment({
+            actorId: safeActor,
+            role: audit_actor_role || actor?.role || "registrar",
+            action: "QUALIFYING_INTERVIEW_SCHEDULE_EMAIL",
+            severity: sent.length > 0 ? "INFO" : "WARNING",
+            message: `${roleLabel} (${safeActor}) sent qualifying/interview schedule email to ${sent.length} applicant(s) for ${scheduleLabel}. Applicant(s): ${sentList}.${failedNote}`,
+          });
+
           // Emit result to frontend
           socket.emit("send_schedule_emails_result", {
             success: true,
@@ -1582,7 +1718,12 @@ WHERE proctor LIKE ?
     console.log(" Socket.IO client connected");
 
     // ENTRANCE EXAM
-    socket.on("update_schedule", async ({ schedule_id, applicant_numbers }) => {
+    socket.on("update_schedule", async ({
+      schedule_id,
+      applicant_numbers,
+      audit_actor_id,
+      audit_actor_role,
+    }) => {
       try {
         console.log(schedule_id);
         if (
@@ -1656,6 +1797,21 @@ WHERE proctor LIKE ?
         console.log("  Updated:", updated);
         console.log("   Skipped:", skipped);
 
+        const changedApplicants = [...assigned, ...updated];
+        if (changedApplicants.length > 0) {
+          const safeActor = audit_actor_id || "unknown";
+          const roleLabel = formatAuditActorRole(audit_actor_role);
+          const scheduleLabel = await getEntranceExamScheduleLabel(schedule_id);
+
+          await insertAuditLogAdmission({
+            actorId: safeActor,
+            role: audit_actor_role || "registrar",
+            action: "ENTRANCE_EXAM_SCHEDULE_ASSIGN",
+            severity: "INFO",
+            message: `${roleLabel} (${safeActor}) assigned ${changedApplicants.length} applicant(s) to entrance examination ${scheduleLabel}. Applicant(s): ${changedApplicants.join(", ")}.`,
+          });
+        }
+
         socket.emit("update_schedule_result", {
           success: true,
           assigned,
@@ -1674,7 +1830,12 @@ WHERE proctor LIKE ?
     // INTERVIEW EXAM
     socket.on(
       "update_schedule_for_interview",
-      async ({ schedule_id, applicant_numbers }) => {
+      async ({
+        schedule_id,
+        applicant_numbers,
+        audit_actor_id,
+        audit_actor_role,
+      }) => {
         try {
           console.log("For Interview: ", schedule_id);
           if (
@@ -1748,6 +1909,21 @@ WHERE proctor LIKE ?
           console.log("  Updated:", updated);
           console.log("   Skipped:", skipped);
 
+          const changedApplicants = [...assigned, ...updated];
+          if (changedApplicants.length > 0) {
+            const safeActor = audit_actor_id || "unknown";
+            const roleLabel = formatAuditActorRole(audit_actor_role);
+            const scheduleLabel = await getInterviewScheduleLabel(schedule_id);
+
+            await insertAuditLogEnrollment({
+              actorId: safeActor,
+              role: audit_actor_role || "registrar",
+              action: "QUALIFYING_INTERVIEW_SCHEDULE_ASSIGN",
+              severity: "INFO",
+              message: `${roleLabel} (${safeActor}) assigned ${changedApplicants.length} applicant(s) to qualifying/interview ${scheduleLabel}. Applicant(s): ${changedApplicants.join(", ")}.`,
+            });
+          }
+
           socket.emit("update_schedule_result", {
             success: true,
             assigned,
@@ -1775,7 +1951,14 @@ WHERE proctor LIKE ?
 
     socket.on("send_schedule_emails", async (data) => {
       try {
-        const { schedule_id, user_person_id, subject, message } = data;
+        const {
+          schedule_id,
+          user_person_id,
+          subject,
+          message,
+          audit_actor_id,
+          audit_actor_role,
+        } = data;
 
         /* ================================
            1  Get Actor Info
@@ -1947,6 +2130,27 @@ WHERE proctor LIKE ?
             await new Promise((r) => setTimeout(r, delayMs));
           }
         }
+
+        const safeActor = audit_actor_id || actorRows?.[0]?.employee_id || user_person_id || "unknown";
+        const roleLabel = formatAuditActorRole(audit_actor_role || actorRows?.[0]?.role);
+        const scheduleLabel = await getEntranceExamScheduleLabel(schedule_id);
+        const sentList = sent.length > 0 ? sent.join(", ") : "None";
+        const failedNote =
+          failed.length > 0
+            ? ` Failed applicant(s): ${failed.join(", ")}.`
+            : "";
+        const skippedNote =
+          skipped.length > 0
+            ? ` Skipped applicant(s): ${skipped.join(", ")}.`
+            : "";
+
+        await insertAuditLogAdmission({
+          actorId: safeActor,
+          role: audit_actor_role || actorRows?.[0]?.role || "registrar",
+          action: "ENTRANCE_EXAM_SCHEDULE_EMAIL",
+          severity: sent.length > 0 ? "INFO" : "WARNING",
+          message: `${roleLabel} (${safeActor}) sent entrance examination schedule email to ${sent.length} applicant(s) for ${scheduleLabel}. Applicant(s): ${sentList}.${failedNote}${skippedNote}`,
+        });
 
         /* ================================
            7  Result
@@ -7433,7 +7637,7 @@ WHERE proctor LIKE ?
             role: audit_actor_role || "registrar",
             action: "VERIFY_SCHEDULE_EMAIL",
             severity: sent.length > 0 ? "INFO" : "WARNING",
-            message: `${roleLabel} (${safeActor}) sent document verification schedule email to ${sent.length} applicant(s) for ${scheduleLabel} at ${formatAuditTimestamp()}. Applicant(s): ${sentList}.${failedNote}`,
+            message: `${roleLabel} (${safeActor}) sent document verification schedule email to ${sent.length} applicant(s) for ${scheduleLabel}. Applicant(s): ${sentList}.${failedNote}`,
           });
 
           //  Return result
@@ -7539,7 +7743,7 @@ WHERE proctor LIKE ?
               role: audit_actor_role || "registrar",
               action: "VERIFY_SCHEDULE",
               severity: "INFO",
-              message: `${roleLabel} (${safeActor}) assigned ${changedApplicants.length} applicant(s) to document verification ${scheduleLabel} at ${formatAuditTimestamp()}. Applicant(s): ${changedApplicants.join(", ")}.`,
+              message: `${roleLabel} (${safeActor}) assigned ${changedApplicants.length} applicant(s) to document verification ${scheduleLabel}. Applicant(s): ${changedApplicants.join(", ")}.`,
             });
           }
 

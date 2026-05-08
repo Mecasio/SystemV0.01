@@ -58,6 +58,15 @@ const DepartmentSectionTagging = () => {
   const [employeeID, setEmployeeID] = useState("");
   const pageId = 146; // update to correct page id
 
+  const getAuditHeaders = () => ({
+    headers: {
+      "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+      "x-page-id": pageId,
+      "x-audit-actor-id": employeeID || localStorage.getItem("employee_id") || "",
+      "x-audit-actor-role": localStorage.getItem("role") || "registrar",
+    },
+  });
+
   useEffect(() => {
     const storedRole       = localStorage.getItem("role");
     const storedID         = localStorage.getItem("person_id");
@@ -355,7 +364,8 @@ const DepartmentSectionTagging = () => {
     try {
       const res = await axios.put(
         `${API_BASE_URL}/enrolled_student_in_section`,
-        getEnrollMeta()
+        getEnrollMeta(),
+        getAuditHeaders()
       );
       syncEnrolledState([
         ...enrolledStudents,
@@ -396,7 +406,8 @@ const DepartmentSectionTagging = () => {
     try {
       const res = await axios.put(
         `${API_BASE_URL}/unenrolled_student_in_section`,
-        getEnrollMeta()
+        getEnrollMeta(),
+        getAuditHeaders()
       );
       syncEnrolledState([]);
       setSnackbar({
@@ -427,7 +438,8 @@ const DepartmentSectionTagging = () => {
     try {
       await axios.put(
         `${API_BASE_URL}/enrolled_student_in_section/${studentNumber}`,
-        getEnrollMeta()
+        getEnrollMeta(),
+        getAuditHeaders()
       );
       addOptimisticEnrollment(studentNumber);
       setSnackbar({
@@ -450,7 +462,8 @@ const DepartmentSectionTagging = () => {
     try {
       await axios.put(
         `${API_BASE_URL}/unenrolled_student_in_section/${studentNumber}`,
-        getEnrollMeta()
+        getEnrollMeta(),
+        getAuditHeaders()
       );
       removeOptimisticEnrollment(studentNumber);
       setSnackbar({

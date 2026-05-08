@@ -5,8 +5,51 @@ const {
   CanDelete,
   CanEdit,
 } = require("../../middleware/pagePermissions");
+const { insertAuditLogAdmission } = require("../../utils/auditLogger");
 
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const insertRequirementAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogAdmission({
+    actorId,
+    role: actorRole,
+    action,
+    message,
+    severity: "INFO",
+  });
+};
+
+const getActorLabel = (req) => {
+  const { actorId, actorRole } = getAuditActor(req);
+  return {
+    actorId,
+    roleLabel: formatAuditActorRole(actorRole),
+  };
+};
 
 const normalizeRequirementPayload = (body = {}) => {
   const description = body.description ?? body.requirements_description ?? null;
@@ -70,7 +113,7 @@ router.post("/requirements", CanCreate, async (req, res) => {
       is_optional,
       applicant_type
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
 
   try {
@@ -84,6 +127,13 @@ router.post("/requirements", CanCreate, async (req, res) => {
       payload.is_optional,
       payload.applicant_type,
     ]);
+
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertRequirementAuditLog({
+      req,
+      action: "REQUIREMENT_CREATE",
+      message: `${roleLabel} (${actorId}) created requirement ${payload.description}.`,
+    });
 
     res.status(201).json({ requirements_id: result.insertId });
   } catch (err) {
@@ -127,7 +177,7 @@ router.put("/requirements/:id", CanEdit, async (req, res) => {
   `;
 
   try {
-    await db.execute(query, [
+    const [result] = await db.execute(query, [
       payload.description,
       payload.short_label,
       payload.label,
@@ -138,6 +188,17 @@ router.put("/requirements/:id", CanEdit, async (req, res) => {
       payload.applicant_type,
       id,
     ]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Requirement not found" });
+    }
+
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertRequirementAuditLog({
+      req,
+      action: "REQUIREMENT_UPDATE",
+      message: `${roleLabel} (${actorId}) updated requirement ${payload.description}.`,
+    });
 
     res.json({ message: "Requirement updated successfully" });
   } catch (err) {
@@ -150,6 +211,11 @@ router.delete("/requirements/:id", CanDelete, async (req, res) => {
   const { id } = req.params;
 
   try {
+    const [[requirement]] = await db.execute(
+      "SELECT description FROM requirements_table WHERE id = ? LIMIT 1",
+      [id],
+    );
+
     const [result] = await db.execute(
       "DELETE FROM requirements_table WHERE id = ?",
       [id],
@@ -158,6 +224,14 @@ router.delete("/requirements/:id", CanDelete, async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: "Requirement not found" });
     }
+
+    const requirementLabel = requirement?.description || `requirement ID ${id}`;
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertRequirementAuditLog({
+      req,
+      action: "REQUIREMENT_DELETE",
+      message: `${roleLabel} (${actorId}) deleted requirement ${requirementLabel}.`,
+    });
 
     res.status(200).json({ message: "Requirement deleted successfully" });
   } catch (err) {

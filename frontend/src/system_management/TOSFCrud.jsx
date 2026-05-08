@@ -87,6 +87,8 @@ const TOSF = () => {
     headers: {
       "x-employee-id": employeeID,
       "x-page-id": pageId,
+      "x-audit-actor-id": employeeID,
+      "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
     },
   };
 
@@ -426,10 +428,10 @@ const TOSF = () => {
     e.preventDefault();
     try {
       if (editingFeeId) {
-        await axios.put(`${API_BASE_URL}/update_fee_rule/${editingFeeId}`, feeForm);
+        await axios.put(`${API_BASE_URL}/update_fee_rule/${editingFeeId}`, feeForm, permissionHeaders);
         showSnackbar("Fee rule updated!");
       } else {
-        await axios.post(`${API_BASE_URL}/insert_fee_rule`, feeForm);
+        await axios.post(`${API_BASE_URL}/insert_fee_rule`, feeForm, permissionHeaders);
         showSnackbar("Fee rule added!");
       }
       setFeeForm({
@@ -462,7 +464,7 @@ const TOSF = () => {
   // Handle delete fee rule
   const handleDeleteFee = async (fee_code) => {
     try {
-      await axios.delete(`${API_BASE_URL}/delete_fee_rule/${fee_code}`);
+      await axios.delete(`${API_BASE_URL}/delete_fee_rule/${fee_code}`, permissionHeaders);
       showSnackbar("Fee rule deleted!");
       fetchFeeRules();
     } catch (err) {

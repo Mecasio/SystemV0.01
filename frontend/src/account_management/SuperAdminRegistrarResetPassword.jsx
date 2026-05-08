@@ -171,6 +171,15 @@ const SuperAdminRegistrarResetPassword = () => {
     severity: "success",
   });
 
+  const auditFields = () => ({
+    audit_actor_id:
+      employeeID ||
+      localStorage.getItem("employee_id") ||
+      localStorage.getItem("email") ||
+      "unknown",
+    audit_actor_role: userRole || localStorage.getItem("role") || "registrar",
+  });
+
   const [registrars, setRegistrars] = useState([]);
 
   useEffect(() => {
@@ -240,8 +249,8 @@ const SuperAdminRegistrarResetPassword = () => {
     setSearchLoading(true);
     try {
       const res = await axios.post(
-        `${API_BASE_URL}/forgot-password-registrar`,
-        { email: userInfo.email },
+        `${API_BASE_URL}/superadmin-reset-registrar`,
+        { email: userInfo.email, ...auditFields() },
       );
 
       setSnackbar({
@@ -269,6 +278,7 @@ const SuperAdminRegistrarResetPassword = () => {
       await axios.post(`${API_BASE_URL}/superadmin-update-status-registrar`, {
         email: userInfo.email,
         status: newStatus,
+        ...auditFields(),
       });
     } catch (err) {
       console.error("Failed to update status", err);

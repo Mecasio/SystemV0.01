@@ -1,7 +1,50 @@
 const express = require("express");
 const { db, db3 } = require("../database/database");
+const { insertAuditLogEnrollment } = require("../../utils/auditLogger");
 
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const insertFeeRuleAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogEnrollment({
+    actorId,
+    role: actorRole,
+    action,
+    message,
+    severity: "INFO",
+  });
+};
+
+const getActorLabel = (req) => {
+  const { actorId, actorRole } = getAuditActor(req);
+  return {
+    actorId,
+    roleLabel: formatAuditActorRole(actorRole),
+  };
+};
 
 router.get("/api/course/:courseId/all-fees", async (req, res) => {
   try {
@@ -90,7 +133,7 @@ router.post("/insert_fee_rule", async (req, res) => {
   } = req.body;
 
   try {
-    await db3.query(
+    const [result] = await db3.query(
       `
       INSERT INTO fee_rules (
         fee_code,
@@ -115,6 +158,13 @@ router.post("/insert_fee_rule", async (req, res) => {
         applies_to_all ? null : program_id || null,
       ],
     );
+
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertFeeRuleAuditLog({
+      req,
+      action: "FEE_RULE_CREATE",
+      message: `${roleLabel} (${actorId}) created fee rule ${fee_code || result.insertId}.`,
+    });
 
     res.status(201).json({ message: "Fee rule inserted successfully" });
   } catch (err) {
@@ -163,6 +213,15 @@ router.put("/update_fee_rule/:fee_rule_id", async (req, res) => {
       ],
     );
 
+    if (result.affectedRows > 0) {
+      const { actorId, roleLabel } = getActorLabel(req);
+      await insertFeeRuleAuditLog({
+        req,
+        action: "FEE_RULE_UPDATE",
+        message: `${roleLabel} (${actorId}) updated fee rule ${fee_rule_id}.`,
+      });
+    }
+
     res.json({
       message: "Fee rule updated",
       affectedRows: result.affectedRows,
@@ -178,6 +237,11 @@ router.delete("/delete_fee_rule/:fee_code", async (req, res) => {
   const { fee_code } = req.params;
 
   try {
+    const [[feeRule]] = await db3.query(
+      "SELECT fee_code, description FROM fee_rules WHERE fee_code = ? LIMIT 1",
+      [fee_code],
+    );
+
     const [result] = await db3.query(
       `DELETE FROM fee_rules WHERE fee_code = ?`,
       [fee_code],
@@ -186,6 +250,16 @@ router.delete("/delete_fee_rule/:fee_code", async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Fee rule not found" });
     }
+
+    const feeRuleLabel = feeRule?.description
+      ? `${feeRule.fee_code} (${feeRule.description})`
+      : fee_code;
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertFeeRuleAuditLog({
+      req,
+      action: "FEE_RULE_DELETE",
+      message: `${roleLabel} (${actorId}) deleted fee rule ${feeRuleLabel}.`,
+    });
 
     res.json({ message: "Fee rule deleted successfully" });
   } catch (err) {

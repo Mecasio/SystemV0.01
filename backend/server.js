@@ -14,8 +14,8 @@ const {
   getStoredNumericGrade,
 } = require("./utils/gradeConversion");
 const {
-  formatAuditTimestamp,
   insertAuditLogAdmission,
+  insertAuditLogEnrollment,
 } = require("./utils/auditLogger");
 const nodemailer = require("nodemailer");
 const { error } = require("console");
@@ -59,11 +59,11 @@ const applicantDocsDir = path.join(
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "http://192.168.50.146:5173",
+  "http://192.168.0.180:5173",
   "http://192.168.50.55:5173",
   "http://192.168.50.211:5173",
   "http://136.239.248.62:5173",
-  "http://192.168.50.146:5173",
+  "http://192.168.0.180:5173",
   "http://192.168.1.9:5173",
 ];
 
@@ -718,7 +718,7 @@ app.put("/uploads/status/:upload_id", async (req, res) => {
       await insertRequirementAuditLog({
         actorId: safeActor,
         actorRole: audit_actor_role || "registrar",
-        message: `${roleLabel} (${safeActor}) changed document status of Applicant (${applicantAuditLabel(uploadBefore)}) for ${uploadBefore.description || "document"} from ${requirementStatusLabel(uploadBefore.status)} to ${requirementStatusLabel(status)} at ${formatAuditTimestamp()}.`,
+        message: `${roleLabel} (${safeActor}) changed document status of Applicant (${applicantAuditLabel(uploadBefore)}) for ${uploadBefore.description || "document"} from ${requirementStatusLabel(uploadBefore.status)} to ${requirementStatusLabel(status)}.`,
       });
     }
 
@@ -820,7 +820,7 @@ app.put("/api/document_status/:applicant_number", async (req, res) => {
       await insertRequirementAuditLog({
         actorId: safeActor,
         actorRole: audit_actor_role || "registrar",
-        message: `${roleLabel} (${safeActor}) changed overall document status of Applicant (${applicantAuditLabel(applicantBefore)}) from ${applicantBefore.document_status || "On process"} to ${document_status} at ${formatAuditTimestamp()}.`,
+        message: `${roleLabel} (${safeActor}) changed overall document status of Applicant (${applicantAuditLabel(applicantBefore)}) from ${applicantBefore.document_status || "On process"} to ${document_status}.`,
       });
     }
 
@@ -931,6 +931,19 @@ app.put("/api/submitted-documents/:upload_id", async (req, res) => {
       type = "unsubmit";
       message = `Requirements unsubmitted for Applicant #${applicant_number} - ${fullName}`;
     }
+
+    const { actorId, actorRole } = getAdmissionAuditActor(req);
+    const roleLabel = formatAdmissionAuditActorRole(actorRole);
+    await insertAuditLogAdmission({
+      actorId,
+      role: actorRole,
+      action:
+        submitted_documents === 1
+          ? "APPLICATION_ORIGINAL_DOCUMENTS_SUBMIT"
+          : "APPLICATION_ORIGINAL_DOCUMENTS_UNSUBMIT",
+      severity: "INFO",
+      message: `${roleLabel} (${actorId}) marked original documents of Applicant (${applicant_number}) as ${submitted_documents === 1 ? "submitted" : "unsubmitted"}.`,
+    });
 
     // 5. Prevent duplicate notifications per day
     await db.query(
@@ -1872,6 +1885,43 @@ app.get("/api/verified-ecat-applicants", async (req, res) => {
 
 // ================= ENTRANCE EXAM SCHEDULE =================
 
+const formatEnrollmentAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getEnrollmentAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const getGradeUpdateCourseLabel = async (courseId) => {
+  try {
+    const [rows] = await db3.query(
+      "SELECT course_code, course_description FROM course_table WHERE course_id = ? LIMIT 1",
+      [courseId],
+    );
+    const course = rows?.[0];
+    if (!course) return `course_id ${courseId}`;
+    return `${course.course_code || "N/A"} - ${course.course_description || "Untitled Course"}`;
+  } catch (err) {
+    console.error("Grade audit course lookup failed:", err);
+    return `course_id ${courseId}`;
+  }
+};
+
 // NEW API
 app.post("/api/update-grade", async (req, res) => {
   const { course_id, student_number, final_grade } = req.body;
@@ -1891,10 +1941,57 @@ app.post("/api/update-grade", async (req, res) => {
       [final_grade, student_number, course_id],
     );
 
+    if (result.affectedRows > 0) {
+      const { actorId, actorRole } = getEnrollmentAuditActor(req);
+      const roleLabel = formatEnrollmentAuditActorRole(actorRole);
+      const courseLabel = await getGradeUpdateCourseLabel(course_id);
+      await insertAuditLogEnrollment({
+        actorId,
+        role: actorRole,
+        action: "REGISTRAR_GRADE_UPDATE",
+        severity: "INFO",
+        message: `${roleLabel} (${actorId}) updated grade of Student (${student_number}) in ${courseLabel} to ${final_grade}.`,
+      });
+    }
+
     res.json({ success: true, message: "Grade updated" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to update grade" });
+  }
+});
+
+app.post("/api/cor-export/audit", async (req, res) => {
+  const {
+    exported_count,
+    department_label,
+    program_label,
+    year_level_label,
+  } = req.body;
+
+  try {
+    const { actorId, actorRole } = getEnrollmentAuditActor(req);
+    const roleLabel = formatEnrollmentAuditActorRole(actorRole);
+    const filters = [
+      department_label ? `department ${department_label}` : null,
+      program_label ? `program ${program_label}` : null,
+      year_level_label ? `year level ${year_level_label}` : null,
+    ]
+      .filter(Boolean)
+      .join(", ");
+
+    await insertAuditLogEnrollment({
+      actorId,
+      role: actorRole,
+      action: "COR_EXPORT",
+      severity: "INFO",
+      message: `${roleLabel} (${actorId}) exported ${Number(exported_count) || 0} Certificate of Registration PDF file(s)${filters ? ` for ${filters}` : ""}.`,
+    });
+
+    res.json({ success: true, message: "COR export audit log inserted" });
+  } catch (err) {
+    console.error("COR export audit log failed:", err);
+    res.status(500).json({ message: "Failed to insert COR export audit log" });
   }
 });
 
@@ -2357,7 +2454,7 @@ const insertApplicantCourseChangeAuditLog = async ({
     role: actorRole || "registrar",
     action: "APPLICANT_COURSE_CHANGE",
     severity: "INFO",
-    message: `${roleLabel} (${safeActor}) changed course of Applicant (${applicantLabel}) ${changeText} at ${formatAuditTimestamp()}.`,
+    message: `${roleLabel} (${safeActor}) changed course of Applicant (${applicantLabel}) ${changeText}.`,
   });
 };
 
@@ -3097,7 +3194,7 @@ app.post("/api/generate-cor-pdf", async (req, res) => {
   let browser;
 
   try {
-    const { html } = req.body;
+    const { html, student_number } = req.body;
 
     if (!html || typeof html !== "string") {
       return res.status(400).json({ message: "No HTML received" });
@@ -3177,6 +3274,16 @@ app.post("/api/generate-cor-pdf", async (req, res) => {
     if (!pdfBuffer || pdfBuffer.length === 0) {
       throw new Error("Generated PDF buffer is empty");
     }
+
+    const { actorId, actorRole } = getEnrollmentAuditActor(req);
+    const roleLabel = formatEnrollmentAuditActorRole(actorRole);
+    await insertAuditLogEnrollment({
+      actorId,
+      role: actorRole,
+      action: "STUDENT_SCHOLARSHIP_COR_EXPORT",
+      severity: "INFO",
+      message: `${roleLabel} (${actorId}) exported Certificate of Registration PDF${student_number ? ` for Student (${student_number})` : ""}.`,
+    });
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(

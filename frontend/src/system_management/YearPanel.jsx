@@ -42,8 +42,19 @@ const YearPanel = () => {
   const [yearDescription, setYearDescription] = useState("");
   const [years, setYears] = useState([]);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState(null);
 
   const pageId = 64;
+
+  const getAuditHeaders = () => ({
+    headers: {
+      "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+      "x-page-id": pageId,
+      "x-audit-actor-id": employeeID || localStorage.getItem("employee_id") || "",
+      "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+    },
+  });
 
   // 🎨 Dynamic colors
   useEffect(() => {
@@ -104,7 +115,7 @@ const YearPanel = () => {
     try {
       await axios.post(`${API_BASE_URL}/years`, {
         year_description: yearDescription,
-      });
+      }, getAuditHeaders());
 
       setYearDescription("");
       fetchYears();
@@ -121,6 +132,45 @@ const YearPanel = () => {
         severity: "error",
       });
     }
+  };
+
+  const toggleActivator = async (yearId, currentStatus) => {
+    try {
+      const newStatus = Number(currentStatus) === 1 ? 0 : 1;
+      await axios.put(
+        `${API_BASE_URL}/year_table/${yearId}`,
+        { status: newStatus },
+        getAuditHeaders()
+      );
+      fetchYears();
+      setSnackbar({
+        open: true,
+        message: `Year ${newStatus === 1 ? "activated" : "deactivated"} successfully!`,
+        severity: "success",
+      });
+    } catch {
+      setSnackbar({
+        open: true,
+        message: "Failed to update year status",
+        severity: "error",
+      });
+    }
+  };
+
+  const openConfirm = (year) => {
+    setConfirmTarget(year);
+    setConfirmOpen(true);
+  };
+
+  const closeConfirm = () => {
+    setConfirmOpen(false);
+    setConfirmTarget(null);
+  };
+
+  const handleConfirm = async () => {
+    if (!confirmTarget) return;
+    await toggleActivator(confirmTarget.year_id, confirmTarget.status);
+    closeConfirm();
   };
 
 
@@ -391,6 +441,7 @@ const YearPanel = () => {
           <tr style={{ color: "#000" }}>
             <th style={{ border: `1px solid ${borderColor}`, padding: "10px", backgroundColor: "#f5f5f5", color: "#000" }}>Year</th>
             <th style={{ border: `1px solid ${borderColor}`, padding: "10px", backgroundColor: "#f5f5f5", color: "#000" }}>Status</th>
+            <th style={{ border: `1px solid ${borderColor}`, padding: "10px", backgroundColor: "#f5f5f5", color: "#000" }}>Action</th>
           </tr>
         </thead>
         <tbody>
@@ -411,11 +462,28 @@ const YearPanel = () => {
                 <td style={{ border: `1px solid ${borderColor}`, padding: "8px" }}>
                   {year.status === 1 ? "Active" : "Inactive"}
                 </td>
+                <td style={{ border: `1px solid ${borderColor}`, padding: "8px" }}>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    sx={{
+                      backgroundColor: year.status === 1 ? "#DC2626" : "#16A34A",
+                      minWidth: 120,
+                      textTransform: "none",
+                      "&:hover": {
+                        backgroundColor: year.status === 1 ? "#B91C1C" : "#15803D",
+                      },
+                    }}
+                    onClick={() => openConfirm(year)}
+                  >
+                    {year.status === 1 ? "Deactivate" : "Activate"}
+                  </Button>
+                </td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan="2" style={{ padding: "15px", color: "#777" }}>
+              <td colSpan="3" style={{ padding: "15px", color: "#777" }}>
                 No year records found.
               </td>
             </tr>
@@ -679,6 +747,26 @@ const YearPanel = () => {
           >
         <SaveIcon fontSize="small" /> Save
 
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={confirmOpen} onClose={closeConfirm}>
+        <DialogTitle>
+          Confirm {confirmTarget?.status === 1 ? "Deactivation" : "Activation"}
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to {confirmTarget?.status === 1 ? "deactivate" : "activate"}{" "}
+            {confirmTarget?.year_description || "this year"}?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeConfirm} color="error" variant="outlined">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirm} variant="contained">
+            Confirm
           </Button>
         </DialogActions>
       </Dialog>

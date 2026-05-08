@@ -47,26 +47,24 @@ const buildAuthAuditMessage = ({
   role,
   outcome,
   reason,
-  timestamp = new Date(),
 }) => {
   const safeActor = actorId || "unknown";
   const roleLabel = formatRole(role);
-  const timeLabel = formatAuditTimestamp(timestamp);
   const reasonText = reason ? ` Reason: ${reason}.` : "";
 
   if (outcome === "LOCKED") {
-    return `${roleLabel} (${safeActor}) was locked from login at ${timeLabel}.${reasonText}`;
+    return `${roleLabel} (${safeActor}) was locked from login.${reasonText}`;
   }
 
   if (outcome === "FAILED") {
-    return `${roleLabel} (${safeActor}) failed to login at ${timeLabel}.${reasonText}`;
+    return `${roleLabel} (${safeActor}) failed to login.${reasonText}`;
   }
 
   if (outcome === "SUCCESS_AFTER_FAILURES") {
-    return `${roleLabel} (${safeActor}) successfully login after previous failed attempts at ${timeLabel}.${reasonText}`;
+    return `${roleLabel} (${safeActor}) successfully login after previous failed attempts.${reasonText}`;
   }
 
-  return `${roleLabel} (${safeActor}) successfully login at ${timeLabel}.${reasonText}`;
+  return `${roleLabel} (${safeActor}) successfully login.${reasonText}`;
 };
 
 const insertAuditLog = async ({

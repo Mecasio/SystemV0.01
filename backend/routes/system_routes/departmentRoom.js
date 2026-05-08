@@ -1,7 +1,42 @@
 const express = require("express");
 const { db3 } = require("../database/database");
+const { insertAuditLogEnrollment } = require("../../utils/auditLogger");
 
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const insertDepartmentRoomAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogEnrollment({
+    actorId,
+    role: actorRole,
+    action,
+    message,
+    severity: "INFO",
+  });
+};
 
 // DEPARTMENT ROOM PANEL
 router.get("/assignments", async (req, res) => {
@@ -58,6 +93,25 @@ router.post("/assign", async (req, res) => {
     `;
     const [insertResult] = await db3.query(insertQuery, [dprtmnt_id, room_id]);
 
+    const [[details]] = await db3.query(
+      `SELECT dt.dprtmnt_name, dt.dprtmnt_code, rt.room_description
+       FROM dprtmnt_table dt
+       INNER JOIN room_table rt ON rt.room_id = ?
+       WHERE dt.dprtmnt_id = ?`,
+      [room_id, dprtmnt_id],
+    );
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    const departmentLabel = details
+      ? `${details.dprtmnt_name} (${details.dprtmnt_code})`
+      : `department ID ${dprtmnt_id}`;
+    const roomLabel = details?.room_description || `room ID ${room_id}`;
+    await insertDepartmentRoomAuditLog({
+      req,
+      action: "DEPARTMENT_ROOM_ASSIGN",
+      message: `${roleLabel} (${actorId}) assigned room ${roomLabel} to ${departmentLabel}.`,
+    });
+
     return res.json({
       message: "Room successfully assigned to department",
       insertId: insertResult.insertId,
@@ -79,6 +133,15 @@ router.delete("/unassign/:dprtmnt_room_id", async (req, res) => {
   }
 
   try {
+    const [[assignment]] = await db3.query(
+      `SELECT dt.dprtmnt_name, dt.dprtmnt_code, rt.room_description
+       FROM dprtmnt_room_table drt
+       INNER JOIN dprtmnt_table dt ON drt.dprtmnt_id = dt.dprtmnt_id
+       INNER JOIN room_table rt ON drt.room_id = rt.room_id
+       WHERE drt.dprtmnt_room_id = ?`,
+      [dprtmnt_room_id],
+    );
+
     const deleteQuery = `
       DELETE FROM dprtmnt_room_table WHERE dprtmnt_room_id = ?
     `;
@@ -87,6 +150,18 @@ router.delete("/unassign/:dprtmnt_room_id", async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Room assignment not found" });
     }
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    const departmentLabel = assignment
+      ? `${assignment.dprtmnt_name} (${assignment.dprtmnt_code})`
+      : `assignment ID ${dprtmnt_room_id}`;
+    const roomLabel = assignment?.room_description || "room";
+    await insertDepartmentRoomAuditLog({
+      req,
+      action: "DEPARTMENT_ROOM_UNASSIGN",
+      message: `${roleLabel} (${actorId}) unassigned room ${roomLabel} from ${departmentLabel}.`,
+    });
 
     return res.json({ message: "Room successfully unassigned" });
   } catch (err) {

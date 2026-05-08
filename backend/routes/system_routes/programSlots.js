@@ -1,7 +1,58 @@
 const express = require("express");
 const { db, db3 } = require("../database/database");
+const { insertAuditLogAdmission } = require("../../utils/auditLogger");
 
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const insertProgramSlotAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogAdmission({
+    actorId,
+    role: actorRole,
+    action,
+    severity: "INFO",
+    message,
+  });
+};
+
+const getProgramSlotLabel = async (curriculumId) => {
+  const [rows] = await db3.query(
+    `SELECT p.program_code, p.program_description, p.major
+     FROM curriculum_table ct
+     LEFT JOIN program_table p ON p.program_id = ct.program_id
+     WHERE ct.curriculum_id = ?
+     LIMIT 1`,
+    [curriculumId],
+  );
+
+  const program = rows?.[0];
+  if (!program) return `Curriculum ${curriculumId}`;
+
+  return `${program.program_code || "N/A"} - ${program.program_description || "Unknown Program"}${program.major ? ` (${program.major})` : ""}`;
+};
 
 const memoryCache = {
   data: new Map(),
@@ -302,6 +353,15 @@ router.post("/program-slots", async (req, res) => {
         [max_slots, curriculum_id, activeSchoolYearId],
       );
 
+      const { actorId, actorRole } = getAuditActor(req);
+      const roleLabel = formatAuditActorRole(actorRole);
+      const programLabel = await getProgramSlotLabel(curriculum_id);
+      await insertProgramSlotAuditLog({
+        req,
+        action: "PROGRAM_SLOT_UPDATE",
+        message: `${roleLabel} (${actorId}) updated program slot limit for ${programLabel} to ${max_slots}.`,
+      });
+
       memoryCache.clear();
       return res.json({ message: "Program slots updated" });
     }
@@ -315,6 +375,15 @@ router.post("/program-slots", async (req, res) => {
     `,
       [curriculum_id, max_slots, activeSchoolYearId],
     );
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    const programLabel = await getProgramSlotLabel(curriculum_id);
+    await insertProgramSlotAuditLog({
+      req,
+      action: "PROGRAM_SLOT_CREATE",
+      message: `${roleLabel} (${actorId}) created program slot limit for ${programLabel}. Max slots: ${max_slots}.`,
+    });
 
     memoryCache.clear();
     res.json({ message: "Program slots created" });
@@ -398,6 +467,13 @@ router.post("/program-slots/department", async (req, res) => {
     }
 
     await connection.commit();
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertProgramSlotAuditLog({
+      req,
+      action: "PROGRAM_SLOT_DEPARTMENT_UPDATE",
+      message: `${roleLabel} (${actorId}) set program slot limit to ${max_slots} for ${curriculumIds.length} program(s) in department ${dprtmnt_id}.`,
+    });
     memoryCache.clear();
     res.json({ message: "Program slots updated for department" });
   } catch (err) {
@@ -479,6 +555,13 @@ router.post("/program-slots/all", async (req, res) => {
     }
 
     await connection.commit();
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertProgramSlotAuditLog({
+      req,
+      action: "PROGRAM_SLOT_ALL_UPDATE",
+      message: `${roleLabel} (${actorId}) set program slot limit to ${max_slots} for all ${curriculumIds.length} program(s).`,
+    });
     memoryCache.clear();
     res.json({ message: "Program slots updated for all programs" });
   } catch (err) {

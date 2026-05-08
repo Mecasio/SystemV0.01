@@ -156,6 +156,15 @@ const SuperAdminStudentResetPassword = () => {
     severity: "success",
   });
 
+  const auditFields = () => ({
+    audit_actor_id:
+      employeeID ||
+      localStorage.getItem("employee_id") ||
+      localStorage.getItem("email") ||
+      "unknown",
+    audit_actor_role: localStorage.getItem("role") || "registrar",
+  });
+
   /* =====================================
      SEARCH
   ===================================== */
@@ -228,6 +237,7 @@ const SuperAdminStudentResetPassword = () => {
     try {
       const res = await axios.post(`${API_BASE_URL}/superadmin-reset-student`, {
         search: userInfo.email,
+        ...auditFields(),
       });
 
       setSnackbar({
@@ -261,6 +271,7 @@ const SuperAdminStudentResetPassword = () => {
       await axios.post(`${API_BASE_URL}/superadmin-update-status-student`, {
         email: userInfo.email,
         status: newStatus,
+        ...auditFields(),
       });
     } catch {
       console.error("Status update failed");

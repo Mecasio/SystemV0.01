@@ -105,6 +105,15 @@ const AdminBranches = () => {
 
   const [employeeID, setEmployeeID] = useState("");
 
+  const getAuditHeaders = () => ({
+    headers: {
+      "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+      "x-page-id": pageId,
+      "x-audit-actor-id": employeeID || localStorage.getItem("employee_id") || "",
+      "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+    },
+  });
+
   useEffect(() => {
 
     const storedUser = localStorage.getItem("email");
@@ -197,7 +206,7 @@ const AdminBranches = () => {
 
   const handleUpdate = async (branch) => {
     try {
-      await axios.put(`${API_BASE_URL}/api/branches/${branch.id}`, branch);
+      await axios.put(`${API_BASE_URL}/api/branches/${branch.id}`, branch, getAuditHeaders());
       setIsEditing(false);
       setSnack({ open: true, message: "Saved successfully", severity: "success" });
       fetchBranches();
@@ -208,7 +217,7 @@ const AdminBranches = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`${API_BASE_URL}/api/branches/${id}`);
+      await axios.delete(`${API_BASE_URL}/api/branches/${id}`, getAuditHeaders());
       setSnack({ open: true, message: "Deleted", severity: "success" });
       fetchBranches();
     } catch {
@@ -575,7 +584,8 @@ const AdminBranches = () => {
                     {
                       branch: branchName,
                       address: branchAddress
-                    }
+                    },
+                    getAuditHeaders()
                   );
 
                   setSnack({
@@ -587,7 +597,7 @@ const AdminBranches = () => {
                   await axios.post(`${API_BASE_URL}/api/branches`, {
                     branch: branchName,
                     address: branchAddress
-                  });
+                  }, getAuditHeaders());
 
                   setSnack({
                     open: true,

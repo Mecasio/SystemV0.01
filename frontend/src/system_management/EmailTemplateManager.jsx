@@ -89,6 +89,15 @@ export default function EmailTemplateManager() {
   const pageId = 67;
   const [employeeID, setEmployeeID] = useState("");
 
+  const getAuditHeaders = () => ({
+    headers: {
+      "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+      "x-page-id": pageId,
+      "x-audit-actor-id": employeeID || localStorage.getItem("employee_id") || "",
+      "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+    },
+  });
+
   useEffect(() => {
 
     const storedUser = localStorage.getItem("email");
@@ -172,7 +181,7 @@ export default function EmailTemplateManager() {
     }
 
     try {
-      await axios.post(API, form);
+      await axios.post(API, form, getAuditHeaders());
       showSnack("Template successfully added", "success");
       setForm({ sender_name: "", department_id: "", employee_id: "", is_active: true });
       loadTemplates();
@@ -199,7 +208,7 @@ export default function EmailTemplateManager() {
     if (!editing) return;
 
     try {
-      await axios.put(`${API}/${editing}`, form);
+      await axios.put(`${API}/${editing}`, form, getAuditHeaders());
       showSnack("Template updated successfully", "success");
       setEditing(null);
       setForm({ sender_name: "", department_id: "", employee_id: "", is_active: true });
@@ -226,7 +235,7 @@ export default function EmailTemplateManager() {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`${API}/${id}`);
+      await axios.delete(`${API}/${id}`, getAuditHeaders());
       showSnack("Template deleted successfully", "success");
       loadTemplates();
     } catch (err) {

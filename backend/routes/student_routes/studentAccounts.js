@@ -2,6 +2,7 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const { db, db3 } = require("../database/database");
+const { insertAuditLogEnrollment } = require("../../utils/auditLogger");
 require("dotenv").config();
 const router = express.Router();
 
@@ -16,6 +17,40 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
 });
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const insertStudentAccountAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogEnrollment({
+    actorId,
+    role: actorRole,
+    action,
+    severity: "INFO",
+    message,
+  });
+};
 
 
 router.get("/student_list", async (req, res) => {
@@ -340,6 +375,19 @@ router.put("/student_account/:person_id", async (req, res) => {
 
     await conn.commit();
 
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    const studentLabel = [nextLastName, nextFirstName, nextMiddleName]
+      .filter(Boolean)
+      .join(", ");
+    await insertStudentAccountAuditLog({
+      req,
+      action: hashedPassword
+        ? "STUDENT_ACCOUNT_SAVE_WITH_PASSWORD"
+        : "STUDENT_ACCOUNT_SAVE",
+      message: `${roleLabel} (${actorId}) saved student account for Student (${studentLabel || `person_id ${person_id}`}).`,
+    });
+
     res.json({
       success: true,
       message: hashedPassword
@@ -482,6 +530,14 @@ router.post("/notify_student", async (req, res) => {
           </p>
         </div>
       `
+    });
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertStudentAccountAuditLog({
+      req,
+      action: "STUDENT_ACCOUNT_NOTIFY",
+      message: `${roleLabel} (${actorId}) sent student account notification to Student (${student_number || person_id}).`,
     });
 
     res.json({ success: true, message: "Student password reset reminder sent" });

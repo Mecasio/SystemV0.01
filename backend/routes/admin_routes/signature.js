@@ -2,8 +2,43 @@ const express = require("express");
 const { db } = require("../database/database");
 const multer = require("multer");
 const path = require("path");
+const { insertAuditLogAdmission } = require("../../utils/auditLogger");
 
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const insertSignatureAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogAdmission({
+    actorId,
+    role: actorRole,
+    action,
+    message,
+    severity: "INFO",
+  });
+};
 
 // Multer setup for signature uploads
 const storage = multer.diskStorage({
@@ -55,6 +90,14 @@ router.post(
         "INSERT INTO signature_table (full_name, signature_image) VALUES (?, ?)",
         [full_name, signaturePath],
       );
+
+      const { actorId, actorRole } = getAuditActor(req);
+      const roleLabel = formatAuditActorRole(actorRole);
+      await insertSignatureAuditLog({
+        req,
+        action: "SIGNATURE_UPLOAD",
+        message: `${roleLabel} (${actorId}) uploaded signature for ${full_name}.`,
+      });
 
       //  IBALIK AGAD SA FRONTEND
       res.json({

@@ -122,6 +122,12 @@ const CurriculumPanel = () => {
   const getPermissionHeaders = () => ({
     "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
     "x-page-id": pageId,
+    "x-audit-actor-id":
+      employeeID ||
+      localStorage.getItem("employee_id") ||
+      localStorage.getItem("email") ||
+      "unknown",
+    "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
   });
 
   useEffect(() => {
@@ -449,7 +455,10 @@ const CurriculumPanel = () => {
         `${API_BASE_URL}/import-curriculum-xlsx`,
         formData,
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: {
+            "Content-Type": "multipart/form-data",
+            ...getPermissionHeaders(),
+          },
         },
       );
 

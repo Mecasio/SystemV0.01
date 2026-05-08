@@ -87,6 +87,15 @@ const CORExportingModule = () => {
 
   const pageId = 117;
 
+  const getAuditHeaders = () => ({
+    "x-audit-actor-id":
+      employeeID ||
+      localStorage.getItem("employee_id") ||
+      localStorage.getItem("email") ||
+      "unknown",
+    "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+  });
+
   useEffect(() => {
     if (!settings) return;
 
@@ -776,6 +785,26 @@ const CORExportingModule = () => {
 
       const zipBlob = await zip.generateAsync({ type: "blob" });
       saveAs(zipBlob, zipFileName);
+      try {
+        const selectedProgramInfo =
+          programs.find((p) => p.program_id == selectedProgram) || {};
+        await axios.post(
+          `${API_BASE_URL}/api/cor-export/audit`,
+          {
+            exported_count: filesAdded,
+            department_label:
+              selectedDept.dprtmnt_code || selectedDept.dprtmnt_name || "",
+            program_label:
+              selectedProgramInfo.program_code ||
+              selectedProgramInfo.program_description ||
+              "",
+            year_level_label: yearLevelDesc,
+          },
+          { headers: getAuditHeaders() },
+        );
+      } catch (auditError) {
+        console.error("Failed to insert COR export audit log:", auditError);
+      }
     } finally {
       setCurrentPage(originalPage);
       setExporting(false);

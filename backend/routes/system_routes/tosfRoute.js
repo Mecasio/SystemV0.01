@@ -6,8 +6,51 @@ const {
   CanDelete,
   CanEdit,
 } = require("../../middleware/pagePermissions");
+const { insertAuditLogEnrollment } = require("../../utils/auditLogger");
 
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const insertTosfAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogEnrollment({
+    actorId,
+    role: actorRole,
+    action,
+    message,
+    severity: "INFO",
+  });
+};
+
+const getActorLabel = (req) => {
+  const { actorId, actorRole } = getAuditActor(req);
+  return {
+    actorId,
+    roleLabel: formatAuditActorRole(actorRole),
+  };
+};
 
 router.get("/tosf", async (req, res) => {
   try {
@@ -35,7 +78,7 @@ router.post("/insert_tosf", CanCreate, async (req, res) => {
   } = req.body;
 
   try {
-    await db3.query(
+    const [result] = await db3.query(
       `INSERT INTO tosf (
         athletic_fee,
         cultural_fee,
@@ -63,6 +106,13 @@ router.post("/insert_tosf", CanCreate, async (req, res) => {
         laboratory_fees ?? 0,
       ]
     );
+
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertTosfAuditLog({
+      req,
+      action: "TOSF_CREATE",
+      message: `${roleLabel} (${actorId}) created TOSF record ${result.insertId}.`,
+    });
 
     res.json({
       success: true,
@@ -126,6 +176,13 @@ router.put("/update_tosf/:tosf_id", CanEdit, async (req, res) => {
       return res.status(404).json({ message: "Record not found" });
     }
 
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertTosfAuditLog({
+      req,
+      action: "TOSF_UPDATE",
+      message: `${roleLabel} (${actorId}) updated TOSF record ${tosf_id}.`,
+    });
+
     res.json({ success: true, message: "Data Successfully Updated" });
   } catch (error) {
     console.error(error);
@@ -137,6 +194,11 @@ router.delete("/delete_tosf/:tosf_id", CanDelete, async (req, res) => {
   const { tosf_id } = req.params;
 
   try {
+    const [[tosf]] = await db3.query(
+      "SELECT tosf_id FROM tosf WHERE tosf_id = ? LIMIT 1",
+      [tosf_id]
+    );
+
     const [result] = await db3.query(
       "DELETE FROM tosf WHERE tosf_id = ?",
       [tosf_id]
@@ -145,6 +207,13 @@ router.delete("/delete_tosf/:tosf_id", CanDelete, async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Record not found" });
     }
+
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertTosfAuditLog({
+      req,
+      action: "TOSF_DELETE",
+      message: `${roleLabel} (${actorId}) deleted TOSF record ${tosf?.tosf_id || tosf_id}.`,
+    });
 
     res.json({ success: true, message: "Data Successfully Deleted" });
   } catch (error) {
@@ -193,6 +262,13 @@ router.post("/insert_scholarship_type", CanCreate, async (req, res) => {
       ]
     );
 
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertTosfAuditLog({
+      req,
+      action: "SCHOLARSHIP_TYPE_CREATE",
+      message: `${roleLabel} (${actorId}) created scholarship type ${String(scholarship_name).trim()}.`,
+    });
+
     res.json({ success: true, message: "Scholarship type inserted successfully" });
   } catch (error) {
     console.error(error);
@@ -229,6 +305,13 @@ router.put("/update_scholarship_type/:id", CanEdit, async (req, res) => {
       return res.status(404).json({ message: "Scholarship type not found" });
     }
 
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertTosfAuditLog({
+      req,
+      action: "SCHOLARSHIP_TYPE_UPDATE",
+      message: `${roleLabel} (${actorId}) updated scholarship type ${String(scholarship_name).trim()}.`,
+    });
+
     res.json({ success: true, message: "Scholarship type updated successfully" });
   } catch (error) {
     console.error(error);
@@ -240,6 +323,11 @@ router.delete("/delete_scholarship_type/:id", CanDelete, async (req, res) => {
   const { id } = req.params;
 
   try {
+    const [[scholarshipType]] = await db3.query(
+      "SELECT scholarship_name FROM scholarship_type WHERE id = ? LIMIT 1",
+      [id]
+    );
+
     const [result] = await db3.query(
       "DELETE FROM scholarship_type WHERE id = ?",
       [id]
@@ -248,6 +336,14 @@ router.delete("/delete_scholarship_type/:id", CanDelete, async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Scholarship type not found" });
     }
+
+    const scholarshipLabel = scholarshipType?.scholarship_name || `scholarship type ID ${id}`;
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertTosfAuditLog({
+      req,
+      action: "SCHOLARSHIP_TYPE_DELETE",
+      message: `${roleLabel} (${actorId}) deleted scholarship type ${scholarshipLabel}.`,
+    });
 
     res.json({ success: true, message: "Scholarship type deleted successfully" });
   } catch (error) {

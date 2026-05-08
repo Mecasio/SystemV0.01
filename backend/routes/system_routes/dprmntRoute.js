@@ -5,7 +5,42 @@ const {
   CanDelete,
   CanEdit,
 } = require("../../middleware/pagePermissions");
+const { insertAuditLogEnrollment } = require("../../utils/auditLogger");
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const insertDepartmentAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogEnrollment({
+    actorId,
+    role: actorRole,
+    action,
+    message,
+    severity: "INFO",
+  });
+};
 
 // -------------------- CREATE DEPARTMENT --------------------
 router.post("/department", CanCreate, async (req, res) => {
@@ -33,6 +68,14 @@ router.post("/department", CanCreate, async (req, res) => {
       "INSERT INTO dprtmnt_table (dprtmnt_name, dprtmnt_code) VALUES (?, ?)",
       [dep_name, normalized_code],
     );
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertDepartmentAuditLog({
+      req,
+      action: "DEPARTMENT_CREATE",
+      message: `${roleLabel} (${actorId}) created department ${dep_name} (${normalized_code}).`,
+    });
 
     res.status(200).json({
       message: "Department created successfully",
@@ -76,6 +119,14 @@ router.put("/department/:id", CanEdit, async (req, res) => {
       return res.status(404).json({ message: "Department not found" });
     }
 
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertDepartmentAuditLog({
+      req,
+      action: "DEPARTMENT_UPDATE",
+      message: `${roleLabel} (${actorId}) updated department ${dep_name} (${dep_code}).`,
+    });
+
     res.json({ message: "Department updated successfully" });
   } catch (err) {
     console.error("Error updating department:", err);
@@ -88,6 +139,11 @@ router.delete("/department/:id", CanDelete, async (req, res) => {
   const { id } = req.params;
 
   try {
+    const [departmentRows] = await db3.query(
+      "SELECT dprtmnt_name, dprtmnt_code FROM dprtmnt_table WHERE dprtmnt_id = ?",
+      [id],
+    );
+
     const [result] = await db3.query(
       "DELETE FROM dprtmnt_table WHERE dprtmnt_id = ?",
       [id],
@@ -96,6 +152,18 @@ router.delete("/department/:id", CanDelete, async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Department not found" });
     }
+
+    const department = departmentRows[0];
+    const departmentLabel = department
+      ? `${department.dprtmnt_name} (${department.dprtmnt_code})`
+      : `department ID ${id}`;
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertDepartmentAuditLog({
+      req,
+      action: "DEPARTMENT_DELETE",
+      message: `${roleLabel} (${actorId}) deleted ${departmentLabel}.`,
+    });
 
     res.json({ message: "Department deleted successfully" });
   } catch (err) {

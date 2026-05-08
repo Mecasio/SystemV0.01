@@ -1,8 +1,71 @@
 ﻿const express = require("express");
 const webtoken = require("jsonwebtoken");
 const { db3 } = require("../database/database");
+const { insertAuditLogEnrollment } = require("../../utils/auditLogger");
 
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const insertCourseTaggingAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogEnrollment({
+    actorId,
+    role: actorRole,
+    action,
+    severity: "INFO",
+    message,
+  });
+};
+
+const getCourseLabel = async (courseId) => {
+  const [rows] = await db3.query(
+    "SELECT course_code, course_description FROM course_table WHERE course_id = ? LIMIT 1",
+    [courseId],
+  );
+  const course = rows?.[0];
+  if (!course) return `Course ${courseId}`;
+  return `${course.course_code || "N/A"} - ${course.course_description || "Unknown Course"}`;
+};
+
+const getEnrolledSubjectLabel = async (enrolledSubjectId) => {
+  const [rows] = await db3.query(
+    `SELECT es.id, es.student_number, c.course_code, c.course_description
+     FROM enrolled_subject es
+     LEFT JOIN course_table c ON c.course_id = es.course_id
+     WHERE es.id = ?
+     LIMIT 1`,
+    [enrolledSubjectId],
+  );
+  const row = rows?.[0];
+  if (!row) return null;
+
+  return {
+    studentNumber: row.student_number,
+    courseLabel: `${row.course_code || "N/A"} - ${row.course_description || "Unknown Course"}`,
+  };
+};
 
 // YEAR LEVEL TABLE
 router.get("/get_year_level", async (req, res) => {
@@ -253,6 +316,15 @@ router.post("/add-all-to-enrolled-courses", async (req, res) => {
       );
     }
 
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    const courseLabel = await getCourseLabel(subject_id);
+    await insertCourseTaggingAuditLog({
+      req,
+      action: "COURSE_TAGGING_BULK_ENROLL",
+      message: `${roleLabel} (${actorId}) enrolled ${courseLabel} to Student (${user_id}) via bulk course tagging.`,
+    });
+
     res.status(200).json({ message: "Course enrolled successfully" });
   } catch (err) {
     console.error("Error:", err);
@@ -323,6 +395,15 @@ router.post("/add-to-enrolled-courses/:userId/:currId/", async (req, res) => {
         `âš ï¸ Curriculum ${currId} already exists for student ${userId}`
       );
     }
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    const courseLabel = await getCourseLabel(subject_id);
+    await insertCourseTaggingAuditLog({
+      req,
+      action: "COURSE_TAGGING_ENROLL",
+      message: `${roleLabel} (${actorId}) enrolled ${courseLabel} to Student (${userId}).`,
+    });
 
     res.json({ message: "Course enrolled successfully" });
   } catch (err) {
@@ -422,8 +503,21 @@ router.delete("/courses/delete/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
+    const enrolledBefore = await getEnrolledSubjectLabel(id);
     const sql = "DELETE FROM enrolled_subject WHERE id = ?";
-    await db3.query(sql, [id]);
+    const [result] = await db3.query(sql, [id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Enrolled course not found" });
+    }
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertCourseTaggingAuditLog({
+      req,
+      action: "COURSE_TAGGING_UNENROLL",
+      message: `${roleLabel} (${actorId}) unenrolled ${enrolledBefore?.courseLabel || `enrolled_subject ${id}`} from Student (${enrolledBefore?.studentNumber || "unknown"}).`,
+    });
 
     res.json({
       message: "Course and related evaluations removed successfully",
@@ -453,9 +547,34 @@ router.delete("/courses/user/:userId", async (req, res) => {
       effectiveActiveSchoolYearId = yearResult[0].id;
     }
 
+    const [enrolledBefore] = await db3.query(
+      `SELECT es.id, c.course_code, c.course_description
+       FROM enrolled_subject es
+       LEFT JOIN course_table c ON c.course_id = es.course_id
+       WHERE es.student_number = ? AND es.active_school_year_id = ?`,
+      [userId, effectiveActiveSchoolYearId],
+    );
+
     const sql =
       "DELETE FROM enrolled_subject WHERE student_number = ? AND active_school_year_id = ?";
-    await db3.query(sql, [userId, effectiveActiveSchoolYearId]);
+    const [result] = await db3.query(sql, [userId, effectiveActiveSchoolYearId]);
+
+    if (result.affectedRows > 0) {
+      const { actorId, actorRole } = getAuditActor(req);
+      const roleLabel = formatAuditActorRole(actorRole);
+      const sampleCourses = enrolledBefore
+        .slice(0, 5)
+        .map((row) => `${row.course_code || "N/A"} - ${row.course_description || "Unknown Course"}`)
+        .join(", ");
+      const extraCount =
+        enrolledBefore.length > 5 ? ` and ${enrolledBefore.length - 5} more` : "";
+
+      await insertCourseTaggingAuditLog({
+        req,
+        action: "COURSE_TAGGING_UNENROLL_ALL",
+        message: `${roleLabel} (${actorId}) unenrolled ${result.affectedRows} course(s) from Student (${userId}). Course(s): ${sampleCourses || "N/A"}${extraCount}.`,
+      });
+    }
 
     res.json({ message: "All courses unenrolled successfully" });
   } catch (err) {
@@ -1654,6 +1773,15 @@ router.post("/add-all-to-enrolled-courses-summer", async (req, res) => {
         `⚠️ Curriculum ${curriculum_id} already exists for student ${user_id}`,
       );
     }
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    const courseLabel = await getCourseLabel(subject_id);
+    await insertCourseTaggingAuditLog({
+      req,
+      action: "COURSE_TAGGING_SUMMER_BULK_ENROLL",
+      message: `${roleLabel} (${actorId}) enrolled ${courseLabel} to Student (${user_id}) via summer bulk course tagging.`,
+    });
 
     res.status(200).json({ message: "Course enrolled successfully" });
   } catch (err) {

@@ -3,8 +3,51 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const { db } = require("../database/database");
+const { insertAuditLogAdmission } = require("../../utils/auditLogger");
 
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const insertSettingsAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogAdmission({
+    actorId,
+    role: actorRole,
+    action,
+    message,
+    severity: "INFO",
+  });
+};
+
+const getActorLabel = (req) => {
+  const { actorId, actorRole } = getAuditActor(req);
+  return {
+    actorId,
+    roleLabel: formatAuditActorRole(actorRole),
+  };
+};
 
 /* ===================== FILE UPLOAD ===================== */
 
@@ -205,6 +248,13 @@ router.post(
 
         await db.query(query, params);
 
+        const { actorId, roleLabel } = getActorLabel(req);
+        await insertSettingsAuditLog({
+          req,
+          action: "SYSTEM_SETTINGS_UPDATE",
+          message: `${roleLabel} (${actorId}) updated system settings.`,
+        });
+
         if (logoUrl && oldLogo && oldLogo !== logoUrl) deleteOldFile(oldLogo);
         if (bgImageUrl && oldBg && oldBg !== bgImageUrl) deleteOldFile(oldBg);
 
@@ -243,6 +293,13 @@ router.post(
         subtitle_color || "#555555",
         parsedBranches,
       ]);
+
+      const { actorId, roleLabel } = getActorLabel(req);
+      await insertSettingsAuditLog({
+        req,
+        action: "SYSTEM_SETTINGS_CREATE",
+        message: `${roleLabel} (${actorId}) created system settings.`,
+      });
 
       res.json({ success: true, message: "Settings created successfully." });
     } catch (err) {
@@ -341,6 +398,13 @@ router.post("/branches", async (req, res) => {
       ]);
     }
 
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertSettingsAuditLog({
+      req,
+      action: "BRANCH_CREATE",
+      message: `${roleLabel} (${actorId}) created branch ${branch}.`,
+    });
+
     res.json({ success: true, message: "Branch added", data: newBranch });
   } catch (err) {
     console.error("ADD ERROR:", err);
@@ -371,6 +435,7 @@ router.put("/branches/:id", async (req, res) => {
     }
 
     let branches = JSON.parse(rows[0].branches || "[]");
+    const existingBranch = branches.find((b) => b.id == id);
 
     let found = false;
 
@@ -432,6 +497,16 @@ router.put("/branches/:id", async (req, res) => {
       JSON.stringify(branches),
     ]);
 
+    const updatedBranch = branches.find((b) => b.id == id);
+    const branchLabel =
+      updatedBranch?.branch || existingBranch?.branch || `branch ID ${id}`;
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertSettingsAuditLog({
+      req,
+      action: "BRANCH_UPDATE",
+      message: `${roleLabel} (${actorId}) updated branch ${branchLabel}.`,
+    });
+
     res.json({ success: true, message: "Updated successfully" });
   } catch (err) {
     console.error("UPDATE ERROR:", err);
@@ -452,12 +527,21 @@ router.delete("/branches/:id", async (req, res) => {
     }
 
     let branches = JSON.parse(rows[0].branches || "[]");
+    const deletedBranch = branches.find((b) => b.id != null && b.id == id);
 
     branches = branches.filter((b) => b.id != id);
 
     await db.query("UPDATE company_settings SET branches = ? WHERE id = 1", [
       JSON.stringify(branches),
     ]);
+
+    const branchLabel = deletedBranch?.branch || `branch ID ${id}`;
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertSettingsAuditLog({
+      req,
+      action: "BRANCH_DELETE",
+      message: `${roleLabel} (${actorId}) deleted branch ${branchLabel}.`,
+    });
 
     res.json({ success: true });
   } catch (err) {

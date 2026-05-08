@@ -7,6 +7,7 @@ const fs = require("fs");
 
 const { db, db3 } = require("../database/database");
 const { CanDelete } = require("../../middleware/pagePermissions");
+const { insertAuditLogEnrollment } = require("../../utils/auditLogger");
 
 require("dotenv").config();
 
@@ -23,6 +24,46 @@ const transporter = nodemailer.createTransport({
 });
 
 const upload = multer({ storage: multer.memoryStorage() });
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const getProfessorLabel = (prof) => {
+  if (!prof) return "Unknown Professor";
+  const name = [prof.lname, prof.fname, prof.mname].filter(Boolean).join(", ");
+  return prof.employee_id || name || prof.email || `prof_id ${prof.prof_id || "unknown"}`;
+};
+
+const insertFacultyAuditLog = async ({ req, action, message, severity = "INFO" }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogEnrollment({
+    actorId,
+    role: actorRole,
+    action,
+    severity,
+    message,
+  });
+};
 
 router.post("/update_faculty", upload.single("profile_picture"), async (req, res) => {
   const { person_id } = req.body;
@@ -180,6 +221,14 @@ router.post(
       const sql2 = `INSERT INTO dprtmnt_profs_table (dprtmnt_id, prof_id) VALUES (?, ?)`;
       await db3.query(sql2, [dprtmnt_id, prof_id]);
 
+      const { actorId, actorRole } = getAuditActor(req);
+      const roleLabel = formatAuditActorRole(actorRole);
+      await insertFacultyAuditLog({
+        req,
+        action: "PROFESSOR_ACCOUNT_CREATE",
+        message: `${roleLabel} (${actorId}) created professor account ${employee_id} - ${lname}, ${fname}.`,
+      });
+
       res
         .status(201)
         .json({ success: true, message: "Professor added successfully" });
@@ -320,6 +369,14 @@ router.put(
         }
       }
 
+      const { actorId, actorRole } = getAuditActor(req);
+      const roleLabel = formatAuditActorRole(actorRole);
+      await insertFacultyAuditLog({
+        req,
+        action: "PROFESSOR_ACCOUNT_UPDATE",
+        message: `${roleLabel} (${actorId}) updated professor account ${employee_id} - ${lname}, ${fname}.`,
+      });
+
       res.json({ success: true, message: "Professor updated successfully." });
     } catch (err) {
       res.json({ success: false, error: "Internal server error." });
@@ -333,6 +390,11 @@ router.put("/update_prof_status/:id", async (req, res) => {
   const { status } = req.body;
 
   try {
+    const [profRows] = await db3.query(
+      "SELECT prof_id, employee_id, fname, mname, lname, email FROM prof_table WHERE prof_id = ? LIMIT 1",
+      [id],
+    );
+
     const [result] = await db3.query(
       "UPDATE prof_table SET status = ? WHERE prof_id = ?",
       [status, id],
@@ -341,6 +403,14 @@ router.put("/update_prof_status/:id", async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: "Professor not found" });
     }
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertFacultyAuditLog({
+      req,
+      action: "PROFESSOR_ACCOUNT_STATUS_UPDATE",
+      message: `${roleLabel} (${actorId}) set professor account ${getProfessorLabel(profRows[0])} to ${Number(status) === 1 ? "Active" : "Inactive"}.`,
+    });
 
     res.json({ message: "Status updated successfully" });
   } catch (err) {
@@ -360,7 +430,7 @@ router.delete("/delete_prof/:id", CanDelete, async (req, res) => {
     await conn.beginTransaction();
 
     const [profRows] = await conn.query(
-      "SELECT prof_id, employee_id, profile_image FROM prof_table WHERE prof_id = ? LIMIT 1",
+      "SELECT prof_id, employee_id, fname, mname, lname, email, profile_image FROM prof_table WHERE prof_id = ? LIMIT 1",
       [id],
     );
 
@@ -405,6 +475,15 @@ router.delete("/delete_prof/:id", CanDelete, async (req, res) => {
         }
       }
     }
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertFacultyAuditLog({
+      req,
+      action: "PROFESSOR_ACCOUNT_DELETE",
+      severity: "WARN",
+      message: `${roleLabel} (${actorId}) deleted professor account ${getProfessorLabel(profRows[0])}.`,
+    });
 
     res.json({ success: true, message: "Professor deleted successfully" });
   } catch (err) {
@@ -495,6 +574,14 @@ router.post("/import_professors", async (req, res) => {
     }
 
     await conn.commit();
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertFacultyAuditLog({
+      req,
+      action: "PROFESSOR_ACCOUNT_IMPORT",
+      message: `${roleLabel} (${actorId}) imported ${imported.length} professor account(s). Skipped row(s): ${skipped.length}.`,
+    });
 
     res.json({
       success: true,

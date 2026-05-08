@@ -39,6 +39,15 @@ const SchoolYearPanel = () => {
 
   const pageId = 55;
 
+  const getAuditHeaders = () => ({
+    headers: {
+      "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+      "x-page-id": pageId,
+      "x-audit-actor-id": employeeID || localStorage.getItem("employee_id") || "",
+      "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+    },
+  });
+
   const [years, setYears] = useState([]);
   const [semesters, setSemesters] = useState([]);
   const [schoolYears, setSchoolYears] = useState([]);
@@ -124,10 +133,10 @@ const SchoolYearPanel = () => {
     // If editing
     if (editID) {
       try {
-        await axios.put(`${API_BASE_URL}/school_years/${editID}`, {
+        await axios.put(`${API_BASE_URL}/edit_school_years/${editID}`, {
           year_id: selectedYear,
           semester_id: selectedSemester,
-        });
+        }, getAuditHeaders());
         setSnackbar({ open: true, message: "School year updated successfully!", severity: "success" });
         setEditID(null);
         setSelectedYear("");
@@ -154,7 +163,7 @@ const SchoolYearPanel = () => {
         year_id: selectedYear,
         semester_id: selectedSemester,
         activator: 0,
-      });
+      }, getAuditHeaders());
       setSelectedYear("");
       setSelectedSemester("");
       fetchSchoolYears();
@@ -167,7 +176,7 @@ const SchoolYearPanel = () => {
   const handleEdit = (sy) => {
     setSelectedYear(sy.year_id);
     setSelectedSemester(sy.semester_id);
-    setEditID(sy.school_year_id); // assuming backend returns school_year_id
+    setEditID(sy.school_year_id || sy.id);
   };
 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -178,7 +187,8 @@ const SchoolYearPanel = () => {
 
     try {
       await axios.delete(
-        `${API_BASE_URL}/school_years/${schoolYearToDelete.school_year_id}`
+        `${API_BASE_URL}/school_years/${schoolYearToDelete.school_year_id || schoolYearToDelete.id}`,
+        getAuditHeaders()
       );
       setSnackbar({
         open: true,

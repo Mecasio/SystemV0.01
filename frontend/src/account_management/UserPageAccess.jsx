@@ -73,6 +73,16 @@ const UserPageAccess = () => {
     severity: "success", // success | error | warning | info
   });
 
+  const auditConfig = {
+    headers: {
+      "x-audit-actor-id":
+        localStorage.getItem("employee_id") ||
+        localStorage.getItem("email") ||
+        "unknown",
+      "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+    },
+  };
+
   const handleCloseSnack = (event, reason) => {
     if (reason === "clickaway") return;
     setSnack((prev) => ({ ...prev, open: false }));
@@ -231,10 +241,13 @@ const UserPageAccess = () => {
       if (newState) {
         await axios.post(
           `${API_BASE_URL}/api/page_access/${selectedUser.employee_id}/${pageId}`,
+          {},
+          auditConfig,
         );
       } else {
         await axios.delete(
           `${API_BASE_URL}/api/page_access/${selectedUser.employee_id}/${pageId}`,
+          auditConfig,
         );
       }
 
@@ -284,6 +297,7 @@ const UserPageAccess = () => {
           can_edit: nextState.can_edit ? 1 : 0,
           can_delete: nextState.can_delete ? 1 : 0,
         },
+        auditConfig,
       );
 
       setSnack({
@@ -454,7 +468,7 @@ const UserPageAccess = () => {
       await axios.put(`${API_BASE_URL}/api/access/${editAccessId}`, {
         access_description: editAccessDescription,
         access_page: selectedPages,
-      });
+      }, auditConfig);
 
       setAccessLevels((prev) =>
         prev.map((level) =>
@@ -503,7 +517,7 @@ const UserPageAccess = () => {
       await axios.post(`${API_BASE_URL}/api/access`, {
         access_description: accessDescription,
         access_page: selectedPages,
-      });
+      }, auditConfig);
 
       setSnack({
         open: true,
@@ -527,7 +541,7 @@ const UserPageAccess = () => {
     try {
       await axios.post(`${API_BASE_URL}/api/page_access/grant-all`, {
         userId: selectedUser.employee_id,
-      });
+      }, auditConfig);
 
       const newAccess = {};
       pages.forEach((p) => {
@@ -557,7 +571,7 @@ const UserPageAccess = () => {
     try {
       await axios.post(`${API_BASE_URL}/api/page_access/revoke-all`, {
         userId: selectedUser.employee_id,
-      });
+      }, auditConfig);
 
       const newAccess = {};
       pages.forEach((p) => {
@@ -592,7 +606,7 @@ const UserPageAccess = () => {
     try {
       await axios.put(`${API_BASE_URL}/update_student_status/${userId}`, {
         status: nextStatus,
-      });
+      }, auditConfig);
 
       setSnack({
         open: true,

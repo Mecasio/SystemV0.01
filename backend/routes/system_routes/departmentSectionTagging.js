@@ -1,6 +1,41 @@
 const express = require("express");
 const { db3 } = require("../database/database");
+const { insertAuditLogEnrollment } = require("../../utils/auditLogger");
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const insertDepartmentSectionTaggingAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogEnrollment({
+    actorId,
+    role: actorRole,
+    action,
+    message,
+    severity: "INFO",
+  });
+};
 
 router.get('/get_student_per_curriculum', async (req, res) => {
   const { curriculum_id, active_school_year_id } = req.query;
@@ -82,6 +117,14 @@ router.put('/enrolled_student_in_section', async (req, res) => {
             [department_section_id, curriculum_id, active_school_year_id]
         );
 
+        const { actorId, actorRole } = getAuditActor(req);
+        const roleLabel = formatAuditActorRole(actorRole);
+        await insertDepartmentSectionTaggingAuditLog({
+            req,
+            action: "DEPARTMENT_SECTION_STUDENT_ENROLL_ALL",
+            message: `${roleLabel} (${actorId}) enrolled ${result.affectedRows} student subject record(s) in department section ${department_section_id}.`,
+        });
+
         res.json({
             message: `The students was successfully enrolled in the section`,
             affectedRows: result.affectedRows
@@ -112,6 +155,13 @@ router.put('/enrolled_student_in_section/:student_number', async (req, res) => {
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: "Student not found or already enrolled in a section" });
         }
+        const { actorId, actorRole } = getAuditActor(req);
+        const roleLabel = formatAuditActorRole(actorRole);
+        await insertDepartmentSectionTaggingAuditLog({
+            req,
+            action: "DEPARTMENT_SECTION_STUDENT_ENROLL",
+            message: `${roleLabel} (${actorId}) enrolled student ${student_number} in department section ${department_section_id}.`,
+        });
         res.json({ message: "Student enrolled in section successfully" });
     } catch (err) {
         console.error(err);        
@@ -133,6 +183,13 @@ router.put('/unenrolled_student_in_section', async (req, res) => {
             `,
             [curriculum_id, active_school_year_id, department_section_id]
         );
+        const { actorId, actorRole } = getAuditActor(req);
+        const roleLabel = formatAuditActorRole(actorRole);
+        await insertDepartmentSectionTaggingAuditLog({
+            req,
+            action: "DEPARTMENT_SECTION_STUDENT_UNENROLL_ALL",
+            message: `${roleLabel} (${actorId}) unenrolled ${result.affectedRows} student subject record(s) from department section ${department_section_id}.`,
+        });
         res.json({ message: "Students unenrolled from section successfully", affectedRows: result.affectedRows });
     } catch (err) {
         console.error(err);
@@ -159,6 +216,13 @@ router.put('/unenrolled_student_in_section/:student_number', async (req, res) =>
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: "Student not found or not enrolled in the specified section" });
         }
+        const { actorId, actorRole } = getAuditActor(req);
+        const roleLabel = formatAuditActorRole(actorRole);
+        await insertDepartmentSectionTaggingAuditLog({
+            req,
+            action: "DEPARTMENT_SECTION_STUDENT_UNENROLL",
+            message: `${roleLabel} (${actorId}) unenrolled student ${student_number} from department section ${department_section_id}.`,
+        });
         res.json({ message: "Student unenrolled from section successfully" });
     } catch (err) {
         console.error(err);        

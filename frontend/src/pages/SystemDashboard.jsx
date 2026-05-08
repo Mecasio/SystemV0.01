@@ -204,7 +204,6 @@ const SystemDashboardPanel = () => {
     {
       label: "YEAR & SCHOOL MANAGEMENT",
       items: [
-        { title: "YEAR UPDATE PANEL", link: "/year_update_panel", icon: Update, page_id: 65 },
         { title: "YEAR LEVEL PANEL FORM", link: "/year_level_panel", icon: Layers, page_id: 63 },
         { title: "YEAR PANEL FORM", link: "/year_panel", icon: CalendarToday, page_id: 64 },
         { title: "SCHOOL YEAR ACTIVATOR PANEL", link: "/school_year_activator_panel", icon: EventAvailable, page_id: 54 },

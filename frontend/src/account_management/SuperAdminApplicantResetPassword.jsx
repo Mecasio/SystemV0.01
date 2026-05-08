@@ -203,6 +203,15 @@ const SuperAdminApplicantResetPassword = () => {
 
   const [applicants, setApplicants] = useState([]);
 
+  const auditFields = () => ({
+    audit_actor_id:
+      employeeID ||
+      localStorage.getItem("employee_id") ||
+      localStorage.getItem("email") ||
+      "unknown",
+    audit_actor_role: userRole || localStorage.getItem("role") || "registrar",
+  });
+
   useEffect(() => {
     const fetchApplicants = async () => {
       setLoading(true);
@@ -229,7 +238,7 @@ const SuperAdminApplicantResetPassword = () => {
     try {
       const res = await axios.post(
         `${API_BASE_URL}/superadmin-reset-applicant`,
-        { email: userInfo.email },
+        { email: userInfo.email, ...auditFields() },
       );
 
       setSnackbar({
@@ -255,6 +264,7 @@ const SuperAdminApplicantResetPassword = () => {
       await axios.post(`${API_BASE_URL}/superadmin-update-status-applicant`, {
         email: userInfo.email,
         status: newStatus,
+        ...auditFields(),
       });
     } catch (err) {
       console.error("Failed to update status", err);
@@ -360,6 +370,7 @@ const SuperAdminApplicantResetPassword = () => {
         {
           email: userInfo.email,
           status: userInfo.status,
+          ...auditFields(),
         },
       );
 

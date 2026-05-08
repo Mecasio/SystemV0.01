@@ -172,6 +172,15 @@ const ApplicantScoring = () => {
 
     const [employeeID, setEmployeeID] = useState("");
 
+    const auditActor = () => ({
+        audit_actor_id:
+            employeeID ||
+            localStorage.getItem("employee_id") ||
+            localStorage.getItem("email") ||
+            "unknown",
+        audit_actor_role: userRole || localStorage.getItem("role") || "registrar",
+    });
+
     useEffect(() => {
 
         const storedUser = localStorage.getItem("email");
@@ -1090,6 +1099,9 @@ const ApplicantScoring = () => {
             const fd = new FormData();
             fd.append("file", selectedFile);
             fd.append("userID", userID);
+            const actor = auditActor();
+            fd.append("audit_actor_id", actor.audit_actor_id);
+            fd.append("audit_actor_role", actor.audit_actor_role);
 
             const res = await axios.post(
                 `${API_BASE_URL}/api/exam/import`,
@@ -1241,7 +1253,10 @@ const ApplicantScoring = () => {
 
             const res = await axios.post(
                 `${API_BASE_URL}/api/exam/save`,
-                payload,
+                {
+                    ...payload,
+                    ...auditActor(),
+                },
                 {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem("token")}`
@@ -1320,7 +1335,10 @@ const ApplicantScoring = () => {
 
                 const res = await axios.post(
                     `${API_BASE_URL}/api/exam/save`,
-                    payload,
+                    {
+                        ...payload,
+                        ...auditActor(),
+                    },
                     {
                         headers: {
                             Authorization: `Bearer ${localStorage.getItem("token")}`

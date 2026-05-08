@@ -1,7 +1,6 @@
 const express = require("express");
 const { db3 } = require("../database/database");
 const {
-  formatAuditTimestamp,
   insertAuditLogEnrollment,
 } = require("../../utils/auditLogger");
 const {
@@ -77,7 +76,7 @@ router.post("/program", CanCreate, async (req, res) => {
         code,
         name,
         major,
-      })} at ${formatAuditTimestamp()}. Program ID: ${result.insertId}.`,
+      })}. Program ID: ${result.insertId}.`,
     });
 
     res.status(200).json({ message: "Program created successfully" });
@@ -134,7 +133,7 @@ router.put("/program/:id", CanEdit, async (req, res) => {
       action: "PROGRAM_UPDATE",
       message: `${roleLabel} (${actorId}) updated program ${programLabel(
         programBefore,
-      )} to ${programLabel({ code, name, major })} at ${formatAuditTimestamp()}.`,
+      )} to ${programLabel({ code, name, major })}.`,
     });
 
     res.json({ message: "Program updated successfully" });
@@ -173,7 +172,7 @@ router.delete("/program/:id", CanDelete, async (req, res) => {
       action: "PROGRAM_DELETE",
       message: `${roleLabel} (${actorId}) deleted program ${programLabel(
         programBefore,
-      )} at ${formatAuditTimestamp()}.`,
+      )}.`,
     });
 
     res.status(200).send({ message: "Program deleted successfully" });

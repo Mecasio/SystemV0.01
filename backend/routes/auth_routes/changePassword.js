@@ -1,7 +1,29 @@
 const express = require("express");
 const { db, db3 } = require("../database/database");
 const bcrypt = require("bcryptjs");
+const {
+  insertAuditLogAdmission,
+  insertAuditLogEnrollment,
+} = require("../../utils/auditLogger");
 const router = express.Router();
+
+const insertOwnPasswordAuditLog = async ({
+  auditDb,
+  actorId,
+  role,
+  action,
+}) => {
+  const auditLogger =
+    auditDb === "db" ? insertAuditLogAdmission : insertAuditLogEnrollment;
+
+  await auditLogger({
+    actorId: actorId || "unknown",
+    role,
+    action,
+    severity: "INFO",
+    message: `${role || "User"} (${actorId || "unknown"}) reset own account password.`,
+  });
+};
 
 // Applicant Change Password
 router.post("/applicant-change-password", async (req, res) => {
@@ -118,6 +140,13 @@ router.post("/registrar-change-password", async (req, res) => {
       [hashed, person_id],
     );
 
+    await insertOwnPasswordAuditLog({
+      auditDb: "db3",
+      actorId: user.employee_id || user.email || person_id,
+      role: user.role || "registrar",
+      action: "REGISTRAR_OWN_PASSWORD_RESET",
+    });
+
     res.json({ message: "Password updated successfully" });
   } catch (error) {
     console.error("Password update error:", error);
@@ -179,6 +208,24 @@ router.post("/student-change-password", async (req, res) => {
       [hashed, person_id],
     );
 
+    let studentActorId = user.employee_id || user.email || person_id;
+    try {
+      const [studentRows] = await db3.query(
+        "SELECT student_number FROM student_numbering_table WHERE person_id = ? LIMIT 1",
+        [person_id],
+      );
+      studentActorId = studentRows?.[0]?.student_number || studentActorId;
+    } catch (lookupError) {
+      console.error("Student password audit lookup failed:", lookupError);
+    }
+
+    await insertOwnPasswordAuditLog({
+      auditDb: "db3",
+      actorId: studentActorId,
+      role: user.role || "student",
+      action: "STUDENT_OWN_PASSWORD_RESET",
+    });
+
     res.json({ message: "Password updated successfully" });
   } catch (error) {
     console.error("Password update error:", error);
@@ -239,6 +286,13 @@ router.post("/faculty-change-password", async (req, res) => {
       hashed,
       person_id,
     ]);
+
+    await insertOwnPasswordAuditLog({
+      auditDb: "db3",
+      actorId: user.employee_id || user.email || person_id,
+      role: user.role || "faculty",
+      action: "FACULTY_OWN_PASSWORD_RESET",
+    });
 
     res.json({ message: "Password updated successfully" });
   } catch (error) {

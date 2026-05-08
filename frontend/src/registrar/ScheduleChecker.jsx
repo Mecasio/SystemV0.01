@@ -373,6 +373,17 @@ const ScheduleChecker = () => {
     }
   }, [schoolYearList]);
 
+  const insertAuditLog = async (message, type) => {
+    try {
+      await axios.post(`${API_BASE_URL}/insert-logs/${userID}`, {
+        message,
+        type,
+      });
+    } catch (err) {
+      console.error("Error inserting audit log");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
@@ -478,6 +489,11 @@ const ScheduleChecker = () => {
       if (response.status === 200) {
         setMessage("Schedule inserted successfully.");
         setOpenSnackbar(true);
+        const scheduleType = isHonorarium ? "honorarium" : "regular";
+        await insertAuditLog(
+          `Employee ID #${userID} - ${user} successfully inserted ${scheduleType} schedule in Schedule Checker`,
+          "insert"
+        );
       }
 
       setSelectedDay("");
@@ -585,6 +601,10 @@ const ScheduleChecker = () => {
       if (response.status === 200) {
         setMessage("Schedule inserted successfully.");
         setOpenSnackbar(true);
+        await insertAuditLog(
+          `Employee ID #${userID} - ${user} successfully inserted designation schedule in Schedule Checker`,
+          "insert"
+        );
       }
 
       setSelectedDay("");
@@ -620,18 +640,10 @@ const ScheduleChecker = () => {
       }
 
       fetchSchedule();
-      try {
-        const page_name = "Schedule Plotting";
-        const fullName = `${user}`;
-        const type = "delete"
-
-        await axios.post(`${API_BASE_URL}/insert-logs/${userID}`, {
-          message: `Employee ID #${userID} - ${fullName} successfully delete schedule in ${page_name}`, type: type,
-        });
-
-      } catch (err) {
-        console.error("Error inserting audit log");
-      }
+      await insertAuditLog(
+        `Employee ID #${userID} - ${user} successfully deleted schedule in Schedule Checker`,
+        "delete"
+      );
     } catch (error) {
       console.error("Error deleting schedule:", error);
       setMessage("Failed to delete schedule.");

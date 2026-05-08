@@ -319,6 +319,17 @@ const UploadEnrolledSubject = () => {
         }
     };
 
+    const insertAuditLog = async (message, type) => {
+        try {
+            await axios.post(`${API_BASE_URL}/insert-logs/${userID}`, {
+                message,
+                type,
+            });
+        } catch (err) {
+            console.error("Error inserting audit log");
+        }
+    };
+
     const fetchUploadedStudent = async () => {
         try {
             const res = await axios.get(`${API_BASE_URL}/get_uploaded_students`);
@@ -458,6 +469,7 @@ const UploadEnrolledSubject = () => {
             await finishProgressTracking(true);
             const skippedCount = Number(res.data?.skippedCount || 0);
             const skippedItems = Array.isArray(res.data?.skippedItems) ? res.data.skippedItems : [];
+            const importedCount = Number(res.data?.insertedCount || res.data?.importedCount || 0);
 
             if (skippedCount > 0) {
                 setSnackbar({
@@ -474,6 +486,11 @@ const UploadEnrolledSubject = () => {
                     severity: 'success',
                 });
             }
+
+            await insertAuditLog(
+                `Employee ID #${userID} - ${user} successfully imported enrolled subjects from XLSX${importedCount ? ` (${importedCount} record/s)` : ""}${skippedCount ? ` with ${skippedCount} skipped row/s` : ""}`,
+                "import",
+            );
 
             setSelectedFile(null);
             await fetchUploadedStudent();

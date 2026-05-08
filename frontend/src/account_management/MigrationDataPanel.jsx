@@ -52,6 +52,15 @@ const MigrationDataPanel = () => {
     const excelInputRef = useRef(null);
     const pageId = 114;
 
+    const getAuditHeaders = () => ({
+        "x-audit-actor-id":
+            employeeID ||
+            localStorage.getItem("employee_id") ||
+            localStorage.getItem("email") ||
+            "unknown",
+        "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+    });
+
     /* ── settings ── */
     useEffect(() => {
         if (!settings) return;
@@ -117,7 +126,10 @@ const MigrationDataPanel = () => {
             fd.append("file", selectedFile);
             fd.append("campus", campusFilter);
             const res = await axios.post(`${API_BASE_URL}/api/import-xlsx`, fd, {
-                headers: { "Content-Type": "multipart/form-data" }
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                    ...getAuditHeaders(),
+                }
             });
             if (res.data.success) {
                 setSnack1({ open: true, message: res.data.message || "Grades imported successfully!", severity: "success" });
@@ -145,7 +157,10 @@ const MigrationDataPanel = () => {
         formData.append("file", excelFile);
         try {
             const res = await axios.post(`${API_BASE_URL}/api/person/import`, formData, {
-                headers: { "Content-Type": "multipart/form-data" }
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                    ...getAuditHeaders(),
+                }
             });
             if (res.data.success) {
                 setSnack2({

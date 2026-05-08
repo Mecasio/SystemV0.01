@@ -42,12 +42,30 @@ const StudentTable = ({ data, paymentType, onRemove }) => {
     if (settings.border_color) setBorderColor(settings.border_color);
   }, [settings]);
 
+  const insertTransferAuditLog = async (row, target) => {
+    try {
+      const actorId =
+        localStorage.getItem("employee_id") ||
+        localStorage.getItem("person_id") ||
+        "";
+      const actorEmail = localStorage.getItem("email") || "unknown";
+
+      await axios.post(`${API_BASE_URL}/insert-logs/${actorId}`, {
+        message: `Employee ID #${actorId} - ${actorEmail} successfully transferred student #${row.student_number} payment to ${target}`,
+        type: "insert",
+      });
+    } catch (err) {
+      console.error("Error inserting audit log");
+    }
+  };
+
   const handleTransfer = async (row) => {
     try {
       const saveEndpoint =
         paymentType === 1
           ? "/save_to_unifast"
           : "/save_to_matriculation";
+      const paymentTarget = paymentType === 1 ? "UniFAST" : "Matriculation";
 
       const deleteEndpoint =
         paymentType === 1
@@ -64,6 +82,7 @@ const StudentTable = ({ data, paymentType, onRemove }) => {
         data: { generatedId },
       });
 
+      await insertTransferAuditLog(row, paymentTarget);
       onRemove(row.student_number, row.id);
     } catch (error) {
       console.error(error);
@@ -349,8 +368,6 @@ const StudentTable = ({ data, paymentType, onRemove }) => {
           <Button
             variant="contained"
             color="error"
-
-
             onClick={closeConfirm} >
             Cancel
           </Button>

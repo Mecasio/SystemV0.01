@@ -167,16 +167,31 @@ const PageCRUD = () => {
 
     const [pageIdInput, setPageIdInput] = useState("");
 
+    const auditConfig = {
+        headers: {
+            "x-audit-actor-id":
+                employeeID ||
+                localStorage.getItem("employee_id") ||
+                localStorage.getItem("email") ||
+                "unknown",
+            "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+        },
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         try {
             if (currentPageId) {
                 // UPDATE
-                await axios.put(`${API_BASE_URL}/api/pages/${currentPageId}`, {
-                    page_description: pageDescription,
-                    page_group: pageGroup,
-                });
+                await axios.put(
+                    `${API_BASE_URL}/api/pages/${currentPageId}`,
+                    {
+                        page_description: pageDescription,
+                        page_group: pageGroup,
+                    },
+                    auditConfig,
+                );
 
                 setSnackbar({
                     open: true,
@@ -186,11 +201,15 @@ const PageCRUD = () => {
 
             } else {
                 // ADD — detect duplicate
-                await axios.post(`${API_BASE_URL}/api/pages`, {
-                    id: pageIdInput,
-                    page_description: pageDescription,
-                    page_group: pageGroup,
-                });
+                await axios.post(
+                    `${API_BASE_URL}/api/pages`,
+                    {
+                        id: pageIdInput,
+                        page_description: pageDescription,
+                        page_group: pageGroup,
+                    },
+                    auditConfig,
+                );
 
                 setSnackbar({
                     open: true,

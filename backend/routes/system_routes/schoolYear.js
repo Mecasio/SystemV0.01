@@ -5,8 +5,80 @@ const {
   CanDelete,
   CanEdit,
 } = require("../../middleware/pagePermissions");
+const { insertAuditLogEnrollment } = require("../../utils/auditLogger");
 
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const insertSchoolYearAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogEnrollment({
+    actorId,
+    role: actorRole,
+    action,
+    message,
+    severity: "INFO",
+  });
+};
+
+const getActorLabel = (req) => {
+  const { actorId, actorRole } = getAuditActor(req);
+  return {
+    actorId,
+    roleLabel: formatAuditActorRole(actorRole),
+  };
+};
+
+const getSchoolYearLabel = async (id) => {
+  const [rows] = await db3.query(
+    `SELECT yt.year_description, s.semester_description
+     FROM active_school_year_table sy
+     JOIN year_table yt ON sy.year_id = yt.year_id
+     JOIN semester_table s ON sy.semester_id = s.semester_id
+     WHERE sy.id = ?
+     LIMIT 1`,
+    [id],
+  );
+
+  if (!rows[0]) return `school year ID ${id}`;
+  return `${rows[0].year_description} ${rows[0].semester_description}`;
+};
+
+const getSchoolYearLabelFromIds = async (yearId, semesterId) => {
+  const [rows] = await db3.query(
+    `SELECT yt.year_description, s.semester_description
+     FROM year_table yt
+     JOIN semester_table s ON s.semester_id = ?
+     WHERE yt.year_id = ?
+     LIMIT 1`,
+    [semesterId, yearId],
+  );
+
+  if (!rows[0]) return `year ID ${yearId}, semester ID ${semesterId}`;
+  return `${rows[0].year_description} ${rows[0].semester_description}`;
+};
 
 // YEAR TABLE (UPDATED!)
 router.post("/years", async (req, res) => {
@@ -21,6 +93,13 @@ router.post("/years", async (req, res) => {
 
   try {
     const [result] = await db3.query(query, [year_description]);
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertSchoolYearAuditLog({
+      req,
+      action: "YEAR_CREATE",
+      message: `${roleLabel} (${actorId}) created year ${year_description}.`,
+    });
+
     res.status(201).json({
       year_id: result.insertId,
       year_description,
@@ -56,6 +135,11 @@ router.put("/year_table/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
+    const [[year]] = await db3.query(
+      "SELECT year_description FROM year_table WHERE year_id = ? LIMIT 1",
+      [id],
+    );
+
     if (status === 1) {
       // Deactivate all other years first
       const deactivateQuery = "UPDATE year_table SET status = 0";
@@ -73,6 +157,13 @@ router.put("/year_table/:id", async (req, res) => {
         [id],
       );
 
+      const { actorId, roleLabel } = getActorLabel(req);
+      await insertSchoolYearAuditLog({
+        req,
+        action: "YEAR_STATUS_UPDATE",
+        message: `${roleLabel} (${actorId}) activated year ${year?.year_description || id}.`,
+      });
+
       res.status(200).json({ message: "Year status updated successfully" });
     } else {
       // Deactivate the selected year
@@ -84,6 +175,13 @@ router.put("/year_table/:id", async (req, res) => {
         "UPDATE active_school_year_table SET astatus = 0 WHERE year_id = ?",
         [id],
       );
+
+      const { actorId, roleLabel } = getActorLabel(req);
+      await insertSchoolYearAuditLog({
+        req,
+        action: "YEAR_STATUS_UPDATE",
+        message: `${roleLabel} (${actorId}) deactivated year ${year?.year_description || id}.`,
+      });
 
       res.status(200).json({ message: "Year deactivated successfully" });
     }
@@ -107,6 +205,13 @@ router.post("/semesters", async (req, res) => {
 
   try {
     const [result] = await db3.query(query, [semester_description, semester_code]);
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertSchoolYearAuditLog({
+      req,
+      action: "SEMESTER_CREATE",
+      message: `${roleLabel} (${actorId}) created semester ${semester_description} (${semester_code}).`,
+    });
+
     res.status(201).json({
       semester_id: result.insertId,
       semester_description,
@@ -143,6 +248,13 @@ router.put("/semesters/:id", async (req, res) => {
       return res.status(404).json({ error: "Semester not found" });
     }
 
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertSchoolYearAuditLog({
+      req,
+      action: "SEMESTER_UPDATE",
+      message: `${roleLabel} (${actorId}) updated semester ${semester_description} (${semester_code}).`,
+    });
+
     res.status(200).json({
       message: "Semester updated successfully",
       semester_id: Number(id),
@@ -171,6 +283,11 @@ router.delete("/semesters/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
+    const [[semester]] = await db3.query(
+      "SELECT semester_description, semester_code FROM semester_table WHERE semester_id = ? LIMIT 1",
+      [id],
+    );
+
     const [result] = await db3.query(
       "DELETE FROM semester_table WHERE semester_id = ?",
       [id],
@@ -179,6 +296,16 @@ router.delete("/semesters/:id", async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: "Semester not found" });
     }
+
+    const semesterLabel = semester
+      ? `${semester.semester_description} (${semester.semester_code})`
+      : `semester ID ${id}`;
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertSchoolYearAuditLog({
+      req,
+      action: "SEMESTER_DELETE",
+      message: `${roleLabel} (${actorId}) deleted ${semesterLabel}.`,
+    });
 
     res.status(200).json({ message: "Semester deleted successfully" });
   } catch (err) {
@@ -237,6 +364,14 @@ router.post("/school_years", CanCreate, async (req, res) => {
       activator,
     ]);
 
+    const schoolYearLabel = await getSchoolYearLabelFromIds(year_id, semester_id);
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertSchoolYearAuditLog({
+      req,
+      action: "SCHOOL_YEAR_CREATE",
+      message: `${roleLabel} (${actorId}) created school year ${schoolYearLabel}.`,
+    });
+
     res.status(201).json({ school_year_id: result.insertId });
   } catch (err) {
     console.error("Error:", err);
@@ -247,11 +382,25 @@ router.post("/school_years", CanCreate, async (req, res) => {
   }
 });
 
+router.put("/school_years/deactivate_all", async (req, res) => {
+  try {
+    await db3.query("UPDATE active_school_year_table SET astatus = 0");
+    res.status(200).json({ message: "All school years deactivated" });
+  } catch (err) {
+    console.error("Error deactivating school years:", err);
+    res.status(500).json({
+      error: "Failed to deactivate school years",
+      details: err.message,
+    });
+  }
+});
+
 router.put("/school_years/:id", async (req, res) => {
   const { id } = req.params;
   const { activator } = req.body;
 
   try {
+    const schoolYearLabel = await getSchoolYearLabel(id);
     const [yearRows] = await db3.query(
       "SELECT year_id FROM active_school_year_table WHERE id = ? LIMIT 1",
       [id],
@@ -284,6 +433,13 @@ router.put("/school_years/:id", async (req, res) => {
         [id],
       );
 
+      const { actorId, roleLabel } = getActorLabel(req);
+      await insertSchoolYearAuditLog({
+        req,
+        action: "SCHOOL_YEAR_ACTIVATE",
+        message: `${roleLabel} (${actorId}) activated school year ${schoolYearLabel}.`,
+      });
+
       return res.status(200).json({ message: "School year activated" });
     } else {
       // Deactivate selected
@@ -309,6 +465,13 @@ router.put("/school_years/:id", async (req, res) => {
         ]);
       }
 
+      const { actorId, roleLabel } = getActorLabel(req);
+      await insertSchoolYearAuditLog({
+        req,
+        action: "SCHOOL_YEAR_DEACTIVATE",
+        message: `${roleLabel} (${actorId}) deactivated school year ${schoolYearLabel}.`,
+      });
+
       return res.status(200).json({ message: "School year deactivated" });
     }
   } catch (err) {
@@ -328,6 +491,7 @@ router.put("/edit_school_years/:id", CanEdit, async (req, res) => {
   }
 
   try {
+    const previousSchoolYearLabel = await getSchoolYearLabel(id);
     const [currentRows] = await db3.query(
       "SELECT * FROM active_school_year_table WHERE id = ? LIMIT 1",
       [id],
@@ -359,6 +523,14 @@ router.put("/edit_school_years/:id", CanEdit, async (req, res) => {
       [year_id, semester_id, id],
     );
 
+    const newSchoolYearLabel = await getSchoolYearLabelFromIds(year_id, semester_id);
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertSchoolYearAuditLog({
+      req,
+      action: "SCHOOL_YEAR_UPDATE",
+      message: `${roleLabel} (${actorId}) updated school year ${previousSchoolYearLabel} to ${newSchoolYearLabel}.`,
+    });
+
     res.status(200).json({ message: "School year updated successfully" });
   } catch (err) {
     console.error("Error:", err);
@@ -372,12 +544,20 @@ router.delete("/school_years/:id", CanDelete, async (req, res) => {
   const { id } = req.params;
 
   try {
+    const schoolYearLabel = await getSchoolYearLabel(id);
     const deleteQuery = "DELETE FROM active_school_year_table WHERE id = ?";
     const [result] = await db3.query(deleteQuery, [id]);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: "School year not found" });
     }
+
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertSchoolYearAuditLog({
+      req,
+      action: "SCHOOL_YEAR_DELETE",
+      message: `${roleLabel} (${actorId}) deleted school year ${schoolYearLabel}.`,
+    });
 
     res.status(200).json({ message: "School year deleted successfully" });
   } catch (err) {

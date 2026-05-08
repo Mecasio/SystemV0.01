@@ -156,6 +156,8 @@ const SignatureUpload = () => {
         const formData = new FormData();
         formData.append("full_name", fullName);
         formData.append("signature", signature);
+        formData.append("audit_actor_id", employeeID || localStorage.getItem("employee_id") || "");
+        formData.append("audit_actor_role", userRole || localStorage.getItem("role") || "registrar");
 
         try {
             setLoading(true);
@@ -163,6 +165,12 @@ const SignatureUpload = () => {
 
             const res = await fetch(`${API_BASE_URL}/api/signature`, {
                 method: "POST",
+                headers: {
+                    "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+                    "x-page-id": pageId,
+                    "x-audit-actor-id": employeeID || localStorage.getItem("employee_id") || "",
+                    "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+                },
                 body: formData
             });
 

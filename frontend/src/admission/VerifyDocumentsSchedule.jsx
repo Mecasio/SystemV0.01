@@ -216,6 +216,16 @@ const VerifyDocumentsSchedule = () => {
     const pageId = 115;
 
     const [employeeID, setEmployeeID] = useState("");
+    const auditConfig = {
+        headers: {
+            "x-audit-actor-id":
+                employeeID ||
+                localStorage.getItem("employee_id") ||
+                localStorage.getItem("email") ||
+                "unknown",
+            "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+        },
+    };
 
     useEffect(() => {
 
@@ -293,7 +303,7 @@ const VerifyDocumentsSchedule = () => {
                 evaluator: evaluator,
                 room_quota: Number(roomQuota),
                 active_school_year_id: schoolYearId,
-            });
+            }, auditConfig);
 
             // ✅ SUCCESS
             setSnackbarMessage("Verify document schedule created successfully ✅");
@@ -454,7 +464,8 @@ const VerifyDocumentsSchedule = () => {
                     evaluator: evaluator,
                     room_quota: Number(roomQuota),
                     active_school_year_id: schoolYearId
-                }
+                },
+                auditConfig,
             );
 
 
@@ -1359,7 +1370,10 @@ const VerifyDocumentsSchedule = () => {
                             if (!scheduleToDelete) return;
 
                             try {
-                                await axios.delete(`${API_BASE_URL}/delete_verify_document_schedule/${scheduleToDelete.schedule_id}`);
+                                await axios.delete(
+                                    `${API_BASE_URL}/delete_verify_document_schedule/${scheduleToDelete.schedule_id}`,
+                                    auditConfig,
+                                );
                                 setSchedules(prev => prev.filter(s => s.schedule_id !== scheduleToDelete.schedule_id));
 
                                 setSnackbarMessage("Schedule deleted ✅");

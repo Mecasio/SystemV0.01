@@ -2,8 +2,63 @@ const express = require("express");
 const path = require("path");
 const fs = require("fs");
 const { db, db3 } = require("../database/database");
+const { insertAuditLogEnrollment } = require("../../utils/auditLogger");
 
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const insertAccountManagementAuditLog = async ({
+  req,
+  action,
+  message,
+  severity = "INFO",
+}) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogEnrollment({
+    actorId,
+    role: actorRole,
+    action,
+    severity,
+    message,
+  });
+};
+
+const getPageLabel = async (pageId) => {
+  try {
+    const [rows] = await db3.query(
+      "SELECT id, page_description FROM page_table WHERE id = ? LIMIT 1",
+      [pageId],
+    );
+    const page = rows?.[0];
+    if (!page) return `Page ${pageId}`;
+    return `${page.id} - ${page.page_description}`;
+  } catch (err) {
+    console.error("Page audit label lookup failed:", err);
+    return `Page ${pageId}`;
+  }
+};
 
 router.post("/api/pages", async (req, res) => {
   const { id, page_description, page_group } = req.body;
@@ -23,6 +78,14 @@ router.post("/api/pages", async (req, res) => {
       "INSERT INTO page_table (id, page_description, page_group) VALUES (?, ?, ?)",
       [id, page_description, page_group],
     );
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertAccountManagementAuditLog({
+      req,
+      action: "PAGE_CREATE",
+      message: `${roleLabel} (${actorId}) created page ${id} - ${page_description}.`,
+    });
 
     res.json({ success: true });
   } catch (error) {
@@ -48,10 +111,20 @@ router.put("/api/pages/:id", async (req, res) => {
   const { page_description, page_group } = req.body;
 
   try {
-    await db3.query(
+    const [result] = await db3.query(
       `UPDATE page_table SET page_description = ?, page_group = ? WHERE id = ?`,
       [page_description, page_group, id],
     );
+
+    if (result.affectedRows > 0) {
+      const { actorId, actorRole } = getAuditActor(req);
+      const roleLabel = formatAuditActorRole(actorRole);
+      await insertAccountManagementAuditLog({
+        req,
+        action: "PAGE_UPDATE",
+        message: `${roleLabel} (${actorId}) updated page ${id} - ${page_description}.`,
+      });
+    }
     res.json({ success: true });
   } catch (err) {
     console.error("Error updating page:", err);
@@ -63,7 +136,18 @@ router.delete("/api/pages/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
-    await db3.query(`DELETE FROM page_table WHERE id = ?`, [id]);
+    const pageLabel = await getPageLabel(id);
+    const [result] = await db3.query(`DELETE FROM page_table WHERE id = ?`, [id]);
+    if (result.affectedRows > 0) {
+      const { actorId, actorRole } = getAuditActor(req);
+      const roleLabel = formatAuditActorRole(actorRole);
+      await insertAccountManagementAuditLog({
+        req,
+        action: "PAGE_DELETE",
+        severity: "WARN",
+        message: `${roleLabel} (${actorId}) deleted page ${pageLabel}.`,
+      });
+    }
     res.json({ success: true });
   } catch (err) {
     console.error("Error deleting page:", err);
@@ -102,6 +186,14 @@ router.post("/api/page_access/:userId/:pageId", async (req, res) => {
          WHERE user_id = ? AND page_id = ?`,
         [userId, pageId],
       );
+      const { actorId, actorRole } = getAuditActor(req);
+      const roleLabel = formatAuditActorRole(actorRole);
+      const pageLabel = await getPageLabel(pageId);
+      await insertAccountManagementAuditLog({
+        req,
+        action: "USER_PAGE_ACCESS_GRANT",
+        message: `${roleLabel} (${actorId}) granted page access ${pageLabel} to User (${userId}).`,
+      });
       return res.json({ success: true, action: "updated" });
     }
 
@@ -112,6 +204,15 @@ router.post("/api/page_access/:userId/:pageId", async (req, res) => {
     );
 
     // ✅ If query succeeded (affected rows > 0)
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    const pageLabel = await getPageLabel(pageId);
+    await insertAccountManagementAuditLog({
+      req,
+      action: "USER_PAGE_ACCESS_GRANT",
+      message: `${roleLabel} (${actorId}) granted page access ${pageLabel} to User (${userId}).`,
+    });
+
     res.json({ success: true, action: "inserted" });
   } catch (err) {
     console.error("Error inserting access:", err);
@@ -149,6 +250,15 @@ router.put("/api/page_access/:userId/:pageId", async (req, res) => {
         ],
       );
 
+      const { actorId, actorRole } = getAuditActor(req);
+      const roleLabel = formatAuditActorRole(actorRole);
+      const pageLabel = await getPageLabel(pageId);
+      await insertAccountManagementAuditLog({
+        req,
+        action: "USER_PAGE_PERMISSION_UPDATE",
+        message: `${roleLabel} (${actorId}) updated page permissions ${pageLabel} for User (${userId}).`,
+      });
+
       return res.json({ success: true, action: "updated" });
     }
 
@@ -166,6 +276,15 @@ router.put("/api/page_access/:userId/:pageId", async (req, res) => {
       ],
     );
 
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    const pageLabel = await getPageLabel(pageId);
+    await insertAccountManagementAuditLog({
+      req,
+      action: "USER_PAGE_PERMISSION_UPDATE",
+      message: `${roleLabel} (${actorId}) updated page permissions ${pageLabel} for User (${userId}).`,
+    });
+
     res.json({ success: true, action: "inserted" });
   } catch (err) {
     console.error("Error updating access:", err);
@@ -176,10 +295,21 @@ router.put("/api/page_access/:userId/:pageId", async (req, res) => {
 router.delete("/api/page_access/:userId/:pageId", async (req, res) => {
   const { userId, pageId } = req.params;
   try {
-    await db3.query(
+    const pageLabel = await getPageLabel(pageId);
+    const [result] = await db3.query(
       "DELETE FROM page_access WHERE user_id = ? AND page_id = ?",
       [userId, pageId],
     );
+    if (result.affectedRows > 0) {
+      const { actorId, actorRole } = getAuditActor(req);
+      const roleLabel = formatAuditActorRole(actorRole);
+      await insertAccountManagementAuditLog({
+        req,
+        action: "USER_PAGE_ACCESS_REVOKE",
+        severity: "WARN",
+        message: `${roleLabel} (${actorId}) revoked page access ${pageLabel} from User (${userId}).`,
+      });
+    }
     res.json({ success: true, action: "deleted" });
   } catch (err) {
     console.error("Error deleting access:", err);
@@ -247,6 +377,14 @@ router.post("/api/page_access/grant-all", async (req, res) => {
       }
     }
 
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertAccountManagementAuditLog({
+      req,
+      action: "USER_PAGE_ACCESS_GRANT_ALL",
+      message: `${roleLabel} (${actorId}) granted all page access to User (${userId}).`,
+    });
+
     res.json({ success: true });
   } catch (err) {
     console.error(err);
@@ -259,6 +397,15 @@ router.post("/api/page_access/revoke-all", async (req, res) => {
 
   try {
     await db3.query("DELETE FROM page_access WHERE user_id = ?", [userId]);
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertAccountManagementAuditLog({
+      req,
+      action: "USER_PAGE_ACCESS_REVOKE_ALL",
+      severity: "WARN",
+      message: `${roleLabel} (${actorId}) revoked all page access from User (${userId}).`,
+    });
 
     res.json({ success: true });
   } catch (err) {
@@ -307,10 +454,31 @@ router.put("/update_registrar_status/:id", async (req, res) => {
   const { status } = req.body;
 
   try {
-    await db3.query("UPDATE user_accounts SET status=? WHERE id=?", [
+    const [registrarRows] = await db3.query(
+      "SELECT id, employee_id, first_name, middle_name, last_name, email FROM user_accounts WHERE id = ? LIMIT 1",
+      [id],
+    );
+    const [result] = await db3.query("UPDATE user_accounts SET status=? WHERE id=?", [
       Number(status),
       id,
     ]);
+    if (result.affectedRows > 0) {
+      const { actorId, actorRole } = getAuditActor(req);
+      const roleLabel = formatAuditActorRole(actorRole);
+      const registrar = registrarRows?.[0] || {};
+      const registrarLabel =
+        registrar.employee_id ||
+        [registrar.last_name, registrar.first_name, registrar.middle_name]
+          .filter(Boolean)
+          .join(", ") ||
+        registrar.email ||
+        `id ${id}`;
+      await insertAccountManagementAuditLog({
+        req,
+        action: "REGISTRAR_ACCOUNT_STATUS_UPDATE",
+        message: `${roleLabel} (${actorId}) set registrar account ${registrarLabel} to ${Number(status) === 1 ? "Active" : "Inactive"}.`,
+      });
+    }
     res.json({ success: true });
   } catch (err) {
     console.error(err);

@@ -7,7 +7,6 @@ const bcrypt = require("bcrypt");
 const router = express.Router();
 const QRCode = require("qrcode");
 const {
-  formatAuditTimestamp,
   insertAuditLogAdmission,
 } = require("../../utils/auditLogger");
 const upload = multer({ storage: multer.memoryStorage() });
@@ -149,7 +148,7 @@ const insertApplicantCourseChangeAuditLog = async ({
     role: actorRole || "registrar",
     action: "APPLICANT_COURSE_CHANGE",
     severity: "INFO",
-    message: `${roleLabel} (${safeActor}) changed course of Applicant (${applicantLabel}) ${changeText} at ${formatAuditTimestamp()}.`,
+    message: `${roleLabel} (${safeActor}) changed course of Applicant (${applicantLabel}) ${changeText}.`,
   });
 };
 

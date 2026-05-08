@@ -5,9 +5,52 @@ const fs = require("fs");
 const bcrypt = require("bcryptjs");
 const { db, db3 } = require('../database/database');
 const { CanDelete } = require("../../middleware/pagePermissions");
+const { insertAuditLogEnrollment } = require("../../utils/auditLogger");
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const getRegistrarLabel = (registrar) => {
+  if (!registrar) return "Unknown Registrar";
+  const name = [registrar.last_name, registrar.first_name, registrar.middle_name]
+    .filter(Boolean)
+    .join(", ");
+  return registrar.employee_id || name || registrar.email || `id ${registrar.id || "unknown"}`;
+};
+
+const insertRegistrarAuditLog = async ({ req, action, message, severity = "INFO" }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogEnrollment({
+    actorId,
+    role: actorRole,
+    action,
+    severity,
+    message,
+  });
+};
 
 const parseAccessPages = (rawAccessPage) => {
   if (!rawAccessPage) return [];
@@ -156,6 +199,14 @@ router.post("/register_registrar", upload.single("profile_picture"), async (req,
       );
     }
 
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertRegistrarAuditLog({
+      req,
+      action: "REGISTRAR_ACCOUNT_CREATE",
+      message: `${roleLabel} (${actorId}) created registrar account ${employee_id} - ${last_name}, ${first_name}.`,
+    });
+
     res.status(201).json({ message: "Registrar account created successfully!" });
 
   } catch (error) {
@@ -298,6 +349,21 @@ router.put("/update_registrar/:id", upload.single("profile_picture"), async (req
       }
     }
 
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertRegistrarAuditLog({
+      req,
+      action: "REGISTRAR_ACCOUNT_UPDATE",
+      message: `${roleLabel} (${actorId}) updated registrar account ${getRegistrarLabel({
+        employee_id: data.employee_id || current.employee_id,
+        last_name: data.last_name || current.last_name,
+        first_name: data.first_name || current.first_name,
+        middle_name: data.middle_name || current.middle_name,
+        email: data.email || current.email,
+        id,
+      })}.`,
+    });
+
     res.json({
       success: true,
       message: "Registrar updated successfully"
@@ -319,7 +385,7 @@ router.delete("/delete_registrar/:id", CanDelete, async (req, res) => {
     await conn.beginTransaction();
 
     const [registrarRows] = await conn.query(
-      `SELECT id, employee_id, profile_picture
+      `SELECT id, employee_id, first_name, middle_name, last_name, email, profile_picture
        FROM user_accounts
        WHERE id = ? AND role IN ('registrar', 'admission', 'enrollment', 'clinic', 'superadmin')
        LIMIT 1`,
@@ -362,6 +428,15 @@ router.delete("/delete_registrar/:id", CanDelete, async (req, res) => {
         console.error("Failed to delete registrar image:", fileErr.message);
       }
     }
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertRegistrarAuditLog({
+      req,
+      action: "REGISTRAR_ACCOUNT_DELETE",
+      severity: "WARN",
+      message: `${roleLabel} (${actorId}) deleted registrar account ${getRegistrarLabel(registrar)}.`,
+    });
 
     res.json({ success: true, message: "Registrar deleted successfully" });
   } catch (error) {

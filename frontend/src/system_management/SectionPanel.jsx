@@ -46,6 +46,15 @@ const SectionPanel = () => {
 
   const pageId = 57;
 
+  const getAuditHeaders = () => ({
+    headers: {
+      "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+      "x-page-id": pageId,
+      "x-audit-actor-id": employeeID || localStorage.getItem("employee_id") || "",
+      "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+    },
+  });
+
   const [description, setDescription] = useState('');
   const [sections, setSections] = useState([]);
   const [editId, setEditId] = useState(null);
@@ -139,11 +148,11 @@ const SectionPanel = () => {
     try {
       if (editId) {
         // UPDATE
-        await axios.put(`${API_BASE_URL}/section_table/${editId}`, { description });
+        await axios.put(`${API_BASE_URL}/section_table/${editId}`, { description }, getAuditHeaders());
         setSnackbar({ open: true, message: "Section updated!", severity: "success" });
       } else {
         // INSERT
-        await axios.post(`${API_BASE_URL}/section_table`, { description });
+        await axios.post(`${API_BASE_URL}/section_table`, { description }, getAuditHeaders());
         setSnackbar({ open: true, message: "Section added!", severity: "success" });
       }
 
@@ -165,7 +174,7 @@ const SectionPanel = () => {
     if (!sectionToDelete) return;
 
     try {
-      await axios.delete(`${API_BASE_URL}/section_table/${sectionToDelete.id}`);
+      await axios.delete(`${API_BASE_URL}/section_table/${sectionToDelete.id}`, getAuditHeaders());
       setSnackbar({ open: true, message: "Section deleted!", severity: "success" });
       fetchSections();
     } catch (err) {

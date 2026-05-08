@@ -89,6 +89,14 @@ const SuperAdminFacultyResetPassword = () => {
     severity: "success",
   });
 
+  const auditFields = () => ({
+    audit_actor_id:
+      localStorage.getItem("employee_id") ||
+      localStorage.getItem("email") ||
+      "unknown",
+    audit_actor_role: localStorage.getItem("role") || "registrar",
+  });
+
   const tabs = [
     { label: "Applicant Reset Password", to: "/superadmin_applicant_reset_password", icon: <People fontSize="large" /> },
     { label: "Student Reset Password", to: "/superadmin_student_reset_password", icon: <School fontSize="large" /> },
@@ -154,8 +162,9 @@ const SuperAdminFacultyResetPassword = () => {
   const handleReset = async () => {
     if (!userInfo) return;
     try {
-      const res = await axios.post(`${API_BASE_URL}/superadmin-reset-faculty`, {
+      const res = await axios.post(`${API_BASE_URL}/superadmin-reset-employee`, {
         email: userInfo.email,
+        ...auditFields(),
       });
 
       setSnackbar({
@@ -177,9 +186,10 @@ const SuperAdminFacultyResetPassword = () => {
     const newStatus = parseInt(e.target.value);
     setUserInfo((prev) => ({ ...prev, status: newStatus }));
 
-    await axios.post(`${API_BASE_URL}/superadmin-update-status-faculty`, {
+    await axios.post(`${API_BASE_URL}/superadmin-update-status-employee`, {
       email: userInfo.email,
       status: newStatus,
+      ...auditFields(),
     });
   };
 

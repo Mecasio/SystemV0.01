@@ -544,7 +544,6 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
     },
     {
       key: "yearSchool", label: "Year & School", icon: CalendarToday, items: [
-        { title: "Year Update Panel", link: "/year_update_panel", icon: Update, page_id: 65 },
         { title: "Year Level Panel Form", link: "/year_level_panel", icon: Layers, page_id: 63 },
         { title: "Year Panel Form", link: "/year_panel", icon: CalendarToday, page_id: 64 },
         { title: "School Year Activator", link: "/school_year_activator_panel", icon: EventAvailable, page_id: 54 },

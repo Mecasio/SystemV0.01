@@ -194,6 +194,16 @@ const AssignQualifyingInterviewExam = () => {
     const pageId = 10;
 
     const [employeeID, setEmployeeID] = useState("");
+    const auditConfig = {
+        headers: {
+            "x-audit-actor-id":
+                employeeID ||
+                localStorage.getItem("employee_id") ||
+                localStorage.getItem("email") ||
+                "unknown",
+            "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+        },
+    };
 
     useEffect(() => {
 
@@ -258,14 +268,16 @@ const AssignQualifyingInterviewExam = () => {
             if (editingSchedule) {
                 await axios.put(
                     `${API_BASE_URL}/update_interview_schedule/${editingSchedule.schedule_id}`,
-                    payload
+                    payload,
+                    auditConfig,
                 );
 
                 setSnackbarMessage("Schedule updated successfully ✅");
             } else {
                 await axios.post(
                     `${API_BASE_URL}/insert_interview_schedule`,
-                    payload
+                    payload,
+                    auditConfig,
                 );
 
                 setSnackbarMessage("Schedule created successfully ✅");
@@ -329,7 +341,8 @@ const AssignQualifyingInterviewExam = () => {
 
         try {
             await axios.delete(
-                `${API_BASE_URL}/delete_interview_schedule/${scheduleToDelete.schedule_id}`
+                `${API_BASE_URL}/delete_interview_schedule/${scheduleToDelete.schedule_id}`,
+                auditConfig,
             );
 
             // remove from UI immediately

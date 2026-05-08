@@ -1,9 +1,32 @@
 const express = require("express");
 const nodemailer = require("nodemailer");
 const { db, db3 } = require("../database/database");
+const { insertAuditLogEnrollment } = require("../../utils/auditLogger");
 
 const router = express.Router();
 const tempPasswords = new Map();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
 
 const generateTempPassword = () => {
   const upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -202,6 +225,30 @@ router.post("/verify-temp-password", async (req, res) => {
 
   
   res.json({ success: true });
+});
+
+router.post("/api/payment-export/audit", async (req, res) => {
+  const { exported_count, payment_type, person_type } = req.body;
+
+  try {
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    const paymentLabel = Number(payment_type) === 1 ? "matriculation" : "UNIFAST";
+    const personLabel = Number(person_type) === 1 ? "applicant" : "student";
+
+    await insertAuditLogEnrollment({
+      actorId,
+      role: actorRole,
+      action: "PAYMENT_EXPORT",
+      severity: "INFO",
+      message: `${roleLabel} (${actorId}) exported ${Number(exported_count) || 0} ${personLabel} ${paymentLabel} payment record(s).`,
+    });
+
+    res.json({ success: true, message: "Payment export audit log inserted" });
+  } catch (error) {
+    console.error("Payment export audit error:", error);
+    res.status(500).json({ message: "Failed to insert payment export audit log" });
+  }
 });
 
 

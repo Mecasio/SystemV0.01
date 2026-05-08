@@ -127,6 +127,15 @@ const ReceiptCounterAssignment = () => {
         message: "",
         severity: "success"
     });
+    const auditConfig = {
+        headers: {
+            "x-audit-actor-id":
+                localStorage.getItem("employee_id") ||
+                localStorage.getItem("email") ||
+                "unknown",
+            "x-audit-actor-role": localStorage.getItem("role") || "registrar",
+        },
+    };
 
     useEffect(() => {
         if (!settings) return;
@@ -360,7 +369,7 @@ const ReceiptCounterAssignment = () => {
                     employee_id: assignForm.employee_id,
                     year_id: assignForm.school_year_id,
                     semester_id: assignForm.semester_id
-                });
+                }, auditConfig);
             } else if (confirmAction === "edit") {
                 if (!selectedAssignment?.id) {
                     throw new Error("No assignment selected for editing.");
@@ -368,13 +377,13 @@ const ReceiptCounterAssignment = () => {
 
                 await axios.put(`${API_BASE_URL}/api/receipt-counter/${selectedAssignment.id}`, {
                     counter: normalizedCounter
-                });
+                }, auditConfig);
             } else if (confirmAction === "deassign") {
                 if (!selectedAssignment?.id) {
                     throw new Error("No assignment selected for deassign.");
                 }
 
-                await axios.delete(`${API_BASE_URL}/api/receipt-counter/${selectedAssignment.id}`);
+                await axios.delete(`${API_BASE_URL}/api/receipt-counter/${selectedAssignment.id}`, auditConfig);
             }
 
             await fetchAssignments(activeSchoolYear?.school_year_id);

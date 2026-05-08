@@ -130,6 +130,15 @@ const AssignScheduleToApplicantsInterviewer = () => {
 
   const [employeeID, setEmployeeID] = useState("");
 
+  const auditActor = () => ({
+    audit_actor_id:
+      employeeID ||
+      localStorage.getItem("employee_id") ||
+      localStorage.getItem("email") ||
+      "unknown",
+    audit_actor_role: userRole || localStorage.getItem("role") || "registrar",
+  });
+
   useEffect(() => {
     const storedUser = localStorage.getItem("email");
     const storedRole = localStorage.getItem("role");
@@ -478,6 +487,7 @@ const AssignScheduleToApplicantsInterviewer = () => {
     socket.current.emit("update_schedule_for_interview", {
       schedule_id: selectedSchedule,
       applicant_numbers: [id],
+      ...auditActor(),
     });
 
     socket.current.once("update_schedule_result", (res) => {
@@ -553,6 +563,7 @@ const AssignScheduleToApplicantsInterviewer = () => {
     socket.current.emit("update_schedule_for_interview", {
       schedule_id: selectedSchedule,
       applicant_numbers: unassigned,
+      ...auditActor(),
     });
 
     socket.current.once("update_schedule_result", (res) => {
@@ -589,6 +600,7 @@ const AssignScheduleToApplicantsInterviewer = () => {
     try {
       await axios.post(`${API_BASE_URL}/unassign_interview`, {
         applicant_number,
+        ...auditActor(),
       });
 
       setPersons((prev) =>
@@ -683,6 +695,7 @@ const AssignScheduleToApplicantsInterviewer = () => {
     socket.current.emit("update_schedule_for_interview", {
       schedule_id: selectedSchedule,
       applicant_numbers: unassigned,
+      ...auditActor(),
     });
 
     socket.current.once("update_schedule_result", (res) => {
@@ -730,7 +743,10 @@ const AssignScheduleToApplicantsInterviewer = () => {
     try {
       const res = await axios.post(
         `${API_BASE_URL}/unassign_all_from_interview`,
-        { schedule_id: selectedSchedule },
+        {
+          schedule_id: selectedSchedule,
+          ...auditActor(),
+        },
       );
       setSnack({ open: true, message: res.data.message, severity: "success" });
 
@@ -1045,6 +1061,7 @@ ${reqText}
       senderName: emailSender,
       message: finalPreview,
       user_person_id: loggedInPersonId,
+      ...auditActor(),
     });
 
     // Remove previous listeners (prevents stacking)

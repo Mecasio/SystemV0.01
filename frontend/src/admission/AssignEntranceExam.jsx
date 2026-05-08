@@ -141,6 +141,16 @@ const AssignEntranceExam = () => {
   const [user, setUser] = useState("");
   const [userRole, setUserRole] = useState("");
   const [employeeID, setEmployeeID] = useState("");
+  const auditConfig = {
+    headers: {
+      "x-audit-actor-id":
+        employeeID ||
+        localStorage.getItem("employee_id") ||
+        localStorage.getItem("email") ||
+        "unknown",
+      "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+    },
+  };
   const [hasAccess, setHasAccess] = useState(null);
 
   const currentYear = new Date().getFullYear();
@@ -327,7 +337,8 @@ const AssignEntranceExam = () => {
             proctor,
             room_quota: roomQuota,
             active_school_year_id: schoolYearId,
-          }
+          },
+          auditConfig,
         );
         setSnackbarMessage("Schedule updated");
       } else {
@@ -341,7 +352,7 @@ const AssignEntranceExam = () => {
           proctor,
           room_quota: roomQuota,
           active_school_year_id: schoolYearId,
-        });
+        }, auditConfig);
         setSnackbarMessage("Schedule saved");
       }
 
@@ -385,7 +396,10 @@ const AssignEntranceExam = () => {
     if (!scheduleToDelete) return;
 
     try {
-      await axios.delete(`${API_BASE_URL}/delete_exam_schedule/${scheduleToDelete.schedule_id}`);
+      await axios.delete(
+        `${API_BASE_URL}/delete_exam_schedule/${scheduleToDelete.schedule_id}`,
+        auditConfig,
+      );
       setSchedules(prev => prev.filter(s => s.schedule_id !== scheduleToDelete.schedule_id));
 
       setSnackbarMessage("Schedule deleted ✅");
@@ -1317,7 +1331,10 @@ const AssignEntranceExam = () => {
               if (!scheduleToDelete) return;
 
               try {
-                await axios.delete(`${API_BASE_URL}/delete_exam_schedule/${scheduleToDelete.schedule_id}`);
+                await axios.delete(
+                  `${API_BASE_URL}/delete_exam_schedule/${scheduleToDelete.schedule_id}`,
+                  auditConfig,
+                );
                 setSchedules(prev => prev.filter(s => s.schedule_id !== scheduleToDelete.schedule_id));
 
                 setSnackbarMessage("Schedule deleted ✅");

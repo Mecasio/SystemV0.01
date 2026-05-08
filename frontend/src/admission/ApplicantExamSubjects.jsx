@@ -86,6 +86,16 @@ const AdminSubjects = () => {
     const [loading, setLoading] = useState(false);
     const pageId = 145;
     const [employeeID, setEmployeeID] = useState("");
+    const auditConfig = {
+        headers: {
+            "x-audit-actor-id":
+                employeeID ||
+                localStorage.getItem("employee_id") ||
+                localStorage.getItem("email") ||
+                "unknown",
+            "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+        },
+    };
 
     useEffect(() => {
         const storedUser = localStorage.getItem("email");
@@ -200,7 +210,7 @@ const AdminSubjects = () => {
                     name: modalName,
                     max_score: modalMaxScore,
                     is_active: modalIsActive,
-                });
+                }, auditConfig);
                 setSnack({ open: true, message: "Subject updated successfully.", severity: "success" });
                 handleCloseDialog();
                 fetchSubjects();
@@ -214,7 +224,7 @@ const AdminSubjects = () => {
                     name: modalName,
                     max_score: modalMaxScore,
                     is_active: modalIsActive,
-                });
+                }, auditConfig);
                 setSnack({ open: true, message: "Subject created successfully.", severity: "success" });
                 handleCloseDialog();
                 fetchSubjects();
@@ -230,7 +240,7 @@ const AdminSubjects = () => {
     // Quick toggle active without opening modal
     const handleDeleteSubject = async (subject) => {
         try {
-            await axios.delete(`${API_BASE_URL}/api/subjects/${subject.id}`);
+            await axios.delete(`${API_BASE_URL}/api/subjects/${subject.id}`, auditConfig);
 
             setSnack({
                 open: true,
@@ -569,7 +579,8 @@ const AdminSubjects = () => {
 
                             try {
                                 await axios.delete(
-                                    `${API_BASE_URL}/api/subjects/${subjectToDelete.id}`
+                                    `${API_BASE_URL}/api/subjects/${subjectToDelete.id}`,
+                                    auditConfig,
                                 );
 
                                 setSnack({

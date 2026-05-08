@@ -1,7 +1,67 @@
 const express = require("express");
 const { db, db3 } = require("../database/database");
+const {
+  insertAuditLogAdmission,
+} = require("../../utils/auditLogger");
 
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const formatEntranceExamScheduleLabel = (schedule) => {
+  if (!schedule) return "Unknown schedule";
+
+  return `Schedule ${schedule.schedule_id || "New"} (${schedule.day_description}, ${schedule.building_description || "N/A"} ${schedule.room_description || ""}, ${schedule.start_time || ""}-${schedule.end_time || ""})`;
+};
+
+const insertEntranceExamScheduleAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogAdmission({
+    actorId,
+    role: actorRole,
+    action,
+    severity: "INFO",
+    message,
+  });
+};
+
+const getEntranceExamScheduleLabel = async (scheduleId) => {
+  if (!scheduleId) return "No schedule";
+
+  const [rows] = await db.query(
+    `SELECT schedule_id, day_description, building_description, room_description, start_time, end_time
+     FROM entrance_exam_schedule
+     WHERE schedule_id = ?
+     LIMIT 1`,
+    [scheduleId],
+  );
+
+  const schedule = rows?.[0];
+  if (!schedule) return `Schedule ${scheduleId}`;
+
+  return `Schedule ${schedule.schedule_id} (${schedule.day_description}, ${schedule.building_description || "N/A"} ${schedule.room_description || ""}, ${schedule.start_time || ""}-${schedule.end_time || ""})`;
+};
 
 // ================== INSERT EXAM SCHEDULE ==================
 router.post("/insert_exam_schedule", async (req, res) => {
@@ -49,14 +109,29 @@ router.post("/insert_exam_schedule", async (req, res) => {
     }
 
     // Insert new schedule
-    await db.query(
-      `INSERT INTO entrance_exam_schedule 
+    const [insertResult] = await db.query(
+      `INSERT INTO entrance_exam_schedule
          (branch, day_description, building_description, room_description,
-          start_time, end_time, proctor, room_quota, active_school_year_id) 
+           start_time, end_time, proctor, room_quota, active_school_year_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [branch, day_description, building_description, room_description,
         start_time, end_time, proctor, room_quota, active_school_year_id]
     );
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertEntranceExamScheduleAuditLog({
+      req,
+      action: "ENTRANCE_EXAM_SCHEDULE_CREATE",
+      message: `${roleLabel} (${actorId}) created entrance examination ${formatEntranceExamScheduleLabel({
+        schedule_id: insertResult.insertId,
+        day_description,
+        building_description,
+        room_description,
+        start_time,
+        end_time,
+      })}. Proctor: ${proctor || "N/A"}. Room quota: ${room_quota}.`,
+    });
 
     res.json({ success: true });
   } catch (err) {
@@ -112,6 +187,15 @@ router.put("/update_exam_schedule/:id", async (req, res) => {
       return res.status(400).json({ error: "⚠️ Conflict: Room already booked." });
     }
 
+    const [[scheduleBefore]] = await db.query(
+      "SELECT * FROM entrance_exam_schedule WHERE schedule_id = ? LIMIT 1",
+      [id],
+    );
+
+    if (!scheduleBefore) {
+      return res.status(404).json({ error: "Schedule not found" });
+    }
+
     // Update schedule
     await db.query(
       `UPDATE entrance_exam_schedule
@@ -121,6 +205,21 @@ router.put("/update_exam_schedule/:id", async (req, res) => {
       [branch, day_description, building_description, room_description,
        start_time, end_time, proctor, room_quota, active_school_year_id, id]
     );
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertEntranceExamScheduleAuditLog({
+      req,
+      action: "ENTRANCE_EXAM_SCHEDULE_UPDATE",
+      message: `${roleLabel} (${actorId}) updated entrance examination ${formatEntranceExamScheduleLabel(scheduleBefore)} to ${formatEntranceExamScheduleLabel({
+        schedule_id: id,
+        day_description,
+        building_description,
+        room_description,
+        start_time,
+        end_time,
+      })}. Proctor: ${proctor || "N/A"}. Room quota: ${room_quota}.`,
+    });
 
     res.json({ success: true });
   } catch (err) {
@@ -134,10 +233,27 @@ router.delete("/delete_exam_schedule/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    await db.query(
+    const [[scheduleBefore]] = await db.query(
+      "SELECT * FROM entrance_exam_schedule WHERE schedule_id = ? LIMIT 1",
+      [id],
+    );
+
+    const [result] = await db.query(
       `DELETE FROM entrance_exam_schedule WHERE schedule_id = ?`,
       [id]
     );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Schedule not found" });
+    }
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertEntranceExamScheduleAuditLog({
+      req,
+      action: "ENTRANCE_EXAM_SCHEDULE_DELETE",
+      message: `${roleLabel} (${actorId}) deleted entrance examination ${formatEntranceExamScheduleLabel(scheduleBefore)}.`,
+    });
 
     res.json({ success: true, message: "Schedule deleted successfully ✅" });
   } catch (err) {
@@ -230,12 +346,33 @@ router.get("/exam_schedules_with_count/:yearId/:semesterId", async (req, res) =>
 
 // ================== UNASSIGN ALL APPLICANTS FROM A SCHEDULE ==================
 router.post("/unassign_all_from_schedule", async (req, res) => {
-  const { schedule_id } = req.body;
+  const { schedule_id, audit_actor_id, audit_actor_role } = req.body;
   try {
+    const [assignedRows] = await db.query(
+      "SELECT applicant_id FROM exam_applicants WHERE schedule_id = ?",
+      [schedule_id],
+    );
+    const scheduleLabel = await getEntranceExamScheduleLabel(schedule_id);
+
     await db.execute(
       "UPDATE exam_applicants SET schedule_id = NULL WHERE schedule_id = ?",
       [schedule_id]
     );
+
+    if (assignedRows.length > 0) {
+      const safeActor = audit_actor_id || "unknown";
+      const roleLabel = formatAuditActorRole(audit_actor_role);
+      const applicants = assignedRows.map((row) => row.applicant_id).join(", ");
+
+      await insertAuditLogAdmission({
+        actorId: safeActor,
+        role: audit_actor_role || "registrar",
+        action: "ENTRANCE_EXAM_SCHEDULE_UNASSIGN",
+        severity: "INFO",
+        message: `${roleLabel} (${safeActor}) unassigned ${assignedRows.length} applicant(s) from entrance examination ${scheduleLabel}. Applicant(s): ${applicants}.`,
+      });
+    }
+
     res.json({
       success: true,
       message: `All applicants unassigned from schedule ${schedule_id}`,
@@ -248,19 +385,38 @@ router.post("/unassign_all_from_schedule", async (req, res) => {
 
 // ================== UNASSIGN SINGLE APPLICANT ==================
 router.post("/unassign_schedule", async (req, res) => {
-  const { applicant_number } = req.body;
+  const { applicant_number, audit_actor_id, audit_actor_role } = req.body;
 
   if (!applicant_number) {
     return res.status(400).json({ error: "Applicant number is required." });
   }
 
   try {
+    const [[assignedBefore]] = await db.query(
+      "SELECT schedule_id FROM exam_applicants WHERE applicant_id = ? LIMIT 1",
+      [applicant_number],
+    );
+    const scheduleLabel = await getEntranceExamScheduleLabel(
+      assignedBefore?.schedule_id,
+    );
+
     const [result] = await db.query(
       `DELETE FROM admission.exam_applicants WHERE applicant_id = ?`,
       [applicant_number]
     );
 
     if (result.affectedRows > 0) {
+      const safeActor = audit_actor_id || "unknown";
+      const roleLabel = formatAuditActorRole(audit_actor_role);
+
+      await insertAuditLogAdmission({
+        actorId: safeActor,
+        role: audit_actor_role || "registrar",
+        action: "ENTRANCE_EXAM_SCHEDULE_UNASSIGN",
+        severity: "INFO",
+        message: `${roleLabel} (${safeActor}) unassigned Applicant (${applicant_number}) from entrance examination ${scheduleLabel}.`,
+      });
+
       res.json({
         success: true,
         message: `Applicant ${applicant_number} unassigned.`,

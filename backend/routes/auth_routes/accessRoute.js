@@ -1,7 +1,42 @@
 const express = require('express');
 const { db3 } = require('../database/database');
+const { insertAuditLogEnrollment } = require("../../utils/auditLogger");
 
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const insertAccessAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogEnrollment({
+    actorId,
+    role: actorRole,
+    action,
+    severity: "INFO",
+    message,
+  });
+};
 
 router.post("/access", async (req, res) => {
   const { access_description, access_page } = req.body;
@@ -12,6 +47,14 @@ router.post("/access", async (req, res) => {
       "INSERT INTO access_table (access_description, access_page) VALUES (?, ?)",
       [access_description, JSON.stringify(access_page)]
     );
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertAccessAuditLog({
+      req,
+      action: "ACCESS_LEVEL_CREATE",
+      message: `${roleLabel} (${actorId}) created access level ${access_description}.`,
+    });
 
     res.json({ success: true });
 
@@ -77,6 +120,14 @@ router.put("/access/:access_id", async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: "Access level not found" });
     }
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertAccessAuditLog({
+      req,
+      action: "ACCESS_LEVEL_UPDATE",
+      message: `${roleLabel} (${actorId}) updated access level ${access_description}.`,
+    });
 
     res.json({ success: true });
   } catch (err) {

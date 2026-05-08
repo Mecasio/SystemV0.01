@@ -102,6 +102,14 @@ const StudentScholarshipList = () => {
   const pageId = 129;
 
   const [employeeID, setEmployeeID] = useState("");
+
+  const getAuditHeaders = () => ({
+    "Content-Type": "application/json",
+    "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+    "x-page-id": pageId,
+    "x-audit-actor-id": employeeID || localStorage.getItem("employee_id") || "",
+    "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+  });
   useEffect(() => {
     const storedUser = localStorage.getItem("email");
     const storedRole = localStorage.getItem("role");
@@ -272,10 +280,8 @@ const StudentScholarshipList = () => {
 
       const res = await fetch(`${API_BASE_URL}/api/generate-cor-pdf`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ html }),
+        headers: getAuditHeaders(),
+        body: JSON.stringify({ html, student_number: studentNumber || searchQuery }),
       });
 
       if (!res.ok) throw new Error("PDF failed");

@@ -142,6 +142,17 @@ const GradeConversionAdmin = () => {
     };
 
     // ── Grade Conversion state ──
+    const insertAuditLog = async (message, type) => {
+        try {
+            await axios.post(`${API_BASE_URL}/insert-logs/${userID}`, {
+                message,
+                type,
+            });
+        } catch (err) {
+            console.error("Error inserting audit log");
+        }
+    };
+
     const [rows, setRows] = useState([]);
     const EMPTY_GRADE_FORM = { id: null, min_score: "", max_score: "", equivalent_grade: "", descriptive_rating: "" };
     const [gradeDialogOpen, setGradeDialogOpen] = useState(false);
@@ -183,11 +194,16 @@ const GradeConversionAdmin = () => {
             return;
         }
         try {
+            const isUpdate = Boolean(gradeForm.id);
             await axios.post(`${API_BASE_URL}/admin/grade-conversion`, gradeForm, permissionHeaders);
             setGradeDialogOpen(false);
             setGradeForm(EMPTY_GRADE_FORM);
             fetchData();
             setSnack({ open: true, message: "Grade entry saved successfully!", severity: "success" });
+            await insertAuditLog(
+                `Employee ID #${userID} - ${user} successfully ${isUpdate ? "updated" : "created"} grade conversion entry (${gradeForm.min_score}-${gradeForm.max_score} = ${gradeForm.equivalent_grade})`,
+                isUpdate ? "update" : "insert",
+            );
         } catch (err) {
             console.error(err);
             setSnack({ open: true, message: "Save failed. Please try again.", severity: "error" });
@@ -202,6 +218,10 @@ const GradeConversionAdmin = () => {
             setGradeToDelete(null);
             fetchData();
             setSnack({ open: true, message: "Entry deleted.", severity: "info" });
+            await insertAuditLog(
+                `Employee ID #${userID} - ${user} successfully deleted grade conversion entry (${gradeToDelete.min_score}-${gradeToDelete.max_score} = ${gradeToDelete.equivalent_grade})`,
+                "delete",
+            );
         } catch (err) {
             console.error(err);
             setSnack({ open: true, message: "Delete failed. Please try again.", severity: "error" });
@@ -243,11 +263,16 @@ const GradeConversionAdmin = () => {
             return;
         }
         try {
+            const isUpdate = Boolean(honorForm.id);
             await axios.post(`${API_BASE_URL}/admin/honors-rules`, honorForm, permissionHeaders);
             setHonorDialogOpen(false);
             setHonorForm(EMPTY_HONOR_FORM);
             fetchHonors();
             setSnack({ open: true, message: "Honors rule saved!", severity: "success" });
+            await insertAuditLog(
+                `Employee ID #${userID} - ${user} successfully ${isUpdate ? "updated" : "created"} honors rule (${honorForm.title})`,
+                isUpdate ? "update" : "insert",
+            );
         } catch (err) {
             setSnack({ open: true, message: "Save failed. Please try again.", severity: "error" });
         }
@@ -261,6 +286,10 @@ const GradeConversionAdmin = () => {
             setHonorToDelete(null);
             fetchHonors();
             setSnack({ open: true, message: "Honors rule deleted.", severity: "info" });
+            await insertAuditLog(
+                `Employee ID #${userID} - ${user} successfully deleted honors rule (${honorToDelete.title})`,
+                "delete",
+            );
         } catch (err) {
             console.error(err);
             setSnack({ open: true, message: "Delete failed. Please try again.", severity: "error" });

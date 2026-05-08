@@ -43,6 +43,15 @@ const SchoolYearActivatorPanel = () => {
     const [loading, setLoading] = useState(false);
 
     const pageId = 54;
+
+    const getAuditHeaders = () => ({
+        headers: {
+            "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+            "x-page-id": pageId,
+            "x-audit-actor-id": employeeID || localStorage.getItem("employee_id") || "",
+            "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+        },
+    });
     const [schoolYears, setSchoolYears] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -106,7 +115,7 @@ const SchoolYearActivatorPanel = () => {
         try {
             const updatedStatus = currentStatus === 1 ? 0 : 1;
             if (updatedStatus === 1) await axios.put(`${API_BASE_URL}/school_years/deactivate_all`);
-            await axios.put(`${API_BASE_URL}/school_years/${schoolYearId}`, { activator: updatedStatus });
+            await axios.put(`${API_BASE_URL}/school_years/${schoolYearId}`, { activator: updatedStatus }, getAuditHeaders());
             fetchSchoolYears();
             setSnackbar({ open: true, message: updatedStatus === 1 ? "School year activated!" : "School year deactivated!", severity: "success" });
         } catch {

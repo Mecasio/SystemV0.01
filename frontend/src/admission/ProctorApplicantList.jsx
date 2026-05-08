@@ -176,6 +176,15 @@ const ProctorApplicantList = () => {
 
   const [employeeID, setEmployeeID] = useState("");
 
+  const auditActor = () => ({
+    audit_actor_id:
+      employeeID ||
+      localStorage.getItem("employee_id") ||
+      localStorage.getItem("email") ||
+      "unknown",
+    audit_actor_role: userRole || localStorage.getItem("role") || "registrar",
+  });
+
   useEffect(() => {
 
     const storedUser = localStorage.getItem("email");
@@ -769,7 +778,8 @@ const ProctorApplicantList = () => {
 
               try {
                 await axios.put(`${API_BASE_URL}/api/exam/remove_applicant`, {
-                  applicant_id: applicantToDelete.applicant_number
+                  applicant_id: applicantToDelete.applicant_number,
+                  ...auditActor(),
                 });
 
                 setApplicants(prev =>

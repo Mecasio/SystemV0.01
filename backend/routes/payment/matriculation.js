@@ -1,7 +1,42 @@
 const express = require('express');
 const { db3 } = require('../database/database');
+const { insertAuditLogEnrollment } = require('../../utils/auditLogger');
 
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+    const safeRole = String(role || "registrar").trim();
+    if (!safeRole) return "Registrar";
+
+    return safeRole
+        .split(/[\s_-]+/)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+        .join(" ");
+};
+
+const getAuditActor = (req) => ({
+    actorId:
+        req.body?.audit_actor_id ||
+        req.headers["x-audit-actor-id"] ||
+        req.headers["x-employee-id"] ||
+        "unknown",
+    actorRole:
+        req.body?.audit_actor_role ||
+        req.headers["x-audit-actor-role"] ||
+        "registrar",
+});
+
+const insertMatriculationAuditLog = async ({ req, action, message }) => {
+    const { actorId, actorRole } = getAuditActor(req);
+
+    await insertAuditLogEnrollment({
+        actorId,
+        role: actorRole,
+        action,
+        severity: "INFO",
+        message,
+    });
+};
 
 router.get('/api/payment_matriculation/transactions', async (req, res) => {
     try {
@@ -50,6 +85,14 @@ router.put('/api/payment_matriculation/void/:transaction_id', async (req, res) =
             return res.status(404).json({ message: "Transaction not found." });
         }
 
+        const { actorId, actorRole } = getAuditActor(req);
+        const roleLabel = formatAuditActorRole(actorRole);
+        await insertMatriculationAuditLog({
+            req,
+            action: "MATRICULATION_PAYMENT_VOID",
+            message: `${roleLabel} (${actorId}) voided matriculation payment transaction ${transaction_id}.`,
+        });
+
         return res.json({ message: "Transaction marked as void." });
     } catch (error) {
         console.error("Error voiding transaction:", error);
@@ -80,6 +123,14 @@ router.put('/api/payment_matriculation/remark/:transaction_id', async (req, res)
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: "Transaction not found." });
         }
+
+        const { actorId, actorRole } = getAuditActor(req);
+        const roleLabel = formatAuditActorRole(actorRole);
+        await insertMatriculationAuditLog({
+            req,
+            action: "MATRICULATION_PAYMENT_REMARK",
+            message: `${roleLabel} (${actorId}) updated matriculation payment transaction ${transaction_id} remark to ${String(remark).trim()}.`,
+        });
 
         return res.json({ message: "Transaction remark updated successfully." });
     } catch (error) {
@@ -217,6 +268,13 @@ router.put('/api/payment_matriculation/:id', async (req, res) => {
         );
 
         await connection.commit();
+        const { actorId, actorRole } = getAuditActor(req);
+        const roleLabel = formatAuditActorRole(actorRole);
+        await insertMatriculationAuditLog({
+            req,
+            action: "MATRICULATION_PAYMENT_SAVE",
+            message: `${roleLabel} (${actorId}) saved matriculation payment for Student (${student_number}). Payment: ${parsedPayment}. Balance: ${parsedBalance}. Transaction ID: ${nextTransactionId}.`,
+        });
         return res.json({
             message: "Matriculation payment updated successfully.",
             transaction_id: nextTransactionId,

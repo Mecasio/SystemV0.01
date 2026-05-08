@@ -1,9 +1,19 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const { db, db3 } = require("../database/database");
+const { insertAuditLogAdmission } = require("../../utils/auditLogger");
 
 const router = express.Router();
 
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
 
 // -----------------------------
 // VERIFY TOKEN
@@ -25,35 +35,6 @@ function verifyToken(req, res, next) {
   }
 
   next();
-}
-
-
-// -----------------------------
-// AUDIT LOG
-// -----------------------------
-async function insertAuditLog({
-  actorId,
-  role,
-  action,
-  message,
-  severity,
-}) {
-  try {
-    await db.query(
-      `INSERT INTO audit_logs
-      (actor_id, role, action, message, severity)
-      VALUES (?, ?, ?, ?, ?)`,
-      [
-        actorId || "unknown",
-        role || "unknown",
-        action || "UNKNOWN",
-        message || "No message",
-        severity || "INFO"
-      ]
-    );
-  } catch (err) {
-    console.error(err);
-  }
 }
 
 
@@ -213,7 +194,9 @@ router.post("/api/exam/save", verifyToken, async (req, res) => {
     const {
       applicant_number,
       scores,
-      status
+      status,
+      audit_actor_id,
+      audit_actor_role,
     } = req.body;
 
     if (!applicant_number) {
@@ -232,13 +215,13 @@ router.post("/api/exam/save", verifyToken, async (req, res) => {
     // GET USER
     //--------------------------------------
     let actor = {
-      email: "unknown",
-      role: "unknown"
+      actorId: audit_actor_id || "unknown",
+      role: audit_actor_role || "registrar"
     };
 
     if (req.user?.email) {
       const [userRows] = await db3.query(
-        `SELECT email, role
+        `SELECT email, role, employee_id
          FROM user_accounts
          WHERE email = ?
          LIMIT 1`,
@@ -246,17 +229,32 @@ router.post("/api/exam/save", verifyToken, async (req, res) => {
       );
 
       if (userRows.length) {
-        actor = userRows[0];
+        actor = {
+          actorId: audit_actor_id || userRows[0].employee_id || userRows[0].email,
+          role: audit_actor_role || userRows[0].role || "registrar",
+        };
       }
+    }
+
+    if (audit_actor_id || audit_actor_role) {
+      actor = {
+        actorId: audit_actor_id || actor.actorId || "unknown",
+        role: audit_actor_role || actor.role || "registrar",
+      };
     }
 
     //--------------------------------------
     // GET PERSON
     //--------------------------------------
     const [personRows] = await db.query(
-      `SELECT person_id
-       FROM applicant_numbering_table
-       WHERE applicant_number = ?
+      `SELECT
+         ant.person_id,
+         pt.first_name,
+         pt.middle_name,
+         pt.last_name
+       FROM applicant_numbering_table ant
+       LEFT JOIN person_table pt ON pt.person_id = ant.person_id
+       WHERE ant.applicant_number = ?
        LIMIT 1`,
       [applicant_number]
     );
@@ -268,6 +266,13 @@ router.post("/api/exam/save", verifyToken, async (req, res) => {
     }
 
     const personId = personRows[0].person_id;
+    const applicantName = [
+      personRows[0].last_name,
+      personRows[0].first_name,
+      personRows[0].middle_name,
+    ]
+      .filter(Boolean)
+      .join(", ");
 
     //--------------------------------------
     // COMPUTE TOTAL
@@ -387,11 +392,13 @@ router.post("/api/exam/save", verifyToken, async (req, res) => {
     //--------------------------------------
     // AUDIT LOG
     //--------------------------------------
-    await insertAuditLog({
-      actorId: actor.email,
+    const roleLabel = formatAuditActorRole(actor.role);
+
+    await insertAuditLogAdmission({
+      actorId: actor.actorId,
       role: actor.role,
       action: "SAVE_EXAM",
-      message: `Saved exam result for applicant #${applicant_number}`,
+      message: `${roleLabel} (${actor.actorId}) saved entrance examination result for Applicant (${applicant_number}${applicantName ? ` - ${applicantName}` : ""}). Total score: ${totalScore}. Status: ${status || "N/A"}.`,
       severity: "INFO"
     });
 

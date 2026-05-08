@@ -79,7 +79,6 @@ const StudentQrInfo = lazy(() => import("./pages/StudentQrInfo"));
 const GradingSheet = lazy(() => import("./faculty/GradingSheet"));
 const FacultyWorkload = lazy(() => import("./faculty/FacultyWorkload"));
 const FacultyMasterList = lazy(() => import("./faculty/FacultyMasterlist"));
-const ProgramEvaluation = lazy(() => import("./registrar/ProgramEvaluation"));
 const FacultyResetPassword = lazy(
   () => import("./faculty/FacultyResetPassword"),
 );
@@ -171,7 +170,6 @@ const SectionPanel = lazy(() => import("./system_management/SectionPanel"));
 const DepartmentSection = lazy(() => import("./department_management/DepartmentSection"));
 const YearLevelPanel = lazy(() => import("./system_management/YearLevelPanel"));
 const YearPanel = lazy(() => import("./system_management/YearPanel"));
-const YearUpdateForm = lazy(() => import("./system_management/YearUpdateForm"));
 const SemesterPanel = lazy(() => import("./system_management/SemesterPanel"));
 const SchoolYearPanel = lazy(() => import("./system_management/SchoolYearPanel"));
 const SchoolYearActivatorPanel = lazy(
@@ -995,14 +993,6 @@ function App() {
                         }
                       />
                       <Route
-                        path="/year_update_panel"
-                        element={
-                          <ProtectedRoute>
-                            <YearUpdateForm />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
                         path="/semester_panel"
                         element={
                           <ProtectedRoute>
@@ -1395,14 +1385,6 @@ function App() {
                         element={
                           <ProtectedRoute>
                             <FacultyMasterList />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/program_evaluation"
-                        element={
-                          <ProtectedRoute>
-                            <ProgramEvaluation />
                           </ProtectedRoute>
                         }
                       />

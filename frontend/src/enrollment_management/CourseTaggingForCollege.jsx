@@ -103,6 +103,16 @@ const CourseTaggingForCollege = () => {
   const pageId = 124;
 
   const [employeeID, setEmployeeID] = useState("");
+  const auditConfig = {
+    headers: {
+      "x-audit-actor-id":
+        employeeID ||
+        localStorage.getItem("employee_id") ||
+        localStorage.getItem("email") ||
+        "unknown",
+      "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+    },
+  };
 
   useEffect(() => {
     const storedUser = localStorage.getItem("email");
@@ -561,6 +571,7 @@ const CourseTaggingForCollege = () => {
       await axios.post(
         `${API_BASE_URL}/add-to-enrolled-courses/${userId}/${currId}/`,
         payload,
+        auditConfig,
       );
 
       // Refresh enrolled courses list after adding
@@ -594,7 +605,7 @@ const CourseTaggingForCollege = () => {
 
     try {
       // Delete the specific enrolled_subject row
-      const res = await axios.delete(`${API_BASE_URL}/courses/delete/${id}`);
+      const res = await axios.delete(`${API_BASE_URL}/courses/delete/${id}`, auditConfig);
       console.log("Delete response:", res.data);
 
       // Refresh enrolled courses list
@@ -669,7 +680,7 @@ const CourseTaggingForCollege = () => {
               curriculumID: currId,
               departmentSectionID: selectedSection,
               year_level: yearLevelId,
-            });
+            }, auditConfig);
 
             enrolledCount++;
             setDisableYearButtons(true);
@@ -718,7 +729,7 @@ const CourseTaggingForCollege = () => {
   const deleteAllCart = async () => {
     try {
       // Delete all user courses
-      await axios.delete(`${API_BASE_URL}/courses/user/${userId}`);
+      await axios.delete(`${API_BASE_URL}/courses/user/${userId}`, auditConfig);
       // Refresh enrolled courses list
       const { data } = await axios.get(
         `${API_BASE_URL}/enrolled_courses/${userId}/${currId}`,

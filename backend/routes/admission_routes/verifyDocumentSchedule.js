@@ -1,7 +1,6 @@
 const express = require("express");
 const { db, db3 } = require("../database/database");
 const {
-  formatAuditTimestamp,
   insertAuditLogAdmission,
 } = require("../../utils/auditLogger");
 
@@ -15,6 +14,24 @@ const formatActorRole = (role) => {
     .split(/[\s_-]+/)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
     .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const formatVerifyScheduleLabel = (schedule) => {
+  if (!schedule) return "Unknown schedule";
+
+  return `Schedule ${schedule.schedule_id || "New"} (${schedule.schedule_date}, ${schedule.building_description || "N/A"} ${schedule.room_description || ""}, ${schedule.start_time || ""}-${schedule.end_time || ""})`;
 };
 
 const getVerifyScheduleLabel = async (scheduleId) => {
@@ -39,12 +56,13 @@ const getVerifyScheduleLabel = async (scheduleId) => {
 const insertVerifyScheduleAuditLog = async ({
   actorId,
   actorRole,
+  action = "VERIFY_SCHEDULE",
   message,
 }) => {
   await insertAuditLogAdmission({
     actorId: actorId || "unknown",
     role: actorRole || "registrar",
-    action: "VERIFY_SCHEDULE",
+    action,
     severity: "INFO",
     message,
   });
@@ -118,6 +136,22 @@ router.post("/create_verify_document_schedule", async (req, res) => {
       active_school_year_id
     ]);
 
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatActorRole(actorRole);
+    await insertVerifyScheduleAuditLog({
+      actorId,
+      actorRole,
+      action: "VERIFY_DOCUMENT_SCHEDULE_CREATE",
+      message: `${roleLabel} (${actorId}) created document verification ${formatVerifyScheduleLabel({
+        schedule_id: result.insertId,
+        schedule_date,
+        building_description,
+        room_description,
+        start_time,
+        end_time,
+      })}. Evaluator: ${evaluator || "N/A"}. Room quota: ${room_quota}.`,
+    });
+
     res.json({
       message: "Verify document schedule created successfully ✅",
       schedule_id: result.insertId
@@ -186,6 +220,15 @@ router.put("/update_verify_document_schedule/:schedule_id", async (req, res) => 
       return res.status(400).json({ error: "Missing required fields." });
     }
 
+    const [[scheduleBefore]] = await db.query(
+      "SELECT * FROM verify_document_schedule WHERE schedule_id = ? LIMIT 1",
+      [schedule_id],
+    );
+
+    if (!scheduleBefore) {
+      return res.status(404).json({ error: "Schedule not found" });
+    }
+
     const sql = `
       UPDATE verify_document_schedule
       SET schedule_date = ?, 
@@ -211,6 +254,22 @@ router.put("/update_verify_document_schedule/:schedule_id", async (req, res) => 
       schedule_id
     ]);
 
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatActorRole(actorRole);
+    await insertVerifyScheduleAuditLog({
+      actorId,
+      actorRole,
+      action: "VERIFY_DOCUMENT_SCHEDULE_UPDATE",
+      message: `${roleLabel} (${actorId}) updated document verification ${formatVerifyScheduleLabel(scheduleBefore)} to ${formatVerifyScheduleLabel({
+        schedule_id,
+        schedule_date,
+        building_description,
+        room_description,
+        start_time,
+        end_time,
+      })}. Evaluator: ${evaluator || "N/A"}. Room quota: ${room_quota}.`,
+    });
+
     res.json({ message: "Schedule updated successfully ✅" });
 
   } catch (err) {
@@ -225,10 +284,28 @@ router.delete("/delete_verify_document_schedule/:schedule_id", async (req, res) 
   try {
     const { schedule_id } = req.params;
 
+    const [[scheduleBefore]] = await db.query(
+      "SELECT * FROM verify_document_schedule WHERE schedule_id = ? LIMIT 1",
+      [schedule_id],
+    );
+
     const [result] = await db.query(
       `DELETE FROM verify_document_schedule WHERE schedule_id = ?`,
       [schedule_id]
     );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Schedule not found" });
+    }
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatActorRole(actorRole);
+    await insertVerifyScheduleAuditLog({
+      actorId,
+      actorRole,
+      action: "VERIFY_DOCUMENT_SCHEDULE_DELETE",
+      message: `${roleLabel} (${actorId}) deleted document verification ${formatVerifyScheduleLabel(scheduleBefore)}.`,
+    });
 
     res.json({ message: "Schedule deleted successfully" });
   } catch (err) {
@@ -317,7 +394,7 @@ router.post("/unassign_verify", async (req, res) => {
       await insertVerifyScheduleAuditLog({
         actorId: safeActor,
         actorRole: audit_actor_role,
-        message: `${roleLabel} (${safeActor}) unassigned Applicant (${applicant_number}) from document verification ${scheduleLabel} at ${formatAuditTimestamp()}.`,
+        message: `${roleLabel} (${safeActor}) unassigned Applicant (${applicant_number}) from document verification ${scheduleLabel}.`,
       });
     }
 
@@ -353,7 +430,7 @@ router.post("/unassign_all_from_verify", async (req, res) => {
       await insertVerifyScheduleAuditLog({
         actorId: safeActor,
         actorRole: audit_actor_role,
-        message: `${roleLabel} (${safeActor}) unassigned ${assignedRows.length} applicant(s) from document verification ${scheduleLabel} at ${formatAuditTimestamp()}.`,
+        message: `${roleLabel} (${safeActor}) unassigned ${assignedRows.length} applicant(s) from document verification ${scheduleLabel}.`,
       });
     }
 
@@ -598,7 +675,7 @@ router.post("/unassign_verify_evaluator_applicant_list", async (req, res) => {
       await insertVerifyScheduleAuditLog({
         actorId: safeActor,
         actorRole: audit_actor_role,
-        message: `${roleLabel} (${safeActor}) removed Applicant (${applicantLabel}) from evaluator applicant list for document verification ${scheduleLabel} at ${formatAuditTimestamp()}.`,
+        message: `${roleLabel} (${safeActor}) removed Applicant (${applicantLabel}) from evaluator applicant list for document verification ${scheduleLabel}.`,
       });
     }
 

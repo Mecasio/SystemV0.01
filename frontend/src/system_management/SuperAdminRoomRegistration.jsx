@@ -108,6 +108,12 @@ const RoomRegistration = () => {
     headers: {
       "x-employee-id": employeeID,
       "x-page-id": pageId,
+      "x-audit-actor-id":
+        employeeID ||
+        localStorage.getItem("employee_id") ||
+        localStorage.getItem("email") ||
+        "unknown",
+      "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
     },
   };
 

@@ -85,6 +85,12 @@ const CoursePanel = () => {
   const getPermissionHeaders = () => ({
     "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
     "x-page-id": pageId,
+    "x-audit-actor-id":
+      employeeID ||
+      localStorage.getItem("employee_id") ||
+      localStorage.getItem("email") ||
+      "unknown",
+    "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
   });
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -487,7 +493,10 @@ const CoursePanel = () => {
         `${API_BASE_URL}/import-course-xlsx`,
         formData,
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: {
+            "Content-Type": "multipart/form-data",
+            ...getPermissionHeaders(),
+          },
         },
       );
 

@@ -9,7 +9,7 @@ const {
   deriveRemarkAndStatusFromNumeric,
 } = require("../utils/gradeConversion");
 const {
-  formatAuditTimestamp,
+  insertAuditLogAdmission,
   insertAuditLogEnrollment,
 } = require("../utils/auditLogger");
 const {
@@ -58,6 +58,18 @@ const insertEnrollmentImportAuditLog = async ({ req, action, message }) => {
     role: actorRole,
     action,
     severity: "INFO",
+    message,
+  });
+};
+
+const insertAdmissionImportAuditLog = async ({ req, action, message, severity = "INFO" }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogAdmission({
+    actorId,
+    role: actorRole,
+    action,
+    severity,
     message,
   });
 };
@@ -1200,6 +1212,14 @@ router.post(
         }
       });
 
+      const { actorId, actorRole } = getAuditActor(req);
+      const roleLabel = formatAuditActorRole(actorRole);
+      await insertEnrollmentImportAuditLog({
+        req,
+        action: "CURRICULUM_IMPORT",
+        message: `${roleLabel} (${actorId}) imported ${importedCount} curriculum record(s) from XLSX. Skipped row(s): ${skippedItems.length}.`,
+      });
+
       return res.json(
         buildImportResponse(
           "Curriculum import finished",
@@ -1296,7 +1316,7 @@ router.post("/import-program-xlsx", upload.single("file"), async (req, res) => {
     await insertEnrollmentImportAuditLog({
       req,
       action: "PROGRAM_IMPORT",
-      message: `${roleLabel} (${actorId}) imported ${importedCount} program(s) from XLSX at ${formatAuditTimestamp()}. Skipped row(s): ${skippedItems.length}.`,
+      message: `${roleLabel} (${actorId}) imported ${importedCount} program(s) from XLSX. Skipped row(s): ${skippedItems.length}.`,
     });
 
     return res.json(
@@ -1397,6 +1417,14 @@ router.post("/import-course-xlsx", upload.single("file"), async (req, res) => {
         );
         importedCount += 1;
       }
+    });
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertEnrollmentImportAuditLog({
+      req,
+      action: "COURSE_IMPORT",
+      message: `${roleLabel} (${actorId}) imported ${importedCount} course(s) from XLSX. Skipped row(s): ${skippedItems.length}.`,
     });
 
     return res.json(
@@ -1668,7 +1696,7 @@ router.post(
       await insertEnrollmentImportAuditLog({
         req,
         action: "PROGRAM_TAGGING_IMPORT",
-        message: `${roleLabel} (${actorId}) imported ${importedCount} program tagging record(s) from XLSX at ${formatAuditTimestamp()}. Skipped row(s): ${skippedItems.length}.`,
+        message: `${roleLabel} (${actorId}) imported ${importedCount} program tagging record(s) from XLSX. Skipped row(s): ${skippedItems.length}.`,
       });
 
       return res.json(
@@ -1731,6 +1759,7 @@ router.post("/api/exam/import", upload.single("file"), async (req, res) => {
 
     const now = new Date();
     const errors = [];
+    let importedCount = 0;
 
     // 3️⃣ PROCESS ROWS
     for (const row of validRows) {
@@ -1842,9 +1871,22 @@ router.post("/api/exam/import", upload.single("file"), async (req, res) => {
          WHERE id = ?`,
         [totalScore, percentage, finalRating, examResultId]
       );
+
+      importedCount += 1;
     }
 
     // ✅ FINAL RESPONSE
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    const skippedCount = errors.length;
+
+    await insertAdmissionImportAuditLog({
+      req,
+      action: "IMPORT_EXAM_SCORES",
+      severity: skippedCount > 0 ? "WARNING" : "INFO",
+      message: `${roleLabel} (${actorId}) imported ${importedCount} entrance examination score record(s) from XLSX. Skipped row(s): ${skippedCount}.`,
+    });
+
     res.json({
       success: errors.length === 0,
       message: errors.length
@@ -2596,6 +2638,14 @@ router.post("/api/person/import", upload.single("file"), async (req, res) => {
       console.log("====================================\n");
     }
 
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertEnrollmentImportAuditLog({
+      req,
+      action: "MIGRATION_PERSON_IMPORT",
+      message: `${roleLabel} (${actorId}) uploaded ${req.file?.originalname || "personal information file"} with ${totalUpdated} updated student record(s). Skipped row(s): ${totalSkipped}.`,
+    });
+
     return res.json({
       success: true,
       message: `Imported: ${totalRows}, Updated: ${totalUpdated}, Skipped: ${totalSkipped}`,
@@ -3076,6 +3126,13 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
     if (!curriculum) {
       await connection.rollback();
       connection.release();
+      const { actorId, actorRole } = getAuditActor(req);
+      const roleLabel = formatAuditActorRole(actorRole);
+      await insertEnrollmentImportAuditLog({
+        req,
+        action: "MIGRATION_GRADE_IMPORT_FAILED",
+        message: `${roleLabel} (${actorId}) failed to upload ${req.file?.originalname || "migration file"} due to missing curriculum ${year_description} ${program_code}.`,
+      });
       return res.status(400).json({ error: "No matching curriculum found" });
     }
 
@@ -3354,6 +3411,14 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
 
         await connection.rollback();
         connection.release();
+        const { actorId, actorRole } = getAuditActor(req);
+        const roleLabel = formatAuditActorRole(actorRole);
+        const missingCourseLabel = uniqueMissingCourseCodes.join(", ");
+        await insertEnrollmentImportAuditLog({
+          req,
+          action: "MIGRATION_GRADE_IMPORT_FAILED",
+          message: `${roleLabel} (${actorId}) failed to upload ${req.file?.originalname || "migration file"} due to missing course ${missingCourseLabel}.`,
+        });
         return res.status(400).json({
           error: "Upload failed. Some course codes do not exist.",
           missing_course_codes: uniqueMissingCourseCodes,
@@ -3770,6 +3835,14 @@ router.post("/api/import-xlsx", upload.single("file"), async (req, res) => {
     // Commit transaction
     await connection.commit();
     connection.release();
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertEnrollmentImportAuditLog({
+      req,
+      action: "MIGRATION_GRADE_IMPORT",
+      message: `${roleLabel} (${actorId}) uploaded ${req.file?.originalname || "migration file"} for Student (${studentNumber}) with ${totalInserted} migrated grade record(s).`,
+    });
 
     res.json({
       success: true,

@@ -223,6 +223,16 @@ const MatriculationPaymentModule = () => {
     const showSnackbar = (message, severity = "info") => {
         setSnackbar({ open: true, message, severity });
     };
+    const auditConfig = {
+        headers: {
+            "x-audit-actor-id":
+                personData?.employee_id ||
+                localStorage.getItem("employee_id") ||
+                localStorage.getItem("email") ||
+                "unknown",
+            "x-audit-actor-role": localStorage.getItem("role") || "registrar",
+        },
+    };
 
     const a5PrintRef = useRef(null);
     const receiptPrintedRef = useRef(false);
@@ -318,7 +328,7 @@ const MatriculationPaymentModule = () => {
                 balance: paymentSummary.balance,
                 payment_status: paymentSummary.paymentStatus,
                 employee_id: employeeId,
-            });
+            }, auditConfig);
             setKeepVisiblePaidMatriculationId(row?.id ?? null);
             await fetchStudentData();
             setReceiptData({
@@ -484,7 +494,7 @@ const MatriculationPaymentModule = () => {
         try {
             await axios.put(`${API_BASE_URL}/api/payment_matriculation/remark/${transactionId}`, {
                 remark: "Not Printed",
-            });
+            }, auditConfig);
             setReceiptData((prev) => ({
                 ...prev,
                 remark: "Not Printed",
@@ -508,7 +518,7 @@ const MatriculationPaymentModule = () => {
 
         try {
             setVoidingReceipt(true);
-            await axios.put(`${API_BASE_URL}/api/payment_matriculation/void/${transactionId}`);
+            await axios.put(`${API_BASE_URL}/api/payment_matriculation/void/${transactionId}`, null, auditConfig);
             setReceiptData((prev) => ({
                 ...prev,
                 remark: "Void",

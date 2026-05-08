@@ -4,9 +4,32 @@ const path = require("path");
 const fs = require("fs");
 const bcrypt = require("bcryptjs");
 const { db3 } = require("../database/database");
+const { insertAuditLogEnrollment } = require("../../utils/auditLogger");
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
 
 const saveStudentProfilePicture = async (studentNumber, file) => {
   if (!file) return null;
@@ -335,10 +358,32 @@ router.put("/update_student_status/:id", async (req, res) => {
   const { status } = req.body;
 
   try {
-    await db3.query(`UPDATE user_accounts SET status = ? WHERE id = ?`, [
+    const [userRows] = await db3.query(
+      "SELECT id, employee_id, email, first_name, middle_name, last_name FROM user_accounts WHERE id = ? LIMIT 1",
+      [id],
+    );
+    const [result] = await db3.query(`UPDATE user_accounts SET status = ? WHERE id = ?`, [
       status,
       id,
     ]);
+    if (result.affectedRows > 0) {
+      const { actorId, actorRole } = getAuditActor(req);
+      const roleLabel = formatAuditActorRole(actorRole);
+      const user = userRows?.[0] || {};
+      const userLabel =
+        user.employee_id ||
+        [user.last_name, user.first_name, user.middle_name].filter(Boolean).join(", ") ||
+        user.email ||
+        `id ${id}`;
+
+      await insertAuditLogEnrollment({
+        actorId,
+        role: actorRole,
+        action: "USER_ACCOUNT_STATUS_UPDATE",
+        severity: "INFO",
+        message: `${roleLabel} (${actorId}) set user account ${userLabel} to ${Number(status) === 1 ? "Active" : "Inactive"}.`,
+      });
+    }
     res.json({ success: true, message: `Student status updated to ${status}` });
   } catch (error) {
     console.error("Error updating student status:", error);

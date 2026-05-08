@@ -1,7 +1,68 @@
 const express = require("express");
 const { db, db3 } = require("../database/database");
+const {
+  insertAuditLogAdmission,
+  insertAuditLogEnrollment,
+} = require("../../utils/auditLogger");
 
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const formatInterviewScheduleLabel = (schedule) => {
+  if (!schedule) return "Unknown schedule";
+
+  return `Schedule ${schedule.schedule_id || "New"} (${schedule.day_description}, ${schedule.building_description || "N/A"} ${schedule.room_description || ""}, ${schedule.start_time || ""}-${schedule.end_time || ""})`;
+};
+
+const insertInterviewScheduleAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogAdmission({
+    actorId,
+    role: actorRole,
+    action,
+    severity: "INFO",
+    message,
+  });
+};
+
+const getInterviewScheduleLabel = async (scheduleId) => {
+  if (!scheduleId) return "No schedule";
+
+  const [rows] = await db.query(
+    `SELECT schedule_id, day_description, building_description, room_description, start_time, end_time
+     FROM interview_exam_schedule
+     WHERE schedule_id = ?
+     LIMIT 1`,
+    [scheduleId],
+  );
+
+  const schedule = rows?.[0];
+  if (!schedule) return `Schedule ${scheduleId}`;
+
+  return `Schedule ${schedule.schedule_id} (${schedule.day_description}, ${schedule.building_description || "N/A"} ${schedule.room_description || ""}, ${schedule.start_time || ""}-${schedule.end_time || ""})`;
+};
 
 const resolveActiveSchoolYearId = async (providedId) => {
   if (providedId) {
@@ -61,7 +122,7 @@ router.post("/insert_interview_schedule", async (req, res) => {
       return res.status(400).json({ error: "⚠️ Conflict: Room already booked for this branch." });
     }
 
-    await db.query(
+    const [insertResult] = await db.query(
       `INSERT INTO interview_exam_schedule
        (branch, day_description, building_description, room_description, start_time, end_time, interviewer, room_quota, active_school_year_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -77,6 +138,21 @@ router.post("/insert_interview_schedule", async (req, res) => {
         resolvedActiveSchoolYearId,
       ]
     );
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertInterviewScheduleAuditLog({
+      req,
+      action: "QUALIFYING_INTERVIEW_SCHEDULE_CREATE",
+      message: `${roleLabel} (${actorId}) created qualifying/interview ${formatInterviewScheduleLabel({
+        schedule_id: insertResult.insertId,
+        day_description,
+        building_description,
+        room_description,
+        start_time,
+        end_time,
+      })}. Interviewer: ${interviewer || "N/A"}. Room quota: ${room_quota}.`,
+    });
 
     res.json({ success: true });
   } catch (err) {
@@ -133,6 +209,15 @@ router.put("/update_interview_schedule/:id", async (req, res) => {
       return res.status(400).json({ error: "⚠️ Conflict detected for this branch." });
     }
 
+    const [[scheduleBefore]] = await db.query(
+      "SELECT * FROM interview_exam_schedule WHERE schedule_id = ? LIMIT 1",
+      [id],
+    );
+
+    if (!scheduleBefore) {
+      return res.status(404).json({ error: "Schedule not found" });
+    }
+
     await db.query(
       `UPDATE interview_exam_schedule
        SET branch = ?,
@@ -159,6 +244,21 @@ router.put("/update_interview_schedule/:id", async (req, res) => {
       ]
     );
 
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertInterviewScheduleAuditLog({
+      req,
+      action: "QUALIFYING_INTERVIEW_SCHEDULE_UPDATE",
+      message: `${roleLabel} (${actorId}) updated qualifying/interview ${formatInterviewScheduleLabel(scheduleBefore)} to ${formatInterviewScheduleLabel({
+        schedule_id: id,
+        day_description,
+        building_description,
+        room_description,
+        start_time,
+        end_time,
+      })}. Interviewer: ${interviewer || "N/A"}. Room quota: ${room_quota}.`,
+    });
+
     res.json({ success: true });
   } catch (err) {
     console.error("UPDATE ERROR:", err);
@@ -171,10 +271,27 @@ router.delete("/delete_interview_schedule/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    await db.query(
+    const [[scheduleBefore]] = await db.query(
+      "SELECT * FROM interview_exam_schedule WHERE schedule_id = ? LIMIT 1",
+      [id],
+    );
+
+    const [result] = await db.query(
       "DELETE FROM interview_exam_schedule WHERE schedule_id = ?",
       [id]
     );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Schedule not found" });
+    }
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertInterviewScheduleAuditLog({
+      req,
+      action: "QUALIFYING_INTERVIEW_SCHEDULE_DELETE",
+      message: `${roleLabel} (${actorId}) deleted qualifying/interview ${formatInterviewScheduleLabel(scheduleBefore)}.`,
+    });
 
     res.json({ success: true, message: "Schedule deleted successfully ✅" });
   } catch (err) {
@@ -294,14 +411,36 @@ router.get("/interview_schedules_with_count", async (req, res) => {
 });
 // 4. Unassign one applicant
 router.post("/unassign_interview", async (req, res) => {
-  const { applicant_number } = req.body;
+  const { applicant_number, audit_actor_id, audit_actor_role } = req.body;
   try {
+    const [[assignedBefore]] = await db.query(
+      "SELECT schedule_id FROM interview_applicants WHERE applicant_id = ? LIMIT 1",
+      [applicant_number],
+    );
+    const scheduleLabel = await getInterviewScheduleLabel(
+      assignedBefore?.schedule_id,
+    );
+
     await db.query(
       `UPDATE interview_applicants
        SET schedule_id = NULL
        WHERE applicant_id = ?`,
       [applicant_number],
     );
+
+    if (assignedBefore?.schedule_id) {
+      const safeActor = audit_actor_id || "unknown";
+      const roleLabel = formatAuditActorRole(audit_actor_role);
+
+      await insertAuditLogEnrollment({
+        actorId: safeActor,
+        role: audit_actor_role || "registrar",
+        action: "QUALIFYING_INTERVIEW_SCHEDULE_UNASSIGN",
+        severity: "INFO",
+        message: `${roleLabel} (${safeActor}) unassigned Applicant (${applicant_number}) from qualifying/interview ${scheduleLabel}.`,
+      });
+    }
+
     res.json({
       success: true,
       message: `Applicant ${applicant_number} unassigned.`,
@@ -314,14 +453,35 @@ router.post("/unassign_interview", async (req, res) => {
 
 // 5. Unassign ALL applicants
 router.post("/unassign_all_from_interview", async (req, res) => {
-  const { schedule_id } = req.body;
+  const { schedule_id, audit_actor_id, audit_actor_role } = req.body;
   try {
+    const [assignedRows] = await db.query(
+      "SELECT applicant_id FROM interview_applicants WHERE schedule_id = ?",
+      [schedule_id],
+    );
+    const scheduleLabel = await getInterviewScheduleLabel(schedule_id);
+
     await db.query(
       `UPDATE interview_applicants
        SET schedule_id = NULL
        WHERE schedule_id = ?`,
       [schedule_id],
     );
+
+    if (assignedRows.length > 0) {
+      const safeActor = audit_actor_id || "unknown";
+      const roleLabel = formatAuditActorRole(audit_actor_role);
+      const applicants = assignedRows.map((row) => row.applicant_id).join(", ");
+
+      await insertAuditLogEnrollment({
+        actorId: safeActor,
+        role: audit_actor_role || "registrar",
+        action: "QUALIFYING_INTERVIEW_SCHEDULE_UNASSIGN",
+        severity: "INFO",
+        message: `${roleLabel} (${safeActor}) unassigned ${assignedRows.length} applicant(s) from qualifying/interview ${scheduleLabel}. Applicant(s): ${applicants}.`,
+      });
+    }
+
     res.json({
       success: true,
       message: `All applicants unassigned from schedule ${schedule_id}.`,

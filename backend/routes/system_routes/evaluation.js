@@ -1,7 +1,50 @@
 const express = require("express");
 const { db, db3 } = require("../database/database");
+const { insertAuditLogEnrollment } = require("../../utils/auditLogger");
 
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const insertEvaluationAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogEnrollment({
+    actorId,
+    role: actorRole,
+    action,
+    message,
+    severity: "INFO",
+  });
+};
+
+const getActorLabel = (req) => {
+  const { actorId, actorRole } = getAuditActor(req);
+  return {
+    actorId,
+    roleLabel: formatAuditActorRole(actorRole),
+  };
+};
 //11/29/2025 UPDATE
 router.post("/insert_question", async (req, res) => {
   const {
@@ -38,6 +81,13 @@ router.post("/insert_question", async (req, res) => {
       [school_year_id, question_id],
     );
 
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertEvaluationAuditLog({
+      req,
+      action: "EVALUATION_QUESTION_CREATE",
+      message: `${roleLabel} (${actorId}) created evaluation question ${question_id}.`,
+    });
+
     res.status(200).send({
       message: "Question successfully added and linked to evaluation!",
     });
@@ -59,6 +109,13 @@ router.post("/insert_category", async (req, res) => {
       `,
       [title, description],
     );
+
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertEvaluationAuditLog({
+      req,
+      action: "EVALUATION_CATEGORY_CREATE",
+      message: `${roleLabel} (${actorId}) created evaluation category ${title}.`,
+    });
 
     res.status(200).send({ message: "Category Created" });
   } catch (err) {
@@ -93,7 +150,17 @@ router.put("/update_category/:id", async (req, res) => {
         description = ?
       WHERE id = ?
     `;
-    await db3.query(updateQuery, [title, description, id]);
+    const [result] = await db3.query(updateQuery, [title, description, id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).send({ message: "Category not found" });
+    }
+
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertEvaluationAuditLog({
+      req,
+      action: "EVALUATION_CATEGORY_UPDATE",
+      message: `${roleLabel} (${actorId}) updated evaluation category ${title}.`,
+    });
     res.status(200).send({ message: "Question successfully updated" });
   } catch (err) {
     console.error("Database / Server Error:", err);
@@ -106,7 +173,22 @@ router.delete("/delete_category/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
-    await db3.query(`DELETE FROM question_category_table WHERE id = ?`, [id]);
+    const [[category]] = await db3.query(
+      "SELECT title FROM question_category_table WHERE id = ? LIMIT 1",
+      [id],
+    );
+    const [result] = await db3.query(`DELETE FROM question_category_table WHERE id = ?`, [id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).send({ message: "Category not found" });
+    }
+
+    const categoryLabel = category?.title || `category ID ${id}`;
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertEvaluationAuditLog({
+      req,
+      action: "EVALUATION_CATEGORY_DELETE",
+      message: `${roleLabel} (${actorId}) deleted evaluation category ${categoryLabel}.`,
+    });
     res.status(200).send({ message: "Category successfully deleted" });
   } catch (err) {
     console.error("Database / Server Error:", err);
@@ -149,7 +231,7 @@ router.put("/update_question/:id", async (req, res) => {
         fifth_choice = ?
       WHERE id = ?;
     `;
-    await db3.query(updateQuery, [
+    const [result] = await db3.query(updateQuery, [
       category,
       question,
       choice1,
@@ -159,6 +241,16 @@ router.put("/update_question/:id", async (req, res) => {
       choice5,
       id,
     ]);
+    if (result.affectedRows === 0) {
+      return res.status(404).send({ message: "Question not found" });
+    }
+
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertEvaluationAuditLog({
+      req,
+      action: "EVALUATION_QUESTION_UPDATE",
+      message: `${roleLabel} (${actorId}) updated evaluation question ${id}.`,
+    });
     res.status(200).send({ message: "Question successfully updated" });
   } catch (err) {
     console.error("Database / Server Error:", err);
@@ -171,11 +263,26 @@ router.delete("/delete_question/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
+    const [[question]] = await db3.query(
+      "SELECT question_description FROM question_table WHERE id = ? LIMIT 1",
+      [id],
+    );
     // First delete from evaluation_table (foreign key constraint)
     await db3.query(`DELETE FROM evaluation_table WHERE question_id = ?`, [id]);
     
     // Then delete from question_table
-    await db3.query(`DELETE FROM question_table WHERE id = ?`, [id]);
+    const [result] = await db3.query(`DELETE FROM question_table WHERE id = ?`, [id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).send({ message: "Question not found" });
+    }
+
+    const questionLabel = question?.question_description || `question ID ${id}`;
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertEvaluationAuditLog({
+      req,
+      action: "EVALUATION_QUESTION_DELETE",
+      message: `${roleLabel} (${actorId}) deleted evaluation question ${questionLabel}.`,
+    });
     
     res.status(200).send({ message: "Question successfully deleted" });
   } catch (err) {

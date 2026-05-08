@@ -102,6 +102,16 @@ const NSTPTagging = () => {
   const [loading, setLoading] = useState(false);
   const [employeeID, setEmployeeID] = useState("");
   const pageId = 145;
+  const auditConfig = {
+    headers: {
+      "x-audit-actor-id":
+        employeeID ||
+        localStorage.getItem("employee_id") ||
+        localStorage.getItem("email") ||
+        "unknown",
+      "x-audit-actor-role": localStorage.getItem("role") || "registrar",
+    },
+  };
 
   useEffect(() => {
     const storedRole = localStorage.getItem("role");
@@ -320,7 +330,7 @@ const NSTPTagging = () => {
       await axios.put(`${API_BASE_URL}/enroll_nstp_component`, {
         ...meta,
         nstp_type: NSTP_COMPONENT_MAP[selectedNstp],
-      });
+      }, auditConfig);
       syncTaggedState(
         allSectionStudents.map((student) => ({
           ...student,
@@ -351,7 +361,7 @@ const NSTPTagging = () => {
     setActionLoading(true);
     try {
       const meta = getSectionMeta();
-      await axios.put(`${API_BASE_URL}/unenroll_nstp_component`, meta);
+      await axios.put(`${API_BASE_URL}/unenroll_nstp_component`, meta, auditConfig);
       syncTaggedState([]);
       setSnackbar({
         open: true,
@@ -382,6 +392,7 @@ const NSTPTagging = () => {
           ...meta,
           nstp_type: NSTP_COMPONENT_MAP[selectedNstp],
         },
+        auditConfig,
       );
       addOptimisticTaggedStudent(studentNumber);
       setSnackbar({
@@ -407,6 +418,7 @@ const NSTPTagging = () => {
       await axios.put(
         `${API_BASE_URL}/unenroll_nstp_component/${studentNumber}`,
         meta,
+        auditConfig,
       );
       removeOptimisticTaggedStudent(studentNumber);
       setSnackbar({

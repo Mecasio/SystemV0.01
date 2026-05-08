@@ -73,6 +73,16 @@ const ProgramSlotLimit = () => {
   const [user, setUser] = useState("");
   const [userRole, setUserRole] = useState("");
   const [employeeID, setEmployeeID] = useState("");
+  const auditConfig = {
+    headers: {
+      "x-audit-actor-id":
+        employeeID ||
+        localStorage.getItem("employee_id") ||
+        localStorage.getItem("email") ||
+        "unknown",
+      "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+    },
+  };
   const [hasAccess, setHasAccess] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -288,12 +298,16 @@ const ProgramSlotLimit = () => {
   };
 
   const saveSlotLimit = async () => {
-    await axios.post(`${API_BASE_URL}/api/program-slots`, {
-      curriculum_id: selectedProgram,
-      max_slots: maxSlots,
-      year_id: yearId,
-      semester_id: semesterId,
-    });
+    await axios.post(
+      `${API_BASE_URL}/api/program-slots`,
+      {
+        curriculum_id: selectedProgram,
+        max_slots: maxSlots,
+        year_id: yearId,
+        semester_id: semesterId,
+      },
+      auditConfig,
+    );
 
     fetchSlotSummary();
     setSelectedProgram("");
@@ -302,23 +316,31 @@ const ProgramSlotLimit = () => {
   };
 
   const saveSlotLimitAll = async () => {
-    await axios.post(`${API_BASE_URL}/api/program-slots/department`, {
-      dprtmnt_id: selectedDepartmentFilter,
-      max_slots: maxSlots,
-      year_id: yearId,
-      semester_id: semesterId,
-    });
+    await axios.post(
+      `${API_BASE_URL}/api/program-slots/department`,
+      {
+        dprtmnt_id: selectedDepartmentFilter,
+        max_slots: maxSlots,
+        year_id: yearId,
+        semester_id: semesterId,
+      },
+      auditConfig,
+    );
 
     fetchSlotSummary();
     setIsEditing(false);
   };
 
   const saveSlotLimitAllPrograms = async () => {
-    await axios.post(`${API_BASE_URL}/api/program-slots/all`, {
-      max_slots: maxSlots,
-      year_id: yearId,
-      semester_id: semesterId,
-    });
+    await axios.post(
+      `${API_BASE_URL}/api/program-slots/all`,
+      {
+        max_slots: maxSlots,
+        year_id: yearId,
+        semester_id: semesterId,
+      },
+      auditConfig,
+    );
 
     fetchSlotSummary();
     setIsEditing(false);

@@ -339,6 +339,12 @@ const ProgramEvaluationForRegistrar = () => {
         final_grade: value,
         student_number: studentNumber,
         course_id: courseId,
+        audit_actor_id:
+          employeeID ||
+          localStorage.getItem("employee_id") ||
+          localStorage.getItem("email") ||
+          "unknown",
+        audit_actor_role: userRole || localStorage.getItem("role") || "registrar",
       });
 
       try {
@@ -457,33 +463,153 @@ const ProgramEvaluationForRegistrar = () => {
           /* Screen: show EQUIVALENT label, hide GRADE label */
           .screen-only-label { display: inline; }
           .print-only-label { display: none; }
+          .program-evaluation-print-layout { display: none; }
 
           @media print {
-            @page { margin: 0; padding-right: 5rem }
+            @page {
+              size: A4 portrait;
+              margin: 0;
+            }
 
-            body * { visibility: hidden; }
+            html,
+            body {
+              width: 210mm !important;
+              height: 297mm !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              overflow: hidden !important;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+
+            body * {
+              visibility: hidden !important;
+            }
 
             .body {
-              margin-top: -30rem;
-              margin-left: -27rem;
-              overflow: visible !important;
+              margin: 0 !important;
+              overflow: hidden !important;
+              height: 0 !important;
+              max-height: 0 !important;
+            }
+
+            .screen-evaluation-container,
+            .screen-evaluation-container * {
+              display: none !important;
+            }
+
+            .program-evaluation-print-layout {
+              display: block !important;
+              visibility: visible !important;
+            }
+
+            .program-evaluation-print-layout,
+            .program-evaluation-print-layout * {
+              visibility: visible !important;
+            }
+
+            .program-evaluation-print-layout {
+              position: fixed !important;
+              left: 3mm !important;
+              top: 3mm !important;
+              width: 82rem !important;
               height: auto !important;
-              max-height: none !important;
-            }
-
-            .print-container, .print-container * {
-              visibility: visible;
-            }
-
-            .print-container {
-              scale: 0.8;
-              position: absolute;
-              left: 0%;
-              top: 0%;
-              width: 100%;
               font-family: "Poppins", sans-serif;
-              margin-top: -8rem;
-              padding: 0;
+              margin: 0 !important;
+              padding: 0 !important;
+              overflow: visible !important;
+              zoom: 0.60 !important;
+              transform: none !important;
+            }
+
+            .program-evaluation-print-layout table {
+              border-collapse: collapse !important;
+            }
+
+            .program-evaluation-print-layout tr {
+              line-height: 1 !important;
+              min-height: 0 !important;
+              align-items: center !important;
+            }
+
+            .program-evaluation-print-layout td {
+              font-size: 0.8rem !important;
+              line-height: 1.12 !important;
+              min-height: 0 !important;
+              align-items: center !important;
+              vertical-align: middle !important;
+            }
+
+            .program-evaluation-print-layout tbody td {
+              box-sizing: border-box !important;
+              min-height: 16px !important;
+              padding: 4px 2px !important;
+            }
+
+            .program-evaluation-print-layout td span,
+            .program-evaluation-print-layout td div {
+              font-size: 0.8rem !important;
+              line-height: 1.12 !important;
+            }
+
+            .program-evaluation-print-layout tbody tr {
+              border-bottom: solid 1px rgba(0,0,0,0.08) !important;
+            }
+
+            .program-evaluation-print-layout tbody td > div {
+              align-items: center !important;
+            }
+
+            .program-evaluation-print-layout .print-course-title {
+              display: flex !important;
+              align-items: center !important;
+              flex: 1 1 auto !important;
+              min-width: 0 !important;
+              max-height: none !important;
+              padding-top: 1px !important;
+              padding-bottom: 1px !important;
+              white-space: nowrap !important;
+              text-overflow: ellipsis !important;
+              overflow: hidden !important;
+            }
+
+            .program-evaluation-print-layout .print-course-code {
+              display: flex !important;
+              align-items: center !important;
+              flex: 0 0 6.4rem !important;
+              width: 6.4rem !important;
+              padding-top: 1px !important;
+              padding-bottom: 1px !important;
+              white-space: nowrap !important;
+            }
+
+            .program-evaluation-print-layout .print-course-cell {
+              align-items: center !important;
+              min-width: 0 !important;
+            }
+
+            .program-evaluation-print-layout .print-student-info {
+              padding: 0.7rem 1rem !important;
+            }
+
+            .program-evaluation-print-layout .print-student-info > div {
+              line-height: 1.14 !important;
+              margin-top: 0.28rem !important;
+            }
+
+            .program-evaluation-print-layout .print-student-info > div:first-child {
+              margin-top: 0 !important;
+            }
+
+            .program-evaluation-print-layout .print-student-info p {
+              font-size: 1rem !important;
+              line-height: 1.14 !important;
+              margin-top: 0 !important;
+              margin-bottom: 0 !important;
+            }
+
+            .program-evaluation-print-layout .print-first-semester-block {
+              margin-top: 10px !important;
             }
 
             button { display: none !important; }
@@ -503,13 +629,33 @@ const ProgramEvaluationForRegistrar = () => {
 
       <Box>
         <Box
-          className="print-container"
-          style={{ paddingRight: "1.5rem", marginTop: "-1rem", paddingBottom: "1.5rem", maxWidth: "100%" }}
+          className="print-container screen-evaluation-container"
+          style={{
+            backgroundColor: "#ffffff",
+            border: "1px solid #b8b8b8",
+            boxShadow: "0 6px 18px rgba(0, 0, 0, 0.14)",
+            boxSizing: "border-box",
+            minHeight: "297mm",
+            padding: "12mm",
+            margin: "-1rem auto 2rem",
+            maxWidth: "84rem",
+            width: "100%",
+          }}
           ref={divToPrintRef}
         >
           {/* ── School Header ─────────────────────────────────────────────── */}
-          <Box style={{ display: "flex", alignItems: "center", width: "100%", justifyContent: "center" }}>
-            <Box style={{ paddingTop: "1.5rem", paddingRight: "3rem" }}>
+          <Box
+            style={{
+              display: "grid",
+              gridTemplateColumns: "8rem minmax(0, 1fr) 8rem",
+              alignItems: "center",
+              columnGap: "1.5rem",
+              width: "48rem",
+              maxWidth: "100%",
+              margin: "0 auto",
+            }}
+          >
+            <Box style={{ display: "flex", justifyContent: "center", paddingTop: "1.5rem" }}>
               <img
                 src={fetchedLogo || EaristLogo}
                 alt="School Logo"
@@ -542,24 +688,32 @@ const ProgramEvaluationForRegistrar = () => {
                 })() : <div style={{ height: "24px" }}></div>}
               </div>
             </Box>
+            <Box />
           </Box>
 
           <Box style={{ display: "flex", justifyContent: "center", width: "100%" }}>
-            <Typography style={{ width: "100%", fontSize: "1.6rem", letterSpacing: "-1px", fontWeight: "500", marginLeft: "11rem", textAlign: "center" }}>
+            <Typography style={{ width: "100%", fontSize: "1.6rem", letterSpacing: "-1px", fontWeight: "500", textAlign: "center" }}>
               OFFICE OF THE REGISTRAR
             </Typography>
           </Box>
 
           <Box style={{ display: "flex", justifyContent: "center", width: "100%" }}>
-            <Typography style={{ width: "100%", marginTop: "-0.2rem", fontSize: "1.8rem", letterSpacing: "-1px", fontWeight: "600", textAlign: "center", marginLeft: "11rem" }}>
+            <Typography style={{ width: "100%", marginTop: "-0.2rem", fontSize: "1.8rem", letterSpacing: "-1px", fontWeight: "600", textAlign: "center"}}>
               ACADEMIC PROGRAM EVALUATION
             </Typography>
           </Box>
 
           {/* ── Student Info ──────────────────────────────────────────────── */}
-          <Box style={{ display: "flex" }}>
-            <Box>
-              <Box sx={{ padding: "1rem", marginLeft: "1rem", borderBottom: "solid black 1px", width: "100%" }}>
+          <Box style={{ display: "flex", width: "100%" }}>
+            <Box style={{ width: "100%" }}>
+              <Box
+                sx={{
+                  padding: "1rem",
+                  borderBottom: "1px solid #000",
+                  boxSizing: "border-box",
+                  width: "100%",
+                }}
+              >
                 <Box style={{ display: "flex" }}>
                   <Box style={{ display: "flex", width: "38rem" }}>
                     <Typography style={{ width: "9rem", fontSize: "1.05rem", letterSpacing: "-1px" }}>Student Name:</Typography>
@@ -789,6 +943,193 @@ const ProgramEvaluationForRegistrar = () => {
                   {snackbarMessage}
                 </Alert>
               </Snackbar>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+
+      <Box
+        className="program-evaluation-print-layout"
+        style={{ paddingRight: "1.5rem", marginTop: "3rem", paddingBottom: "1.5rem", maxWidth: "600px" }}
+      >
+        <Box style={{ display: "flex", alignItems: "center", width: "70rem", justifyContent: "center" }}>
+          <Box style={{ paddingTop: "1.5rem", paddingRight: "3rem" }}>
+            <img
+              src={fetchedLogo || EaristLogo}
+              alt="School Logo"
+              style={{
+                width: "8rem",
+                height: "8rem",
+                display: "block",
+                objectFit: "cover",
+                borderRadius: "50%",
+              }}
+            />
+          </Box>
+
+          <Box style={{ marginTop: "1.5rem" }}>
+            <div
+              colSpan={15}
+              style={{
+                textAlign: "center",
+                fontFamily: "Poppins, sans-serif",
+                fontSize: "10px",
+                lineHeight: "1.5",
+              }}
+            >
+              <div style={{ fontFamily: "Arial", fontSize: "13px" }}>
+                Republic of the Philippines
+              </div>
+              {companyName ? (
+                <Typography
+                  style={{
+                    textAlign: "center",
+                    marginTop: "0rem",
+                    lineHeight: "1",
+                    fontSize: "1.6rem",
+                    letterSpacing: "-1px",
+                    fontWeight: "600",
+                  }}
+                >
+                  {firstLine} <br />
+                  {secondLine}
+                </Typography>
+              ) : (
+                <div style={{ height: "24px" }}></div>
+              )}
+              {campusAddress && (
+                <Typography
+                  style={{
+                    mt: 1,
+                    textAlign: "center",
+                    fontSize: "12px",
+                    letterSpacing: "1px",
+                  }}
+                >
+                  {campusAddress}
+                </Typography>
+              )}
+            </div>
+          </Box>
+        </Box>
+
+        <Typography style={{ marginLeft: "1rem", textAlign: "center", width: "80rem", fontSize: "1.6rem", letterSpacing: "-1px", fontWeight: "500" }}>
+          OFFICE OF THE REGISTRAR
+        </Typography>
+        <Typography style={{ marginLeft: "1rem", marginTop: "-0.2rem", width: "80rem", textAlign: "center", fontSize: "1.8rem", letterSpacing: "-1px", fontWeight: "600" }}>
+          ACADEMIC PROGRAM EVALUATION
+        </Typography>
+
+        <Box style={{ display: "flex" }}>
+          <Box>
+            <Box className="print-student-info" sx={{ padding: "1rem", marginLeft: "1rem", borderBottom: "solid black 1px", width: "80rem" }}>
+              <Box style={{ display: "flex" }}>
+                <Box style={{ display: "flex", width: "38rem" }}>
+                  <Typography style={{ width: "9rem", fontSize: "1.05rem", letterSpacing: "-1px" }}>Student Name:</Typography>
+                  <Typography style={{ fontSize: "1.06rem", fontWeight: "500" }}>
+                    {studentData.last_name}, {studentData.first_name} {studentData.middle_name}
+                  </Typography>
+                </Box>
+                <Box style={{ display: "flex" }}>
+                  <Typography style={{ width: "6rem", fontSize: "1.05rem", letterSpacing: "-1px" }}>College:</Typography>
+                  <Typography style={{ fontSize: "1.06rem", fontWeight: "500" }}>{studentData.dprtmnt_name}</Typography>
+                </Box>
+              </Box>
+              <Box style={{ display: "flex" }}>
+                <Box style={{ display: "flex", width: "38rem" }}>
+                  <Typography style={{ width: "9rem", marginTop: "0.7rem", fontSize: "1.05rem", letterSpacing: "-1px" }}>Student No. :</Typography>
+                  <Typography style={{ fontSize: "1.06rem", fontWeight: "500", marginTop: "0.7rem" }}>{studentData.student_number}</Typography>
+                </Box>
+                <Box style={{ display: "flex" }}>
+                  <Typography style={{ width: "6rem", marginTop: "0.7rem", fontSize: "1.05rem", letterSpacing: "-1px" }}>Program:</Typography>
+                  <Typography style={{ fontSize: "1.06rem", fontWeight: "500", marginTop: "0.7rem" }}>
+                    {studentData.program_description} {studentData.major || ""}
+                  </Typography>
+                </Box>
+              </Box>
+              <Box style={{ display: "flex" }}>
+                <Typography style={{ width: "9rem", marginTop: "0.7rem", fontSize: "1.05rem", letterSpacing: "-1px" }}>Curriculum:</Typography>
+                <Typography style={{ fontSize: "1.06rem", fontWeight: "500", marginTop: "0.7rem" }}>
+                  {studentData.program_code} {studentData.year_description} RP (ORIGINAL)
+                </Typography>
+              </Box>
+            </Box>
+
+            <Box style={{ display: "flex", flexWrap: "wrap" }}>
+              {Object.entries(groupedDetails).map(([key, courses], index) => (
+                <Box
+                  className={index < 2 ? "print-first-semester-block" : undefined}
+                  style={{ paddingLeft: "1rem", flex: "0 0 50%", marginBottom: "1rem", boxSizing: "border-box" }}
+                  key={key}
+                >
+                  <table>
+                    <thead>
+                      <tr>
+                        <td style={{ textAlign: "center" }}>{getLevelBySection(courses[0].section)} - {courses[0].semester_description}</td>
+                      </tr>
+                      <tr style={{ display: "flex", borderBottom: "solid 1px rgba(0,0,0,0.1)" }}>
+                        <td style={{ fontWeight: "700", display: "flex", alignItems: "center", justifyContent: "center", width: "6rem" }}>
+                          <span>GRADE</span>
+                        </td>
+                        <td style={{ fontWeight: "700", display: "flex", alignItems: "center", justifyContent: "center", width: "28rem" }}>
+                          <span>COURSE CODE / TITLE</span>
+                        </td>
+                        <td>
+                          <div style={{ margin: "-1px", fontWeight: "700", textAlign: "center", width: "5rem" }}>UNIT</div>
+                          <div style={{ display: "flex", alignItems: "center" }}>
+                            <div style={{ fontWeight: "700", fontSize: "0.9rem", textAlign: "center", width: "50%" }}>
+                              <span>LEC</span>
+                            </div>
+                            <div style={{ textAlign: "center", fontWeight: "700", fontSize: "0.9rem", width: "50%" }}>
+                              <span>LAB</span>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {courses.map((p) => {
+                        const rawGrade = gradeEdits[p.course_id] ?? p.final_grade ?? "";
+                        const printableGrade = handleGradeConversion(rawGrade);
+
+                        return (
+                          <tr style={{ display: "flex", borderBottom: "solid 1px rgba(0,0,0,0.1)" }} key={p.enrolled_id}>
+                            <td style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "6rem" }}>
+                              <span>{printableGrade}</span>
+                            </td>
+                            <td className="print-course-cell" style={{ display: "flex", width: "28rem" }}>
+                              <span className="print-course-code" style={{ width: "100px" }}>{p.course_code}</span>
+                              <span className="print-course-title" style={{ margin: "0", padding: "0" }}>{p.course_description}</span>
+                            </td>
+                            <td>
+                              <div style={{ display: "flex", alignItems: "center" }}>
+                                <div style={{ fontSize: "0.9rem", width: "2.5rem", textAlign: "center" }}>
+                                  <span>{p.course_unit}</span>
+                                </div>
+                                <div style={{ fontSize: "0.9rem", width: "2.5rem", textAlign: "center" }}>
+                                  <span>{p.lab_unit}</span>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      <tr style={{ display: "flex", fontWeight: "700" }}>
+                        <td style={{ width: "6rem" }}></td>
+                        <td style={{ width: "28rem", textAlign: "right", paddingRight: "1rem" }}></td>
+                        <td style={{ display: "flex", alignItems: "center" }}>
+                          <div style={{ fontSize: "0.9rem", width: "2.5rem", textAlign: "center" }}>
+                            <span>{courses.reduce((sum, p) => sum + totalLec(p.course_unit), 0)}</span>
+                          </div>
+                          <div style={{ fontSize: "0.9rem", width: "2.5rem", textAlign: "center" }}>
+                            <span>{courses.reduce((sum, p) => sum + totalLab(p.lab_unit), 0)}</span>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </Box>
+              ))}
             </Box>
           </Box>
         </Box>

@@ -303,6 +303,15 @@ const AssignScheduleToApplicants = () => {
 
   const [employeeID, setEmployeeID] = useState("");
 
+  const auditActor = () => ({
+    audit_actor_id:
+      employeeID ||
+      localStorage.getItem("employee_id") ||
+      localStorage.getItem("email") ||
+      "unknown",
+    audit_actor_role: userRole || localStorage.getItem("role") || "registrar",
+  });
+
   useEffect(() => {
 
     const storedUser = localStorage.getItem("email");
@@ -501,7 +510,11 @@ const AssignScheduleToApplicants = () => {
       return;
     }
 
-    socket.current.emit("update_schedule", { schedule_id: selectedSchedule, applicant_numbers: [id] });
+    socket.current.emit("update_schedule", {
+      schedule_id: selectedSchedule,
+      applicant_numbers: [id],
+      ...auditActor(),
+    });
 
     socket.current.once("update_schedule_result", (res) => {
       if (res.success) {
@@ -555,7 +568,11 @@ const AssignScheduleToApplicants = () => {
       return;
     }
 
-    socket.current.emit("update_schedule", { schedule_id: selectedSchedule, applicant_numbers: unassigned });
+    socket.current.emit("update_schedule", {
+      schedule_id: selectedSchedule,
+      applicant_numbers: unassigned,
+      ...auditActor(),
+    });
 
     socket.current.once("update_schedule_result", (res) => {
       if (res.success) {
@@ -582,7 +599,10 @@ const AssignScheduleToApplicants = () => {
   // handleUnassignImmediate
   const handleUnassignImmediate = async (applicant_number) => {
     try {
-      await axios.post(`${API_BASE_URL}/unassign_schedule`, { applicant_number });
+      await axios.post(`${API_BASE_URL}/unassign_schedule`, {
+        applicant_number,
+        ...auditActor(),
+      });
 
       setPersons(prev =>
         prev.map(p =>
@@ -643,7 +663,11 @@ const AssignScheduleToApplicants = () => {
       return;
     }
 
-    socket.current.emit("update_schedule", { schedule_id: selectedSchedule, applicant_numbers: unassigned });
+    socket.current.emit("update_schedule", {
+      schedule_id: selectedSchedule,
+      applicant_numbers: unassigned,
+      ...auditActor(),
+    });
 
     socket.current.once("update_schedule_result", (res) => {
       if (res.success) {
@@ -674,7 +698,10 @@ const AssignScheduleToApplicants = () => {
     }
 
     try {
-      const res = await axios.post(`${API_BASE_URL}/unassign_all_from_schedule`, { schedule_id: selectedSchedule });
+      const res = await axios.post(`${API_BASE_URL}/unassign_all_from_schedule`, {
+        schedule_id: selectedSchedule,
+        ...auditActor(),
+      });
       setSnack({ open: true, message: res.data.message, severity: "success" });
 
       fetchAllApplicants();
@@ -802,6 +829,7 @@ This printed permit must be presented to your proctor on the exam day to verify 
     socket.current.emit("send_schedule_emails", {
       schedule_id: selectedSchedule,
       user_person_id: localStorage.getItem("person_id"),
+      ...auditActor(),
 
 
       // ✅ SEND TO BACKEND

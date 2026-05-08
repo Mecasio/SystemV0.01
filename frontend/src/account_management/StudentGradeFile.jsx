@@ -1138,8 +1138,7 @@ const StudentGradeFile = () => {
             marginTop: "1rem",
           }}
         >
-          <Button variant="contained">ADD TRANSFEREE SUBJECTS</Button>
-          <Button variant="contained">EXPORT GRADES</Button>
+          {/* <Button variant="contained">EXPORT GRADES</Button> */}
           <Button
             variant="contained"
             sx={{ background: mainButtonColor }}

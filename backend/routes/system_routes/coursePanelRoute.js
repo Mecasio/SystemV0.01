@@ -1,7 +1,45 @@
 const express = require('express');
 const { db, db3 } = require('../database/database');
 const {CanCreate, CanEdit, CanDelete} = require('../../middleware/pagePermissions');
+const { insertAuditLogEnrollment } = require("../../utils/auditLogger");
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole: req.headers["x-audit-actor-role"] || "registrar",
+});
+
+const getCourseLabel = (course) => {
+  if (!course) return "Unknown Course";
+  const code = course.course_code || "N/A";
+  const description = course.course_description || "Untitled Course";
+  return `${code} - ${description}`;
+};
+
+const insertCoursePanelAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogEnrollment({
+    actorId,
+    role: actorRole,
+    action,
+    severity: "INFO",
+    message,
+  });
+};
 
 /* ===================== GET COURSE LIST ===================== */
 router.get("/course_list", async (req, res) => {
@@ -113,6 +151,14 @@ router.post("/adding_course", CanCreate, async (req, res) => {
       ]
     );
 
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertCoursePanelAuditLog({
+      req,
+      action: "COURSE_CREATE",
+      message: `${roleLabel} (${actorId}) created course ${normalized_code} - ${normalized_desc}.`,
+    });
 
     res.status(200).json({ message: "✅ Course added successfully" });
 
@@ -234,6 +280,17 @@ router.put("/update_course/:id", CanEdit, async (req, res) => {
       ]
     );
 
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertCoursePanelAuditLog({
+      req,
+      action: "COURSE_UPDATE",
+      message: `${roleLabel} (${actorId}) updated course ${getCourseLabel({
+        course_code: final_course_code,
+        course_description: final_course_desc,
+      })}.`,
+    });
+
     res.json({ message: "✅ Course updated successfully" });
   } catch (error) {
     console.error("❌ Error updating course:", error);
@@ -245,6 +302,11 @@ router.delete("/delete_course/:id", CanDelete, async (req, res) => {
   const { id } = req.params;
 
   try {
+    const [courseRows] = await db3.query(
+      "SELECT course_code, course_description FROM course_table WHERE course_id = ? LIMIT 1",
+      [id]
+    );
+
     const [result] = await db3.query(
       "DELETE FROM course_table WHERE course_id = ?",
       [id]
@@ -253,6 +315,14 @@ router.delete("/delete_course/:id", CanDelete, async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Course not found" });
     }
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertCoursePanelAuditLog({
+      req,
+      action: "COURSE_DELETE",
+      message: `${roleLabel} (${actorId}) deleted course ${getCourseLabel(courseRows[0])}.`,
+    });
 
     res.json({ message: "✅ Course deleted successfully" });
   } catch (error) {

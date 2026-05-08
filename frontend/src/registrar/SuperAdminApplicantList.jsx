@@ -188,6 +188,15 @@ const SuperAdminApplicantList = () => {
 
   const [employeeID, setEmployeeID] = useState("");
 
+  const getAuditHeaders = () => ({
+    headers: {
+      "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+      "x-page-id": pageId,
+      "x-audit-actor-id": employeeID || localStorage.getItem("employee_id") || "",
+      "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+    },
+  });
+
   useEffect(() => {
     const storedUser = localStorage.getItem("email");
     const storedRole = localStorage.getItem("role");
@@ -407,6 +416,7 @@ const SuperAdminApplicantList = () => {
           submitted_documents: checked ? 1 : 0,
           user_person_id: localStorage.getItem("person_id"),
         },
+        getAuditHeaders(),
       );
 
       if (checked && res.data.allCompleted) {

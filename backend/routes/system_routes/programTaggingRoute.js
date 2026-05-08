@@ -2,7 +2,6 @@ const express = require("express");
 const multer = require("multer");
 const { db, db3 } = require("../database/database");
 const {
-  formatAuditTimestamp,
   insertAuditLogEnrollment,
 } = require("../../utils/auditLogger");
 
@@ -243,7 +242,7 @@ router.post("/program_tagging", async (req, res) => {
     await insertProgramTaggingAuditLog({
       req,
       action: "PROGRAM_TAGGING_CREATE",
-      message: `${roleLabel} (${actorId}) tagged course ${tagLabel} at ${formatAuditTimestamp()}.`,
+      message: `${roleLabel} (${actorId}) tagged course ${tagLabel}.`,
     });
 
     res.status(201).json({
@@ -319,7 +318,7 @@ router.put("/program_tagging/:id", async (req, res) => {
     await insertProgramTaggingAuditLog({
       req,
       action: "PROGRAM_TAGGING_UPDATE",
-      message: `${roleLabel} (${actorId}) updated tagged course from ${tagBefore} to ${tagAfter} at ${formatAuditTimestamp()}.`,
+      message: `${roleLabel} (${actorId}) updated tagged course from ${tagBefore} to ${tagAfter}.`,
     });
 
     res.json({ success: true, amount });
@@ -346,7 +345,7 @@ router.delete("/program_tagging/:id(\\d+)", async (req, res) => {
     await insertProgramTaggingAuditLog({
       req,
       action: "PROGRAM_TAGGING_DELETE",
-      message: `${roleLabel} (${actorId}) deleted tagged course ${tagBefore} at ${formatAuditTimestamp()}.`,
+      message: `${roleLabel} (${actorId}) deleted tagged course ${tagBefore}.`,
     });
 
     res.status(200).json({ message: "Program tag deleted successfully" });
@@ -390,7 +389,7 @@ router.delete("/program_tagging/delete_all", async (req, res) => {
       await insertProgramTaggingAuditLog({
         req,
         action: "PROGRAM_TAGGING_DELETE_ALL",
-        message: `${roleLabel} (${actorId}) deleted ${result.affectedRows} tagged course(s) under ${filterLabel} at ${formatAuditTimestamp()}.`,
+        message: `${roleLabel} (${actorId}) deleted ${result.affectedRows} tagged course(s) under ${filterLabel}.`,
       });
     }
 

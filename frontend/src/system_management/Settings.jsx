@@ -235,10 +235,18 @@ function Settings({ onUpdate }) {
     formData.append("border_color", borderColor);
     formData.append("title_color", titleColor);
     formData.append("subtitle_color", subtitleColor);
+    formData.append("audit_actor_id", localStorage.getItem("employee_id") || "");
+    formData.append("audit_actor_role", localStorage.getItem("role") || "registrar");
 
     try {
       await axios.post(`${API_BASE_URL}/api/settings`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: {
+          "Content-Type": "multipart/form-data",
+          "x-employee-id": localStorage.getItem("employee_id") || "",
+          "x-page-id": pageId,
+          "x-audit-actor-id": localStorage.getItem("employee_id") || "",
+          "x-audit-actor-role": localStorage.getItem("role") || "registrar",
+        },
       });
       onUpdate?.();
       setSnack({ open: true, message: "Settings updated successfully!", severity: "success" });

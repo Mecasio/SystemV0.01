@@ -1,5 +1,6 @@
 const express = require('express');
 const { db3 } = require('../database/database');
+const { insertAuditLogEnrollment } = require("../../utils/auditLogger");
 const {
   CanCreate,
   CanDelete,
@@ -7,6 +8,52 @@ const {
 } = require("../../middleware/pagePermissions");
 
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const roomLabel = (room) => {
+  if (!room) return "Unknown Room";
+
+  const building = room.building_description || "N/A";
+  const description = room.room_description || "N/A";
+  const floor = room.floor ? `, Floor ${room.floor}` : "";
+  const type = room.type ? `, ${room.type}` : "";
+  const branch = room.branch ? `, Branch ${room.branch}` : "";
+
+  return `${building} - ${description}${floor}${type}${branch}`;
+};
+
+const insertRoomAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogEnrollment({
+    actorId,
+    role: actorRole,
+    action,
+    severity: "INFO",
+    message,
+  });
+};
 
 /* ===================== GET ROOM LIST ===================== */
 router.get("/room_list", async (req, res) => {
@@ -80,7 +127,7 @@ router.post("/adding_room", CanCreate, async (req, res) => {
       return res.status(400).json({ message: "Room already exists" });
     }
 
-    await db3.query(
+    const [insertResult] = await db3.query(
       `INSERT INTO room_table
       (room_description, building_description, floor,
        is_airconditioned, type, branch, updated_by)
@@ -95,6 +142,20 @@ router.post("/adding_room", CanCreate, async (req, res) => {
         updated_by || null
       ]
     );
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertRoomAuditLog({
+      req,
+      action: "ROOM_CREATE",
+      message: `${roleLabel} (${actorId}) created room ${roomLabel({
+        room_description,
+        building_description,
+        floor,
+        type,
+        branch,
+      })}. Room ID: ${insertResult.insertId}.`,
+    });
 
     res.status(200).json({ message: "✅ Room added successfully" });
 
@@ -173,6 +234,20 @@ router.put("/update_room/:id", CanEdit, async (req, res) => {
       ]
     );
 
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertRoomAuditLog({
+      req,
+      action: "ROOM_UPDATE",
+      message: `${roleLabel} (${actorId}) updated room ${roomLabel(current)} to ${roomLabel({
+        room_description: room_description ?? current.room_description,
+        building_description: building_description ?? current.building_description,
+        floor: floor ?? current.floor,
+        type: type ?? current.type,
+        branch: branch ?? current.branch,
+      })}.`,
+    });
+
     res.json({ message: "✅ Room updated successfully" });
 
   } catch (error) {
@@ -187,6 +262,11 @@ router.delete("/delete_room/:id", CanDelete, async (req, res) => {
   const { id } = req.params;
 
   try {
+    const [[roomBefore]] = await db3.query(
+      "SELECT * FROM room_table WHERE room_id = ? LIMIT 1",
+      [id]
+    );
+
     const [result] = await db3.query(
       "DELETE FROM room_table WHERE room_id = ?",
       [id]
@@ -195,6 +275,14 @@ router.delete("/delete_room/:id", CanDelete, async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Room not found" });
     }
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertRoomAuditLog({
+      req,
+      action: "ROOM_DELETE",
+      message: `${roleLabel} (${actorId}) deleted room ${roomLabel(roomBefore)}.`,
+    });
 
     res.json({ message: "✅ Room deleted successfully" });
 

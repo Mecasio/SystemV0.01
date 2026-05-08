@@ -20,6 +20,7 @@ const ChangeGradingPeriod = () => {
   const [borderColor, setBorderColor] = useState("#000000");
 
   const [gradingPeriod, setGradingPeriod] = useState([]);
+  const [user, setUser] = useState("");
   const [userRole, setUserRole] = useState("");
   const [userID, setUserID] = useState("");
   const [employeeID, setEmployeeID] = useState("");
@@ -60,6 +61,7 @@ const ChangeGradingPeriod = () => {
     const storedEmployeeID = localStorage.getItem("employee_id");
 
     if (storedUser && storedRole && storedID) {
+      setUser(storedUser);
       setUserID(storedID);
       setUserRole(storedRole);
       setEmployeeID(storedEmployeeID);
@@ -92,11 +94,27 @@ const ChangeGradingPeriod = () => {
     fetchYearPeriod();
   }, []);
 
+  const insertAuditLog = async (message, type) => {
+    try {
+      await axios.post(`${API_BASE_URL}/insert-logs/${userID}`, {
+        message,
+        type,
+      });
+    } catch (err) {
+      console.error("Error inserting audit log");
+    }
+  };
+
   const handlePeriodActivate = async (id) => {
     try {
       await axios.post(`${API_BASE_URL}/grade_period_activate/${id}`);
+      const activatedPeriod = gradingPeriod.find((period) => String(period.id) === String(id));
       setSnackbar({ open: true, message: "Grading period activated!", severity: "success" });
       fetchYearPeriod();
+      await insertAuditLog(
+        `Employee ID #${userID} - ${user} successfully activated grading period (${activatedPeriod?.description || id})`,
+        "update",
+      );
     } catch (error) {
       console.error("Error activating grading period:", error);
       setSnackbar({ open: true, message: "Failed to activate grading period", severity: "error" });

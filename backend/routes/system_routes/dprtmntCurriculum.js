@@ -5,8 +5,80 @@ const {
   CanDelete,
   CanEdit,
 } = require("../../middleware/pagePermissions");
+const { insertAuditLogEnrollment } = require("../../utils/auditLogger");
 
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const insertDepartmentCurriculumAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogEnrollment({
+    actorId,
+    role: actorRole,
+    action,
+    message,
+    severity: "INFO",
+  });
+};
+
+const getDepartmentCurriculumLabel = async ({ dprtmntId, curriculumId, mappingId }) => {
+  const values = [];
+  let whereClause = "";
+
+  if (mappingId) {
+    whereClause = "dc.dprtmnt_curriculum_id = ?";
+    values.push(mappingId);
+  } else {
+    whereClause = "dc.dprtmnt_id = ? AND dc.curriculum_id = ?";
+    values.push(dprtmntId, curriculumId);
+  }
+
+  const [rows] = await db3.execute(
+    `SELECT dt.dprtmnt_name, dt.dprtmnt_code, y.year_description, p.program_code
+     FROM dprtmnt_curriculum_table dc
+     INNER JOIN dprtmnt_table dt ON dc.dprtmnt_id = dt.dprtmnt_id
+     INNER JOIN curriculum_table c ON dc.curriculum_id = c.curriculum_id
+     INNER JOIN year_table y ON c.year_id = y.year_id
+     INNER JOIN program_table p ON c.program_id = p.program_id
+     WHERE ${whereClause}
+     LIMIT 1`,
+    values,
+  );
+
+  if (!rows[0]) {
+    return {
+      departmentLabel: `department ID ${dprtmntId || "unknown"}`,
+      curriculumLabel: `curriculum ID ${curriculumId || "unknown"}`,
+    };
+  }
+
+  return {
+    departmentLabel: `${rows[0].dprtmnt_name} (${rows[0].dprtmnt_code})`,
+    curriculumLabel: `${rows[0].year_description} ${rows[0].program_code}`,
+  };
+};
 
 // GET mappings for a department
 router.get("/dprtmnt_curriculum/:dprtmnt_id", async (req, res) => {
@@ -76,6 +148,18 @@ router.post("/dprtmnt_curriculum", CanCreate, async (req, res) => {
       [dprtmnt_id, curriculum_id],
     );
 
+    const { departmentLabel, curriculumLabel } = await getDepartmentCurriculumLabel({
+      dprtmntId: dprtmnt_id,
+      curriculumId: curriculum_id,
+    });
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertDepartmentCurriculumAuditLog({
+      req,
+      action: "DEPARTMENT_CURRICULUM_ASSIGN",
+      message: `${roleLabel} (${actorId}) assigned curriculum ${curriculumLabel} to ${departmentLabel}.`,
+    });
+
     // return inserted id
     res.status(201).json({
       message: "Mapping created",
@@ -93,6 +177,10 @@ router.post("/dprtmnt_curriculum", CanCreate, async (req, res) => {
 router.delete("/dprtmnt_curriculum/:id", CanDelete, async (req, res) => {
   const { id } = req.params;
   try {
+    const { departmentLabel, curriculumLabel } = await getDepartmentCurriculumLabel({
+      mappingId: id,
+    });
+
     const [result] = await db3.execute(
       "DELETE FROM dprtmnt_curriculum_table WHERE dprtmnt_curriculum_id = ?",
       [id],
@@ -100,6 +188,14 @@ router.delete("/dprtmnt_curriculum/:id", CanDelete, async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Mapping not found" });
     }
+
+    const { actorId, actorRole } = getAuditActor(req);
+    const roleLabel = formatAuditActorRole(actorRole);
+    await insertDepartmentCurriculumAuditLog({
+      req,
+      action: "DEPARTMENT_CURRICULUM_REMOVE",
+      message: `${roleLabel} (${actorId}) removed curriculum ${curriculumLabel} from ${departmentLabel}.`,
+    });
     res.status(200).json({ message: "Mapping deleted" });
   } catch (err) {
     console.error("Error deleting mapping:", err);

@@ -170,7 +170,9 @@ const StudentList = () => {
 
 
     const [hasAccess, setHasAccess] = useState(null);
-    const [loading, setLoading] = useState(false);
+    const [accessLoading, setAccessLoading] = useState(true);
+    const [studentsLoading, setStudentsLoading] = useState(false);
+    const [documentsLoading, setDocumentsLoading] = useState(false);
     const pageId = 104;
 
     const [employeeID, setEmployeeID] = useState("");
@@ -199,6 +201,7 @@ const StudentList = () => {
     }, []);
 
     const checkAccess = async (employeeID) => {
+        setAccessLoading(true);
         try {
             const response = await axios.get(`${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`);
             if (response.data && response.data.page_privilege === 1) {
@@ -214,7 +217,8 @@ const StudentList = () => {
             } else {
                 console.log("An unexpected error occurred.");
             }
-            setLoading(false);
+        } finally {
+            setAccessLoading(false);
         }
     };
 
@@ -315,7 +319,7 @@ const StudentList = () => {
         }
 
         try {
-            setLoading(true);
+            setStudentsLoading(true);
             const listRes = await fetch(
                 `${API_BASE_URL}/list_of_students?departmentId=${encodeURIComponent(selectedDepartmentFilter)}`
             );
@@ -375,7 +379,7 @@ const StudentList = () => {
         } catch (err) {
             console.error("Error fetching students:", err);
         } finally {
-            setLoading(false);
+            setStudentsLoading(false);
         }
     };
 
@@ -454,7 +458,7 @@ const StudentList = () => {
         }
 
         try {
-            setLoading(true);
+            setDocumentsLoading(true);
             const res = await fetch(
                 `${API_BASE_URL}/api/list_of_students/documents/${encodeURIComponent(selectedPerson.person_id)}`
             );
@@ -481,7 +485,7 @@ const StudentList = () => {
                 severity: "error",
             });
         } finally {
-            setLoading(false);
+            setDocumentsLoading(false);
         }
     };
 
@@ -867,8 +871,8 @@ const StudentList = () => {
 
 
     // Put this at the very bottom before the return 
-    if (loading || hasAccess === null) {
-        return <LoadingOverlay open={loading} message="Loading..." />;
+    if (accessLoading || hasAccess === null) {
+        return <LoadingOverlay open message="Loading..." />;
     }
 
     if (!hasAccess) {
@@ -880,6 +884,7 @@ const StudentList = () => {
 
     return (
         <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
+            <LoadingOverlay open={documentsLoading} message="Loading..." />
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                 <Typography variant="h4" fontWeight="bold" sx={{ color: titleColor, }}>
                     STUDENT RECORDS
@@ -1487,7 +1492,22 @@ const StudentList = () => {
                                 </TableCell>
                             </TableRow>
                         ))}
-                        {currentPersons.length === 0 && (
+                        {studentsLoading && (
+                            <TableRow>
+                                <TableCell
+                                    colSpan={10}
+                                    sx={{
+                                        textAlign: "center",
+                                        border: `1px solid ${borderColor}`,
+                                        color: "#777",
+                                        py: 3,
+                                    }}
+                                >
+                                    Loading students...
+                                </TableCell>
+                            </TableRow>
+                        )}
+                        {!studentsLoading && currentPersons.length === 0 && (
                             <TableRow>
                                 <TableCell
                                     colSpan={10}

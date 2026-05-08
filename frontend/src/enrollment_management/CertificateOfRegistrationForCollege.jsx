@@ -917,6 +917,17 @@ const CertificateOfRegistrationForCollege = forwardRef(
       };
     };
 
+    const insertPaymentAuditLog = async (paymentTarget) => {
+      try {
+        await axios.post(`${API_BASE_URL}/insert-logs/${userID}`, {
+          message: `Employee ID #${userID} - ${user} successfully saved student #${requestedData.student_number} payment to ${paymentTarget}`,
+          type: "insert",
+        });
+      } catch (err) {
+        console.error("Error inserting audit log");
+      }
+    };
+
     const handleSaveToUnifast = async () => {
       try {
         const res = await axios.post(`${API_BASE_URL}/save_to_unifast`, {
@@ -929,6 +940,7 @@ const CertificateOfRegistrationForCollege = forwardRef(
             "Student Payment was saved successfully in Unifast",
             "success",
           );
+          await insertPaymentAuditLog("UniFAST");
         } else {
           showSnackbar(res.data.message || "Failed to save data", "error");
         }
@@ -964,6 +976,7 @@ const CertificateOfRegistrationForCollege = forwardRef(
             "Student Payment was saved successfully in Matriculation",
             "success",
           );
+          await insertPaymentAuditLog("Matriculation");
           return true;
         } else {
           showSnackbar(res.data.message || "Failed to save data", "error");

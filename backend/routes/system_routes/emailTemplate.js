@@ -5,8 +5,51 @@ const {
   CanDelete,
   CanEdit,
 } = require("../../middleware/pagePermissions");
+const { insertAuditLogAdmission } = require("../../utils/auditLogger");
 
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const getAuditActor = (req) => ({
+  actorId:
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    "unknown",
+  actorRole:
+    req.body?.audit_actor_role ||
+    req.headers["x-audit-actor-role"] ||
+    "registrar",
+});
+
+const insertEmailTemplateAuditLog = async ({ req, action, message }) => {
+  const { actorId, actorRole } = getAuditActor(req);
+
+  await insertAuditLogAdmission({
+    actorId,
+    role: actorRole,
+    action,
+    message,
+    severity: "INFO",
+  });
+};
+
+const getActorLabel = (req) => {
+  const { actorId, actorRole } = getAuditActor(req);
+  return {
+    actorId,
+    roleLabel: formatAuditActorRole(actorRole),
+  };
+};
 
 const getConfiguredSenderEmails = () =>
   [
@@ -60,6 +103,14 @@ router.post("/api/email-templates", CanCreate, async (req, res) => {
       "INSERT INTO email_templates (sender_name, department_id, employee_id, is_active) VALUES (?,  ?, ?, ?)",
       [senderEmail, department_id, employee_id || null, is_active ? 1 : 0],
     );
+
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertEmailTemplateAuditLog({
+      req,
+      action: "EMAIL_TEMPLATE_CREATE",
+      message: `${roleLabel} (${actorId}) created email template for ${senderEmail}.`,
+    });
+
     res.status(201).json({ template_id: result.insertId });
   } catch (err) {
     console.error(err);
@@ -96,6 +147,15 @@ router.put("/api/email-templates/:id", CanEdit, async (req, res) => {
 
     if (result.affectedRows === 0)
       return res.status(404).json({ error: "Not found" });
+
+    const templateLabel = senderEmail || `template ID ${req.params.id}`;
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertEmailTemplateAuditLog({
+      req,
+      action: "EMAIL_TEMPLATE_UPDATE",
+      message: `${roleLabel} (${actorId}) updated email template ${templateLabel}.`,
+    });
+
     res.json({ success: true });
   } catch (err) {
     console.error(err);
@@ -106,12 +166,26 @@ router.put("/api/email-templates/:id", CanEdit, async (req, res) => {
 // DELETE template
 router.delete("/api/email-templates/:id", CanDelete, async (req, res) => {
   try {
+    const [[template]] = await db.query(
+      "SELECT sender_name FROM email_templates WHERE template_id = ? LIMIT 1",
+      [req.params.id],
+    );
+
     const [result] = await db.query(
       "DELETE FROM email_templates WHERE template_id = ?",
       [req.params.id],
     );
     if (result.affectedRows === 0)
       return res.status(404).json({ error: "Not found" });
+
+    const templateLabel = template?.sender_name || `template ID ${req.params.id}`;
+    const { actorId, roleLabel } = getActorLabel(req);
+    await insertEmailTemplateAuditLog({
+      req,
+      action: "EMAIL_TEMPLATE_DELETE",
+      message: `${roleLabel} (${actorId}) deleted email template ${templateLabel}.`,
+    });
+
     res.json({ success: true });
   } catch (err) {
     console.error(err);

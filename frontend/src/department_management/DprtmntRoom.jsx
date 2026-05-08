@@ -85,9 +85,19 @@ const DepartmentRoom = () => {
   // 🔐 Access Control
   const [userID, setUserID] = useState("");
   const [userRole, setUserRole] = useState("");
+  const [employeeID, setEmployeeID] = useState("");
   const [hasAccess, setHasAccess] = useState(null);
   const [loading, setLoading] = useState(false);
   const pageId = 22;
+
+  const getAuditHeaders = () => ({
+    headers: {
+      "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+      "x-page-id": pageId,
+      "x-audit-actor-id": employeeID || localStorage.getItem("employee_id") || "",
+      "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+    },
+  });
 
   useEffect(() => {
     if (!settings) return;
@@ -105,6 +115,7 @@ const DepartmentRoom = () => {
     if (storedUser && storedRole && storedID) {
       setUserRole(storedRole);
       setUserID(storedID);
+      setEmployeeID(storedEmployeeID);
       if (storedRole === "registrar") {
         checkAccess(storedEmployeeID);
       } else {
@@ -182,7 +193,7 @@ const DepartmentRoom = () => {
 
   const handleAssignRoom = async () => {
     try {
-      await axios.post(`${API_BASE_URL}/api/assign`, room);
+      await axios.post(`${API_BASE_URL}/api/assign`, room, getAuditHeaders());
       fetchRoomAssignments();
       setRoom({ room_id: "", dprtmnt_id: "" });
 
@@ -208,7 +219,7 @@ const DepartmentRoom = () => {
 
   const handleUnassignRoom = async (dprtmnt_room_id) => {
     try {
-      await axios.delete(`${API_BASE_URL}/api/unassign/${dprtmnt_room_id}`);
+      await axios.delete(`${API_BASE_URL}/api/unassign/${dprtmnt_room_id}`, getAuditHeaders());
       fetchRoomAssignments();
 
       setSnackbar({

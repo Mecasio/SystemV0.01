@@ -97,6 +97,12 @@ const RegisterRegistrar = () => {
         headers: {
             "x-employee-id": employeeID,
             "x-page-id": pageId,
+            "x-audit-actor-id":
+                employeeID ||
+                localStorage.getItem("employee_id") ||
+                localStorage.getItem("email") ||
+                "unknown",
+            "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
         },
     };
 
@@ -298,7 +304,10 @@ const RegisterRegistrar = () => {
             if (editData) {
                 // EDIT registrar
                 await axios.put(`${API_BASE_URL}/admin/update_registrar/${editData.id}`, fd, {
-                    headers: { "Content-Type": "multipart/form-data" },
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                        ...permissionHeaders.headers,
+                    },
                 });
 
                 // ✅ SUCCESS SNACKBAR
@@ -308,7 +317,10 @@ const RegisterRegistrar = () => {
             } else {
                 // ADD registrar
                 await axios.post(`${API_BASE_URL}/admin/register_registrar`, fd, {
-                    headers: { "Content-Type": "multipart/form-data" },
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                        ...permissionHeaders.headers,
+                    },
                 });
 
                 // ✅ SUCCESS SNACKBAR
@@ -388,7 +400,11 @@ const RegisterRegistrar = () => {
     const handleToggleStatus = async (id, currentStatus) => {
         const newStatus = currentStatus === 1 ? 0 : 1;
         try {
-            await axios.put(`${API_BASE_URL}/update_registrar_status/${id}`, { status: newStatus });
+            await axios.put(
+                `${API_BASE_URL}/update_registrar_status/${id}`,
+                { status: newStatus },
+                permissionHeaders,
+            );
 
             fetchRegistrars(); // 🔄 refresh list
         } catch (error) {

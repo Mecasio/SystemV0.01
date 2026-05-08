@@ -113,6 +113,12 @@ const RegisterProf = () => {
     headers: {
       "x-employee-id": employeeID,
       "x-page-id": pageId,
+      "x-audit-actor-id":
+        employeeID ||
+        localStorage.getItem("employee_id") ||
+        localStorage.getItem("email") ||
+        "unknown",
+      "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
     },
   };
 
@@ -560,10 +566,15 @@ const RegisterProf = () => {
       if (editData) {
         response = await axios.put(
           `${API_BASE_URL}/faculty/update_prof/${editData.prof_id}`,
-          formData
+          formData,
+          permissionHeaders,
         );
       } else {
-        response = await axios.post(`${API_BASE_URL}/faculty/register_prof`, formData);
+        response = await axios.post(
+          `${API_BASE_URL}/faculty/register_prof`,
+          formData,
+          permissionHeaders,
+        );
       }
 
       if (response.data?.success === false) {
@@ -655,9 +666,13 @@ const RegisterProf = () => {
   const handleToggleStatus = async (prof_id, currentStatus) => {
     try {
       const newStatus = currentStatus === 1 ? 0 : 1;
-      await axios.put(`${API_BASE_URL}/faculty/update_prof_status/${prof_id}`, {
-        status: newStatus,
-      });
+      await axios.put(
+        `${API_BASE_URL}/faculty/update_prof_status/${prof_id}`,
+        {
+          status: newStatus,
+        },
+        permissionHeaders,
+      );
       fetchProfessors();
     } catch (err) {
       console.error("Status toggle failed:", err);
@@ -741,7 +756,7 @@ const RegisterProf = () => {
 
     const res = await axios.post(`${API_BASE_URL}/faculty/import_professors`, {
       professors,
-    });
+    }, permissionHeaders);
 
     console.log(res.data);
 

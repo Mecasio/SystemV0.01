@@ -95,6 +95,16 @@ const CourseTaggingForSummerCollege = () => {
   const pageId = 141;
 
   const [employeeID, setEmployeeID] = useState("");
+  const auditConfig = {
+    headers: {
+      "x-audit-actor-id":
+        employeeID ||
+        localStorage.getItem("employee_id") ||
+        localStorage.getItem("email") ||
+        "unknown",
+      "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+    },
+  };
 
   useEffect(() => {
     const storedUser = localStorage.getItem("email");
@@ -536,6 +546,7 @@ const CourseTaggingForSummerCollege = () => {
       await axios.post(
         `${API_BASE_URL}/add-to-enrolled-courses/${userId}/${currId}/`,
         payload,
+        auditConfig,
       );
 
       // Refresh enrolled courses list after adding
@@ -570,7 +581,7 @@ const CourseTaggingForSummerCollege = () => {
 
     try {
       // Delete the specific enrolled_subject row
-      const res = await axios.delete(`${API_BASE_URL}/courses/delete/${id}`);
+      const res = await axios.delete(`${API_BASE_URL}/courses/delete/${id}`, auditConfig);
       console.log("Delete response:", res.data);
 
       // Refresh enrolled courses list
@@ -657,7 +668,7 @@ const CourseTaggingForSummerCollege = () => {
               year_level: yearLevelId,
               active_school_year_id: activeSchoolYearId,
               active_semester_id: activeSemesterId,
-            });
+            }, auditConfig);
 
             enrolledCount++;
             setDisableYearButtons(true);
@@ -717,6 +728,7 @@ const CourseTaggingForSummerCollege = () => {
 
       // Delete all user courses
       await axios.delete(`${API_BASE_URL}/courses/user/${userId}`, {
+        headers: auditConfig.headers,
         params: { activeSchoolYearId },
       });
       // Refresh enrolled courses list

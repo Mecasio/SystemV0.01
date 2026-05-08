@@ -144,6 +144,15 @@ export default function StudentAccounts() {
 
     const [employeeID, setEmployeeID] = useState("");
 
+    const getAuditHeaders = () => ({
+        "x-audit-actor-id":
+            employeeID ||
+            localStorage.getItem("employee_id") ||
+            localStorage.getItem("email") ||
+            "unknown",
+        "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+    });
+
     useEffect(() => {
         const storedUser = localStorage.getItem("email");
         const storedRole = localStorage.getItem("role");
@@ -286,7 +295,8 @@ export default function StudentAccounts() {
 
             const res = await axios.put(
                 `${API_BASE_URL}/api/student_account/${selectedPerson.person_id}`,
-                payload
+                payload,
+                { headers: getAuditHeaders() }
             );
 
             if (!res.data.success) {
@@ -565,7 +575,9 @@ export default function StudentAccounts() {
                 {
                     person_id: selectedPerson.person_id,
                     email,
-                    password: generatedPassword // ✅ use existing
+                    password: generatedPassword, // ✅ use existing
+                    audit_actor_id: getAuditHeaders()["x-audit-actor-id"],
+                    audit_actor_role: getAuditHeaders()["x-audit-actor-role"]
                 }
             );
 

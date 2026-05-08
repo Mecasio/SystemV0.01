@@ -82,6 +82,15 @@ const PaymentExportingModule = () => {
 
     const pageId = 116;
 
+    const getAuditHeaders = () => ({
+        headers: {
+            "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+            "x-page-id": pageId,
+            "x-audit-actor-id": employeeID || localStorage.getItem("employee_id") || "",
+            "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+        },
+    });
+
     useEffect(() => {
         if (!settings) return;
 
@@ -392,6 +401,13 @@ const PaymentExportingModule = () => {
 
             XLSX.utils.book_append_sheet(workbook, worksheet, "Payments");
             XLSX.writeFile(workbook, "payment_export.xlsx");
+            await axios.post(`${API_BASE_URL}/api/payment-export/audit`, {
+                exported_count: exportData.length,
+                payment_type: paymentType,
+                person_type: personTypeFilter,
+            }, getAuditHeaders()).catch((err) => {
+                console.error("Payment export audit failed:", err);
+            });
         } finally {
             setExportOpen(false);
         }

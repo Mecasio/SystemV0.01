@@ -8,7 +8,6 @@ const QRCode = require("qrcode");
 const { db, db3 } = require("../database/database");
 const { CanDelete, CanEdit } = require("../../middleware/pagePermissions");
 const {
-  formatAuditTimestamp,
   insertAuditLogAdmission,
   insertAuditLogEnrollment,
 } = require("../../utils/auditLogger");
@@ -53,10 +52,19 @@ const getLoginAuditLogger = (req) => (
 
 const buildRegistrationAuditMessage = ({ actorId, event, reason }) => {
   const safeActor = actorId || "unknown";
-  const timeLabel = formatAuditTimestamp();
   const reasonText = reason ? ` Reason: ${reason}.` : "";
 
-  return `Applicant (${safeActor}) ${event} at ${timeLabel}.${reasonText}`;
+  return `Applicant (${safeActor}) ${event}.${reasonText}`;
+};
+
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
 };
 
 const insertRegistrationAuditLog = ({
@@ -515,6 +523,16 @@ router.delete("/delete-account/:person_id", CanDelete, async (req, res) => {
   }
 
   try {
+    const [[accountBefore]] = await db.query(
+      `SELECT ua.person_id, ua.email, ua.role, ant.applicant_number, pt.first_name, pt.middle_name, pt.last_name
+       FROM user_accounts ua
+       LEFT JOIN person_table pt ON pt.person_id = ua.person_id
+       LEFT JOIN applicant_numbering_table ant ON ant.person_id = ua.person_id
+       WHERE ua.person_id = ?
+       LIMIT 1`,
+      [person_id],
+    );
+
     const [result] = await db.query(
       `UPDATE user_accounts
        SET is_archived = 1
@@ -528,6 +546,35 @@ router.delete("/delete-account/:person_id", CanDelete, async (req, res) => {
         message: "Account not found",
       });
     }
+
+    const actorId =
+      req.body?.audit_actor_id ||
+      req.headers["x-audit-actor-id"] ||
+      req.headers["x-employee-id"] ||
+      "unknown";
+    const actorRole =
+      req.body?.audit_actor_role ||
+      req.headers["x-audit-actor-role"] ||
+      "registrar";
+    const roleLabel = formatAuditActorRole(actorRole);
+    const applicantName = [
+      accountBefore?.last_name,
+      accountBefore?.first_name,
+      accountBefore?.middle_name,
+    ].filter(Boolean).join(", ");
+    const accountLabel =
+      accountBefore?.applicant_number ||
+      applicantName ||
+      accountBefore?.email ||
+      `person_id ${person_id}`;
+
+    await insertAuditLogAdmission({
+      actorId,
+      role: actorRole,
+      action: "APPLICATION_ACCOUNT_ARCHIVE",
+      severity: "INFO",
+      message: `${roleLabel} (${actorId}) archived account for Applicant (${accountLabel}).`,
+    });
 
     res.json({
       success: true,
@@ -590,6 +637,23 @@ router.put("/restore-account/:person_id", CanEdit, async (req, res) => {
   }
 
   try {
+    const [accountRows] = await db.query(
+      `
+      SELECT
+        ua.email,
+        pt.first_name,
+        pt.middle_name,
+        pt.last_name,
+        ant.applicant_number
+      FROM user_accounts ua
+      LEFT JOIN person_table pt ON pt.person_id = ua.person_id
+      LEFT JOIN applicant_numbering_table ant ON ant.person_id = ua.person_id
+      WHERE ua.person_id = ?
+      LIMIT 1
+      `,
+      [person_id],
+    );
+
     const [result] = await db.query(
       `UPDATE user_accounts
        SET is_archived = 0
@@ -603,6 +667,36 @@ router.put("/restore-account/:person_id", CanEdit, async (req, res) => {
         message: "Account not found",
       });
     }
+
+    const actorId =
+      req.body?.audit_actor_id ||
+      req.headers["x-audit-actor-id"] ||
+      req.headers["x-employee-id"] ||
+      "unknown";
+    const actorRole =
+      req.body?.audit_actor_role ||
+      req.headers["x-audit-actor-role"] ||
+      "registrar";
+    const roleLabel = formatAuditActorRole(actorRole);
+    const accountBefore = accountRows?.[0];
+    const applicantName = [
+      accountBefore?.last_name,
+      accountBefore?.first_name,
+      accountBefore?.middle_name,
+    ].filter(Boolean).join(", ");
+    const accountLabel =
+      accountBefore?.applicant_number ||
+      applicantName ||
+      accountBefore?.email ||
+      `person_id ${person_id}`;
+
+    await insertAuditLogAdmission({
+      actorId,
+      role: actorRole,
+      action: "APPLICATION_ACCOUNT_RESTORE",
+      severity: "INFO",
+      message: `${roleLabel} (${actorId}) restored account for Applicant (${accountLabel}).`,
+    });
 
     res.json({
       success: true,
@@ -629,13 +723,21 @@ router.delete("/permanent-delete-account/:person_id", CanDelete, async (req, res
 
   try {
     const [applicant] = await db.query(
-      `SELECT applicant_number
-       FROM applicant_numbering_table
-       WHERE person_id = ?`,
+      `SELECT
+        ant.applicant_number,
+        pt.first_name,
+        pt.middle_name,
+        pt.last_name,
+        ua.email
+       FROM applicant_numbering_table ant
+       LEFT JOIN person_table pt ON pt.person_id = ant.person_id
+       LEFT JOIN user_accounts ua ON ua.person_id = ant.person_id
+       WHERE ant.person_id = ?`,
       [person_id],
     );
 
-    const applicantNumber = applicant?.[0]?.applicant_number || null;
+    const applicantBefore = applicant?.[0] || null;
+    const applicantNumber = applicantBefore?.applicant_number || null;
 
     if (applicantNumber) {
       await db.query(
@@ -675,6 +777,35 @@ router.delete("/permanent-delete-account/:person_id", CanDelete, async (req, res
         message: "Account not found",
       });
     }
+
+    const actorId =
+      req.body?.audit_actor_id ||
+      req.headers["x-audit-actor-id"] ||
+      req.headers["x-employee-id"] ||
+      "unknown";
+    const actorRole =
+      req.body?.audit_actor_role ||
+      req.headers["x-audit-actor-role"] ||
+      "registrar";
+    const roleLabel = formatAuditActorRole(actorRole);
+    const applicantName = [
+      applicantBefore?.last_name,
+      applicantBefore?.first_name,
+      applicantBefore?.middle_name,
+    ].filter(Boolean).join(", ");
+    const accountLabel =
+      applicantBefore?.applicant_number ||
+      applicantName ||
+      applicantBefore?.email ||
+      `person_id ${person_id}`;
+
+    await insertAuditLogAdmission({
+      actorId,
+      role: actorRole,
+      action: "APPLICATION_ACCOUNT_PERMANENT_DELETE",
+      severity: "CRITICAL",
+      message: `${roleLabel} (${actorId}) permanently deleted account for Applicant (${accountLabel}).`,
+    });
 
     res.json({
       success: true,

@@ -165,6 +165,17 @@ const ArchivedModule = () => {
     });
   };
 
+  const getAuditHeaders = () => ({
+    "x-employee-id": employeeID,
+    "x-page-id": pageId,
+    "x-audit-actor-id":
+      employeeID ||
+      localStorage.getItem("employee_id") ||
+      localStorage.getItem("email") ||
+      "unknown",
+    "x-audit-actor-role": localStorage.getItem("role") || "registrar",
+  });
+
   const fetchArchivedAccounts = async () => {
     try {
       setLoading(true);
@@ -265,10 +276,7 @@ const ArchivedModule = () => {
         `${API_BASE_URL}/auth/restore-account/${selectedAccount.person_id}`,
         {},
         {
-          headers: {
-            "x-employee-id": employeeID,
-            "x-page-id": pageId,
-          },
+          headers: getAuditHeaders(),
         },
       );
 
@@ -298,10 +306,7 @@ const ArchivedModule = () => {
       await axios.delete(
         `${API_BASE_URL}/auth/permanent-delete-account/${selectedAccount.person_id}`,
         {
-          headers: {
-            "x-employee-id": employeeID,
-            "x-page-id": pageId,
-          },
+          headers: getAuditHeaders(),
         },
       );
 

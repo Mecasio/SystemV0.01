@@ -1,7 +1,42 @@
 const express = require('express');
 const { db3 } = require('../database/database');
+const { insertAuditLogEnrollment } = require('../../utils/auditLogger');
 
 const router = express.Router();
+
+const formatAuditActorRole = (role) => {
+    const safeRole = String(role || "registrar").trim();
+    if (!safeRole) return "Registrar";
+
+    return safeRole
+        .split(/[\s_-]+/)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+        .join(" ");
+};
+
+const getAuditActor = (req) => ({
+    actorId:
+        req.body?.audit_actor_id ||
+        req.headers["x-audit-actor-id"] ||
+        req.headers["x-employee-id"] ||
+        "unknown",
+    actorRole:
+        req.body?.audit_actor_role ||
+        req.headers["x-audit-actor-role"] ||
+        "registrar",
+});
+
+const insertReceiptCounterAuditLog = async ({ req, action, message }) => {
+    const { actorId, actorRole } = getAuditActor(req);
+
+    await insertAuditLogEnrollment({
+        actorId,
+        role: actorRole,
+        action,
+        severity: "INFO",
+        message,
+    });
+};
 
 const normalizeCounter = (value) => String(value ?? "").trim();
 const isDigitsOnly = (value) => /^\d+$/.test(value);
@@ -93,11 +128,19 @@ router.post('/api/receipt-counter/assign', async (req, res) => {
             return res.status(409).json({ message: "The first 4 digits are already assigned to another employee for this active school year." });
         }
 
-        await db3.query(
+        const [insertResult] = await db3.query(
             `INSERT INTO receipt_counter(counter, employee_id, active_school_year_id)
              VALUES (?, ?, ?)`,
             [normalizedCounter, employee_id, activeSchoolYearId]
         );
+
+        const { actorId, actorRole } = getAuditActor(req);
+        const roleLabel = formatAuditActorRole(actorRole);
+        await insertReceiptCounterAuditLog({
+            req,
+            action: "RECEIPT_COUNTER_ASSIGN",
+            message: `${roleLabel} (${actorId}) assigned receipt counter ${normalizedCounter} to Employee (${employee_id}). Assignment ID: ${insertResult.insertId}.`,
+        });
 
         return res.status(201).json({ message: "Receipt counter assigned successfully." });
     } catch (error) {
@@ -123,7 +166,7 @@ router.put('/api/receipt-counter/:id', async (req, res) => {
         }
 
         const [assignmentRows] = await db3.query(
-            `SELECT active_school_year_id
+            `SELECT active_school_year_id, employee_id, counter
              FROM receipt_counter
              WHERE id = ?
              LIMIT 1`,
@@ -172,6 +215,14 @@ router.put('/api/receipt-counter/:id', async (req, res) => {
             return res.status(404).json({ message: "Assignment not found." });
         }
 
+        const { actorId, actorRole } = getAuditActor(req);
+        const roleLabel = formatAuditActorRole(actorRole);
+        await insertReceiptCounterAuditLog({
+            req,
+            action: "RECEIPT_COUNTER_UPDATE",
+            message: `${roleLabel} (${actorId}) updated receipt counter assignment ${id} for Employee (${assignmentRows[0].employee_id}) from ${assignmentRows[0].counter} to ${normalizedCounter}.`,
+        });
+
         return res.json({ message: "Receipt counter updated successfully." });
     } catch (error) {
         console.error("Error updating receipt counter:", error);
@@ -187,6 +238,14 @@ router.delete('/api/receipt-counter/:id', async (req, res) => {
             return res.status(400).json({ message: "Assignment id is required." });
         }
 
+        const [[assignmentBefore]] = await db3.query(
+            `SELECT id, counter, employee_id, active_school_year_id
+             FROM receipt_counter
+             WHERE id = ?
+             LIMIT 1`,
+            [id]
+        );
+
         const [result] = await db3.query(
             `DELETE FROM receipt_counter
              WHERE id = ?`,
@@ -196,6 +255,14 @@ router.delete('/api/receipt-counter/:id', async (req, res) => {
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: "Assignment not found." });
         }
+
+        const { actorId, actorRole } = getAuditActor(req);
+        const roleLabel = formatAuditActorRole(actorRole);
+        await insertReceiptCounterAuditLog({
+            req,
+            action: "RECEIPT_COUNTER_DEASSIGN",
+            message: `${roleLabel} (${actorId}) deassigned receipt counter ${assignmentBefore?.counter || "N/A"} from Employee (${assignmentBefore?.employee_id || "unknown"}).`,
+        });
 
         return res.json({ message: "Receipt counter deassigned successfully." });
     } catch (error) {

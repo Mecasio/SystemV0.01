@@ -930,6 +930,17 @@ const CertificateOfRegistration = forwardRef(
       };
     };
 
+    const insertPaymentAuditLog = async (paymentTarget) => {
+      try {
+        await axios.post(`${API_BASE_URL}/insert-logs/${userID}`, {
+          message: `Employee ID #${userID} - ${user} successfully saved student #${requestedData.student_number} payment to ${paymentTarget}`,
+          type: "insert",
+        });
+      } catch (err) {
+        console.error("Error inserting audit log");
+      }
+    };
+
     const handleSaveToUnifast = async () => {
       try {
         const res = await axios.post(`${API_BASE_URL}/save_to_unifast`, {
@@ -942,6 +953,7 @@ const CertificateOfRegistration = forwardRef(
             "Student Payment was saved successfully in Unifast",
             "success",
           );
+          await insertPaymentAuditLog("UniFAST");
           if (typeof onSaved === "function") {
             onSaved({ type: "unifast", student_number });
           }
@@ -981,6 +993,7 @@ const CertificateOfRegistration = forwardRef(
             "Student Payment was saved successfully in Matriculation",
             "success",
           );
+          await insertPaymentAuditLog("Matriculation");
           if (typeof onSaved === "function") {
             onSaved({ type: "matriculation", student_number });
           }
@@ -1068,7 +1081,7 @@ const CertificateOfRegistration = forwardRef(
 
     return (
       <Container className="mb-[4rem]">
-        {/* SAVE TO UNIFAST BUTTON */}
+        {/* <TO> @</TO> UNIFAST BUTTON */}
         <Box sx={{ position: "relative", marginRight: "6rem" }}>
           <button
             onClick={() => openConfirm("unifast")}
