@@ -713,6 +713,7 @@ const CurriculumPanel = () => {
                   py: 0.5,
                   backgroundColor: settings?.header_color || "#6D2323",
                   color: "white",
+                  height: "60px"
                 }}
               >
                 <Box
@@ -780,7 +781,9 @@ const CurriculumPanel = () => {
 
                     <Button
                       onClick={() =>
-                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                        setCurrentPage((prev) =>
+                          Math.min(prev + 1, totalPages)
+                        )
                       }
                       disabled={currentPage === totalPages}
                       variant="outlined"
@@ -799,6 +802,7 @@ const CurriculumPanel = () => {
                     >
                       Last
                     </Button>
+
                     {showCreateActions && (
                       <Button
                         variant="contained"
@@ -807,10 +811,15 @@ const CurriculumPanel = () => {
                           color: "#fff",
                           fontWeight: "bold",
                           borderRadius: "8px",
+
+                          // ✅ DESIGN WIDTH & HEIGHT
                           width: "250px",
+                          height: "36px",
+
                           textTransform: "none",
                           px: 2,
                           mr: "15px",
+
                           "&:hover": {
                             backgroundColor: "#1565c0",
                           },
@@ -829,7 +838,6 @@ const CurriculumPanel = () => {
           </TableHead>
         </Table>
       </TableContainer>
-
       <TableContainer>
         <Table size="small">
           <TableHead>
@@ -1003,7 +1011,7 @@ const CurriculumPanel = () => {
                   justifyContent="space-between"
                   alignItems="center"
                   flexWrap="wrap"
-                  sx={{ px: 1 }}
+                  sx={{ height: "50px" }}
                 >
                   <Typography fontSize="14px" fontWeight="bold" color="white">
                     Total Curriculum: {filteredCurriculumList.length}
@@ -1112,7 +1120,7 @@ const CurriculumPanel = () => {
 
         <DialogActions>
           <Button
-         color="error"
+            color="error"
             variant="outlined"
             onClick={() => {
               setOpenDeleteDialog(false);
@@ -1267,7 +1275,7 @@ const CurriculumPanel = () => {
               setEditingId(null);
               setCurriculum({ year_id: "", program_id: "" });
             }}
-             color="error"
+            color="error"
             variant="outlined"
           >
             Cancel

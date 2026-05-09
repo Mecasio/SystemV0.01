@@ -272,13 +272,33 @@ const AdminSubjects = () => {
     if (!hasAccess) return <Unauthorized />;
 
     return (
-        <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", backgroundColor: "transparent", mt: 1, padding: 2, paddingRight: 1 }}>
-
-            {/* ── Header ── */}
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2, mb: 2 }}>
-                <Typography variant="h4" sx={{ fontWeight: "bold", color: titleColor, fontSize: "36px" }}>
+        <Box
+            sx={{
+                height: "calc(100vh - 150px)",
+                overflowY: "auto",
+                paddingRight: 1,
+                backgroundColor: "transparent",
+                mt: 1,
+                padding: 2,
+            }}
+        >
+            <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
+            >
+                <Typography variant="h4"
+                    sx={{
+                        fontWeight: 'bold',
+                        color: titleColor,
+                        fontSize: '36px',
+                    }}
+                >
                     SUBJECT MANAGEMENT
                 </Typography>
+
+
                 <TextField
                     size="small"
                     placeholder="Search subjects…"
@@ -296,16 +316,26 @@ const AdminSubjects = () => {
             </Box>
 
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+
+            <br />
             <br />
 
-            {/* ── Nav Tabs ── */}
-            <Box sx={{ display: "flex", justifyContent: "space-between", flexWrap: "nowrap", width: "100%", mt: 1, gap: 2 }}>
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    flexWrap: "nowrap", // ❌ prevent wrapping
+                    width: "100%",
+
+                    gap: 2,
+                }}
+            >
                 {tabs.map((tab, index) => (
                     <Card
                         key={index}
                         onClick={() => handleStepClick(index, tab.to)}
                         sx={{
-                            flex: `1 1 ${100 / tabs.length}%`,
+                            flex: `1 1 ${100 / tabs.length}%`, // evenly divide row
                             height: 135,
                             display: "flex",
                             alignItems: "center",
@@ -313,22 +343,39 @@ const AdminSubjects = () => {
                             cursor: "pointer",
                             borderRadius: 2,
                             border: `1px solid ${borderColor}`,
-                            backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
+                            backgroundColor:
+                                activeStep === index
+                                    ? settings?.header_color || "#1976d2"
+                                    : "#E8C999",
                             color: activeStep === index ? "#fff" : "#000",
-                            boxShadow: activeStep === index ? "0px 4px 10px rgba(0,0,0,0.3)" : "0px 2px 6px rgba(0,0,0,0.15)",
+                            boxShadow:
+                                activeStep === index
+                                    ? "0px 4px 10px rgba(0,0,0,0.3)"
+                                    : "0px 2px 6px rgba(0,0,0,0.15)",
                             transition: "0.3s ease",
-                            "&:hover": { backgroundColor: activeStep === index ? "#000000" : "#f5d98f" },
+                            "&:hover": {
+                                backgroundColor: activeStep === index ? "#000000" : "#f5d98f",
+                            },
                         }}
                     >
-                        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                            }}
+                        >
                             <Box sx={{ fontSize: 40, mb: 1 }}>{tab.icon}</Box>
-                            <Typography sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}>
+                            <Typography
+                                sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}
+                            >
                                 {tab.label}
                             </Typography>
                         </Box>
                     </Card>
                 ))}
             </Box>
+
             <br />
             <br />
 

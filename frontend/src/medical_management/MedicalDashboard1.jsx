@@ -39,6 +39,8 @@ import HowToRegIcon from '@mui/icons-material/HowToReg';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import DateField from "../components/DateField";
+import PsychologyIcon from "@mui/icons-material/Psychology";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 
 const MedicalDashboard1 = () => {
 
@@ -99,12 +101,12 @@ const MedicalDashboard1 = () => {
 
 
   const stepsData = [
-    { label: "Medical Applicant List", to: "/medical_applicant_list", icon: <ListAltIcon /> },
-    { label: "Applicant Form", to: "/medical_dashboard1", icon: <HowToRegIcon /> },
-    { label: "Submitted Documents", to: "/medical_requirements", icon: <UploadFileIcon /> }, // updated icon
-    { label: "Medical History", to: "/medical_requirements_form", icon: <PersonIcon /> },
-    { label: "Dental Assessment", to: "/dental_assessment", icon: <DescriptionIcon /> },
-    { label: "Physical and Neurological Examination", to: "/physical_neuro_exam", icon: <SchoolIcon /> },
+ { label: "Student List", to: "/medical_student_list", icon: <SchoolIcon fontSize="large" /> },
+        { label: "Applicant Form", to: "/medical_dashboard1", icon: <PersonIcon fontSize="large" /> },
+        { label: "Submitted Documents", to: "/medical_requirements", icon: <AssignmentIcon fontSize="large" /> }, // updated icon
+        { label: "Medical History", to: "/medical_requirements_form", icon: <HealthAndSafetyIcon fontSize="large" /> },
+        { label: "Dental Assessment", to: "/dental_assessment", icon: <DescriptionIcon fontSize="large" /> },
+        { label: "Physical and Neurological Examination", to: "/physical_neuro_exam", icon: <PsychologyIcon fontSize="large" /> },
   ];
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -1280,13 +1282,13 @@ const MedicalDashboard1 = () => {
       )}
 
 
-      {/* Top header: DOCUMENTS SUBMITTED + Search + Import */}
+      {/* Top header: DOCUMENTS SUBMITTED + Search */}
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
 
           mb: 2,
 
@@ -1295,51 +1297,45 @@ const MedicalDashboard1 = () => {
         <Typography
           variant="h4"
           sx={{
-            fontWeight: "bold",
+            fontWeight: 'bold',
             color: titleColor,
-            fontSize: "36px",
+            fontSize: '36px',
           }}
         >
-           PERSONAL INFORMATION
+          PERSONAL INFORMATION
         </Typography>
 
-        {/* ✅ Right side: Search + Excel Import side by side */}
-        <Box display="flex" alignItems="center" gap={2}>
-          <TextField
-            size="small"
-            placeholder="Search Student Name / Email / Student Number"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            sx={{
-              width: 450,
-              backgroundColor: "#fff",
-              borderRadius: 1,
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "10px",
-              },
-            }}
-            InputProps={{
-              startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
-            }}
-          />
+        <TextField
+          size="small"
+          placeholder="Search Student Name / Email / Student Number"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          sx={{
+            width: 450,
+            backgroundColor: "#fff",
+            borderRadius: 1,
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "10px",
+            },
+          }}
+          InputProps={{
+            startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
+          }}
+        />
 
 
-        </Box>
       </Box>
-
       {searchError && <Typography color="error">{searchError}</Typography>}
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
-
       <br />
+
       <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          flexWrap: "nowrap", // prevent wrapping
           width: "100%",
-          mt: 2,
 
         }}
       >
@@ -1350,7 +1346,7 @@ const MedicalDashboard1 = () => {
               onClick={() => handleNavigateStep(index, step.to)}
               sx={{
                 flex: 1,
-                maxWidth: `${100 / stepsData.length}%`,
+                maxWidth: `${100 / stepsData.length}%`, // evenly fit 100%
                 height: 140,
                 display: "flex",
                 alignItems: "center",
@@ -1366,7 +1362,7 @@ const MedicalDashboard1 = () => {
                     : "0px 2px 6px rgba(0,0,0,0.15)",
                 transition: "0.3s ease",
                 "&:hover": {
-                  backgroundColor: currentStep === index ? "#000000" : "#f5d98f",
+                  backgroundColor: currentStep === index ? "#000" : "#f5d98f",
                 },
               }}
             >
@@ -1379,29 +1375,27 @@ const MedicalDashboard1 = () => {
               >
                 <Box sx={{ fontSize: 32, mb: 0.5 }}>{step.icon}</Box>
                 <Typography
-                  sx={{
-                    fontSize: 14,
-                    fontWeight: "bold",
-                    textAlign: "center",
-                  }}
+                  sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}
                 >
                   {step.label}
                 </Typography>
               </Box>
             </Card>
 
-            {/* Spacer (line gap between steps) */}
+            {/* Spacer instead of line */}
             {index < stepsData.length - 1 && (
               <Box
                 sx={{
-                  flex: 0.1,
-                  mx: 1, // spacing between cards
+
+                  mx: 1, // margin to keep spacing
                 }}
               />
             )}
           </React.Fragment>
         ))}
       </Box>
+
+      <br />
       <br />
       <TableContainer component={Paper} sx={{ width: '100%', mb: 1 }}>
         <Table>

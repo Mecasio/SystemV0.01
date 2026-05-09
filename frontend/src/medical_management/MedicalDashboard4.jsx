@@ -29,6 +29,8 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import HowToRegIcon from '@mui/icons-material/HowToReg';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import DateField from "../components/DateField";
+import PsychologyIcon from "@mui/icons-material/Psychology";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 const MedicalDashboard4 = () => {
 
     const settings = useContext(SettingsContext);
@@ -74,12 +76,12 @@ const MedicalDashboard4 = () => {
 
 
     const stepsData = [
-        { label: "Medical Applicant List", to: "/medical_applicant_list", icon: <ListAltIcon /> },
-        { label: "Applicant Form", to: "/medical_dashboard1", icon: <HowToRegIcon /> },
-        { label: "Submitted Documents", to: "/medical_requirements", icon: <UploadFileIcon /> }, // updated icon
-        { label: "Medical History", to: "/medical_requirements_form", icon: <PersonIcon /> },
-        { label: "Dental Assessment", to: "/dental_assessment", icon: <DescriptionIcon /> },
-        { label: "Physical and Neurological Examination", to: "/physical_neuro_exam", icon: <SchoolIcon /> },
+        { label: "Student List", to: "/medical_student_list", icon: <SchoolIcon fontSize="large" /> },
+        { label: "Applicant Form", to: "/medical_dashboard1", icon: <PersonIcon fontSize="large" /> },
+        { label: "Submitted Documents", to: "/medical_requirements", icon: <AssignmentIcon fontSize="large" /> }, // updated icon
+        { label: "Medical History", to: "/medical_requirements_form", icon: <HealthAndSafetyIcon fontSize="large" /> },
+        { label: "Dental Assessment", to: "/dental_assessment", icon: <DescriptionIcon fontSize="large" /> },
+        { label: "Physical and Neurological Examination", to: "/physical_neuro_exam", icon: <PsychologyIcon fontSize="large" /> },
     ];
 
     const [currentStep, setCurrentStep] = useState(1);
@@ -415,7 +417,7 @@ const MedicalDashboard4 = () => {
             setSearchQuery(storedId);
         }
     }, []);
-    
+
     const inputStyle = {
         width: "100%",
         border: "1px solid #ccc",
@@ -572,7 +574,7 @@ const MedicalDashboard4 = () => {
                         fontSize: '36px',
                     }}
                 >
-                     HEALTH MEDICAL RECORDS
+                    HEALTH MEDICAL RECORDS
                 </Typography>
 
 
@@ -580,7 +582,7 @@ const MedicalDashboard4 = () => {
 
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
-            <br />
+
 
 
 
@@ -602,7 +604,7 @@ const MedicalDashboard4 = () => {
                             onClick={() => handleNavigateStep(index, step.to)}
                             sx={{
                                 flex: `1 1 ${100 / stepsData.length}%`, // evenly divide width
-                                height: 120,
+                                height: 140,
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
@@ -645,16 +647,17 @@ const MedicalDashboard4 = () => {
                         {index < stepsData.length - 1 && (
                             <Box
                                 sx={{
-                                    flex: 0.05,
+
                                     mx: 1, // spacing between cards
                                 }}
-                      />
+                            />
                         )}
                     </React.Fragment>
                 ))}
             </Box>
 
             <br />
+                <br />
 
             <TableContainer component={Paper} sx={{ width: '100%', mb: 1 }}>
                 <Table>
@@ -818,7 +821,7 @@ const MedicalDashboard4 = () => {
                             <PictureAsPdfIcon
                                 className="card-icon"
                                 sx={{ fontSize: 35, color: mainButtonColor, mr: 1.5 }}
-                      />
+                            />
 
                             {/* Label */}
                             <Typography
@@ -928,7 +931,7 @@ const MedicalDashboard4 = () => {
                                         alignSelf: "center",
                                         mx: 2,
                                     }}
-                      />
+                                />
                             )}
                         </React.Fragment>
                     ))}
@@ -984,11 +987,11 @@ const MedicalDashboard4 = () => {
                                                 handleUpdate(updatedPerson);
                                             }}
                                             onBlur={handleBlur}
-                      />
+                                        />
                                     }
                                     label={symptom.charAt(0).toUpperCase() + symptom.slice(1)}
                                     sx={{ ml: 5 }}
-                      />
+                                />
                             ))}
                         </FormGroup>
 
@@ -1063,7 +1066,7 @@ const MedicalDashboard4 = () => {
                                                                             handleUpdate(updatedPerson);
                                                                         }}
                                                                         onBlur={handleBlur}
-                      />
+                                                                    />
                                                                     <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>Yes</span>
                                                                 </div>
 
@@ -1082,7 +1085,7 @@ const MedicalDashboard4 = () => {
                                                                             handleUpdate(updatedPerson);
                                                                         }}
                                                                         onBlur={handleBlur}
-                      />
+                                                                    />
                                                                     <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>No</span>
                                                                 </div>
                                                             </div>
@@ -1123,10 +1126,10 @@ const MedicalDashboard4 = () => {
                                                         handleUpdate(updatedPerson);
                                                     }}
                                                     onBlur={handleBlur}
-                      />
+                                                />
                                             }
                                             label="Yes"
-                      />
+                                        />
 
                                         {/* NO */}
                                         <FormControlLabel
@@ -1144,10 +1147,10 @@ const MedicalDashboard4 = () => {
                                                         handleUpdate(updatedPerson);
                                                     }}
                                                     onBlur={handleBlur}
-                      />
+                                                />
                                             }
                                             label="No"
-                      />
+                                        />
 
 
                                     </Box>
@@ -1181,7 +1184,7 @@ const MedicalDashboard4 = () => {
                                     handleUpdate(updatedPerson);
                                 }}
                                 onBlur={handleBlur}
-                      />
+                            />
                         </Box>
 
                         <br />
@@ -1213,7 +1216,7 @@ const MedicalDashboard4 = () => {
                                     handleUpdate(updatedPerson);
                                 }}
                                 onBlur={handleBlur}
-                      />
+                            />
                         </Box>
 
                         {/* IV. COVID PROFILE */}
@@ -1262,7 +1265,7 @@ const MedicalDashboard4 = () => {
                                                             handleUpdate(updatedPerson);
                                                         }}
                                                         onBlur={handleBlur}
-                      />
+                                                    />
                                                     <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>YES</span>
                                                 </Box>
 
@@ -1281,7 +1284,7 @@ const MedicalDashboard4 = () => {
                                                             handleUpdate(updatedPerson);
                                                         }}
                                                         onBlur={handleBlur}
-                      />
+                                                    />
                                                     <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>NO</span>
 
 
@@ -1291,8 +1294,8 @@ const MedicalDashboard4 = () => {
                                             {/* IF YES, WHEN */}
                                             <span>IF YES, WHEN:</span>
                                             <DateField
-                                                  size="small"
-                        readOnly
+                                                size="small"
+                                                readOnly
                                                 name="covidDate"
                                                 value={person.covidDate || ""}
                                                 onChange={(e) => {
@@ -1312,7 +1315,7 @@ const MedicalDashboard4 = () => {
                                                     border: "1px solid #ccc",
                                                     borderRadius: "4px",
                                                 }}
-                      />
+                                            />
                                         </Box>
                                     </td>
                                 </tr>
@@ -1368,7 +1371,7 @@ const MedicalDashboard4 = () => {
                                                                 }}
                                                                 onBlur={handleBlur}
                                                                 style={inputStyle}
-                      />
+                                                            />
                                                         </td>
                                                     ))}
                                                 </tr>
@@ -1380,8 +1383,8 @@ const MedicalDashboard4 = () => {
                                                     {["vaccine1Date", "vaccine2Date", "booster1Date", "booster2Date"].map((field) => (
                                                         <td key={field} style={{ padding: "4px" }}>
                                                             <DateField
-                                                                  size="small"
-                        readOnly
+                                                                size="small"
+                                                                readOnly
                                                                 name={field}
                                                                 value={person[field] || ""}
                                                                 onChange={(e) => {
@@ -1394,7 +1397,7 @@ const MedicalDashboard4 = () => {
                                                                 }}
                                                                 onBlur={handleBlur}
                                                                 style={inputStyle}
-                      />
+                                                            />
                                                         </td>
                                                     ))}
                                                 </tr>
@@ -1433,7 +1436,7 @@ const MedicalDashboard4 = () => {
                                             }}
                                             onBlur={handleBlur}
                                             className="w-full border px-3 py-2 rounded"
-                      />
+                                        />
                                     </td>
                                 </tr>
 
@@ -1454,7 +1457,7 @@ const MedicalDashboard4 = () => {
                                             }}
                                             onBlur={handleBlur}
                                             className="w-full border px-3 py-2 rounded"
-                      />
+                                        />
                                     </td>
                                 </tr>
 
@@ -1475,7 +1478,7 @@ const MedicalDashboard4 = () => {
                                             }}
                                             onBlur={handleBlur}
                                             className="w-full border px-3 py-2 rounded"
-                      />
+                                        />
                                     </td>
                                 </tr>
 
@@ -1496,7 +1499,7 @@ const MedicalDashboard4 = () => {
                                             }}
                                             onBlur={handleBlur}
                                             className="w-full border px-3 py-2 rounded"
-                      />
+                                        />
                                     </td>
                                 </tr>
                             </tbody>
@@ -1550,7 +1553,7 @@ const MedicalDashboard4 = () => {
                                                             handleUpdate(updatedPerson);
                                                         }}
                                                         onBlur={handleBlur}
-                      />
+                                                    />
                                                     <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>Physically Fit</span>
                                                 </div>
 
@@ -1569,7 +1572,7 @@ const MedicalDashboard4 = () => {
                                                             handleUpdate(updatedPerson);
                                                         }}
                                                         onBlur={handleBlur}
-                      />
+                                                    />
                                                     <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>For Compliance</span>
                                                 </div>
                                             </div>
@@ -1623,7 +1626,7 @@ const MedicalDashboard4 = () => {
                                                         padding: 0,
                                                     },
                                                 }}
-                      />
+                                            />
                                         </TableCell>
                                     </TableRow>
                                 </TableBody>
@@ -1686,7 +1689,7 @@ const MedicalDashboard4 = () => {
                                             color: "#000",
                                             transition: "color 0.3s",
                                         }}
-                      />
+                                    />
                                 }
                                 sx={{
                                     backgroundColor: subButtonColor,
@@ -1718,7 +1721,7 @@ const MedicalDashboard4 = () => {
                                             color: '#fff',
                                             transition: 'color 0.3s',
                                         }}
-                      />
+                                    />
                                 }
                                 sx={{
                                     backgroundColor: mainButtonColor,

@@ -20,6 +20,7 @@ import {
   TableBody,
   Dialog,
   DialogTitle,
+  IconButton,
   DialogContent,
   DialogActions,
 } from "@mui/material";
@@ -46,6 +47,9 @@ import SearchIcon from "@mui/icons-material/Search";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import ScoreIcon from "@mui/icons-material/Score";
 import DateField from "../components/DateField";
+import PersonIcon from "@mui/icons-material/Person";
+import CloseIcon from '@mui/icons-material/Close'; // or use the custom SVG below
+
 
 const QualifyingExamScore = () => {
   const socket = useRef(null);
@@ -136,19 +140,19 @@ const QualifyingExamScore = () => {
 
   const tabs = [
     {
-      label: "Admission Process For College",
+      label: "Applicant List",
       to: "/applicant_list",
       icon: <SchoolIcon fontSize="large" />,
     },
     {
       label: "Applicant Form",
       to: "/registrar_dashboard1",
-      icon: <AssignmentIcon fontSize="large" />,
+      icon: <PersonIcon fontSize="large" />,
     },
     {
       label: "Student Requirements",
       to: "/registrar_requirements",
-      icon: <AssignmentTurnedInIcon fontSize="large" />,
+      icon: <AssignmentIcon fontSize="large" />,
     },
     {
       label: "Qualifying / Interview Schedule Management",
@@ -165,7 +169,6 @@ const QualifyingExamScore = () => {
       to: "/student_numbering_per_college",
       icon: <DashboardIcon fontSize="large" />,
     },
-
   ];
 
   const navigate = useNavigate();
@@ -1621,30 +1624,29 @@ You have until May 11, 2026 to complete the admission process.`
 
   const [selectedCopies, setSelectedCopies] = useState({});
 
-  const handleSelect = (reqId, type) => {
-    setSelectedCopies(prev => {
-      const updated = {
-        ...prev,
-        [reqId]: type
-      };
+  const handleSelect = (reqId, type = null) => {
+    setSelectedCopies((prev) => {
+      const updated = { ...prev };
+
+      // ✅ Remove selection if null
+      if (type === null) {
+        delete updated[reqId];
+      } else {
+        updated[reqId] = type;
+      }
 
       const applicant = persons.find(
         p => p.applicant_number === selectedApplicant
       );
 
-      const reqText = buildRequirementsText(applicant, requirements, updated);
-
-      const today = new Date();
-      const validUntil = new Date(today);
-      validUntil.setDate(today.getDate() + 7);
-
-      const formattedValidUntil = validUntil.toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      });
+      const reqText = buildRequirementsText(
+        applicant,
+        requirements,
+        updated
+      );
 
       const newMessage = buildFullMessage(applicant, reqText);
+
       setEmailMessage(newMessage);
 
       return updated;
@@ -1662,32 +1664,73 @@ Please follow the steps below to complete your Admission process:
 ${reqText}`.trim();
   };
 
-  const buildRequirementsText = (applicant, list = requirements, copies = selectedCopies) => {
+  const buildRequirementsText = (
+    applicant,
+    list = requirements,
+    copies = selectedCopies
+  ) => {
     const filtered = filterRequirementsForApplicant(applicant, list);
 
-    if (!filtered || filtered.length === 0) return "No requirements listed.";
+    if (!filtered || filtered.length === 0) {
+      return "No requirements listed.";
+    }
 
-    const mainReqs = filtered.filter(r => !r.category?.toLowerCase().includes("medical"));
-    const medReqs = filtered.filter(r => r.category?.toLowerCase().includes("medical"));
+    const mainReqs = filtered.filter(
+      (r) => !r.category?.toLowerCase().includes("medical")
+    );
+
+    const medReqs = filtered.filter(
+      (r) => r.category?.toLowerCase().includes("medical")
+    );
 
     let text = "";
 
     if (mainReqs.length > 0) {
       text += "Main Requirements:\n";
+
       mainReqs.forEach((req, i) => {
         const sel = copies[req.id];
+
         text += `${i + 1}. ${req.description}`;
-        if (sel) text += ` (${sel.toUpperCase()})`;
+
+        // optional label
+        if (Number(req.is_optional) === 1) {
+          text += " (Optional)";
+        }
+
+        if (sel === "original") {
+          text += " (Original Copy)";
+        }
+
+        if (sel === "xerox") {
+          text += " (Xerox Copy)";
+        }
+
         text += "\n";
       });
     }
 
     if (medReqs.length > 0) {
       text += "\nMedical Requirements:\n";
-      medReqs.forEach((req) => {
+
+      medReqs.forEach((req, i) => {
         const sel = copies[req.id];
-        text += `  • ${req.description}`;
-        if (sel) text += ` (${sel.toUpperCase()})`;
+
+        text += `${i + 1}. ${req.description}`;
+
+        // optional label
+        if (Number(req.is_optional) === 1) {
+          text += " (Optional)";
+        }
+
+        if (sel === "original") {
+          text += " (Original Copy)";
+        }
+
+        if (sel === "xerox") {
+          text += " (Xerox Copy)";
+        }
+
         text += "\n";
       });
     }
@@ -1695,6 +1738,7 @@ ${reqText}`.trim();
     return text.trim();
   };
 
+  
   const handleOpenDialog = (applicant = null) => {
     const today = new Date();
     const validUntil = new Date(today);
@@ -2127,37 +2171,41 @@ Thank you, best regards
         alignItems="center"
         mb={2}
       >
-        <Typography variant="h4" fontWeight="bold" sx={{ color: titleColor }}>
-          QUALIFYING EXAMINATION SCORING
+        <Typography variant="h4"
+          sx={{
+            fontWeight: 'bold',
+            color: titleColor,
+            fontSize: '36px',
+          }}
+        >
+          QUALIFYING / INTERVIEW EXAMINATION SCORING
         </Typography>
 
-        <Box>
-          <TextField
-            variant="outlined"
-            placeholder="Search Applicant Name / Email / Applicant ID"
-            size="small"
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1); // Corrected
-            }}
-            sx={{
-              width: 450,
-              backgroundColor: "#fff",
-              borderRadius: 1,
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "10px",
-              },
-            }}
-            InputProps={{
-              startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
-            }}
-          />
-        </Box>
+
+        <TextField
+          variant="outlined"
+          placeholder="Search Applicant Name / Email / Applicant ID"
+          size="small"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          sx={{
+            width: 450,
+            backgroundColor: "#fff",
+            borderRadius: 1,
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "10px",
+            },
+          }}
+          InputProps={{
+            startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
+          }}
+        />
       </Box>
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
-      <div style={{ height: "20px" }}></div>
+
+      <br />
+      <br />
 
       <Box
         sx={{
@@ -2165,7 +2213,7 @@ Thank you, best regards
           justifyContent: "space-between",
           flexWrap: "nowrap", // ❌ prevent wrapping
           width: "100%",
-          mt: 3,
+
           gap: 2,
         }}
       >
@@ -2175,7 +2223,7 @@ Thank you, best regards
             onClick={() => handleStepClick(index, tab.to)}
             sx={{
               flex: `1 1 ${100 / tabs.length}%`, // evenly divide row
-              height: 140,
+              height: 135,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -2193,7 +2241,7 @@ Thank you, best regards
                   : "0px 2px 6px rgba(0,0,0,0.15)",
               transition: "0.3s ease",
               "&:hover": {
-                backgroundColor: activeStep === index ? "#000" : "#f5d98f",
+                backgroundColor: activeStep === index ? "#000000" : "#f5d98f",
               },
             }}
           >
@@ -2215,7 +2263,10 @@ Thank you, best regards
         ))}
       </Box>
 
-      <div style={{ height: "40px" }}></div>
+      <br />
+      <br />
+
+
 
       <TableContainer
         component={Paper}
@@ -3742,27 +3793,46 @@ Thank you, best regards
         </Table>
       </TableContainer>
 
+      {/* ── BULK SEND DIALOG ── */}
       <Dialog
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
-        maxWidth="md"
+        maxWidth="lg"
         fullWidth
       >
-        <DialogTitle sx={{ bgcolor: "#800000", color: "white" }}>
+        <DialogTitle sx={{ bgcolor: settings?.header_color || "#1976d2", color: "white", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           ✉️ Message
+          <IconButton
+            onClick={() => setConfirmOpen(false)}
+            sx={{
+              color: "white",
+              border: "2px solid rgba(255,255,255,0.6)",
+              borderRadius: "50%",
+              width: 32,
+              height: 32,
+              padding: 0,
+              "&:hover": {
+                backgroundColor: "rgba(255,255,255,0.2)",
+                border: "2px solid white",
+              },
+            }}
+          >
+            <CloseIcon sx={{ fontSize: 18 }} />
+          </IconButton>
         </DialogTitle>
 
         <DialogContent dividers sx={{ p: 3 }}>
-          {/* Sender */}
+
+          {/* Sender - full width */}
           <TextField
             label="Sender"
             value={dprtmntName}
             fullWidth
             InputProps={{ readOnly: true }}
-            sx={{ mb: 3 }}
+            sx={{ mb: 2 }}
           />
 
-          {/* Subject */}
+          {/* Subject - full width */}
           <TextField
             label="Subject"
             value={emailSubject}
@@ -3771,187 +3841,305 @@ Thank you, best regards
             sx={{ mb: 3 }}
           />
 
-          {/* ── REQUIRED DOCUMENTS ── */}
-          <div
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "8px",
-              padding: "16px",
-              backgroundColor: "#fafafa",
-              marginBottom: "16px"
-            }}
-          >
-            <p style={{ fontWeight: "bold", marginBottom: "8px" }}>
-              📄 REQUIRED DOCUMENTS:
-            </p>
+          {/* Two-column layout */}
+          <Box sx={{ display: "flex", gap: 3, alignItems: "flex-start" }}>
 
-            {/* Main Requirements – numbered */}
-            {filterRequirementsForApplicant(
-              persons.find(p => p.applicant_number === selectedApplicant),
-              requirements
-            ).filter(r => !r.category?.toLowerCase().includes("medical")).length > 0 && (
-                <>
-                  <p style={{ fontWeight: 600, fontSize: "13px", color: "#444", marginBottom: "6px" }}>
-                    Main Requirements:
-                  </p>
-                  {filterRequirementsForApplicant(
-                    persons.find(p => p.applicant_number === selectedApplicant),
-                    requirements
-                  ).filter(r => !r.category?.toLowerCase().includes("medical")).map((req, index) => {
-                    const selected = selectedCopies[req.id];
-                    return (
-                      <div
-                        key={req.id}
-                        style={{
-                          border: "1px solid #eee",
-                          borderRadius: "6px",
-                          padding: "10px",
-                          marginBottom: "8px",
-                          backgroundColor: selected ? "#fff8f0" : "white"
-                        }}
-                      >
-                        <div style={{ marginBottom: "6px" }}>
-                          <span style={{ fontWeight: 500 }}>
-                            {index + 1}. {req.description}
-                          </span>
-                          {selected && (
-                            <span style={{ marginLeft: "10px", color: "#800000", fontWeight: "bold" }}>
-                              ({selected.toUpperCase()})
-                            </span>
-                          )}
-                        </div>
-                        <div>
-                          <Button size="small" variant={selected === "xerox" ? "contained" : "outlined"} color="warning" onClick={() => handleSelect(req.id, "xerox")} sx={{ mr: 1 }}>
-                            Xerox
-                          </Button>
-                          <Button size="small" variant={selected === "original" ? "contained" : "outlined"} color="success" onClick={() => handleSelect(req.id, "original")}>
-                            Original
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </>
-              )}
+            {/* LEFT SIDE - Email Preview */}
+            <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 1 }}>
+              <Typography variant="subtitle2" color="text.secondary" fontWeight={600}>
+                👁️ Email Preview
+              </Typography>
+              <TextField
+                label="Email Preview (Read Only)"
+                value={finalPreview}
+                fullWidth
+                multiline
+                minRows={28}
+                InputProps={{ readOnly: true }}
+                sx={{
+                  fontFamily: "monospace",
+                  whiteSpace: "pre-wrap",
+                  "& .MuiInputBase-root": { backgroundColor: "#f9f9f9" }
+                }}
+              />
+            </Box>
 
-            {/* Medical Requirements – bulleted */}
-            {filterRequirementsForApplicant(
-              persons.find(p => p.applicant_number === selectedApplicant),
-              requirements
-            ).filter(r => r.category?.toLowerCase().includes("medical")).length > 0 && (
-                <>
-                  <p style={{ fontWeight: 600, fontSize: "13px", color: "#444", marginTop: "12px", marginBottom: "6px" }}>
-                    Medical Requirements:
-                  </p>
-                  {filterRequirementsForApplicant(
-                    persons.find(p => p.applicant_number === selectedApplicant),
-                    requirements
-                  ).filter(r => r.category?.toLowerCase().includes("medical")).map((req) => {
-                    const selected = selectedCopies[req.id];
-                    return (
-                      <div
-                        key={req.id}
-                        style={{
-                          border: "1px solid #eee",
-                          borderRadius: "6px",
-                          padding: "10px",
-                          marginBottom: "8px",
-                          backgroundColor: selected ? "#fff8f0" : "white"
-                        }}
-                      >
-                        <div style={{ marginBottom: "6px" }}>
-                          <span style={{ fontWeight: 500 }}>
-                            • {req.description}
-                          </span>
-                          {selected && (
-                            <span style={{ marginLeft: "10px", color: "#800000", fontWeight: "bold" }}>
-                              ({selected.toUpperCase()})
-                            </span>
-                          )}
-                        </div>
-                        <div>
-                          <Button size="small" variant={selected === "xerox" ? "contained" : "outlined"} color="warning" onClick={() => handleSelect(req.id, "xerox")} sx={{ mr: 1 }}>
-                            Xerox
-                          </Button>
-                          <Button size="small" variant={selected === "original" ? "contained" : "outlined"} color="success" onClick={() => handleSelect(req.id, "original")}>
-                            Original
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </>
-              )}
-          </div>
+            {/* RIGHT SIDE - Documents + Reminders */}
+            <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+              <Typography variant="subtitle2" color="text.secondary" fontWeight={600}>
+                ✏️ Edit Fields
+              </Typography>
 
+              {/* Required Documents */}
+              <div style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "16px", backgroundColor: "#fafafa" }}>
+                <p style={{ fontWeight: "bold", marginBottom: "8px" }}>📄 REQUIRED DOCUMENTS:</p>
 
-          {/* Live Preview + Editable Reminder side by side */}
-          <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
-            <TextField
-              label="Email Preview (Read Only)"
-              value={finalPreview}
-              fullWidth
-              multiline
-              minRows={12}
-              InputProps={{ readOnly: true }}
-              sx={{ fontFamily: "monospace", whiteSpace: "pre-wrap", flex: 1 }}
-            />
+                {/* Main Requirements */}
+                {filterRequirementsForApplicant(
+                  persons.find(p => p.applicant_number === selectedApplicant),
+                  requirements
+                ).filter(r => !r.category?.toLowerCase().includes("medical")).length > 0 && (
+                    <>
+                      <p style={{ fontWeight: 600, fontSize: "13px", color: "#444", marginBottom: "6px" }}>
+                        Main Requirements:
+                      </p>
+                      {filterRequirementsForApplicant(
+                        persons.find(p => p.applicant_number === selectedApplicant),
+                        requirements
+                      ).filter(r => !r.category?.toLowerCase().includes("medical")).map((req, index) => {
+                        const selected = selectedCopies[req.id];
+                        return (
+                          <div key={req.id} style={{ border: "1px solid #eee", borderRadius: "6px", padding: "10px", marginBottom: "8px", backgroundColor: selected ? "#fff8f0" : "white" }}>
+                            <div style={{ marginBottom: "6px" }}>
+                              <span style={{ fontWeight: 500 }}>{index + 1}. {req.description}</span>
+                              {selected && (
+                                <span style={{ marginLeft: "10px", color: "#800000", fontWeight: "bold" }}>
+                                  ({selected.toUpperCase()})
+                                </span>
+                              )}
+                            </div>
+                            <Box display="flex" gap={1} flexWrap="wrap" mt={1}>
+                              {/* ORIGINAL COPY */}
+                              <Button
+                                variant="contained"
+                                onClick={() => handleSelect(req.id, "original")}
+                                sx={{
+                                  backgroundColor:
+                                    selectedCopies[req.id] === "original"
+                                      ? "#1976d2"
+                                      : "#e3f2fd",
+                                  color:
+                                    selectedCopies[req.id] === "original"
+                                      ? "#fff"
+                                      : "#1976d2",
+                                  fontWeight: "bold",
+                                  borderRadius: "10px",
+                                  textTransform: "none",
+                                  "&:hover": {
+                                    backgroundColor:
+                                      selectedCopies[req.id] === "original"
+                                        ? "#1565c0"
+                                        : "#bbdefb",
+                                  },
+                                }}
+                              >
+                                Original Copy
+                              </Button>
+
+                              {/* XEROX COPY */}
+                              <Button
+                                variant="contained"
+                                onClick={() => handleSelect(req.id, "xerox")}
+                                sx={{
+                                  backgroundColor:
+                                    selectedCopies[req.id] === "xerox"
+                                      ? "#2e7d32"
+                                      : "#e8f5e9",
+                                  color:
+                                    selectedCopies[req.id] === "xerox"
+                                      ? "#fff"
+                                      : "#2e7d32",
+                                  fontWeight: "bold",
+                                  borderRadius: "10px",
+                                  textTransform: "none",
+                                  "&:hover": {
+                                    backgroundColor:
+                                      selectedCopies[req.id] === "xerox"
+                                        ? "#1b5e20"
+                                        : "#c8e6c9",
+                                  },
+                                }}
+                              >
+                                Xerox Copy
+                              </Button>
+
+                              {/* REMOVE BUTTON */}
+                              {selectedCopies[req.id] && (
+                                <Button
+                                  color="error"
+                                  variant="outlined"
+                                  onClick={() => handleSelect(req.id, null)}
+                                  sx={{
+                                    fontWeight: "bold",
+                                    borderRadius: "10px",
+                                    textTransform: "none",
+                                  }}
+                                >
+                                  Remove
+                                </Button>
+                              )}
+                            </Box>
+                          </div>
+                        );
+                      })}
+                    </>
+                  )}
+
+                {/* Medical Requirements */}
+                {filterRequirementsForApplicant(
+                  persons.find(p => p.applicant_number === selectedApplicant),
+                  requirements
+                ).filter(r => r.category?.toLowerCase().includes("medical")).length > 0 && (
+                    <>
+                      <p style={{ fontWeight: 600, fontSize: "13px", color: "#444", marginTop: "12px", marginBottom: "6px" }}>
+                        Medical Requirements:
+                      </p>
+                      {filterRequirementsForApplicant(
+                        persons.find(p => p.applicant_number === selectedApplicant),
+                        requirements
+                      ).filter(r => r.category?.toLowerCase().includes("medical")).map((req) => {
+                        const selected = selectedCopies[req.id];
+                        return (
+                          <div key={req.id} style={{ border: "1px solid #eee", borderRadius: "6px", padding: "10px", marginBottom: "8px", backgroundColor: selected ? "#fff8f0" : "white" }}>
+                            <div style={{ marginBottom: "6px" }}>
+                              <span style={{ fontWeight: 500 }}>• {req.description}</span>
+                              {selected && (
+                                <span style={{ marginLeft: "10px", color: "#800000", fontWeight: "bold" }}>
+                                  ({selected.toUpperCase()})
+                                </span>
+                              )}
+                            </div>
+                            <Box display="flex" gap={1} flexWrap="wrap" mt={1}>
+                              {/* ORIGINAL COPY */}
+                              <Button
+                                variant="contained"
+                                onClick={() => handleSelect(req.id, "original")}
+                                sx={{
+                                  backgroundColor:
+                                    selectedCopies[req.id] === "original"
+                                      ? "#1976d2"
+                                      : "#e3f2fd",
+                                  color:
+                                    selectedCopies[req.id] === "original"
+                                      ? "#fff"
+                                      : "#1976d2",
+                                  fontWeight: "bold",
+                                  borderRadius: "10px",
+                                  textTransform: "none",
+                                  "&:hover": {
+                                    backgroundColor:
+                                      selectedCopies[req.id] === "original"
+                                        ? "#1565c0"
+                                        : "#bbdefb",
+                                  },
+                                }}
+                              >
+                                Original Copy
+                              </Button>
+
+                              {/* XEROX COPY */}
+                              <Button
+                                variant="contained"
+                                onClick={() => handleSelect(req.id, "xerox")}
+                                sx={{
+                                  backgroundColor:
+                                    selectedCopies[req.id] === "xerox"
+                                      ? "#2e7d32"
+                                      : "#e8f5e9",
+                                  color:
+                                    selectedCopies[req.id] === "xerox"
+                                      ? "#fff"
+                                      : "#2e7d32",
+                                  fontWeight: "bold",
+                                  borderRadius: "10px",
+                                  textTransform: "none",
+                                  "&:hover": {
+                                    backgroundColor:
+                                      selectedCopies[req.id] === "xerox"
+                                        ? "#1b5e20"
+                                        : "#c8e6c9",
+                                  },
+                                }}
+                              >
+                                Xerox Copy
+                              </Button>
+
+                              {/* REMOVE BUTTON */}
+                              {selectedCopies[req.id] && (
+                                <Button
+                                  color="error"
+                                  variant="outlined"
+                                  onClick={() => handleSelect(req.id, null)}
+                                  sx={{
+                                    fontWeight: "bold",
+                                    borderRadius: "10px",
+                                    textTransform: "none",
+                                  }}
+                                >
+                                  Remove
+                                </Button>
+                              )}
+                            </Box>
+                          </div>
+                        );
+                      })}
+                    </>
+                  )}
+              </div>
+
+              {/* Important Reminders */}
+              <TextField
+                label="Important Reminders"
+                value={customReminders}
+                onChange={(e) => setCustomReminders(e.target.value)}
+                fullWidth
+                multiline
+                placeholder="Edit reminders here..."
+                minRows={8}
+                sx={{ fontFamily: "monospace", whiteSpace: "pre-wrap" }}
+              />
+            </Box>
 
           </Box>
-          <TextField
-            label="Important Reminders"
-            value={customReminders}
-            onChange={(e) => setCustomReminders(e.target.value)}
-            fullWidth
-            multiline
-            placeholder="Edit reminders here..."
-            minRows={12}
-            sx={{ fontFamily: "monospace", whiteSpace: "pre-wrap", flex: 1 }}
-          />
-
         </DialogContent>
 
         <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
-          <Button
-            onClick={() => setConfirmOpen(false)}
-            color="error"
-            variant="outlined"
-          >
-            Cancel
-          </Button>
-
-          <Button
-            onClick={confirmSendEmails}
-            color="success"
-            variant="contained"
-            sx={{ minWidth: "140px", height: "40px" }}
-          >
-            Send Emails
-          </Button>
+          <Button onClick={() => setConfirmOpen(false)} color="error" variant="outlined">Cancel</Button>
+          <Button onClick={confirmSendEmails} color="success" variant="contained" sx={{ minWidth: "140px", height: "40px" }}>Send Emails</Button>
         </DialogActions>
       </Dialog>
 
+
+      {/* ── SINGLE SEND DIALOG ── */}
       <Dialog
         open={singleConfirmOpen}
         onClose={() => setSingleConfirmOpen(false)}
-        maxWidth="md"
+        maxWidth="lg"
         fullWidth
       >
-        <DialogTitle sx={{ backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
+        <DialogTitle sx={{ bgcolor: settings?.header_color || "#1976d2", color: "white", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           ✉️ Message
+          <IconButton
+            onClick={() => setSingleConfirmOpen(false)}
+            sx={{
+              color: "white",
+              border: "2px solid rgba(255,255,255,0.6)",
+              borderRadius: "50%",
+              width: 48,
+              height: 48,
+              padding: 0,
+              "&:hover": {
+                backgroundColor: "rgba(255,255,255,0.2)",
+                border: "2px solid white",
+              },
+            }}
+          >
+            <CloseIcon sx={{ fontSize: 18 }} />
+          </IconButton>
         </DialogTitle>
 
         <DialogContent dividers sx={{ p: 3 }}>
-          {/* Sender */}
+
+          {/* Sender - full width */}
           <TextField
             label="Sender"
             value={dprtmntName}
             fullWidth
             InputProps={{ readOnly: true }}
-            sx={{ mb: 3 }}
+            sx={{ mb: 2 }}
           />
 
-          {/* Subject */}
+          {/* Subject - full width */}
           <TextField
             label="Subject"
             value={emailSubject}
@@ -3960,162 +4148,261 @@ Thank you, best regards
             sx={{ mb: 3 }}
           />
 
-          {/* ── REQUIRED DOCUMENTS ── */}
-          <div
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "8px",
-              padding: "16px",
-              backgroundColor: "#fafafa",
-              marginBottom: "16px"
-            }}
-          >
-            <p style={{ fontWeight: "bold", marginBottom: "8px" }}>
-              📄 REQUIRED DOCUMENTS:
-            </p>
+          {/* Two-column layout */}
+          <Box sx={{ display: "flex", gap: 3, alignItems: "flex-start" }}>
 
-            {/* Main Requirements – numbered */}
-            {filterRequirementsForApplicant(
-              persons.find(p => p.applicant_number === selectedApplicant),
-              requirements
-            ).filter(r => !r.category?.toLowerCase().includes("medical")).length > 0 && (
-                <>
-                  <p style={{ fontWeight: 600, fontSize: "13px", color: "#444", marginBottom: "6px" }}>
-                    Main Requirements:
-                  </p>
-                  {filterRequirementsForApplicant(
-                    persons.find(p => p.applicant_number === selectedApplicant),
-                    requirements
-                  ).filter(r => !r.category?.toLowerCase().includes("medical")).map((req, index) => {
-                    const selected = selectedCopies[req.id];
-                    return (
-                      <div
-                        key={req.id}
-                        style={{
-                          border: "1px solid #eee",
-                          borderRadius: "6px",
-                          padding: "10px",
-                          marginBottom: "8px",
-                          backgroundColor: selected ? "#fff8f0" : "white"
-                        }}
-                      >
-                        <div style={{ marginBottom: "6px" }}>
-                          <span style={{ fontWeight: 500 }}>
-                            {index + 1}. {req.description}
-                          </span>
-                          {selected && (
-                            <span style={{ marginLeft: "10px", color: "#800000", fontWeight: "bold" }}>
-                              ({selected.toUpperCase()})
-                            </span>
-                          )}
-                        </div>
-                        <div>
-                          <Button size="small" variant={selected === "xerox" ? "contained" : "outlined"} color="warning" onClick={() => handleSelect(req.id, "xerox")} sx={{ mr: 1 }}>
-                            Xerox
-                          </Button>
-                          <Button size="small" variant={selected === "original" ? "contained" : "outlined"} color="success" onClick={() => handleSelect(req.id, "original")}>
-                            Original
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </>
-              )}
+            {/* LEFT SIDE - Email Preview */}
+            <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 1 }}>
+              <Typography variant="subtitle2" color="text.secondary" fontWeight={600}>
+                👁️ Email Preview
+              </Typography>
+              <TextField
+                label="Email Preview (Read Only)"
+                value={finalPreview}
+                fullWidth
+                multiline
+                minRows={28}
+                InputProps={{ readOnly: true }}
+                sx={{
+                  fontFamily: "monospace",
+                  whiteSpace: "pre-wrap",
+                  "& .MuiInputBase-root": { backgroundColor: "#f9f9f9" }
+                }}
+              />
+            </Box>
 
-            {/* Medical Requirements – bulleted */}
-            {filterRequirementsForApplicant(
-              persons.find(p => p.applicant_number === selectedApplicant),
-              requirements
-            ).filter(r => r.category?.toLowerCase().includes("medical")).length > 0 && (
-                <>
-                  <p style={{ fontWeight: 600, fontSize: "13px", color: "#444", marginTop: "12px", marginBottom: "6px" }}>
-                    Medical Requirements:
-                  </p>
-                  {filterRequirementsForApplicant(
-                    persons.find(p => p.applicant_number === selectedApplicant),
-                    requirements
-                  ).filter(r => r.category?.toLowerCase().includes("medical")).map((req) => {
-                    const selected = selectedCopies[req.id];
-                    return (
-                      <div
-                        key={req.id}
-                        style={{
-                          border: "1px solid #eee",
-                          borderRadius: "6px",
-                          padding: "10px",
-                          marginBottom: "8px",
-                          backgroundColor: selected ? "#fff8f0" : "white"
-                        }}
-                      >
-                        <div style={{ marginBottom: "6px" }}>
-                          <span style={{ fontWeight: 500 }}>
-                            • {req.description}
-                          </span>
-                          {selected && (
-                            <span style={{ marginLeft: "10px", color: "#800000", fontWeight: "bold" }}>
-                              ({selected.toUpperCase()})
-                            </span>
-                          )}
-                        </div>
-                        <div>
-                          <Button size="small" variant={selected === "xerox" ? "contained" : "outlined"} color="warning" onClick={() => handleSelect(req.id, "xerox")} sx={{ mr: 1 }}>
-                            Xerox
-                          </Button>
-                          <Button size="small" variant={selected === "original" ? "contained" : "outlined"} color="success" onClick={() => handleSelect(req.id, "original")}>
-                            Original
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </>
-              )}
-          </div>
+            {/* RIGHT SIDE - Documents + Reminders */}
+            <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+              <Typography variant="subtitle2" color="text.secondary" fontWeight={600}>
+                ✏️ Edit Fields
+              </Typography>
 
-          {/* Live Preview + Editable Reminder side by side */}
-          <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
-            <TextField
-              label="Email Preview (Read Only)"
-              value={finalPreview}
-              fullWidth
-              multiline
-              minRows={12}
-              InputProps={{ readOnly: true }}
-              sx={{ fontFamily: "monospace", whiteSpace: "pre-wrap", flex: 1 }}
-            />
+              {/* Required Documents */}
+              <div style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "16px", backgroundColor: "#fafafa" }}>
+                <p style={{ fontWeight: "bold", marginBottom: "8px" }}>📄 REQUIRED DOCUMENTS:</p>
+
+                {/* Main Requirements */}
+                {filterRequirementsForApplicant(
+                  persons.find(p => p.applicant_number === selectedApplicant),
+                  requirements
+                ).filter(r => !r.category?.toLowerCase().includes("medical")).length > 0 && (
+                    <>
+                      <p style={{ fontWeight: 600, fontSize: "13px", color: "#444", marginBottom: "6px" }}>
+                        Main Requirements:
+                      </p>
+                      {filterRequirementsForApplicant(
+                        persons.find(p => p.applicant_number === selectedApplicant),
+                        requirements
+                      ).filter(r => !r.category?.toLowerCase().includes("medical")).map((req, index) => {
+                        const selected = selectedCopies[req.id];
+                        return (
+                          <div key={req.id} style={{ border: "1px solid #eee", borderRadius: "6px", padding: "10px", marginBottom: "8px", backgroundColor: selected ? "#fff8f0" : "white" }}>
+                            <div style={{ marginBottom: "6px" }}>
+                              <span style={{ fontWeight: 500 }}>{index + 1}. {req.description}</span>
+                              {selected && (
+                                <span style={{ marginLeft: "10px", color: "#800000", fontWeight: "bold" }}>
+                                  ({selected.toUpperCase()})
+                                </span>
+                              )}
+                            </div>
+                            <Box display="flex" gap={1} flexWrap="wrap" mt={1}>
+                              {/* ORIGINAL COPY */}
+                              <Button
+                                variant="contained"
+                                onClick={() => handleSelect(req.id, "original")}
+                                sx={{
+                                  backgroundColor:
+                                    selectedCopies[req.id] === "original"
+                                      ? "#1976d2"
+                                      : "#e3f2fd",
+                                  color:
+                                    selectedCopies[req.id] === "original"
+                                      ? "#fff"
+                                      : "#1976d2",
+                                  fontWeight: "bold",
+                                  borderRadius: "10px",
+                                  textTransform: "none",
+                                  "&:hover": {
+                                    backgroundColor:
+                                      selectedCopies[req.id] === "original"
+                                        ? "#1565c0"
+                                        : "#bbdefb",
+                                  },
+                                }}
+                              >
+                                Original Copy
+                              </Button>
+
+                              {/* XEROX COPY */}
+                              <Button
+                                variant="contained"
+                                onClick={() => handleSelect(req.id, "xerox")}
+                                sx={{
+                                  backgroundColor:
+                                    selectedCopies[req.id] === "xerox"
+                                      ? "#2e7d32"
+                                      : "#e8f5e9",
+                                  color:
+                                    selectedCopies[req.id] === "xerox"
+                                      ? "#fff"
+                                      : "#2e7d32",
+                                  fontWeight: "bold",
+                                  borderRadius: "10px",
+                                  textTransform: "none",
+                                  "&:hover": {
+                                    backgroundColor:
+                                      selectedCopies[req.id] === "xerox"
+                                        ? "#1b5e20"
+                                        : "#c8e6c9",
+                                  },
+                                }}
+                              >
+                                Xerox Copy
+                              </Button>
+
+                              {/* REMOVE BUTTON */}
+                              {selectedCopies[req.id] && (
+                                <Button
+                                  color="error"
+                                  variant="outlined"
+                                  onClick={() => handleSelect(req.id, null)}
+                                  sx={{
+                                    fontWeight: "bold",
+                                    borderRadius: "10px",
+                                    textTransform: "none",
+                                  }}
+                                >
+                                  Remove
+                                </Button>
+                              )}
+                            </Box>
+                          </div>
+                        );
+                      })}
+                    </>
+                  )}
+
+                {/* Medical Requirements */}
+                {filterRequirementsForApplicant(
+                  persons.find(p => p.applicant_number === selectedApplicant),
+                  requirements
+                ).filter(r => r.category?.toLowerCase().includes("medical")).length > 0 && (
+                    <>
+                      <p style={{ fontWeight: 600, fontSize: "13px", color: "#444", marginTop: "12px", marginBottom: "6px" }}>
+                        Medical Requirements:
+                      </p>
+                      {filterRequirementsForApplicant(
+                        persons.find(p => p.applicant_number === selectedApplicant),
+                        requirements
+                      ).filter(r => r.category?.toLowerCase().includes("medical")).map((req) => {
+                        const selected = selectedCopies[req.id];
+                        return (
+                          <div key={req.id} style={{ border: "1px solid #eee", borderRadius: "6px", padding: "10px", marginBottom: "8px", backgroundColor: selected ? "#fff8f0" : "white" }}>
+                            <div style={{ marginBottom: "6px" }}>
+                              <span style={{ fontWeight: 500 }}>• {req.description}</span>
+                              {selected && (
+                                <span style={{ marginLeft: "10px", color: "#800000", fontWeight: "bold" }}>
+                                  ({selected.toUpperCase()})
+                                </span>
+                              )}
+                            </div>
+                            <Box display="flex" gap={1} flexWrap="wrap" mt={1}>
+                              {/* ORIGINAL COPY */}
+                              <Button
+                                variant="contained"
+                                onClick={() => handleSelect(req.id, "original")}
+                                sx={{
+                                  backgroundColor:
+                                    selectedCopies[req.id] === "original"
+                                      ? "#1976d2"
+                                      : "#e3f2fd",
+                                  color:
+                                    selectedCopies[req.id] === "original"
+                                      ? "#fff"
+                                      : "#1976d2",
+                                  fontWeight: "bold",
+                                  borderRadius: "10px",
+                                  textTransform: "none",
+                                  "&:hover": {
+                                    backgroundColor:
+                                      selectedCopies[req.id] === "original"
+                                        ? "#1565c0"
+                                        : "#bbdefb",
+                                  },
+                                }}
+                              >
+                                Original Copy
+                              </Button>
+
+                              {/* XEROX COPY */}
+                              <Button
+                                variant="contained"
+                                onClick={() => handleSelect(req.id, "xerox")}
+                                sx={{
+                                  backgroundColor:
+                                    selectedCopies[req.id] === "xerox"
+                                      ? "#2e7d32"
+                                      : "#e8f5e9",
+                                  color:
+                                    selectedCopies[req.id] === "xerox"
+                                      ? "#fff"
+                                      : "#2e7d32",
+                                  fontWeight: "bold",
+                                  borderRadius: "10px",
+                                  textTransform: "none",
+                                  "&:hover": {
+                                    backgroundColor:
+                                      selectedCopies[req.id] === "xerox"
+                                        ? "#1b5e20"
+                                        : "#c8e6c9",
+                                  },
+                                }}
+                              >
+                                Xerox Copy
+                              </Button>
+
+                              {/* REMOVE BUTTON */}
+                              {selectedCopies[req.id] && (
+                                <Button
+                                  color="error"
+                                  variant="outlined"
+                                  onClick={() => handleSelect(req.id, null)}
+                                  sx={{
+                                    fontWeight: "bold",
+                                    borderRadius: "10px",
+                                    textTransform: "none",
+                                  }}
+                                >
+                                  Remove
+                                </Button>
+                              )}
+                            </Box>
+                          </div>
+                        );
+                      })}
+                    </>
+                  )}
+              </div>
+
+              {/* Important Reminders */}
+              <TextField
+                label="Important Reminders"
+                value={customReminders}
+                onChange={(e) => setCustomReminders(e.target.value)}
+                fullWidth
+                multiline
+                placeholder="Edit reminders here..."
+                minRows={8}
+                sx={{ fontFamily: "monospace", whiteSpace: "pre-wrap" }}
+              />
+            </Box>
 
           </Box>
-          <TextField
-            label="Important Reminders"
-            value={customReminders}
-            onChange={(e) => setCustomReminders(e.target.value)}
-            fullWidth
-            multiline
-            placeholder="Edit reminders here..."
-            minRows={12}
-            sx={{ fontFamily: "monospace", whiteSpace: "pre-wrap", flex: 1, mt: 3 }}
-          />
-
         </DialogContent>
 
         <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
-          <Button
-            onClick={() => setSingleConfirmOpen(false)}
-            color="error"
-            variant="outlined"
-          >
-            Cancel
-          </Button>
-
-          <Button
-            onClick={confirmSendEmailSingle}
-            color="success"
-            variant="contained"
-            sx={{ minWidth: "140px", height: "40px" }}
-          >
-            Send Emails
-          </Button>
+          <Button onClick={() => setSingleConfirmOpen(false)} color="error" variant="outlined">Cancel</Button>
+          <Button onClick={confirmSendEmailSingle} color="success" variant="contained" sx={{ minWidth: "140px", height: "40px" }}>Send Emails</Button>
         </DialogActions>
       </Dialog>
 

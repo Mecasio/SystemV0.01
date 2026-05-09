@@ -39,7 +39,7 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 import PersonSearchIcon from "@mui/icons-material/PersonSearch";
 import DateField from "../components/DateField";
-
+import AssignmentIcon from "@mui/icons-material/Assignment";
 
 const OfficialStudentDashboard1 = () => {
 
@@ -101,13 +101,12 @@ const OfficialStudentDashboard1 = () => {
 
 
     const stepsData = [
-        { label: "Student List", to: "/student_list_for_enrollment", icon: <ListAltIcon /> },
-        { label: "Applicant Form", to: "/official_student_dashboard1", icon: <PersonAddIcon /> },
-        { label: "Submitted Documents", to: "/student_official_requirements", icon: <UploadFileIcon /> },
-        { label: "Course Tagging", to: "/course_tagging_for_college", icon: <UploadFileIcon /> },
-        { label: "Search COR", to: "/search_cor_for_college", icon: <MenuBookIcon /> },
-
-        { label: "Class List", to: "/class_roster_enrollment", icon: <PersonSearchIcon /> },
+        { label: "Student List", to: "/student_list_for_enrollment", icon: <SchoolIcon fontSize="large" /> },
+        { label: "Applicant Form", to: "/official_student_dashboard1", icon: <PersonIcon fontSize="large" /> },
+        { label: "Submitted Documents", to: "/student_official_requirements", icon: <AssignmentIcon fontSize="large" /> },
+        { label: "Course Tagging", to: "/course_tagging_for_college", icon: <UploadFileIcon fontSize="large" /> },
+        { label: "Search COR", to: "/search_cor_for_college", icon: <MenuBookIcon fontSize="large" /> },
+        { label: "Class List", to: "/class_roster_enrollment", icon: <PersonSearchIcon fontSize="large" /> },
 
     ];
 
@@ -1293,7 +1292,7 @@ const OfficialStudentDashboard1 = () => {
                         fontSize: "36px",
                     }}
                 >
-                     PERSONAL INFORMATION
+                    PERSONAL INFORMATION
                 </Typography>
 
                 {/* ✅ Right side: Search + Excel Import side by side */}
@@ -1324,7 +1323,7 @@ const OfficialStudentDashboard1 = () => {
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
 
-            <br />
+
             <Box
                 sx={{
                     display: "flex",
@@ -1387,7 +1386,7 @@ const OfficialStudentDashboard1 = () => {
                         {index < stepsData.length - 1 && (
                             <Box
                                 sx={{
-                                    flex: 0.1,
+
                                     mx: 1, // spacing between cards
                                 }}
                             />
@@ -1396,6 +1395,8 @@ const OfficialStudentDashboard1 = () => {
                 ))}
             </Box>
             <br />
+            <br />
+
             <TableContainer component={Paper} sx={{ width: '100%', mb: 1 }}>
                 <Table>
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `1px solid ${borderColor}`, }}>
@@ -1920,7 +1921,7 @@ const OfficialStudentDashboard1 = () => {
 
 
 
-                                 {/* <Box display="flex" alignItems="center" gap={2} mb={1}>
+                                    {/* <Box display="flex" alignItems="center" gap={2} mb={1}>
                            <label className="w-40 font-medium">Course Applied:</label>
                             <FormControl fullWidth size="small" required error={!!errors.program2}>
                                                                       <InputLabel>Course Applied</InputLabel>
@@ -1946,8 +1947,8 @@ const OfficialStudentDashboard1 = () => {
                                                                   </FormControl>
                          </Box> */}
 
-                  {/* Program 3 */}
-                  {/* <Box display="flex" alignItems="center" gap={2}>
+                                    {/* Program 3 */}
+                                    {/* <Box display="flex" alignItems="center" gap={2}>
                            <label className="w-40 font-medium">Course Applied:</label>
                           <FormControl fullWidth size="small" required error={!!errors.program3}>
                                                                     <InputLabel>Course Applied</InputLabel>

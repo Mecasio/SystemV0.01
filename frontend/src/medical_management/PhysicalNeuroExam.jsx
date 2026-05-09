@@ -35,6 +35,8 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 import SearchIcon from "@mui/icons-material/Search";
+import AssignmentIcon from "@mui/icons-material/Assignment";
+import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
 
 const PhysicalNeuroExam = () => {
     const settings = useContext(SettingsContext);
@@ -380,12 +382,12 @@ const PhysicalNeuroExam = () => {
 
 
     const tabs = [
-        { label: "Medical Applicant List", to: "/medical_applicant_list", icon: <ListAltIcon /> },
-        { label: "Applicant Form", to: "/medical_dashboard1", icon: <HowToRegIcon /> },
-        { label: "Submitted Documents", to: "/medical_requirements", icon: <UploadFileIcon /> }, // updated icon
-        { label: "Medical History", to: "/medical_requirements_form", icon: <PersonIcon /> },
-        { label: "Dental Assessment", to: "/dental_assessment", icon: <DescriptionIcon /> },
-        { label: "Physical and Neurological Examination", to: "/physical_neuro_exam", icon: <SchoolIcon /> },
+        { label: "Student List", to: "/medical_student_list", icon: <SchoolIcon fontSize="large" /> },
+        { label: "Applicant Form", to: "/medical_dashboard1", icon: <PersonIcon fontSize="large" /> },
+        { label: "Submitted Documents", to: "/medical_requirements", icon: <AssignmentIcon fontSize="large" /> }, // updated icon
+        { label: "Medical History", to: "/medical_requirements_form", icon: <HealthAndSafetyIcon fontSize="large" /> },
+        { label: "Dental Assessment", to: "/dental_assessment", icon: <DescriptionIcon fontSize="large" /> },
+        { label: "Physical and Neurological Examination", to: "/physical_neuro_exam", icon: <PsychologyIcon fontSize="large" /> },
     ];
     // 🧠 Auto-fetch record
     useEffect(() => {
@@ -531,7 +533,7 @@ const PhysicalNeuroExam = () => {
         }
     }, []);
 
- 
+
 
     const [medicalData, setMedicalData] = useState(null);
     const [personResults, setPersonResults] = useState([]);
@@ -638,72 +640,65 @@ const PhysicalNeuroExam = () => {
     }
 
     return (
-        <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
+        <Box
+            sx={{
+                height: "calc(100vh - 150px)",
+                overflowY: "auto",
+                paddingRight: 1,
+                backgroundColor: "transparent",
+                mt: 1,
+                padding: 2,
+            }}
+        >
             <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    mb: 1,
-
-                }}
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
             >
-                {/* 🦷 Left side: Title */}
-                <Typography
-                    variant="h4"
-                    fontWeight="bold"
+                <Typography variant="h4"
                     sx={{
-                        fontWeight: "bold",
+                        fontWeight: 'bold',
                         color: titleColor,
-                        fontSize: "36px",
+                        fontSize: '36px',
                     }}
                 >
                     PHYSICAL AND NEUROLOGICAL EXAMINATION
                 </Typography>
 
-                {/* 🔍 Right side: Search input + button */}
-                <Box
+
+                <TextField
+                    variant="outlined"
+                    placeholder="Search Student Name / Email / Applicant ID "
+                    size="small"
+                    value={studentNumber}
+                    onChange={(e) => setStudentNumber(e.target.value)}
                     sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1.5,
-
+                        width: 450,
+                        backgroundColor: "#fff",
+                        borderRadius: 1,
+                        "& .MuiOutlinedInput-root": {
+                            borderRadius: "10px",
+                        },
                     }}
-                >
-                    <TextField
-                        variant="outlined"
-                        placeholder="Search Student Name / Email / Applicant ID "
-                        size="small"
-                        value={studentNumber}
-                        onChange={(e) => setStudentNumber(e.target.value)}
-                        sx={{
-                            width: 450,
-                            backgroundColor: "#fff",
-                            borderRadius: 1,
-                            "& .MuiOutlinedInput-root": {
-                                borderRadius: "10px",
-                            },
-                        }}
-                        InputProps={{
-                            startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
-                        }}
-                    />
+                    InputProps={{
+                        startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
+                    }}
+                />
 
-
-
-                </Box>
             </Box>
+
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+
             <br />
             <br />
-            {/* 🔹 Top Navigation Tabs */}
+
             <Box
                 sx={{
                     display: "flex",
                     justifyContent: "space-between",
                     flexWrap: "nowrap", // ❌ prevent wrapping
                     width: "100%",
-                    mt: 2,
 
                     gap: 2,
                 }}
@@ -732,7 +727,7 @@ const PhysicalNeuroExam = () => {
                                     : "0px 2px 6px rgba(0,0,0,0.15)",
                             transition: "0.3s ease",
                             "&:hover": {
-                                backgroundColor: activeStep === index ? "#000" : "#f5d98f",
+                                backgroundColor: activeStep === index ? "#000000" : "#f5d98f",
                             },
                         }}
                     >
@@ -753,7 +748,10 @@ const PhysicalNeuroExam = () => {
                     </Card>
                 ))}
             </Box>
+
             <br />
+            <br />
+
 
             <TableContainer component={Paper} sx={{ width: '100%', }}>
                 <Table>

@@ -592,7 +592,7 @@ const ProgramPanel = () => {
       <div style={styles.formSection}>
         <TableContainer component={Paper} sx={{ width: "100%" }}>
           <Table size="small">
-            <TableHead sx={{ backgroundColor: "#6D2323", color: "white" }}>
+            <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
               <TableRow>
                 <TableCell
                   colSpan={20}
@@ -921,6 +921,7 @@ const ProgramPanel = () => {
                       alignItems="center"
                       gap={1}
                       flexWrap="wrap"
+                      
                     >
                       <Button
                         onClick={() => setCurrentPage(1)}

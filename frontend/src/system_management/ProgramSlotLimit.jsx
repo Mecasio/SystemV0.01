@@ -483,15 +483,17 @@ const ProgramSlotLimit = () => {
         alignItems="center"
         mb={2}
       >
-        <Typography
-          variant="h4"
+        <Typography variant="h4"
           sx={{
-            fontWeight: "bold",
+            fontWeight: 'bold',
             color: titleColor,
+            fontSize: '36px',
           }}
         >
-          ADMISSION PROGRAM SLOT
+         ADMISSION PROGRAM SLOT
         </Typography>
+
+
 
         <TextField
           size="small"
@@ -510,10 +512,15 @@ const ProgramSlotLimit = () => {
             startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
           }}
         />
+
       </Box>
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+
       <br />
+      <br />
+
+  
 
       <TableContainer
         component={Paper}
@@ -710,7 +717,7 @@ const ProgramSlotLimit = () => {
         </DialogContent>
         <DialogActions>
           <Button
-        color="error"
+            color="error"
             variant="outlined"
 
 
@@ -747,7 +754,7 @@ const ProgramSlotLimit = () => {
         </DialogContent>
         <DialogActions>
           <Button
-         color="error"
+            color="error"
             variant="outlined"
 
             onClick={() => setConfirmAllOpen(false)}
@@ -783,7 +790,7 @@ const ProgramSlotLimit = () => {
         <DialogActions>
           <Button
             onClick={() => setConfirmAllProgramsOpen(false)}
-         color="error"
+            color="error"
             variant="outlined"
 
           >

@@ -621,50 +621,56 @@ const AssignQualifyingInterviewExam = () => {
                 sx={{ width: "100%", border: `1px solid ${borderColor}` }}
             >
                 <Table>
-                    <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
+                    <TableHead
+                        sx={{ backgroundColor: settings?.header_color || "#1976d2" }}
+                    >
                         <TableRow>
-                            <Box
-                                sx={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                    width: "100%"
-                                }}
-                            >
-                                <TableCell sx={{ color: "white", textAlign: "center" }}>
-                                    Existing Schedules
-                                </TableCell>
+                            <TableCell sx={{ color: "white", p: 1 }}>
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        alignItems: "center",
+                                        width: "100%",
+                                    }}
+                                >
+                                    {/* LEFT SIDE */}
+                                    <Typography sx={{ fontWeight: "bold", color: "white", marginLeft: "15px" }}>
+                                        Existing Schedules
+                                    </Typography>
 
-
-                                {showCreateActions && (
-                                    <Button
-                                        variant="contained"
-                                        onClick={() => {
-                                            setEditingSchedule(null);
-                                            setOpenFormDialog(true);
-                                        }}
-                                        sx={{
-                                            backgroundColor: "#1976d2", // ✅ Blue
-                                            color: "#fff",
-                                            fontWeight: "bold",
-                                            borderRadius: "8px",
-                                            width: "250px",
-                                            textTransform: "none",
-                                            px: 2,
-                                            mr: "15px",
-                                            '&:hover': {
-                                                backgroundColor: "#1565c0" // darker blue hover
-                                            }
-                                        }}
-                                    >
-                                        + Add Schedule
-                                    </Button>
-                                )}
-                            </Box>
+                                    {showCreateActions && (
+                                        <Button
+                                            variant="contained"
+                                            onClick={() => {
+                                                setEditingSchedule(null);
+                                                setOpenFormDialog(true);
+                                            }}
+                                            sx={{
+                                                backgroundColor: "#1976d2", // ✅ Blue
+                                                color: "#fff",
+                                                fontWeight: "bold",
+                                                borderRadius: "8px",
+                                                width: "250px",
+                                                textTransform: "none",
+                                                px: 2,
+                                                mr: "15px",
+                                                '&:hover': {
+                                                    backgroundColor: "#1565c0" // darker blue hover
+                                                }
+                                            }}
+                                        >
+                                            + Add Schedule
+                                        </Button>
+                                    )}
+                                </Box>
+                            </TableCell>
                         </TableRow>
                     </TableHead>
                 </Table>
             </TableContainer>
+
+
 
             <Paper
                 elevation={3}

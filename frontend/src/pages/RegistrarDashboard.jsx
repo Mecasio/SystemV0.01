@@ -163,7 +163,7 @@ const Dashboard = ({ profileImage, setProfileImage }) => {
       .then((res) => setEnrolledCount(res.data.total))
       .catch(console.error);
     axios
-      .get(`${API_BASE_URL}/api/professors`)
+      .get(`${API_BASE_URL}/faculty/professors`)
       .then((res) =>
         setProfessorCount(Array.isArray(res.data) ? res.data.length : 0)
       )

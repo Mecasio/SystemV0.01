@@ -422,7 +422,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
         { title: "Proctor's Applicant List", link: "/admission_schedule_room_list", icon: People, page_id: 33 },
         { title: "Subject Management", link: "/applicant_exam_subjects", icon: SchoolIcon, page_id: 145 },
         { title: "Announcement", link: "/announcement_for_admission", icon: Campaign, page_id: 98 },
-        { title: "Program Slot Remaining", link: "/program_slot_limit", icon: People, page_id: 110 },
+      
         { title: "Application Process Admin", link: "/application_process_admin", icon: PersonAdd, page_id: 139 },
       ]
     },
@@ -454,7 +454,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
   const medicalMenuGroups = [
     {
       key: "medicalDental", label: "Medical & Dental", icon: MedicalServices, items: [
-        { title: "Applicant List", link: "/medical_applicant_list", icon: ListAltOutlined, page_id: 24 },
+        { title: "Student List", link: "/medical_student_list", icon: ListAltOutlined, page_id: 24 },
         { title: "Student Profile", link: "/medical_dashboard1", icon: AccountCircle, page_id: 25 },
         { title: "Student Online Requirements", link: "/medical_requirements", icon: FolderCopy, page_id: 30 },
         { title: "Medical Requirements", link: "/medical_requirements_form", icon: MedicalServices, page_id: 31 },
@@ -527,6 +527,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
     {
       key: "settingsCommunication", label: "Settings & Communication", icon: Campaign, items: [
         { title: `${shortTerm} Profile`, link: "/settings", icon: Settings, page_id: 74 },
+          { title: "Program Slot Remaining", link: "/program_slot_limit", icon: People, page_id: 110 },
         { title: "Branch Management", link: "/admin_branches", icon: Settings, page_id: 138 },
         { title: "Grade Conversion Management", link: "/grade_conversion_admin", icon: Email, page_id: 144 },
         { title: "Email Sender", link: "/email_template_manager", icon: Email, page_id: 67 },

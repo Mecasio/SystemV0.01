@@ -470,27 +470,33 @@ const ProctorApplicantList = () => {
 
 
   return (
-    <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
+    <Box
+      sx={{
+        height: "calc(100vh - 150px)",
+        overflowY: "auto",
+        paddingRight: 1,
+        backgroundColor: "transparent",
+        mt: 1,
+        padding: 2,
+      }}
+    >
       <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          mb: 2,
-
-        }}
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={2}
       >
-        <Typography
-          variant="h4"
+        <Typography variant="h4"
           sx={{
-            fontWeight: "bold",
+            fontWeight: 'bold',
             color: titleColor,
-            fontSize: "36px",
+            fontSize: '36px',
           }}
         >
-          PROCTOR APPLICANT LIST
+         PROCTOR APPLICANT LIST
+
         </Typography>
+
 
         <TextField
           variant="outlined"
@@ -521,13 +527,14 @@ const ProctorApplicantList = () => {
 
       <br />
       <br />
+
       <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
           flexWrap: "nowrap", // ❌ prevent wrapping
           width: "100%",
-          mt: 1,
+
           gap: 2,
         }}
       >
@@ -543,8 +550,11 @@ const ProctorApplicantList = () => {
               justifyContent: "center",
               cursor: "pointer",
               borderRadius: 2,
-              border: `2px solid ${borderColor}`,
-              backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
+              border: `1px solid ${borderColor}`,
+              backgroundColor:
+                activeStep === index
+                  ? settings?.header_color || "#1976d2"
+                  : "#E8C999",
               color: activeStep === index ? "#fff" : "#000",
               boxShadow:
                 activeStep === index
@@ -556,9 +566,17 @@ const ProctorApplicantList = () => {
               },
             }}
           >
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+            >
               <Box sx={{ fontSize: 40, mb: 1 }}>{tab.icon}</Box>
-              <Typography sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}>
+              <Typography
+                sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}
+              >
                 {tab.label}
               </Typography>
             </Box>
@@ -566,6 +584,7 @@ const ProctorApplicantList = () => {
         ))}
       </Box>
 
+      <br />
       <br />
       {proctor && (
         <Box

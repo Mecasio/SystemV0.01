@@ -72,37 +72,37 @@ const RegistrarDashboard5 = () => {
 
 
     const stepsData = [
-  {
-       label: "Admission Process For College",
-       to: "/applicant_list",
-       icon: <SchoolIcon fontSize="large" />,
-     },
-     {
-       label: "Applicant Form",
-       to: "/registrar_dashboard1",
-       icon: <AssignmentIcon fontSize="large" />,
-     },
-     {
-       label: "Student Requirements",
-       to: "/registrar_requirements",
-       icon: <AssignmentTurnedInIcon fontSize="large" />,
-     },
-     { 
-       label: "Qualifying / Interview Schedule Management", 
-       to: "/assign_schedule_applicants_qualifying_interview", 
-       icon: <ScheduleIcon fontSize="large" /> 
-     },
-     {
-       label: "Qualifying / Interview Exam Score",
-       to: "/qualifying_interview_exam_scores",
-       icon: <ScoreIcon fontSize="large" />,
-     },
-     {
-       label: "Student Numbering",
-       to: "/student_numbering_per_college",
-       icon: <DashboardIcon fontSize="large" />,
-     },
- 
+       {
+           label: "Applicant List",
+           to: "/applicant_list",
+           icon: <SchoolIcon fontSize="large" />,
+         },
+         {
+           label: "Applicant Form",
+           to: "/registrar_dashboard1",
+           icon: <PersonIcon fontSize="large" />,
+         },
+         {
+           label: "Student Requirements",
+           to: "/registrar_requirements",
+           icon: <AssignmentIcon fontSize="large" />,
+         },
+         {
+           label: "Qualifying / Interview Schedule Management",
+           to: "/assign_schedule_applicants_qualifying_interview",
+           icon: <ScheduleIcon fontSize="large" />
+         },
+         {
+           label: "Qualifying / Interview Exam Score",
+           to: "/qualifying_interview_exam_scores",
+           icon: <ScoreIcon fontSize="large" />,
+         },
+         {
+           label: "Student Numbering",
+           to: "/student_numbering_per_college",
+           icon: <DashboardIcon fontSize="large" />,
+         },
+
     ];
 
     const [currentStep, setCurrentStep] = useState(1);
@@ -589,13 +589,12 @@ const RegistrarDashboard5 = () => {
                         fontSize: '36px',
                     }}
                 >
-                     OTHER INFORMATION
+                    OTHER INFORMATION
                 </Typography>
             </Box>
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
-            <br />
-
+        
 
             <Box
                 sx={{
@@ -657,7 +656,7 @@ const RegistrarDashboard5 = () => {
                         {index < stepsData.length - 1 && (
                             <Box
                                 sx={{
-                                    flex: 0.05,
+
                                     mx: 1, // spacing between cards
                                 }}
                             />
@@ -667,7 +666,8 @@ const RegistrarDashboard5 = () => {
             </Box>
 
 
-            <div style={{ height: "40px" }}></div>
+            <br />
+            <br />
 
 
 

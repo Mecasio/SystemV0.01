@@ -103,14 +103,12 @@ const CoursePanel = () => {
     lab_unit: "",
     prereq: "",
     corequisite: "",
-    is_included: 1,
-    include_summa: 1,
-    include_magna: 1,
-    include_cum: 1,
+    is_academic_achiever: 1,
+    is_latin: 1
   });
   const [courseList, setCourseList] = useState([]);
   const [honorRules, setHonorRules] = useState([]);
-  
+
   const [feeRules, setFeeRules] = useState([]);
   const [selectedGlobalFees, setSelectedGlobalFees] = useState([]);
 
@@ -220,7 +218,8 @@ const CoursePanel = () => {
       const data = response.data.map((item) => ({
         ...item,
         prerequisite: item.prereq || "",
-        is_included: item.is_included ?? 1,
+        is_academic_achiever: item.is_academic_achiever ?? 1,
+        is_latin: item.is_latin ?? 1,
       }));
       setCourseList(data);
     } catch (err) {
@@ -317,16 +316,16 @@ const CoursePanel = () => {
 
   // ✅ UPDATED handleAddingCourse
   const handleAddingCourse = async () => {
-    if(!course.course_code || !course.course_description) {
+    if (!course.course_code || !course.course_description) {
       showSnack('Please fill all fields', 'warning');
       return;
     }
 
-    if(!canCreate) {
+    if (!canCreate) {
       showSnack('You do not have permission to create items on this page', 'error');
       return;
     }
-    
+
     try {
       await axios.post(
         `${API_BASE_URL}/adding_course`,
@@ -337,10 +336,8 @@ const CoursePanel = () => {
           lab_unit: parseFloat(course.lab_unit) || 0,
           prereq: course.prereq || null,
           corequisite: course.corequisite || null,
-          is_included: Number(course.is_included) || 0,
-          include_summa: Number(course.include_summa) ?? 1,
-          include_magna: Number(course.include_magna) ?? 1,
-          include_cum: Number(course.include_cum) ?? 1,
+          is_academic_achiever: Number(course.is_academic_achiever) ?? 1,
+          is_latin: Number(course.is_latin) ?? 1,
         },
         { headers: getPermissionHeaders() },
       );
@@ -352,10 +349,8 @@ const CoursePanel = () => {
         lab_unit: "",
         prereq: "",
         corequisite: "",
-        is_included: 1,
-        include_summa: 1,
-        include_magna: 1,
-        include_cum: 1,
+        is_academic_achiever: 1,
+        is_latin: 1,
       });
 
       showSnack("Course successfully added!", "success");
@@ -383,10 +378,8 @@ const CoursePanel = () => {
       lab_unit: Number(item.lab_unit) || 0,
       prereq: item.prereq ?? "",
       corequisite: item.corequisite ?? "",
-      is_included: item.is_included ?? 1,
-      include_summa: item.include_summa ?? 1,
-      include_magna: item.include_magna ?? 1,
-      include_cum: item.include_cum ?? 1,
+      is_academic_achiever: item.is_academic_achiever ?? 1,
+      is_latin: item.is_latin ?? 1,
     });
 
     setEditMode(true);
@@ -437,10 +430,8 @@ const CoursePanel = () => {
         lab_unit: "",
         prereq: "",
         corequisite: "",
-        is_included: 1,
-        include_summa: 1,
-        include_magna: 1,
-        include_cum: 1,
+        is_academic_achiever: 1,
+        is_latin: 1,
       });
     } catch (error) {
       showSnack(
@@ -682,6 +673,7 @@ const CoursePanel = () => {
                   alignItems="center"
                   flexWrap="wrap"
                   gap={1}
+                  sx={{ height: "50px" }}
                 >
                   <Typography fontSize="14px" fontWeight="bold" color="white">
                     Total Subjects: {filteredCourses.length}
@@ -848,10 +840,8 @@ const CoursePanel = () => {
                             lab_unit: "",
                             prereq: "",
                             corequisite: "",
-                            is_included: 1,
-                            include_summa: 1,
-                            include_magna: 1,
-                            include_cum: 1,
+                            is_academic_achiever: 1,
+                            is_latin: 1,
                           });
                           setOpenCourseDialog(true);
                         }}
@@ -895,10 +885,8 @@ const CoursePanel = () => {
                 "Corequisite",
                 "Lab",
                 "Lecture",
-                "Deans Lister / President Lister",
-                "Summa",
-                "Magna",
-                "Cum Laude",
+                "Academic Achiever",
+                "Latin Honor",
                 ...(showActionColumn ? ["Actions"] : []),
               ].map((header) => (
                 <th
@@ -948,19 +936,11 @@ const CoursePanel = () => {
                     {c.isnon_computer_lab ? "YES" : "NO"}
                   </td>
                   <td style={styles.tableCell}>
-                    <span>{Number(c.is_included) === 1 ? "YES" : "NO"}</span>
+                    {Number(c.is_academic_achiever) === 1 ? "YES" : "NO"}
                   </td>
 
                   <td style={styles.tableCell}>
-                    {Number(c.include_summa) === 1 ? "YES" : "NO"}
-                  </td>
-
-                  <td style={styles.tableCell}>
-                    {Number(c.include_magna) === 1 ? "YES" : "NO"}
-                  </td>
-
-                  <td style={styles.tableCell}>
-                    {Number(c.include_cum) === 1 ? "YES" : "NO"}
+                    {Number(c.is_latin) === 1 ? "YES" : "NO"}
                   </td>
 
                   {showActionColumn && (
@@ -1056,6 +1036,7 @@ const CoursePanel = () => {
                     alignItems="center"
                     gap={1}
                     flexWrap="wrap"
+                    sx={{ height: "50px" }}
                   >
                     <Button
                       onClick={() => setCurrentPage(1)}
@@ -1375,15 +1356,16 @@ const CoursePanel = () => {
 
             <Grid item xs={12} md={6}>
               <Typography fontWeight="bold">
-                Deans Lister / President Lister
+                Academic Achiever
               </Typography>
+
               <Select
                 fullWidth
-                value={course.is_included ?? 1}
+                value={course.is_academic_achiever ?? 1}
                 onChange={(e) =>
                   setCourse((prev) => ({
                     ...prev,
-                    is_included: Number(e.target.value),
+                    is_academic_achiever: Number(e.target.value),
                   }))
                 }
               >
@@ -1392,49 +1374,18 @@ const CoursePanel = () => {
               </Select>
             </Grid>
 
-            <Grid item xs={12} md={4}>
-              <Typography fontWeight="bold">Include in Summa</Typography>
-              <Select
-                fullWidth
-                value={course.include_summa ?? 1}
-                onChange={(e) =>
-                  setCourse((prev) => ({
-                    ...prev,
-                    include_summa: e.target.value,
-                  }))
-                }
-              >
-                <MenuItem value={1}>YES</MenuItem>
-                <MenuItem value={0}>NO</MenuItem>
-              </Select>
-            </Grid>
+            <Grid item xs={12} md={6}>
+              <Typography fontWeight="bold">
+                Latin Honor
+              </Typography>
 
-            <Grid item xs={12} md={4}>
-              <Typography fontWeight="bold">Include in Magna</Typography>
               <Select
                 fullWidth
-                value={course.include_magna ?? 1}
+                value={course.is_latin ?? 1}
                 onChange={(e) =>
                   setCourse((prev) => ({
                     ...prev,
-                    include_magna: e.target.value,
-                  }))
-                }
-              >
-                <MenuItem value={1}>YES</MenuItem>
-                <MenuItem value={0}>NO</MenuItem>
-              </Select>
-            </Grid>
-
-            <Grid item xs={12} md={4}>
-              <Typography fontWeight="bold">Include in Cum Laude</Typography>
-              <Select
-                fullWidth
-                value={course.include_cum ?? 1}
-                onChange={(e) =>
-                  setCourse((prev) => ({
-                    ...prev,
-                    include_cum: e.target.value,
+                    is_latin: Number(e.target.value),
                   }))
                 }
               >

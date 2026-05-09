@@ -47,6 +47,7 @@ import API_BASE_URL from "../apiConfig";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import ScoreIcon from "@mui/icons-material/Score";
 import DateField from "../components/DateField";
+import PersonIcon from "@mui/icons-material/Person";
 
 const ApplicantList = () => {
   const socket = useRef(null);
@@ -160,19 +161,19 @@ const ApplicantList = () => {
 
   const tabs = [
     {
-      label: "Admission Process For College",
+      label: "Applicant List",
       to: "/applicant_list",
       icon: <SchoolIcon fontSize="large" />,
     },
     {
       label: "Applicant Form",
       to: "/registrar_dashboard1",
-      icon: <AssignmentIcon fontSize="large" />,
+      icon: <PersonIcon fontSize="large" />,
     },
     {
       label: "Student Requirements",
       to: "/registrar_requirements",
-      icon: <AssignmentTurnedInIcon fontSize="large" />,
+      icon: <AssignmentIcon fontSize="large" />,
     },
     {
       label: "Qualifying / Interview Schedule Management",
@@ -1075,8 +1076,8 @@ const ApplicantList = () => {
                          <td style="width:10%">${person.applicant_number || ""}</td>
                          <td style="width:40%">${person.last_name}, ${person.first_name} ${person.middle_name || ""} ${person.extension || ""}</td>
                          <td style="width:15%">${allCurriculums.find(
-                                            (item) => item.curriculum_id?.toString() === person.program?.toString()
-                                        )?.program_code ?? "N/A"}</td>                 
+            (item) => item.curriculum_id?.toString() === person.program?.toString()
+          )?.program_code ?? "N/A"}</td>                 
                          <td style="width:10%">${person.generalAverage1 || ""}</td>
                          <td style="width:10%">${new Date(
             person.created_at.split("T")[0],
@@ -1126,76 +1127,16 @@ const ApplicantList = () => {
         alignItems="center"
         mb={2}
       >
-        <Typography variant="h4" fontWeight="bold" sx={{ color: titleColor }}>
-          ADMISSION PROCESS FOR COLLEGE
+        <Typography variant="h4"
+          sx={{
+            fontWeight: 'bold',
+            color: titleColor,
+            fontSize: '36px',
+          }}
+        >
+          APPLICANT LIST
         </Typography>
-        <Box sx={{ position: "absolute", top: 10, right: 24 }}>
-          <Button
-            sx={{
-              width: 65,
-              height: 65,
-              borderRadius: "50%",
-              "&:hover": { backgroundColor: "#E8C999" },
-            }}
-            onClick={() => setShowNotifications(!showNotifications)}
-          >
-            <NotificationsIcon sx={{ fontSize: 50, color: "white" }} />
-            {notifications.length > 0 && (
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: 5,
-                  right: 5,
-                  background: "red",
-                  color: "white",
-                  borderRadius: "50%",
-                  width: 20,
-                  height: 20,
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  fontSize: "12px",
-                }}
-              >
-                {notifications.length}
-              </Box>
-            )}
-          </Button>
 
-          {showNotifications && (
-            <Paper
-              sx={{
-                position: "absolute",
-                top: 70,
-                right: 0,
-                width: 300,
-                maxHeight: 400,
-                overflowY: "auto",
-                bgcolor: "white",
-                boxShadow: 3,
-                zIndex: 10,
-                borderRadius: 1,
-              }}
-            >
-              {notifications.length === 0 ? (
-                <Typography sx={{ p: 2 }}>No notifications</Typography>
-              ) : (
-                notifications.map((notif, idx) => (
-                  <Box key={idx} sx={{ p: 1, borderBottom: "1px solid #ccc" }}>
-                    <Typography sx={{ fontSize: "14px" }}>
-                      {notif.message}
-                    </Typography>
-                    <Typography sx={{ fontSize: "10px", color: "#888" }}>
-                      {new Date(notif.timestamp).toLocaleString("en-PH", {
-                        timeZone: "Asia/Manila",
-                      })}
-                    </Typography>
-                  </Box>
-                ))
-              )}
-            </Paper>
-          )}
-        </Box>
 
         <Box>
           <TextField
@@ -1203,10 +1144,7 @@ const ApplicantList = () => {
             placeholder="Search Applicant Name / Email / Applicant ID"
             size="small"
             value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1); // Corrected
-            }}
+            onChange={(e) => setSearchQuery(e.target.value)} // ✅ THIS WAS MISSING
             sx={{
               width: 450,
               backgroundColor: "#fff",
@@ -1225,6 +1163,7 @@ const ApplicantList = () => {
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
 
       <br />
+      <br />
 
       <Box
         sx={{
@@ -1232,7 +1171,6 @@ const ApplicantList = () => {
           justifyContent: "space-between",
           flexWrap: "nowrap", // ❌ prevent wrapping
           width: "100%",
-          mt: 2,
 
           gap: 2,
         }}
@@ -1261,7 +1199,7 @@ const ApplicantList = () => {
                   : "0px 2px 6px rgba(0,0,0,0.15)",
               transition: "0.3s ease",
               "&:hover": {
-                backgroundColor: activeStep === index ? "#000" : "#f5d98f",
+                backgroundColor: activeStep === index ? "#000000" : "#f5d98f",
               },
             }}
           >
@@ -1283,7 +1221,9 @@ const ApplicantList = () => {
         ))}
       </Box>
 
-      <div style={{ height: "40px" }}></div>
+      <br />
+      <br />
+
 
       <TableContainer
         component={Paper}

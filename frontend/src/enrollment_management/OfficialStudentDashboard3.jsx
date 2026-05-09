@@ -25,7 +25,9 @@ import ConfirmationNumberIcon from "@mui/icons-material/ConfirmationNumber";
 import GradeIcon from "@mui/icons-material/Grade";
 import API_BASE_URL from "../apiConfig";
 import PersonSearchIcon from "@mui/icons-material/PersonSearch";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
 import UploadFileIcon from '@mui/icons-material/UploadFile';
+import AssignmentIcon from "@mui/icons-material/Assignment";
 
 const OfficialStudentDashboard3 = () => {
 
@@ -69,13 +71,12 @@ const OfficialStudentDashboard3 = () => {
     }, [settings]);
 
     const stepsData = [
-    { label: "Student List", to: "/student_list_for_enrollment", icon: <ListAltIcon /> },
-    { label: "Applicant Form", to: "/official_student_dashboard1", icon: <PersonAddIcon /> },
-    { label: "Submitted Documents", to: "/student_official_requirements", icon: <UploadFileIcon /> },
-    { label: "Course Tagging", to: "/course_tagging_for_college", icon: <UploadFileIcon /> },
-    { label: "Search COR", to: "/search_cor_for_college", icon: <MenuBookIcon /> },
-
-    { label: "Class List", to: "/class_roster_enrollment", icon: <PersonSearchIcon /> },
+        { label: "Student List", to: "/student_list_for_enrollment", icon: <SchoolIcon fontSize="large" /> },
+        { label: "Applicant Form", to: "/official_student_dashboard1", icon: <PersonIcon fontSize="large" /> },
+        { label: "Submitted Documents", to: "/student_official_requirements", icon: <AssignmentIcon fontSize="large" /> },
+        { label: "Course Tagging", to: "/course_tagging_for_college", icon: <UploadFileIcon fontSize="large" /> },
+        { label: "Search COR", to: "/search_cor_for_college", icon: <MenuBookIcon fontSize="large" /> },
+        { label: "Class List", to: "/class_roster_enrollment", icon: <PersonSearchIcon fontSize="large" /> },
 
     ];
 
@@ -369,11 +370,11 @@ const OfficialStudentDashboard3 = () => {
     const [clickedSteps, setClickedSteps] = useState([]);
 
     const steps = [
-        { label: "Personal Information", icon: <PersonIcon />, path: "/readmission_dashboard1" },
-        { label: "Family Background", icon: <FamilyRestroomIcon />, path: "/readmission_dashboard2" },
-        { label: "Educational Attainment", icon: <SchoolIcon />, path: "/readmission_dashboard3" },
-        { label: "Health Medical Records", icon: <HealthAndSafetyIcon />, path: "/readmission_dashboard4" },
-        { label: "Other Information", icon: <InfoIcon />, path: "/readmission_dashboard5" },
+        { label: "Personal Information", icon: <PersonIcon />, path: "/official_student_dashboard1" },
+        { label: "Family Background", icon: <FamilyRestroomIcon />, path: "/official_student_dashboard2" },
+        { label: "Educational Attainment", icon: <SchoolIcon />, path: "/official_student_dashboard3" },
+        { label: "Health Medical Records", icon: <HealthAndSafetyIcon />, path: "/official_student_dashboard4" },
+        { label: "Other Information", icon: <InfoIcon />, path: "/official_student_dashboard5" },
     ];
     const handleStepClick = (index) => {
         setActiveStep(index);
@@ -520,7 +521,7 @@ const OfficialStudentDashboard3 = () => {
                         fontSize: '36px',
                     }}
                 >
-                     EDUCATIONAL ATTAINMENT
+                    EDUCATIONAL ATTAINMENT
                 </Typography>
 
 
@@ -528,8 +529,6 @@ const OfficialStudentDashboard3 = () => {
 
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
-            <br />
-
 
 
 
@@ -550,7 +549,7 @@ const OfficialStudentDashboard3 = () => {
                             onClick={() => handleNavigateStep(index, step.to)}
                             sx={{
                                 flex: `1 1 ${100 / stepsData.length}%`, // evenly divide width
-                                height: 120,
+                                height: 140,
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
@@ -593,7 +592,7 @@ const OfficialStudentDashboard3 = () => {
                         {index < stepsData.length - 1 && (
                             <Box
                                 sx={{
-                                    flex: 0.05,
+
                                     mx: 1, // spacing between cards
                                 }}
                             />
@@ -602,6 +601,7 @@ const OfficialStudentDashboard3 = () => {
                 ))}
             </Box>
 
+            <br />
             <br />
 
 
@@ -1351,7 +1351,7 @@ const OfficialStudentDashboard3 = () => {
                                     transform: "translate(-50%, -50%)",
                                     width: 400,
                                     bgcolor: "background.paper",
-                                   border: `1px solid ${borderColor}`,
+                                    border: `1px solid ${borderColor}`,
                                     boxShadow: 24,
                                     p: 4,
                                     borderRadius: 2,

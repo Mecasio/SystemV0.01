@@ -8,6 +8,10 @@ const {
 
 const router = express.Router();
 
+/* =========================================================
+   PERMISSION HELPER
+========================================================= */
+
 const requireCreateOrEdit = async (req, res, next) => {
     if (req.body?.id) {
         return CanEdit(req, res, next);
@@ -20,35 +24,45 @@ const requireCreateOrEdit = async (req, res, next) => {
    HELPERS
 ========================================================= */
 
-// 🎓 Semester Honor (type = 1)
-async function getSemesterHonor(gwa) {
+// 🎓 Semester Honor (category = 0)
+async function getSemesterHonor(gwa, highest_subject_grade) {
     const [rows] = await db3.query(
-        `SELECT title 
-         FROM honors_rules
-         WHERE type = 1 
-         AND ? <= max_allowed_grade
-         ORDER BY max_allowed_grade ASC
-         LIMIT 1`,
-        [gwa]
+        `
+        SELECT title
+        FROM honors_rules
+        WHERE category = 0
+        AND ? BETWEEN min_gwa AND max_gwa
+        AND ? <= max_subject_grade
+        LIMIT 1
+        `,
+        [gwa, highest_subject_grade]
     );
 
     return rows.length ? rows[0].title : null;
 }
 
-// 🎓 Graduation Honor (type = 2)
-async function getGraduationHonor(gwa, year_level_id, semester_id) {
-    // ONLY 4th year, 2nd sem
+// 🎓 Graduation Honor (category = 1)
+async function getGraduationHonor(
+    gwa,
+    highest_subject_grade,
+    year_level_id,
+    semester_id
+) {
+    // ONLY 4th Year 2nd Sem
     if (!(year_level_id == 4 && semester_id == 2)) {
         return null;
     }
 
     const [rows] = await db3.query(
-        `SELECT title 
-         FROM honors_rules
-         WHERE type = 2
-         AND ? BETWEEN min_grade AND max_allowed_grade
-         LIMIT 1`,
-        [gwa]
+        `
+        SELECT title
+        FROM honors_rules
+        WHERE category = 1
+        AND ? BETWEEN min_gwa AND max_gwa
+        AND ? <= max_subject_grade
+        LIMIT 1
+        `,
+        [gwa, highest_subject_grade]
     );
 
     return rows.length ? rows[0].title : null;
@@ -58,155 +72,372 @@ async function getGraduationHonor(gwa, year_level_id, semester_id) {
    GRADE CONVERSION
 ========================================================= */
 
+// GET ALL
 router.get("/admin/grade-conversion", async (req, res) => {
     try {
-        const [rows] = await db3.query(
-            "SELECT * FROM grade_conversion ORDER BY min_score DESC"
-        );
+        const [rows] = await db3.query(`
+            SELECT *
+            FROM grade_conversion
+            ORDER BY
+                CASE
+                    WHEN min_score IS NULL THEN 1
+                    ELSE 0
+                END,
+                min_score DESC
+        `);
+
         res.json(rows);
+
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: "Failed to fetch grade conversion" });
+
+        res.status(500).json({
+            error: "Failed to fetch grade conversion"
+        });
     }
 });
 
-router.post("/admin/grade-conversion", requireCreateOrEdit, async (req, res) => {
-    try {
-        const { id, min_score, max_score, equivalent_grade, descriptive_rating } = req.body;
+// CREATE / UPDATE
+router.post(
+    "/admin/grade-conversion",
+    requireCreateOrEdit,
+    async (req, res) => {
+        try {
+            const {
+                id,
+                min_score,
+                max_score,
+                equivalent_grade,
+                descriptive_rating,
+                is_disqualified,
+            } = req.body;
 
-        // ✅ Special grades (INC, DRP, etc.)
-        const isSpecial =
-            (!min_score && !max_score && !equivalent_grade);
+            // ✅ Special Grades (INC, DRP, etc.)
+            const isSpecial =
+                min_score === null ||
+                min_score === "" ||
+                max_score === null ||
+                max_score === "";
 
-        if (isSpecial && descriptive_rating) {
+            if (isSpecial) {
+
+                if (!equivalent_grade) {
+                    return res.status(400).json({
+                        error: "Equivalent grade is required"
+                    });
+                }
+
+                if (id) {
+                    await db3.query(
+                        `
+                        UPDATE grade_conversion
+                        SET
+                            min_score = NULL,
+                            max_score = NULL,
+                            equivalent_grade = ?,
+                            descriptive_rating = ?,
+                            is_disqualified = ?
+                        WHERE id = ?
+                        `,
+                        [
+                            equivalent_grade,
+                            descriptive_rating || null,
+                            is_disqualified || 0,
+                            id
+                        ]
+                    );
+                } else {
+                    await db3.query(
+                        `
+                        INSERT INTO grade_conversion
+                        (
+                            min_score,
+                            max_score,
+                            equivalent_grade,
+                            descriptive_rating,
+                            is_disqualified
+                        )
+                        VALUES (?, ?, ?, ?, ?)
+                        `,
+                        [
+                            null,
+                            null,
+                            equivalent_grade,
+                            descriptive_rating || null,
+                            is_disqualified || 0
+                        ]
+                    );
+                }
+
+                return res.json({
+                    success: true
+                });
+            }
+
+            // ✅ Validation
+            if (
+                min_score === "" ||
+                max_score === "" ||
+                equivalent_grade === ""
+            ) {
+                return res.status(400).json({
+                    error: "All fields are required"
+                });
+            }
+
+            if (parseFloat(min_score) > parseFloat(max_score)) {
+                return res.status(400).json({
+                    error: "Min score cannot be greater than Max score"
+                });
+            }
+
+            // UPDATE
             if (id) {
                 await db3.query(
-                    `UPDATE grade_conversion 
-                     SET min_score=NULL, max_score=NULL, equivalent_grade=NULL, descriptive_rating=? 
-                     WHERE id=?`,
-                    [descriptive_rating, id]
-                );
-            } else {
-                await db3.query(
-                    `INSERT INTO grade_conversion 
-                     (min_score, max_score, equivalent_grade, descriptive_rating)
-                     VALUES (NULL, NULL, NULL, ?)`,
-                    [descriptive_rating]
+                    `
+                    UPDATE grade_conversion
+                    SET
+                        min_score = ?,
+                        max_score = ?,
+                        equivalent_grade = ?,
+                        descriptive_rating = ?,
+                        is_disqualified = ?
+                    WHERE id = ?
+                    `,
+                    [
+                        min_score,
+                        max_score,
+                        equivalent_grade,
+                        descriptive_rating || null,
+                        is_disqualified || 0,
+                        id
+                    ]
                 );
             }
 
-            return res.json({ success: true });
+            // INSERT
+            else {
+                await db3.query(
+                    `
+                    INSERT INTO grade_conversion
+                    (
+                        min_score,
+                        max_score,
+                        equivalent_grade,
+                        descriptive_rating,
+                        is_disqualified
+                    )
+                    VALUES (?, ?, ?, ?, ?)
+                    `,
+                    [
+                        min_score,
+                        max_score,
+                        equivalent_grade,
+                        descriptive_rating || null,
+                        is_disqualified || 0
+                    ]
+                );
+            }
+
+            res.json({
+                success: true
+            });
+
+        } catch (err) {
+            console.error(err);
+
+            res.status(500).json({
+                error: "Save failed"
+            });
         }
-
-        // ✅ Numeric validation
-        if (min_score === "" || max_score === "" || equivalent_grade === "") {
-            return res.status(400).json({ error: "All numeric fields are required" });
-        }
-
-        if (parseFloat(min_score) > parseFloat(max_score)) {
-            return res.status(400).json({ error: "Min cannot be greater than Max" });
-        }
-
-        if (id) {
-            await db3.query(
-                `UPDATE grade_conversion 
-                 SET min_score=?, max_score=?, equivalent_grade=?, descriptive_rating=? 
-                 WHERE id=?`,
-                [min_score, max_score, equivalent_grade, descriptive_rating || null, id]
-            );
-        } else {
-            await db3.query(
-                `INSERT INTO grade_conversion 
-                 (min_score, max_score, equivalent_grade, descriptive_rating)
-                 VALUES (?, ?, ?, ?)`,
-                [min_score, max_score, equivalent_grade, descriptive_rating || null]
-            );
-        }
-
-        res.json({ success: true });
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Save failed" });
     }
-});
+);
 
-router.delete("/admin/grade-conversion/:id", CanDelete, async (req, res) => {
-    try {
-        await db3.query("DELETE FROM grade_conversion WHERE id=?", [req.params.id]);
-        res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ error: "Delete failed" });
+// DELETE
+router.delete(
+    "/admin/grade-conversion/:id",
+    CanDelete,
+    async (req, res) => {
+        try {
+            await db3.query(
+                `DELETE FROM grade_conversion WHERE id = ?`,
+                [req.params.id]
+            );
+
+            res.json({
+                success: true
+            });
+
+        } catch (err) {
+            console.error(err);
+
+            res.status(500).json({
+                error: "Delete failed"
+            });
+        }
     }
-});
+);
 
 /* =========================================================
    HONORS RULES
 ========================================================= */
 
+// GET ALL
 router.get("/admin/honors-rules", async (req, res) => {
     try {
-        const [rows] = await db3.query(
-            "SELECT * FROM honors_rules ORDER BY max_allowed_grade ASC"
-        );
+        const [rows] = await db3.query(`
+            SELECT *
+            FROM honors_rules
+            ORDER BY category ASC, min_gwa ASC
+        `);
+
         res.json(rows);
-    } catch (err) {
-        res.status(500).json({ error: "Failed to fetch rules" });
-    }
-});
-
-router.post("/admin/honors-rules", requireCreateOrEdit, async (req, res) => {
-    try {
-        let { id, title, min_grade, max_allowed_grade, type } = req.body;
-
-        // 🔒 Force number (important!)
-        type = parseInt(type);
-
-        // ✅ Validate type
-        if (![1, 2].includes(type)) {
-            return res.status(400).json({ error: "Invalid type value" });
-        }
-
-        // 🎓 Graduation requires min/max
-        if (type === 2) {
-            if (!min_grade || !max_allowed_grade) {
-                return res.status(400).json({
-                    error: "Min and Max required for graduation honors"
-                });
-            }
-        }
-
-        if (id) {
-            await db3.query(
-                `UPDATE honors_rules 
-                 SET title=?, min_grade=?, max_allowed_grade=?, type=? 
-                 WHERE id=?`,
-                [title, min_grade || null, max_allowed_grade, type, id]
-            );
-        } else {
-            await db3.query(
-                `INSERT INTO honors_rules 
-                 (title, min_grade, max_allowed_grade, type)
-                 VALUES (?, ?, ?, ?)`,
-                [title, min_grade || null, max_allowed_grade, type]
-            );
-        }
-
-        res.json({ success: true });
 
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: "Save failed" });
+
+        res.status(500).json({
+            error: "Failed to fetch honors rules"
+        });
     }
 });
 
-router.delete("/admin/honors-rules/:id", CanDelete, async (req, res) => {
-    try {
-        await db3.query("DELETE FROM honors_rules WHERE id=?", [req.params.id]);
-        res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ error: "Delete failed" });
+// CREATE / UPDATE
+router.post(
+    "/admin/honors-rules",
+    requireCreateOrEdit,
+    async (req, res) => {
+        try {
+
+            let {
+                id,
+                title,
+                category,
+                min_gwa,
+                max_gwa,
+                max_subject_grade,
+            } = req.body;
+
+            category = parseInt(category);
+
+            // ✅ Validate category
+            if (![0, 1].includes(category)) {
+                return res.status(400).json({
+                    error: "Invalid category"
+                });
+            }
+
+            // ✅ Validation
+            if (!title) {
+                return res.status(400).json({
+                    error: "Title is required"
+                });
+            }
+
+            if (
+                min_gwa === "" ||
+                max_gwa === "" ||
+                max_subject_grade === ""
+            ) {
+                return res.status(400).json({
+                    error: "All fields are required"
+                });
+            }
+
+            if (parseFloat(min_gwa) > parseFloat(max_gwa)) {
+                return res.status(400).json({
+                    error: "Min GWA cannot be greater than Max GWA"
+                });
+            }
+
+            // UPDATE
+            if (id) {
+                await db3.query(
+                    `
+                    UPDATE honors_rules
+                    SET
+                        title = ?,
+                        category = ?,
+                        min_gwa = ?,
+                        max_gwa = ?,
+                        max_subject_grade = ?
+                    WHERE id = ?
+                    `,
+                    [
+                        title,
+                        category,
+                        min_gwa,
+                        max_gwa,
+                        max_subject_grade,
+                        id
+                    ]
+                );
+            }
+
+            // INSERT
+            else {
+                await db3.query(
+                    `
+                    INSERT INTO honors_rules
+                    (
+                        title,
+                        category,
+                        min_gwa,
+                        max_gwa,
+                        max_subject_grade
+                    )
+                    VALUES (?, ?, ?, ?, ?)
+                    `,
+                    [
+                        title,
+                        category,
+                        min_gwa,
+                        max_gwa,
+                        max_subject_grade
+                    ]
+                );
+            }
+
+            res.json({
+                success: true
+            });
+
+        } catch (err) {
+            console.error(err);
+
+            res.status(500).json({
+                error: "Save failed"
+            });
+        }
     }
-});
+);
+
+// DELETE
+router.delete(
+    "/admin/honors-rules/:id",
+    CanDelete,
+    async (req, res) => {
+        try {
+
+            await db3.query(
+                `DELETE FROM honors_rules WHERE id = ?`,
+                [req.params.id]
+            );
+
+            res.json({
+                success: true
+            });
+
+        } catch (err) {
+            console.error(err);
+
+            res.status(500).json({
+                error: "Delete failed"
+            });
+        }
+    }
+);
 
 module.exports = router;
+module.exports.getSemesterHonor = getSemesterHonor;
+module.exports.getGraduationHonor = getGraduationHonor;

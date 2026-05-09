@@ -459,9 +459,9 @@ const ProgramTagging = () => {
           prev.map((p) =>
             p.program_tagging_id === editingId
               ? {
-                  ...p,
-                  ...progTag,
-                }
+                ...p,
+                ...progTag,
+              }
               : p,
           ),
         );
@@ -583,9 +583,9 @@ const ProgramTagging = () => {
           (p) =>
             !(
               Number(p.curriculum_id) ===
-                Number(deleteAllFilter.curriculum_id) &&
+              Number(deleteAllFilter.curriculum_id) &&
               Number(p.year_level_id) ===
-                Number(deleteAllFilter.year_level_id) &&
+              Number(deleteAllFilter.year_level_id) &&
               Number(p.semester_id) === Number(deleteAllFilter.semester_id)
             ),
         ),
@@ -774,7 +774,7 @@ const ProgramTagging = () => {
           variant="h4"
           sx={{ fontWeight: "bold", color: titleColor, fontSize: "36px" }}
         >
-          PROGRAM AND COURSE MANAGEMENT
+          PROGRAM TAGGING
         </Typography>
 
         <Box
@@ -864,62 +864,91 @@ const ProgramTagging = () => {
             mb: "-30px",
           }}
         >
-          <Table>
+          <Table size="small">
             <TableHead
-              sx={{ backgroundColor: settings?.header_color || "#1976d2" }}
+              sx={{
+                backgroundColor: settings?.header_color || "#1976d2",
+              }}
             >
               <TableRow>
-                <Box
+                <TableCell
+                  colSpan={20}
                   sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    width: "100%",
+
+                    py: 0.5,
+                    backgroundColor: settings?.header_color || "#1976d2",
+                    color: "white",
                   }}
                 >
-                  <TableCell sx={{ color: "white", textAlign: "center" }}>
-                    Existing Schedules
-                  </TableCell>
-
-                  {showCreateActions && (
-                    <Button
-                    variant="contained"
-                    onClick={() => {
-                      setEditingId(null);
-
-                      setProgTag({
-                        curriculum_id: "",
-                        year_level_id: "",
-                        semester_id: "",
-                        course_id: "",
-                        lec_fee: "",
-                        lab_fee: "",
-                        iscomputer_lab: 0,
-                        islaboratory_fee: 0,
-                        is_nstp: 0,
-                        amount: 0,
-                      });
-
-                      setOpenFormDialog(true);
-                    }}
-                    sx={{
-                      backgroundColor: "#1976d2", // ✅ Blue
-                      color: "#fff",
-                      fontWeight: "bold",
-                      borderRadius: "8px",
-                      width: "250px",
-                      textTransform: "none",
-                      px: 2,
-                      mr: "15px",
-                      "&:hover": {
-                        backgroundColor: "#1565c0", // darker blue hover
-                      },
-                    }}
+                  <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    flexWrap="wrap"
+                    sx={{ height: "50px" }}
                   >
-                    + Insert Program Tag
-                    </Button>
-                  )}
-                </Box>
+                    {/* LEFT SIDE */}
+                    <Typography
+                      fontSize="14px"
+                      fontWeight="bold"
+                      color="white"
+                    >
+                      Tagged Programs:
+                    </Typography>
+
+                    {/* RIGHT SIDE */}
+                    <Box
+                      display="flex"
+                      alignItems="center"
+                      gap={1}
+                      flexWrap="wrap"
+                    >
+                      {showCreateActions && (
+                        <Button
+                          variant="contained"
+                          onClick={() => {
+                            setEditingId(null);
+
+                            setProgTag({
+                              curriculum_id: "",
+                              year_level_id: "",
+                              semester_id: "",
+                              course_id: "",
+                              lec_fee: "",
+                              lab_fee: "",
+                              iscomputer_lab: 0,
+                              islaboratory_fee: 0,
+                              is_nstp: 0,
+                              amount: 0,
+                            });
+
+                            setOpenFormDialog(true);
+                          }}
+                          sx={{
+                            backgroundColor: "#1976d2",
+                            color: "#fff",
+                            fontWeight: "bold",
+                            borderRadius: "8px",
+
+                            // ✅ DESIGN WIDTH & HEIGHT
+                            width: "250px",
+                            height: "36px",
+
+                            textTransform: "none",
+                            px: 2,
+                            mr: "15px",
+
+                            "&:hover": {
+                              backgroundColor: "#1565c0",
+                            },
+                          }}
+                        >
+                          + Insert Program Tag
+                        </Button>
+                      )}
+                    </Box>
+                  </Box>
+                </TableCell>
               </TableRow>
             </TableHead>
           </Table>
@@ -1271,7 +1300,7 @@ const ProgramTagging = () => {
                           fontSize: "13px",
                         }}
                       >
-                      Actions
+                        Actions
                       </th>
                     )}
                   </tr>
@@ -1399,69 +1428,69 @@ const ProgramTagging = () => {
 
                       {showActionColumn && (
                         <td
-                        style={{
-                          ...styles.td,
-                          whiteSpace: "nowrap",
-                          border: `1px solid ${borderColor}`,
-                        }}
-                      >
-                        <div
                           style={{
-                            display: "flex",
-                            gap: "6px",
-                            justifyContent: "center",
-                            alignItems: "center",
+                            ...styles.td,
+                            whiteSpace: "nowrap",
+                            border: `1px solid ${borderColor}`,
                           }}
                         >
-                          {canEdit && (
-                            <button
-                            onClick={() => {
-                              handleEdit(program);
-                              setOpenFormDialog(true);
-                            }}
+                          <div
                             style={{
-                              backgroundColor: "green",
-                              color: "white",
-                              border: "none",
-                              borderRadius: "5px",
-                              cursor: "pointer",
-                              width: "100px",
-                              height: "40px",
                               display: "flex",
-                              alignItems: "center",
+                              gap: "6px",
                               justifyContent: "center",
-                              gap: "5px",
+                              alignItems: "center",
                             }}
                           >
-                            <EditIcon fontSize="small" /> Edit
-                            </button>
-                          )}
+                            {canEdit && (
+                              <button
+                                onClick={() => {
+                                  handleEdit(program);
+                                  setOpenFormDialog(true);
+                                }}
+                                style={{
+                                  backgroundColor: "green",
+                                  color: "white",
+                                  border: "none",
+                                  borderRadius: "5px",
+                                  cursor: "pointer",
+                                  width: "100px",
+                                  height: "40px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  gap: "5px",
+                                }}
+                              >
+                                <EditIcon fontSize="small" /> Edit
+                              </button>
+                            )}
 
-                          {canDelete && (
-                            <button
-                            onClick={() => {
-                              setDeleteId(program.program_tagging_id);
-                              setProgramToDelete(program);
-                              setOpenDeleteDialog(true);
-                            }}
-                            style={{
-                              backgroundColor: "#9E0000",
-                              color: "white",
-                              border: "none",
-                              borderRadius: "5px",
-                              height: "40px",
-                              cursor: "pointer",
-                              width: "100px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              gap: "5px",
-                            }}
-                          >
-                            <DeleteIcon fontSize="small" /> Delete
-                            </button>
-                          )}
-                        </div>
+                            {canDelete && (
+                              <button
+                                onClick={() => {
+                                  setDeleteId(program.program_tagging_id);
+                                  setProgramToDelete(program);
+                                  setOpenDeleteDialog(true);
+                                }}
+                                style={{
+                                  backgroundColor: "#9E0000",
+                                  color: "white",
+                                  border: "none",
+                                  borderRadius: "5px",
+                                  height: "40px",
+                                  cursor: "pointer",
+                                  width: "100px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  gap: "5px",
+                                }}
+                              >
+                                <DeleteIcon fontSize="small" /> Delete
+                              </button>
+                            )}
+                          </div>
                         </td>
                       )}
                     </tr>
@@ -1772,8 +1801,7 @@ const ProgramTagging = () => {
                   }));
                 }}
                 getOptionLabel={(option) =>
-                  `${formatSchoolYear(option.year_description)}: (${option.program_code}) ${
-                    option.program_description
+                  `${formatSchoolYear(option.year_description)}: (${option.program_code}) ${option.program_description
                   }${option.major ? ` (${option.major})` : ""} (${getBranchLabel(
                     option.components,
                   )})`

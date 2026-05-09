@@ -40,17 +40,20 @@ import SearchIcon from "@mui/icons-material/Search";
 import KeyIcon from "@mui/icons-material/Key";
 import CampaignIcon from '@mui/icons-material/Campaign';
 import ScoreIcon from '@mui/icons-material/Score';
+import PersonIcon from "@mui/icons-material/Person";
+
+
 
 const tabs = [
   {
-    label: "Admission Process for Registrar",
+    label: "Applicant List",
     to: "/applicant_list_admin",
     icon: <SchoolIcon fontSize="large" />,
   },
   {
-    label: "Applicant Form",
+    label: "Applicant Profile",
     to: "/admin_dashboard1",
-    icon: <DashboardIcon fontSize="large" />,
+    icon: <PersonIcon fontSize="large" />,
   },
   {
     label: "Student Requirements",
@@ -1011,31 +1014,32 @@ const StudentRequirements = () => {
 
 
   return (
-    <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
-
-
-      {/* Top header: APPLICANT ONLINE REQUIREMENTS + Search */}
+   <Box
+      sx={{
+        height: "calc(100vh - 150px)",
+        overflowY: "auto",
+        paddingRight: 1,
+        backgroundColor: "transparent",
+        mt: 1,
+        padding: 2,
+      }}
+    >
       <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-
-          mb: 2,
-
-        }}
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={2}
       >
-        <Typography
-          variant="h4"
+        <Typography variant="h4"
           sx={{
             fontWeight: 'bold',
             color: titleColor,
             fontSize: '36px',
           }}
         >
-          APPLICANT ONLINE REQUIREMENTS
+         SUBMITTED DOCUMENTS
         </Typography>
+
 
         <TextField
           variant="outlined"
@@ -1055,9 +1059,12 @@ const StudentRequirements = () => {
             startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
           }}
         />
+    
       </Box>
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+
+      <br />
       <br />
 
       <Box
@@ -1066,7 +1073,7 @@ const StudentRequirements = () => {
           justifyContent: "space-between",
           flexWrap: "nowrap", // ❌ prevent wrapping
           width: "100%",
-          mt: 3,
+
           gap: 2,
         }}
       >
@@ -1083,7 +1090,10 @@ const StudentRequirements = () => {
               cursor: "pointer",
               borderRadius: 2,
               border: `1px solid ${borderColor}`,
-              backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
+              backgroundColor:
+                activeStep === index
+                  ? settings?.header_color || "#1976d2"
+                  : "#E8C999",
               color: activeStep === index ? "#fff" : "#000",
               boxShadow:
                 activeStep === index
@@ -1095,9 +1105,17 @@ const StudentRequirements = () => {
               },
             }}
           >
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+            >
               <Box sx={{ fontSize: 40, mb: 1 }}>{tab.icon}</Box>
-              <Typography sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}>
+              <Typography
+                sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}
+              >
                 {tab.label}
               </Typography>
             </Box>
@@ -1105,10 +1123,11 @@ const StudentRequirements = () => {
         ))}
       </Box>
 
-      <div style={{ height: "40px" }}></div>
+     <br/>
+     <br/>
 
 
-      {/* Applicant ID and Name */}
+      {/* Applicant ID and Name */ }
       <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}` }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>

@@ -456,33 +456,48 @@ const AnnouncementPanel = () => {
     const showActionColumn = canEdit || canDelete;
 
     return (
-        <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>  {/* Header */}
-            <Typography
-                variant="h4"
-                sx={{
-                    fontWeight: "bold",
-                    color: titleColor,
-                    fontSize: "36px",
-                    background: "white",
-                    display: "flex",
-                    alignItems: "center",
-                    mb: 2,
-                }}
+        <Box
+            sx={{
+                height: "calc(100vh - 150px)",
+                overflowY: "auto",
+                paddingRight: 1,
+                backgroundColor: "transparent",
+                mt: 1,
+                padding: 2,
+            }}
+        >
+            <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
             >
-                ANNOUNCEMENT
-            </Typography>
+                <Typography variant="h4"
+                    sx={{
+                        fontWeight: 'bold',
+                        color: titleColor,
+                        fontSize: '36px',
+                    }}
+                >
+                   ANNOUNCEMENT FOR APPLICANTS
+                </Typography>
+
+
+            
+            </Box>
 
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
 
             <br />
             <br />
+
             <Box
                 sx={{
                     display: "flex",
                     justifyContent: "space-between",
                     flexWrap: "nowrap", // ❌ prevent wrapping
                     width: "100%",
-                    mt: 1,
+
                     gap: 2,
                 }}
             >
@@ -499,7 +514,10 @@ const AnnouncementPanel = () => {
                             cursor: "pointer",
                             borderRadius: 2,
                             border: `1px solid ${borderColor}`,
-                            backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
+                            backgroundColor:
+                                activeStep === index
+                                    ? settings?.header_color || "#1976d2"
+                                    : "#E8C999",
                             color: activeStep === index ? "#fff" : "#000",
                             boxShadow:
                                 activeStep === index
@@ -511,9 +529,17 @@ const AnnouncementPanel = () => {
                             },
                         }}
                     >
-                        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                            }}
+                        >
                             <Box sx={{ fontSize: 40, mb: 1 }}>{tab.icon}</Box>
-                            <Typography sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}>
+                            <Typography
+                                sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}
+                            >
                                 {tab.label}
                             </Typography>
                         </Box>
@@ -521,9 +547,9 @@ const AnnouncementPanel = () => {
                 ))}
             </Box>
 
+            <br />
+            <br />
 
-            <br />
-            <br />
             <TableContainer
                 component={Paper}
                 sx={{ width: "100%", border: `1px solid ${borderColor}` }}

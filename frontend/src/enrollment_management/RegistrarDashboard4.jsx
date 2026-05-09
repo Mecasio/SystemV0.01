@@ -72,37 +72,36 @@ const RegistrarDashboard4 = () => {
     }, [settings]);
 
     const stepsData = [
-    {
-         label: "Admission Process For College",
-         to: "/applicant_list",
-         icon: <SchoolIcon fontSize="large" />,
-       },
-       {
-         label: "Applicant Form",
-         to: "/registrar_dashboard1",
-         icon: <AssignmentIcon fontSize="large" />,
-       },
-       {
-         label: "Student Requirements",
-         to: "/registrar_requirements",
-         icon: <AssignmentTurnedInIcon fontSize="large" />,
-       },
-       { 
-         label: "Qualifying / Interview Schedule Management", 
-         to: "/assign_schedule_applicants_qualifying_interview", 
-         icon: <ScheduleIcon fontSize="large" /> 
-       },
-       {
-         label: "Qualifying / Interview Exam Score",
-         to: "/qualifying_interview_exam_scores",
-         icon: <ScoreIcon fontSize="large" />,
-       },
-       {
-         label: "Student Numbering",
-         to: "/student_numbering_per_college",
-         icon: <DashboardIcon fontSize="large" />,
-       },
-   
+      {
+          label: "Applicant List",
+          to: "/applicant_list",
+          icon: <SchoolIcon fontSize="large" />,
+        },
+        {
+          label: "Applicant Form",
+          to: "/registrar_dashboard1",
+          icon: <PersonIcon fontSize="large" />,
+        },
+        {
+          label: "Student Requirements",
+          to: "/registrar_requirements",
+          icon: <AssignmentIcon fontSize="large" />,
+        },
+        {
+          label: "Qualifying / Interview Schedule Management",
+          to: "/assign_schedule_applicants_qualifying_interview",
+          icon: <ScheduleIcon fontSize="large" />
+        },
+        {
+          label: "Qualifying / Interview Exam Score",
+          to: "/qualifying_interview_exam_scores",
+          icon: <ScoreIcon fontSize="large" />,
+        },
+        {
+          label: "Student Numbering",
+          to: "/student_numbering_per_college",
+          icon: <DashboardIcon fontSize="large" />,
+        },
     ];
 
 
@@ -588,13 +587,12 @@ const RegistrarDashboard4 = () => {
                         fontSize: '36px',
                     }}
                 >
-                      HEALTH MEDICAL RECORDS
+                    HEALTH MEDICAL RECORDS
                 </Typography>
             </Box>
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
-            <br />
-
+        
             <Box
                 sx={{
                     display: "flex",
@@ -655,16 +653,16 @@ const RegistrarDashboard4 = () => {
                         {index < stepsData.length - 1 && (
                             <Box
                                 sx={{
-                                    flex: 0.05,
+
                                     mx: 1, // spacing between cards
                                 }}
-                      />
+                            />
                         )}
                     </React.Fragment>
                 ))}
             </Box>
-
-            <div style={{ height: "40px" }}></div>
+            <br />
+            <br />
 
 
 
@@ -830,7 +828,7 @@ const RegistrarDashboard4 = () => {
                             <PictureAsPdfIcon
                                 className="card-icon"
                                 sx={{ fontSize: 35, color: mainButtonColor, mr: 1.5 }}
-                      />
+                            />
 
                             {/* Label */}
                             <Typography
@@ -939,7 +937,7 @@ const RegistrarDashboard4 = () => {
                                             alignSelf: "center",
                                             mx: 2,
                                         }}
-                      />
+                                    />
                                 )}
                             </React.Fragment>
                         ))}
@@ -995,11 +993,11 @@ const RegistrarDashboard4 = () => {
                                                 handleUpdate(updatedPerson);
                                             }}
                                             onBlur={handleBlur}
-                      />
+                                        />
                                     }
                                     label={symptom.charAt(0).toUpperCase() + symptom.slice(1)}
                                     sx={{ ml: 5 }}
-                      />
+                                />
                             ))}
                         </FormGroup>
 
@@ -1074,7 +1072,7 @@ const RegistrarDashboard4 = () => {
                                                                             handleUpdate(updatedPerson);
                                                                         }}
                                                                         onBlur={handleBlur}
-                      />
+                                                                    />
                                                                     <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>Yes</span>
                                                                 </div>
 
@@ -1093,7 +1091,7 @@ const RegistrarDashboard4 = () => {
                                                                             handleUpdate(updatedPerson);
                                                                         }}
                                                                         onBlur={handleBlur}
-                      />
+                                                                    />
                                                                     <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>No</span>
                                                                 </div>
                                                             </div>
@@ -1134,10 +1132,10 @@ const RegistrarDashboard4 = () => {
                                                         handleUpdate(updatedPerson);
                                                     }}
                                                     onBlur={handleBlur}
-                      />
+                                                />
                                             }
                                             label="Yes"
-                      />
+                                        />
 
                                         {/* NO */}
                                         <FormControlLabel
@@ -1155,10 +1153,10 @@ const RegistrarDashboard4 = () => {
                                                         handleUpdate(updatedPerson);
                                                     }}
                                                     onBlur={handleBlur}
-                      />
+                                                />
                                             }
                                             label="No"
-                      />
+                                        />
 
 
                                     </Box>
@@ -1192,7 +1190,7 @@ const RegistrarDashboard4 = () => {
                                     handleUpdate(updatedPerson);
                                 }}
                                 onBlur={handleBlur}
-                      />
+                            />
                         </Box>
 
                         <br />
@@ -1224,7 +1222,7 @@ const RegistrarDashboard4 = () => {
                                     handleUpdate(updatedPerson);
                                 }}
                                 onBlur={handleBlur}
-                      />
+                            />
                         </Box>
 
                         {/* IV. COVID PROFILE */}
@@ -1273,7 +1271,7 @@ const RegistrarDashboard4 = () => {
                                                             handleUpdate(updatedPerson);
                                                         }}
                                                         onBlur={handleBlur}
-                      />
+                                                    />
                                                     <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>YES</span>
                                                 </Box>
 
@@ -1292,7 +1290,7 @@ const RegistrarDashboard4 = () => {
                                                             handleUpdate(updatedPerson);
                                                         }}
                                                         onBlur={handleBlur}
-                      />
+                                                    />
                                                     <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>NO</span>
 
 
@@ -1302,8 +1300,8 @@ const RegistrarDashboard4 = () => {
                                             {/* IF YES, WHEN */}
                                             <span>IF YES, WHEN:</span>
                                             <DateField
-                                                  size="small"
-                        readOnly
+                                                size="small"
+                                                readOnly
                                                 name="covidDate"
                                                 value={person.covidDate || ""}
                                                 onChange={(e) => {
@@ -1323,7 +1321,7 @@ const RegistrarDashboard4 = () => {
                                                     border: "1px solid #ccc",
                                                     borderRadius: "4px",
                                                 }}
-                      />
+                                            />
                                         </Box>
                                     </td>
                                 </tr>
@@ -1379,7 +1377,7 @@ const RegistrarDashboard4 = () => {
                                                                 }}
                                                                 onBlur={handleBlur}
                                                                 style={inputStyle}
-                      />
+                                                            />
                                                         </td>
                                                     ))}
                                                 </tr>
@@ -1391,8 +1389,8 @@ const RegistrarDashboard4 = () => {
                                                     {["vaccine1Date", "vaccine2Date", "booster1Date", "booster2Date"].map((field) => (
                                                         <td key={field} style={{ padding: "4px" }}>
                                                             <DateField
-                                                                  size="small"
-                        readOnly
+                                                                size="small"
+                                                                readOnly
                                                                 name={field}
                                                                 value={person[field] || ""}
                                                                 onChange={(e) => {
@@ -1405,7 +1403,7 @@ const RegistrarDashboard4 = () => {
                                                                 }}
                                                                 onBlur={handleBlur}
                                                                 style={inputStyle}
-                      />
+                                                            />
                                                         </td>
                                                     ))}
                                                 </tr>
@@ -1444,7 +1442,7 @@ const RegistrarDashboard4 = () => {
                                             }}
                                             onBlur={handleBlur}
                                             className="w-full border px-3 py-2 rounded"
-                      />
+                                        />
                                     </td>
                                 </tr>
 
@@ -1465,7 +1463,7 @@ const RegistrarDashboard4 = () => {
                                             }}
                                             onBlur={handleBlur}
                                             className="w-full border px-3 py-2 rounded"
-                      />
+                                        />
                                     </td>
                                 </tr>
 
@@ -1486,7 +1484,7 @@ const RegistrarDashboard4 = () => {
                                             }}
                                             onBlur={handleBlur}
                                             className="w-full border px-3 py-2 rounded"
-                      />
+                                        />
                                     </td>
                                 </tr>
 
@@ -1507,7 +1505,7 @@ const RegistrarDashboard4 = () => {
                                             }}
                                             onBlur={handleBlur}
                                             className="w-full border px-3 py-2 rounded"
-                      />
+                                        />
                                     </td>
                                 </tr>
                             </tbody>
@@ -1561,7 +1559,7 @@ const RegistrarDashboard4 = () => {
                                                             handleUpdate(updatedPerson);
                                                         }}
                                                         onBlur={handleBlur}
-                      />
+                                                    />
                                                     <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>Physically Fit</span>
                                                 </div>
 
@@ -1580,7 +1578,7 @@ const RegistrarDashboard4 = () => {
                                                             handleUpdate(updatedPerson);
                                                         }}
                                                         onBlur={handleBlur}
-                      />
+                                                    />
                                                     <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>For Compliance</span>
                                                 </div>
                                             </div>
@@ -1634,7 +1632,7 @@ const RegistrarDashboard4 = () => {
                                                         padding: 0,
                                                     },
                                                 }}
-                      />
+                                            />
                                         </TableCell>
                                     </TableRow>
                                 </TableBody>
@@ -1698,7 +1696,7 @@ const RegistrarDashboard4 = () => {
                                             color: "#000",
                                             transition: "color 0.3s",
                                         }}
-                      />
+                                    />
                                 }
                                 sx={{
                                     backgroundColor: subButtonColor,
@@ -1730,7 +1728,7 @@ const RegistrarDashboard4 = () => {
                                             color: '#fff',
                                             transition: 'color 0.3s',
                                         }}
-                      />
+                                    />
                                 }
                                 sx={{
 

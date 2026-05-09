@@ -72,37 +72,36 @@ const RegistrarDashboard2 = () => {
   }, [settings]);
 
   const stepsData = [
- {
-      label: "Admission Process For College",
-      to: "/applicant_list",
-      icon: <SchoolIcon fontSize="large" />,
-    },
-    {
-      label: "Applicant Form",
-      to: "/registrar_dashboard1",
-      icon: <AssignmentIcon fontSize="large" />,
-    },
-    {
-      label: "Student Requirements",
-      to: "/registrar_requirements",
-      icon: <AssignmentTurnedInIcon fontSize="large" />,
-    },
-    { 
-      label: "Qualifying / Interview Schedule Management", 
-      to: "/assign_schedule_applicants_qualifying_interview", 
-      icon: <ScheduleIcon fontSize="large" /> 
-    },
-    {
-      label: "Qualifying / Interview Exam Score",
-      to: "/qualifying_interview_exam_scores",
-      icon: <ScoreIcon fontSize="large" />,
-    },
-    {
-      label: "Student Numbering",
-      to: "/student_numbering_per_college",
-      icon: <DashboardIcon fontSize="large" />,
-    },
-
+      {
+          label: "Applicant List",
+          to: "/applicant_list",
+          icon: <SchoolIcon fontSize="large" />,
+        },
+        {
+          label: "Applicant Form",
+          to: "/registrar_dashboard1",
+          icon: <PersonIcon fontSize="large" />,
+        },
+        {
+          label: "Student Requirements",
+          to: "/registrar_requirements",
+          icon: <AssignmentIcon fontSize="large" />,
+        },
+        {
+          label: "Qualifying / Interview Schedule Management",
+          to: "/assign_schedule_applicants_qualifying_interview",
+          icon: <ScheduleIcon fontSize="large" />
+        },
+        {
+          label: "Qualifying / Interview Exam Score",
+          to: "/qualifying_interview_exam_scores",
+          icon: <ScoreIcon fontSize="large" />,
+        },
+        {
+          label: "Student Numbering",
+          to: "/student_numbering_per_college",
+          icon: <DashboardIcon fontSize="large" />,
+        },
 
   ];
   const [currentStep, setCurrentStep] = useState(1);
@@ -578,38 +577,38 @@ const RegistrarDashboard2 = () => {
   };
 
   const handleGuardianChange = (e) => {
-  const { value } = e.target;
+    const { value } = e.target;
 
-  let updatedPerson = { ...person, guardian: value };
+    let updatedPerson = { ...person, guardian: value };
 
-  if (value === "Father") {
-    updatedPerson = {
-      ...updatedPerson,
-      guardian_family_name: person.father_family_name || "",
-      guardian_given_name: person.father_given_name || "",
-      guardian_middle_name: person.father_middle_name || "",
-      guardian_ext: person.father_ext || "",
-      guardian_nickname: person.father_nickname || "",
-      guardian_contact: person.father_contact || "",
-      guardian_email: person.father_email || "",
-    };
-  }
+    if (value === "Father") {
+      updatedPerson = {
+        ...updatedPerson,
+        guardian_family_name: person.father_family_name || "",
+        guardian_given_name: person.father_given_name || "",
+        guardian_middle_name: person.father_middle_name || "",
+        guardian_ext: person.father_ext || "",
+        guardian_nickname: person.father_nickname || "",
+        guardian_contact: person.father_contact || "",
+        guardian_email: person.father_email || "",
+      };
+    }
 
-  if (value === "Mother") {
-    updatedPerson = {
-      ...updatedPerson,
-      guardian_family_name: person.mother_family_name || "",
-      guardian_given_name: person.mother_given_name || "",
-      guardian_middle_name: person.mother_middle_name || "",
-      guardian_ext: person.mother_ext || "",
-      guardian_nickname: person.mother_nickname || "",
-      guardian_contact: person.mother_contact || "",
-      guardian_email: person.mother_email || "",
-    };
-  }
+    if (value === "Mother") {
+      updatedPerson = {
+        ...updatedPerson,
+        guardian_family_name: person.mother_family_name || "",
+        guardian_given_name: person.mother_given_name || "",
+        guardian_middle_name: person.mother_middle_name || "",
+        guardian_ext: person.mother_ext || "",
+        guardian_nickname: person.mother_nickname || "",
+        guardian_contact: person.mother_contact || "",
+        guardian_email: person.mother_email || "",
+      };
+    }
 
-  setPerson(updatedPerson);
-};
+    setPerson(updatedPerson);
+  };
 
 
   const divToPrintRef = useRef();
@@ -725,7 +724,7 @@ const RegistrarDashboard2 = () => {
 
   // Put this at the very bottom before the return 
   if (loading || hasAccess === null) {
-   return <LoadingOverlay open={loading} message="Loading..." />;
+    return <LoadingOverlay open={loading} message="Loading..." />;
   }
 
   if (!hasAccess) {
@@ -736,7 +735,7 @@ const RegistrarDashboard2 = () => {
 
   // dot not alter
   return (
-     <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
+    <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
       {showPrintView && (
         <div ref={divToPrintRef} style={{ display: "block" }}>
           <ExamPermit personId={userID} />   {/* ✅ pass the searched person_id */}
@@ -764,12 +763,12 @@ const RegistrarDashboard2 = () => {
             fontSize: '36px',
           }}
         >
-            FAMILY BACKGROUND
+          FAMILY BACKGROUND
         </Typography>
       </Box>
-        <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+      <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
-      <br />
+     
 
       <Box
         sx={{
@@ -831,7 +830,7 @@ const RegistrarDashboard2 = () => {
             {index < stepsData.length - 1 && (
               <Box
                 sx={{
-                  flex: 0.05,
+
                   mx: 1, // spacing between cards
                 }}
               />
@@ -841,7 +840,8 @@ const RegistrarDashboard2 = () => {
       </Box>
 
 
-      <div style={{ height: "40px" }}></div>
+      <br />
+      <br />
 
 
 
@@ -1115,11 +1115,11 @@ const RegistrarDashboard2 = () => {
                 {index < steps.length - 1 && (
                   <Box
                     sx={{
-                            height: "2px",
-                    backgroundColor: mainButtonColor,
-                    flex: 1,
-                    alignSelf: "center",
-                    mx: 2,
+                      height: "2px",
+                      backgroundColor: mainButtonColor,
+                      flex: 1,
+                      alignSelf: "center",
+                      mx: 2,
                     }}
                   />
                 )}
@@ -1448,7 +1448,7 @@ const RegistrarDashboard2 = () => {
                         <Typography variant="subtitle2" mb={1}>Father Year Graduated</Typography>
                         <TextField
                           InputProps={{ readOnly: true }}
- type="number"
+                          type="number"
                           fullWidth
                           size="small"
                           name="father_year_graduated"
@@ -1867,7 +1867,7 @@ const RegistrarDashboard2 = () => {
                         <Typography variant="subtitle2" mb={1}>Mother Year Graduated</Typography>
                         <TextField
                           InputProps={{ readOnly: true }}
- type="number"
+                          type="number"
                           fullWidth
                           size="small"
                           name="mother_year_graduated"
@@ -2011,25 +2011,25 @@ const RegistrarDashboard2 = () => {
                   name="guardian"
                   value={person.guardian || ""}
                   label="Guardian"
-                 onChange={handleGuardianChange}
+                  onChange={handleGuardianChange}
                   onBlur={handleBlur}
                 >
-                 <MenuItem value=""><em>Select Guardian</em></MenuItem>
-                                <MenuItem value="Father">Father</MenuItem>
-                                <MenuItem value="Mother">Mother</MenuItem>
-                                <MenuItem value="Brother/Sister">Brother/Sister</MenuItem>
-                                <MenuItem value="Uncle">Uncle</MenuItem>
-                                <MenuItem value="Aunt">Aunt</MenuItem>
-                                <MenuItem value="StepFather">Stepfather</MenuItem>
-                                <MenuItem value="StepMother">Stepmother</MenuItem>
-                                <MenuItem value="Cousin">Cousin</MenuItem>
-                                <MenuItem value="Father in Law">Father-in-law</MenuItem>
-                                <MenuItem value="Mother in Law">Mother-in-law</MenuItem>
-                                <MenuItem value="Sister in Law">Sister-in-law</MenuItem>
-                                <MenuItem value="GrandMother">GrandMother</MenuItem>
-                                <MenuItem value="GrandFather">GrandFather</MenuItem>
-                                <MenuItem value="Spouse">Spouse</MenuItem>
-                                <MenuItem value="Others">Others</MenuItem>
+                  <MenuItem value=""><em>Select Guardian</em></MenuItem>
+                  <MenuItem value="Father">Father</MenuItem>
+                  <MenuItem value="Mother">Mother</MenuItem>
+                  <MenuItem value="Brother/Sister">Brother/Sister</MenuItem>
+                  <MenuItem value="Uncle">Uncle</MenuItem>
+                  <MenuItem value="Aunt">Aunt</MenuItem>
+                  <MenuItem value="StepFather">Stepfather</MenuItem>
+                  <MenuItem value="StepMother">Stepmother</MenuItem>
+                  <MenuItem value="Cousin">Cousin</MenuItem>
+                  <MenuItem value="Father in Law">Father-in-law</MenuItem>
+                  <MenuItem value="Mother in Law">Mother-in-law</MenuItem>
+                  <MenuItem value="Sister in Law">Sister-in-law</MenuItem>
+                  <MenuItem value="GrandMother">GrandMother</MenuItem>
+                  <MenuItem value="GrandFather">GrandFather</MenuItem>
+                  <MenuItem value="Spouse">Spouse</MenuItem>
+                  <MenuItem value="Others">Others</MenuItem>
                 </Select>
 
               </FormControl>
@@ -2251,7 +2251,7 @@ const RegistrarDashboard2 = () => {
                   transform: "translate(-50%, -50%)",
                   width: 400,
                   bgcolor: "background.paper",
-                border: `1px solid ${borderColor}`,
+                  border: `1px solid ${borderColor}`,
                   boxShadow: 24,
                   p: 4,
                   borderRadius: 2,

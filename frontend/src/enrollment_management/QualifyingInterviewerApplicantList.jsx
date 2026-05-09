@@ -501,30 +501,34 @@ const InterviewerApplicantList = () => {
 
 
   return (
-    <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
+     <Box
+      sx={{
+        height: "calc(100vh - 150px)",
+        overflowY: "auto",
+        paddingRight: 1,
+        backgroundColor: "transparent",
+        mt: 1,
+        padding: 2,
+      }}
+    >
       <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-
-          mb: 2,
-
-        }}
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={2}
       >
-        <Typography
-          variant="h4"
+        <Typography variant="h4"
           sx={{
-            fontWeight: "bold",
+            fontWeight: 'bold',
             color: titleColor,
-            fontSize: "36px",
+            fontSize: '36px',
           }}
         >
-        INTERVIEWER / QUALIFYING APPLICANT LIST
+              INTERVIEWER / QUALIFYING APPLICANT LIST
         </Typography>
 
-        <TextField
+
+      <TextField
           variant="outlined"
           placeholder="Search Qualifying / Interviewer Name / Email"
           size="small"
@@ -552,7 +556,7 @@ const InterviewerApplicantList = () => {
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
 
-
+      <br />
       <br />
 
       {/* <Box
@@ -561,7 +565,7 @@ const InterviewerApplicantList = () => {
           justifyContent: "space-between",
           flexWrap: "nowrap", // ❌ prevent wrapping
           width: "100%",
-          mt: 3,
+
           gap: 2,
         }}
       >
@@ -571,14 +575,17 @@ const InterviewerApplicantList = () => {
             onClick={() => handleStepClick(index, tab.to)}
             sx={{
               flex: `1 1 ${100 / tabs.length}%`, // evenly divide row
-              height: 140,
+              height: 135,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               cursor: "pointer",
               borderRadius: 2,
-              border: `2px solid ${borderColor}`,
-              backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
+              border: `1px solid ${borderColor}`,
+              backgroundColor:
+                activeStep === index
+                  ? settings?.header_color || "#1976d2"
+                  : "#E8C999",
               color: activeStep === index ? "#fff" : "#000",
               boxShadow:
                 activeStep === index
@@ -590,9 +597,17 @@ const InterviewerApplicantList = () => {
               },
             }}
           >
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+            >
               <Box sx={{ fontSize: 40, mb: 1 }}>{tab.icon}</Box>
-              <Typography sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}>
+              <Typography
+                sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}
+              >
                 {tab.label}
               </Typography>
             </Box>
@@ -600,8 +615,9 @@ const InterviewerApplicantList = () => {
         ))}
       </Box> */}
 
+     <br/>
+     <br/>
 
-      <br />
       {interviewerData && (
         <Box
           sx={{

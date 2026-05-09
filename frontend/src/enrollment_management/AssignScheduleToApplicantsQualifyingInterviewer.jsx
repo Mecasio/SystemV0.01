@@ -24,11 +24,14 @@ import {
   TableBody,
   Card,
   TableHead,
+  IconButton,
   Snackbar,
   Alert,
 } from "@mui/material";
 import { Search } from "@mui/icons-material";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import CloseIcon from '@mui/icons-material/Close'; // or use the custom SVG below
+
 import SchoolIcon from "@mui/icons-material/School";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
@@ -43,6 +46,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import API_BASE_URL from "../apiConfig";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import ScoreIcon from "@mui/icons-material/Score";
+import PersonIcon from "@mui/icons-material/Person";
 
 const AssignScheduleToApplicantsInterviewer = () => {
   const socket = useRef(null);
@@ -219,24 +223,24 @@ const AssignScheduleToApplicantsInterviewer = () => {
 
   const tabs = [
     {
-      label: "Admission Process For College",
+      label: "Applicant List",
       to: "/applicant_list",
       icon: <SchoolIcon fontSize="large" />,
     },
     {
       label: "Applicant Form",
       to: "/registrar_dashboard1",
-      icon: <AssignmentIcon fontSize="large" />,
+      icon: <PersonIcon fontSize="large" />,
     },
     {
       label: "Student Requirements",
       to: "/registrar_requirements",
-      icon: <AssignmentTurnedInIcon fontSize="large" />,
+      icon: <AssignmentIcon fontSize="large" />,
     },
     {
       label: "Qualifying / Interview Schedule Management",
       to: "/assign_schedule_applicants_qualifying_interview",
-      icon: <ScheduleIcon fontSize="large" />,
+      icon: <ScheduleIcon fontSize="large" />
     },
     {
       label: "Qualifying / Interview Exam Score",
@@ -769,6 +773,7 @@ const AssignScheduleToApplicantsInterviewer = () => {
     }
   };
 
+  const [showRequirements, setShowRequirements] = useState(false);
   const [requirements, setRequirements] = useState([]);
 
   const fetchRequirements = async () => {
@@ -809,41 +814,53 @@ const AssignScheduleToApplicantsInterviewer = () => {
     p => p.applicant_number === firstApplicantNumber
   );
 
-  const handleSelect = (reqId, type) => {
-    setSelectedCopies(prev => {
-      const updated = {
-        ...prev,
-        [reqId]: type
-      };
+  const handleSelect = (reqId, type = null) => {
+    setSelectedCopies((prev) => {
+      const updated = { ...prev };
 
-      const firstApplicantNumber = Array.from(selectedApplicants)[0];
+      // ✅ Remove selection if null
+      if (type === null) {
+        delete updated[reqId];
+      } else {
+        updated[reqId] = type;
+      }
 
-      const applicant = persons.find(
-        p => p.applicant_number === firstApplicantNumber
+      // ✅ Use the already computed selected applicant
+      const applicant = selectedApplicantData;
+
+      // ✅ Safety check
+      if (!applicant) {
+        return updated;
+      }
+
+      // ✅ Get currently selected schedule
+      const sched =
+        getSelectedScheduleData() ||
+        schedules.find(
+          (s) => String(s.schedule_id) === String(applicant.schedule_id)
+        );
+
+      // ✅ Rebuild requirements text with updated copy selections
+      const reqText = buildRequirementsText(
+        applicant,
+        requirements,
+        updated
       );
 
-      if (!applicant) return prev;
+      // ✅ Rebuild the email preview
+      const newMessage = buildFullMessage(
+        applicant,
+        reqText,
+        sched
+      );
 
-      const reqText = buildRequirementsText(applicant, requirements, updated);
-
-      const today = new Date();
-      const validUntil = new Date(today);
-      validUntil.setDate(today.getDate() + 7);
-
-      const formattedValidUntil = validUntil.toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      });
-
-      const sched = getSelectedScheduleData(); // or however you fetch it
-
-      const newMessage = buildFullMessage(applicant, reqText, sched);
+      // ✅ Update preview
       setEmailMessage(newMessage);
 
       return updated;
     });
   };
+
 
   const buildFullMessage = (applicant, reqText, sched) => {
     if (!sched) return "No schedule available.";
@@ -868,6 +885,18 @@ const AssignScheduleToApplicantsInterviewer = () => {
       })
       : "N/A";
 
+    // ✅ Only include the requirements section if the user explicitly
+    // clicked "Show Required Documents"
+    const requirementsSection = showRequirements
+      ? `
+
+Please bring the following requirements:
+
+📄 REQUIRED DOCUMENTS:
+${reqText}
+`
+      : "";
+
     return `
 Dear ${applicant?.last_name || ""}, ${applicant?.first_name || ""} ${applicant?.middle_name || ""}
 
@@ -877,45 +906,82 @@ You have been assigned to the following schedule:
 🏢 Building: ${sched?.building_description || "N/A"}
 🏫 Room: ${sched?.room_description || "N/A"}
 🕒 Time: ${formatTime(sched?.start_time)} - ${formatTime(sched?.end_time)}
-
-Please bring the following requirements:
-
-📄 REQUIRED DOCUMENTS:
-${reqText}
-
+${requirementsSection}
 ⚠️ Important Reminder:
 `.trim();
   };
 
 
-  const buildRequirementsText = (applicant, list = requirements, copies = selectedCopies) => {
+  const buildRequirementsText = (
+    applicant,
+    list = requirements,
+    copies = selectedCopies
+  ) => {
     const filtered = filterRequirementsForApplicant(applicant, list);
 
     if (!filtered || filtered.length === 0) {
-      return "• No requirements listed at this time.";
+      return "No requirements listed.";
     }
 
-    // Group by category (Regular, Medical, etc.)
-    const grouped = filtered.reduce((acc, req) => {
-      const category = req.category || "Other";
-      if (!acc[category]) acc[category] = [];
-      acc[category].push(req);
-      return acc;
-    }, {});
+    const mainReqs = filtered.filter(
+      (r) => !r.category?.toLowerCase().includes("medical")
+    );
+
+    const medReqs = filtered.filter(
+      (r) => r.category?.toLowerCase().includes("medical")
+    );
 
     let text = "";
 
-    Object.entries(grouped).forEach(([category, items]) => {
-      text += `\n${category} Requirements:\n`;
-      items.forEach((req) => {
-        const selected = copies[req.id];
-        text += `• ${req.description}`;
-        if (selected) {
-          text += ` (${selected.toUpperCase()})`;
+    if (mainReqs.length > 0) {
+      text += "Main Requirements:\n";
+
+      mainReqs.forEach((req, i) => {
+        const sel = copies[req.id];
+
+        text += `${i + 1}. ${req.description}`;
+
+        // optional label
+        if (Number(req.is_optional) === 1) {
+          text += " (Optional)";
         }
-        text += `\n`;
+
+        if (sel === "original") {
+          text += " (Original Copy)";
+        }
+
+        if (sel === "xerox") {
+          text += " (Xerox Copy)";
+        }
+
+        text += "\n";
       });
-    });
+    }
+
+    if (medReqs.length > 0) {
+      text += "\nMedical Requirements:\n";
+
+      medReqs.forEach((req) => {
+        const sel = copies[req.id];
+
+        text += `• ${req.description}`;
+
+        // optional label
+        if (Number(req.is_optional) === 1) {
+          text += " (Optional)";
+        }
+
+        if (sel === "original") {
+          text += " (Original Copy)";
+        }
+
+        if (sel === "xerox") {
+          text += " (Xerox Copy)";
+        }
+
+        text += "\n";
+      });
+    }
 
     return text.trim();
   };
@@ -1107,11 +1173,6 @@ ${reqText}
 • Your Enrollment Officer will provide you with the Admission Form Process, including the required signatories.`
   );
 
-  // Live-rebuild finalPreview whenever reminders or base message change
-  useEffect(() => {
-    if (!confirmOpen) return;
-    setFinalPreview(`${emailMessage}\n\n${customReminders}\n\nThank you and good luck!`);
-  }, [customReminders, emailMessage, confirmOpen]);
 
   const [schedules, setSchedules] = useState([]);
 
@@ -1415,6 +1476,76 @@ ${reqText}
     visiblePages.push(i);
   }
 
+  // Live-rebuild finalPreview whenever reminders, base message,
+  // or the "Show/Hide Required Documents" button changes
+  useEffect(() => {
+    if (!confirmOpen) return;
+
+    // Get the first selected applicant
+    const firstApplicantNumber = Array.from(selectedApplicants)[0];
+    const applicant = persons.find(
+      (p) => p.applicant_number === firstApplicantNumber
+    );
+
+    if (!applicant) {
+      setFinalPreview(
+        `${emailMessage}\n\n${customReminders}\n\nThank you and good luck!`
+      );
+      return;
+    }
+
+    // Get selected schedule
+    const sched =
+      getSelectedScheduleData() ||
+      schedules.find(
+        (s) => String(s.schedule_id) === String(applicant.schedule_id)
+      );
+
+    if (!sched) {
+      setFinalPreview(
+        `${emailMessage}\n\n${customReminders}\n\nThank you and good luck!`
+      );
+      return;
+    }
+
+    // Build requirements text only if the button
+    // "Show Required Documents" is enabled
+    const reqText = showRequirements
+      ? buildRequirementsText(
+        applicant,
+        requirements,
+        selectedCopies
+      )
+      : "";
+
+    // Rebuild the whole email message.
+    // buildFullMessage already checks showRequirements,
+    // so when hidden, the entire requirements section disappears.
+    const rebuiltMessage = buildFullMessage(
+      applicant,
+      reqText,
+      sched
+    );
+
+    // Update the fixed portion of the email
+    setEmailMessage(rebuiltMessage);
+
+    // Update the final preview with reminders
+    setFinalPreview(
+      `${rebuiltMessage}\n\n${customReminders}\n\nThank you and good luck!`
+    );
+  }, [
+    customReminders,
+    confirmOpen,
+    showRequirements,   // ✅ reacts immediately when Show/Hide button is clicked
+    selectedCopies,     // ✅ reacts when Original/Xerox selections change
+    selectedApplicants,
+    persons,
+    schedules,
+    requirements,
+  ]);
+
+
   useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(totalPages || 1);
@@ -1447,35 +1578,28 @@ ${reqText}
       }}
     >
       <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-
-          mb: 2,
-        }}
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={2}
       >
-        <Typography
-          variant="h4"
+        <Typography variant="h4"
           sx={{
-            fontWeight: "bold",
+            fontWeight: 'bold',
             color: titleColor,
-            fontSize: "36px",
+            fontSize: '36px',
           }}
         >
           QUALIFYING / INTERVIEW SCHEDULE MANAGEMENT
         </Typography>
+
 
         <TextField
           variant="outlined"
           placeholder="Search Applicant Name / Email / Applicant ID"
           size="small"
           value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value);
-            setCurrentPage(1); // Corrected
-          }}
+          onChange={(e) => setSearchQuery(e.target.value)}
           sx={{
             width: 450,
             backgroundColor: "#fff",
@@ -1489,9 +1613,11 @@ ${reqText}
           }}
         />
       </Box>
+
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
 
-      <div style={{ height: "20px" }}></div>
+      <br />
+      <br />
 
       <Box
         sx={{
@@ -1499,7 +1625,7 @@ ${reqText}
           justifyContent: "space-between",
           flexWrap: "nowrap", // ❌ prevent wrapping
           width: "100%",
-          mt: 3,
+
           gap: 2,
         }}
       >
@@ -1509,7 +1635,7 @@ ${reqText}
             onClick={() => handleStepClick(index, tab.to)}
             sx={{
               flex: `1 1 ${100 / tabs.length}%`, // evenly divide row
-              height: 140,
+              height: 135,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -1527,7 +1653,7 @@ ${reqText}
                   : "0px 2px 6px rgba(0,0,0,0.15)",
               transition: "0.3s ease",
               "&:hover": {
-                backgroundColor: activeStep === index ? "#000" : "#f5d98f",
+                backgroundColor: activeStep === index ? "#000000" : "#f5d98f",
               },
             }}
           >
@@ -1549,7 +1675,11 @@ ${reqText}
         ))}
       </Box>
 
-      <div style={{ height: "40px" }}></div>
+      <br />
+      <br />
+
+
+
 
       <TableContainer
         component={Paper}
@@ -2284,16 +2414,16 @@ ${reqText}
                   0
                 );
 
-             const computedConvertedRating =
-                    maxTotal > 0
-                        ? ((totalScore / maxTotal) * 50) + 50
-                        : 0;
+                const computedConvertedRating =
+                  maxTotal > 0
+                    ? ((totalScore / maxTotal) * 50) + 50
+                    : 0;
 
                 // Final rating same as converted rating
                 const computedFinalRating =
-                    subjectScores.length > 0
-                        ? totalScore / subjectScores.length
-                        : 0;
+                  subjectScores.length > 0
+                    ? totalScore / subjectScores.length
+                    : 0;
 
 
 
@@ -2666,23 +2796,37 @@ ${reqText}
         </Alert>
       </Snackbar>
 
+
       <Dialog
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
-        maxWidth="md"
+        maxWidth="lg"
         fullWidth
       >
-        <DialogTitle
-          sx={{
-            backgroundColor: settings?.header_color || "#1976d2",
-            color: "white",
-          }}
-        >
-           ✉️ Message
+        <DialogTitle sx={{ bgcolor: settings?.header_color || "#1976d2", color: "white", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          ✉️ Message
+          <IconButton
+            onClick={() => setConfirmOpen(false)}
+            sx={{
+              color: "white",
+              border: "2px solid rgba(255,255,255,0.6)",
+              borderRadius: "50%",
+              width: 48,
+              height: 48,
+              padding: 0,
+              "&:hover": {
+                backgroundColor: "rgba(255,255,255,0.2)",
+                border: "2px solid white",
+              },
+            }}
+          >
+            <CloseIcon sx={{ fontSize: 18 }} />
+          </IconButton>
         </DialogTitle>
 
         <DialogContent dividers sx={{ p: 3 }}>
-          {/* Sender */}
+
+          {/* Sender - full width on top */}
           <TextField
             label="Sender"
             value={
@@ -2692,10 +2836,10 @@ ${reqText}
             }
             fullWidth
             InputProps={{ readOnly: true }}
-            sx={{ mb: 3 }}
+            sx={{ mb: 2 }}
           />
 
-          {/* Subject */}
+          {/* Subject - full width */}
           <TextField
             label="Email Subject"
             value={emailSubject}
@@ -2704,113 +2848,235 @@ ${reqText}
             sx={{ mb: 3 }}
           />
 
-          <div
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "8px",
-              padding: "16px",
-              minHeight: "200px",
-              backgroundColor: "#fafafa"
-            }}
-          >
-            <p style={{ fontWeight: "bold", marginBottom: "12px" }}>
-              📄 REQUIRED DOCUMENTS:
-            </p>
+          {/* Two-column layout */}
+          <Box sx={{ display: "flex", gap: 3, alignItems: "flex-start" }}>
 
-            {filterRequirementsForApplicant(
-              selectedApplicantData,
-              requirements
-            ).map((req) => {
-              const selected = selectedCopies[req.id];
+            {/* LEFT SIDE - Preview */}
+            <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+              <Typography variant="subtitle2" color="text.secondary" fontWeight={600}>
+                👁️ Email Preview
+              </Typography>
 
-              return (
-                <div
-                  key={req.id}
-                  style={{
-                    border: "1px solid #eee",
-                    borderRadius: "6px",
-                    padding: "10px",
-                    marginBottom: "10px",
-                    backgroundColor: selected ? "#fff8f0" : "white"
+              <TextField
+                label="Email Preview (Read Only)"
+                value={finalPreview}
+                fullWidth
+                multiline
+                minRows={18}
+                InputProps={{ readOnly: true }}
+                sx={{
+                  "& .MuiInputBase-root": {
+                    backgroundColor: "#f9f9f9",
+                  }
+                }}
+              />
+            </Box>
+
+            {/* RIGHT SIDE - Edit */}
+            <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+              <Typography variant="subtitle2" color="text.secondary" fontWeight={600}>
+                ✏️ Edit Fields
+              </Typography>
+
+              {/* Required Documents */}
+              {/* Required Documents */}
+              <div
+                style={{
+                  border: "1px solid #ddd",
+                  borderRadius: "8px",
+                  padding: "16px",
+                  backgroundColor: "#fafafa",
+                }}
+              >
+                <p style={{ fontWeight: "bold", marginBottom: "12px" }}>
+                  📄 REQUIRED DOCUMENTS:
+                </p>
+
+                {/* Toggle Button */}
+                <Button
+                  variant={showRequirements ? "contained" : "outlined"}
+                  color={showRequirements ? "error" : "primary"}
+                  size="small"
+                  onClick={() => setShowRequirements((prev) => !prev)}
+                  sx={{
+                    mb: 2,
+                    fontWeight: "bold",
+                    textTransform: "none",
+                    borderRadius: "10px",
                   }}
                 >
-                  {/* Description */}
-                  <div style={{ marginBottom: "8px" }}>
-                    <span style={{ fontWeight: 500 }}>
-                      • {req.description}
-                    </span>
+                  {showRequirements
+                    ? "Hide Required Documents"
+                    : "Show Required Documents"}
+                </Button>
 
-                    {selected && (
-                      <span
+                {/* Default Message */}
+                {!showRequirements && (
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: "text.secondary",
+                      fontStyle: "italic",
+                      backgroundColor: "#ffffff",
+                      border: "1px dashed #ccc",
+                      borderRadius: "6px",
+                      padding: "12px",
+                    }}
+                  >
+                    No requirements needed.
+                  </Typography>
+                )}
+
+                {/* Requirements List */}
+                {showRequirements &&
+                  filterRequirementsForApplicant(
+                    selectedApplicantData,
+                    requirements
+                  ).map((req) => {
+                    const selected = selectedCopies[req.id];
+
+                    return (
+                      <div
+                        key={req.id}
                         style={{
-                          marginLeft: "10px",
-                          color: "#800000",
-                          fontWeight: "bold"
+                          border: "1px solid #eee",
+                          borderRadius: "6px",
+                          padding: "10px",
+                          marginBottom: "10px",
+                          backgroundColor: selected ? "#fff8f0" : "white",
                         }}
                       >
-                        ({selected.toUpperCase()})
-                      </span>
-                    )}
-                  </div>
+                        <div style={{ marginBottom: "8px" }}>
+                          <span style={{ fontWeight: 500 }}>
+                            • {req.description}
+                          </span>
 
-                  {/* Buttons */}
-                  <div style={{ display: "flex", gap: "8px" }}>
-                    <Button
-                      size="small"
-                      variant={selected === "xerox" ? "contained" : "outlined"}
-                      color="warning"
-                      onClick={() => handleSelect(req.id, "xerox")}
+                          {selected && (
+                            <span
+                              style={{
+                                marginLeft: "10px",
+                                color: "#800000",
+                                fontWeight: "bold",
+                              }}
+                            >
+                              ({selected.toUpperCase()})
+                            </span>
+                          )}
+                        </div>
+
+                        <Box display="flex" gap={1} flexWrap="wrap" mt={1}>
+                          {/* ORIGINAL COPY */}
+                          <Button
+                            size="small"
+                            variant="contained"
+                            onClick={() => handleSelect(req.id, "original")}
+                            sx={{
+                              backgroundColor:
+                                selected === "original"
+                                  ? "#1976d2"
+                                  : "#e3f2fd",
+                              color:
+                                selected === "original"
+                                  ? "#fff"
+                                  : "#1976d2",
+                              fontWeight: "bold",
+                              borderRadius: "10px",
+                              textTransform: "none",
+                              "&:hover": {
+                                backgroundColor:
+                                  selected === "original"
+                                    ? "#1565c0"
+                                    : "#bbdefb",
+                              },
+                            }}
+                          >
+                            Original Copy
+                          </Button>
+
+                          {/* XEROX COPY */}
+                          <Button
+                            size="small"
+                            variant="contained"
+                            onClick={() => handleSelect(req.id, "xerox")}
+                            sx={{
+                              backgroundColor:
+                                selected === "xerox"
+                                  ? "#2e7d32"
+                                  : "#e8f5e9",
+                              color:
+                                selected === "xerox"
+                                  ? "#fff"
+                                  : "#2e7d32",
+                              fontWeight: "bold",
+                              borderRadius: "10px",
+                              textTransform: "none",
+                              "&:hover": {
+                                backgroundColor:
+                                  selected === "xerox"
+                                    ? "#1b5e20"
+                                    : "#c8e6c9",
+                              },
+                            }}
+                          >
+                            Xerox Copy
+                          </Button>
+
+                          {/* REMOVE */}
+                          {selected && (
+                            <Button
+                              size="small"
+                              color="error"
+                              variant="outlined"
+                              onClick={() => handleSelect(req.id, null)}
+                              sx={{
+                                fontWeight: "bold",
+                                borderRadius: "10px",
+                                textTransform: "none",
+                              }}
+                            >
+                              Remove
+                            </Button>
+                          )}
+                        </Box>
+                      </div>
+                    );
+                  })}
+
+                {/* If no requirements exist */}
+                {showRequirements &&
+                  filterRequirementsForApplicant(
+                    selectedApplicantData,
+                    requirements
+                  ).length === 0 && (
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: "text.secondary",
+                        fontStyle: "italic",
+                      }}
                     >
-                      📄 Xerox
-                    </Button>
+                      No requirements are available for this applicant.
+                    </Typography>
+                  )}
+              </div>
 
-                    <Button
-                      size="small"
-                      variant={selected === "original" ? "contained" : "outlined"}
-                      color="success"
-                      onClick={() => handleSelect(req.id, "original")}
-                    >
-                      📑 Original
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+              {/* Editable Reminders */}
+              <TextField
+                label="Important Reminders"
+                value={customReminders}
+                onChange={(e) => setCustomReminders(e.target.value)}
+                fullWidth
+                multiline
+                minRows={6}
+                placeholder="Edit reminders here..."
+                sx={{ fontFamily: "monospace", whiteSpace: "pre-wrap" }}
+              />
 
-          {/* Email Preview (Read Only) — updates live as reminders change */}
-          <TextField
-            label="Email Preview (Read Only)"
-            value={finalPreview}
-            fullWidth
-            multiline
-            minRows={10}
-            InputProps={{ readOnly: true }}
-            sx={{ mt: 2, mb: 3 }}
-          />
 
-          {/* Editable Reminders Only */}
-          <TextField
-            label="Important Reminders"
-            value={customReminders}
-            onChange={(e) => setCustomReminders(e.target.value)}
-            fullWidth
-            multiline
-            minRows={4}
-            placeholder="Edit reminders here..."
-            sx={{ mb: 2, fontFamily: "monospace", whiteSpace: "pre-wrap" }}
-          />
+            </Box>
 
-          <Typography
-            variant="caption"
-            color="gray"
-            sx={{ display: "block", mt: 1 }}
-          >
-            🔑 Available placeholders:{" "}
-            {
-              "{first_name}, {last_name}, {applicant_number}, {day}, {room}, {start_time}, {end_time}"
-            }
-          </Typography>
+          </Box>
+
         </DialogContent>
 
         <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>

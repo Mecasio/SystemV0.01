@@ -38,7 +38,9 @@ import SchoolIcon from "@mui/icons-material/School";
 import { useNavigate } from "react-router-dom";
 import { FcPrint } from "react-icons/fc";
 import API_BASE_URL from "../apiConfig";
-
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import AssignmentIcon from "@mui/icons-material/Assignment";
+import PersonIcon from "@mui/icons-material/Person";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 const TOR = () => {
   const settings = useContext(SettingsContext);
@@ -217,29 +219,13 @@ const TOR = () => {
 
   const navigate = useNavigate();
 
-  const tabs1 = [
-    { label: "Student Records", to: "/student_list", icon: <ListAltIcon /> },
-    {
-      label: "Applicant Form",
-      to: "/readmission_dashboard1",
-      icon: <PersonAddIcon />,
-    },
-    {
-      label: "Submitted Documents",
-      to: "/submitted_documents",
-      icon: <UploadFileIcon />,
-    },
-    {
-      label: "Search Certificate of Registration",
-      to: "/search_cor",
-      icon: <ListAltIcon />,
-    },
-    { label: "Report of Grades", to: "/report_of_grades", icon: <GradeIcon /> },
-    {
-      label: "Transcript of Records",
-      to: "/transcript_of_records",
-      icon: <SchoolIcon />,
-    },
+  const tabs = [
+    { label: "Student List", to: "/student_list", icon: <SchoolIcon fontSize="large" /> },
+       { label: "Applicant Form", to: "/readmission_dashboard1", icon: <PersonIcon fontSize="large" /> },
+       { label: "Submitted Documents", to: "/submitted_documents", icon: <AssignmentIcon fontSize="large" /> },
+       { label: "Search Certificate of Registration", to: "/search_cor", icon: <ListAltIcon fontSize="large" /> },
+       { label: "Report of Grades", to: "/report_of_grades", icon: <GradeIcon fontSize="large" /> },
+       { label: "Transcript of Records", to: "/transcript_of_records", icon: <ReceiptLongIcon fontSize="large" /> },
   ];
 
   useEffect(() => {
@@ -767,14 +753,14 @@ const TOR = () => {
           mt: 2,
         }}
       >
-        {tabs1.map((tab, index) => (
+        {tabs.map((tab, index) => (
           <React.Fragment key={index}>
             {/* Step Card */}
             <Card
               onClick={() => handleStepClick(index, tab.to)}
               sx={{
                 flex: 1,
-                maxWidth: `${100 / tabs1.length}%`, // evenly fit 100%
+                maxWidth: `${100 / tabs.length}%`, // evenly fit 100%
                 height: 140,
                 display: "flex",
                 alignItems: "center",
@@ -814,7 +800,7 @@ const TOR = () => {
             </Card>
 
             {/* Spacer instead of line */}
-            {index < tabs1.length - 1 && (
+            {index < tabs.length - 1 && (
               <Box
                 sx={{
                   flex: 0.1,
@@ -826,6 +812,7 @@ const TOR = () => {
         ))}
       </Box>
       <br />
+         <br />
       <style>
         {`  
             @media print {

@@ -26,6 +26,7 @@ import {
     TableHead,
     Snackbar,
     Alert,
+    IconButton,
 } from "@mui/material";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import SchoolIcon from "@mui/icons-material/School";
@@ -44,6 +45,11 @@ import API_BASE_URL from "../apiConfig";
 import CampaignIcon from '@mui/icons-material/Campaign';
 import { Toc } from "@mui/icons-material";
 import ScoreIcon from '@mui/icons-material/Score';
+import PersonIcon from "@mui/icons-material/Person";
+import CloseIcon from '@mui/icons-material/Close'; // or use the custom SVG below
+
+
+
 const AssignScheduleToApplicants = () => {
     const socket = useRef(null);
 
@@ -114,14 +120,14 @@ const AssignScheduleToApplicants = () => {
 
     const tabs = [
         {
-            label: "Admission Process for Registrar",
+            label: "Applicant List",
             to: "/applicant_list_admin",
             icon: <SchoolIcon fontSize="large" />,
         },
         {
             label: "Applicant Form",
             to: "/admin_dashboard1",
-            icon: <DashboardIcon fontSize="large" />,
+            icon: <PersonIcon fontSize="large" />,
         },
         {
             label: "Student Requirements",
@@ -776,6 +782,7 @@ const AssignScheduleToApplicants = () => {
 
     const buildRequirementsText = (applicant, list = requirements) => {
         const filteredRequirements = filterRequirementsForApplicant(applicant, list);
+
         if (!filteredRequirements || filteredRequirements.length === 0) {
             return "• No requirements listed at this time.";
         }
@@ -783,7 +790,11 @@ const AssignScheduleToApplicants = () => {
         // Group by category (Regular, Medical, etc.)
         const grouped = filteredRequirements.reduce((acc, req) => {
             const category = req.category || "Other";
-            if (!acc[category]) acc[category] = [];
+
+            if (!acc[category]) {
+                acc[category] = [];
+            }
+
             acc[category].push(req);
             return acc;
         }, {});
@@ -792,8 +803,16 @@ const AssignScheduleToApplicants = () => {
 
         Object.entries(grouped).forEach(([category, items]) => {
             text += `\n${category} Requirements:\n`;
+
             items.forEach((req) => {
-                text += `• ${req.description}\n`;
+                text += `• ${req.description}`;
+
+                // show optional label
+                if (Number(req.is_optional) === 1) {
+                    text += " (Optional)";
+                }
+
+                text += "\n";
             });
         });
 
@@ -1213,20 +1232,23 @@ ${officeName}`;
 
 
     return (
-        <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
+        <Box
+            sx={{
+                height: "calc(100vh - 150px)",
+                overflowY: "auto",
+                paddingRight: 1,
+                backgroundColor: "transparent",
+                mt: 1,
+                padding: 2,
+            }}
+        >
             <Box
-                sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-
-                    mb: 2,
-
-                }}
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
             >
-                <Typography
-                    variant="h4"
+                <Typography variant="h4"
                     sx={{
                         fontWeight: 'bold',
                         color: titleColor,
@@ -1234,8 +1256,8 @@ ${officeName}`;
                     }}
                 >
                     VERIFY DOCUMENT SCHEDULE MANAGEMENT
-
                 </Typography>
+
 
                 <TextField
                     variant="outlined"
@@ -1261,19 +1283,20 @@ ${officeName}`;
                     }}
                 />
 
-
             </Box>
+
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
 
             <br />
             <br />
+
             <Box
                 sx={{
                     display: "flex",
                     justifyContent: "space-between",
                     flexWrap: "nowrap", // ❌ prevent wrapping
                     width: "100%",
-                    mt: 1,
+
                     gap: 2,
                 }}
             >
@@ -1290,7 +1313,10 @@ ${officeName}`;
                             cursor: "pointer",
                             borderRadius: 2,
                             border: `1px solid ${borderColor}`,
-                            backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
+                            backgroundColor:
+                                activeStep === index
+                                    ? settings?.header_color || "#1976d2"
+                                    : "#E8C999",
                             color: activeStep === index ? "#fff" : "#000",
                             boxShadow:
                                 activeStep === index
@@ -1302,9 +1328,17 @@ ${officeName}`;
                             },
                         }}
                     >
-                        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                            }}
+                        >
                             <Box sx={{ fontSize: 40, mb: 1 }}>{tab.icon}</Box>
-                            <Typography sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}>
+                            <Typography
+                                sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}
+                            >
                                 {tab.label}
                             </Typography>
                         </Box>
@@ -2253,18 +2287,34 @@ ${officeName}`;
             <Dialog
                 open={confirmOpen}
                 onClose={() => setConfirmOpen(false)}
-                maxWidth="md"
+                maxWidth="lg"
                 fullWidth
             >
-                <DialogTitle sx={{ backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
-                     ✉️ Message
+                <DialogTitle sx={{ bgcolor: settings?.header_color || "#1976d2", color: "white", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    ✉️ Message
+                    <IconButton
+                        onClick={() => setConfirmOpen(false)}
+                        sx={{
+                            color: "white",
+                            border: "2px solid rgba(255,255,255,0.6)",
+                            borderRadius: "50%",
+                            width: 48,
+                            height: 48,
+                            padding: 0,
+                            "&:hover": {
+                                backgroundColor: "rgba(255,255,255,0.2)",
+                                border: "2px solid white",
+                            },
+                        }}
+                    >
+                        <CloseIcon sx={{ fontSize: 18 }} />
+                    </IconButton>
                 </DialogTitle>
+
 
                 <DialogContent dividers sx={{ p: 3 }}>
 
-
-
-                    {/* Subject */}
+                    {/* Subject - full width on top */}
                     <TextField
                         label="Email Subject"
                         value={emailSubject}
@@ -2273,60 +2323,71 @@ ${officeName}`;
                         sx={{ mb: 3 }}
                     />
 
-                    {/* Fixed Preview */}
-                    <TextField
-                        label="Email Preview (Read Only)"
-                        value={finalEmailMessage}
-                        fullWidth
-                        multiline
-                        minRows={10}
-                        InputProps={{
-                            readOnly: true,
-                        }}
-                        sx={{ mb: 3 }}
-                    />
+                    {/* Two-column layout */}
+                    <Box sx={{ display: "flex", gap: 3 }}>
 
-                    {/* Editable Office Hours */}
-                    <TextField
-                        label="Office Hours"
-                        value={officeHours}
-                        onChange={(e) => setOfficeHours(e.target.value)}
-                        fullWidth
-                        sx={{ mb: 3 }}
-                    />
+                        {/* RIGHT SIDE - Message Preview */}
+                        <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
+                            <Typography variant="subtitle2" color="text.secondary" fontWeight={600}>
+                                👁️ Message Preview
+                            </Typography>
 
-                    {/* Editable Important Reminders */}
-                    <TextField
-                        label="Important Reminders"
-                        value={importantReminders}
-                        onChange={(e) => setImportantReminders(e.target.value)}
-                        fullWidth
-                        multiline
-                        placeholder="Edit reminders here..."
-                        minRows={6}
-                        sx={{ mb: 3 }}
-                    />
+                            <TextField
+                                label="Email Preview (Read Only)"
+                                value={finalEmailMessage}
+                                fullWidth
+                                multiline
+                                minRows={18}
+                                InputProps={{
+                                    readOnly: true,
+                                }}
+                                sx={{
+                                    "& .MuiInputBase-root": {
+                                        backgroundColor: "#f9f9f9",
+                                    }
+                                }}
+                            />
+                        </Box>
 
 
-                    <Typography
-                        variant="caption"
-                        color="gray"
-                        sx={{ display: "block", mt: 2 }}
-                    >
-                        🔑 Available placeholders:
-                        {` {first_name}, {last_name}, {applicant_number}, {day}, {room}, {start_time}, {end_time}, {office} `}
-                    </Typography>
+                        {/* LEFT SIDE - Edit Fields */}
+                        <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
+                            <Typography variant="subtitle2" color="text.secondary" fontWeight={600}>
+                                ✏️ Edit Fields
+                            </Typography>
+
+                            {/* Editable Office Hours */}
+                            <TextField
+                                label="Office Hours"
+                                value={officeHours}
+                                onChange={(e) => setOfficeHours(e.target.value)}
+                                fullWidth
+                            />
+
+                            {/* Editable Important Reminders */}
+                            <TextField
+                                label="Important Reminders"
+                                value={importantReminders}
+                                onChange={(e) => setImportantReminders(e.target.value)}
+                                fullWidth
+                                multiline
+                                placeholder="Edit reminders here..."
+                                minRows={10}
+                            />
+
+
+                        </Box>
+
+
+                    </Box>
 
                 </DialogContent>
 
                 <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
-
                     <Button
                         onClick={() => setConfirmOpen(false)}
                         color="error"
                         variant="outlined"
-
-
                     >
                         Cancel
                     </Button>
@@ -2340,7 +2401,6 @@ ${officeName}`;
                     >
                         Send Emails
                     </Button>
-
                 </DialogActions>
             </Dialog>
 

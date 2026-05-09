@@ -19,7 +19,9 @@ import { FcPrint } from "react-icons/fc";
 import API_BASE_URL from "../apiConfig";
 
 import UploadFileIcon from '@mui/icons-material/UploadFile';
-
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import AssignmentIcon from "@mui/icons-material/Assignment";
+import PersonIcon from "@mui/icons-material/Person";
 const ReportOfGrade = () => {
     const settings = useContext(SettingsContext);
 
@@ -94,13 +96,13 @@ const ReportOfGrade = () => {
     const [activeStep, setActiveStep] = useState(4);
     const [clickedSteps, setClickedSteps] = useState([]);
 
-    const tabs1 = [
-        { label: "Student Records", to: "/student_list", icon: <ListAltIcon /> },
-        { label: "Applicant Form", to: "/readmission_dashboard1", icon: <PersonAddIcon /> },
-        { label: "Submitted Documents", to: "/submitted_documents", icon: <UploadFileIcon /> },
-        { label: "Search Certificate of Registration", to: "/search_cor", icon: <ListAltIcon /> },
-        { label: "Report of Grades", to: "/report_of_grades", icon: <GradeIcon /> },
-        { label: "Transcript of Records", to: "/transcript_of_records", icon: <SchoolIcon /> },
+    const tabs = [
+        { label: "Student List", to: "/student_list", icon: <SchoolIcon fontSize="large" /> },
+        { label: "Applicant Form", to: "/readmission_dashboard1", icon: <PersonIcon fontSize="large" /> },
+        { label: "Submitted Documents", to: "/submitted_documents", icon: <AssignmentIcon fontSize="large" /> },
+        { label: "Search Certificate of Registration", to: "/search_cor", icon: <ListAltIcon fontSize="large" /> },
+        { label: "Report of Grades", to: "/report_of_grades", icon: <GradeIcon fontSize="large" /> },
+        { label: "Transcript of Records", to: "/transcript_of_records", icon: <ReceiptLongIcon fontSize="large" /> },
     ];
 
     useEffect(() => {
@@ -326,12 +328,12 @@ const ReportOfGrade = () => {
     }, [])
 
     const fetchGradeConversionDic = async () => {
-        try{
+        try {
             const res = await axios.get(`${API_BASE_URL}/admin/grade-conversion`);
             setGradeConversions(res.data);
 
             console.log("Fetching Successfully");
-        }catch(err){ 
+        } catch (err) {
             setGradeConversions([]);
             console.log("Error Fetching Data", fallbackErr);
         }
@@ -385,8 +387,8 @@ const ReportOfGrade = () => {
 
         const equivalentGrade = Number(matchedConversion.equivalent_grade);
         return Number.isNaN(equivalentGrade)
-        ? matchedConversion.equivalent_grade
-        : equivalentGrade.toFixed(2);
+            ? matchedConversion.equivalent_grade
+            : equivalentGrade.toFixed(2);
     };
 
     const getConvertedFinalGrade = (subject) => {
@@ -473,7 +475,17 @@ const ReportOfGrade = () => {
     }
 
     return (
-        <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
+
+        <Box
+            sx={{
+                height: "calc(100vh - 150px)",
+                overflowY: "auto",
+                paddingRight: 1,
+                backgroundColor: "transparent",
+                mt: 1,
+                padding: 2,
+            }}
+        >
             <Box
                 sx={{
                     display: "flex",
@@ -490,7 +502,7 @@ const ReportOfGrade = () => {
                     variant="h4"
                     sx={{
                         fontWeight: "bold",
-                        color: "maroon",
+                        color: titleColor,
                         fontSize: "36px",
                     }}
                 >
@@ -569,75 +581,69 @@ const ReportOfGrade = () => {
             </Box>
 
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
-            <br />
 
+            <br />
             <br />
 
             <Box
                 sx={{
                     display: "flex",
                     justifyContent: "space-between",
-                    alignItems: "center",
+                    flexWrap: "nowrap", // ❌ prevent wrapping
                     width: "100%",
-                    mt: 2,
+
+                    gap: 2,
                 }}
             >
-                {tabs1.map((tab, index) => (
-                    <React.Fragment key={index}>
-                        {/* Step Card */}
-                        <Card
-                            onClick={() => handleStepClick(index, tab.to)}
+                {tabs.map((tab, index) => (
+                    <Card
+                        key={index}
+                        onClick={() => handleStepClick(index, tab.to)}
+                        sx={{
+                            flex: `1 1 ${100 / tabs.length}%`, // evenly divide row
+                            height: 135,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer",
+                            borderRadius: 2,
+                            border: `1px solid ${borderColor}`,
+                            backgroundColor:
+                                activeStep === index
+                                    ? settings?.header_color || "#1976d2"
+                                    : "#E8C999",
+                            color: activeStep === index ? "#fff" : "#000",
+                            boxShadow:
+                                activeStep === index
+                                    ? "0px 4px 10px rgba(0,0,0,0.3)"
+                                    : "0px 2px 6px rgba(0,0,0,0.15)",
+                            transition: "0.3s ease",
+                            "&:hover": {
+                                backgroundColor: activeStep === index ? "#000000" : "#f5d98f",
+                            },
+                        }}
+                    >
+                        <Box
                             sx={{
-                                flex: 1,
-                                maxWidth: `${100 / tabs1.length}%`, // evenly fit 100%
-                                height: 140,
                                 display: "flex",
+                                flexDirection: "column",
                                 alignItems: "center",
-                                justifyContent: "center",
-                                cursor: "pointer",
-                                borderRadius: 2,
-                                border: `1px solid ${borderColor}`,
-                                backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
-                                color: activeStep === index ? "#fff" : "#000",
-                                boxShadow:
-                                    activeStep === index
-                                        ? "0px 4px 10px rgba(0,0,0,0.3)"
-                                        : "0px 2px 6px rgba(0,0,0,0.15)",
-                                transition: "0.3s ease",
-                                "&:hover": {
-                                    backgroundColor: activeStep === index ? "#000000" : "#f5d98f",
-                                },
                             }}
                         >
-                            <Box
-                                sx={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    alignItems: "center",
-                                }}
+                            <Box sx={{ fontSize: 40, mb: 1 }}>{tab.icon}</Box>
+                            <Typography
+                                sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}
                             >
-                                <Box sx={{ fontSize: 32, mb: 0.5 }}>{tab.icon}</Box>
-                                <Typography
-                                    sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}
-                                >
-                                    {tab.label}
-                                </Typography>
-                            </Box>
-                        </Card>
-
-                        {/* Spacer instead of line */}
-                        {index < tabs1.length - 1 && (
-                            <Box
-                                sx={{
-                                    flex: 0.1,
-                                    mx: 1, // margin to keep spacing
-                                }}
-                            />
-                        )}
-                    </React.Fragment>
+                                {tab.label}
+                            </Typography>
+                        </Box>
+                    </Card>
                 ))}
             </Box>
+
             <br />
+            <br />
+
             <style>
                 {`
                 @media print {
@@ -1130,7 +1136,7 @@ const ReportOfGrade = () => {
                     </Box>
                 </Box>
             </Box>
-        </Box>
+        </Box >
     )
 }
 

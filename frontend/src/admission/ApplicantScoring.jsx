@@ -42,6 +42,8 @@ import API_BASE_URL from "../apiConfig";
 import CampaignIcon from '@mui/icons-material/Campaign';
 import ScoreIcon from '@mui/icons-material/Score';
 import DateField from "../components/DateField";
+import PersonIcon from "@mui/icons-material/Person";
+
 
 const ApplicantScoring = () => {
 
@@ -125,14 +127,14 @@ const ApplicantScoring = () => {
 
     const tabs = [
         {
-            label: "Admission Process for Registrar",
+            label: "Applicant List",
             to: "/applicant_list_admin",
             icon: <SchoolIcon fontSize="large" />,
         },
         {
-            label: "Applicant Form",
+            label: "Applicant Profile",
             to: "/admin_dashboard1",
-            icon: <DashboardIcon fontSize="large" />,
+            icon: <PersonIcon fontSize="large" />,
         },
         {
             label: "Student Requirements",
@@ -1397,45 +1399,62 @@ const ApplicantScoring = () => {
     }
 
     return (
-        <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h4" fontWeight="bold" sx={{ color: titleColor }}>
+        <Box
+            sx={{
+                height: "calc(100vh - 150px)",
+                overflowY: "auto",
+                paddingRight: 1,
+                backgroundColor: "transparent",
+                mt: 1,
+                padding: 2,
+            }}
+        >
+            <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
+            >
+                <Typography variant="h4"
+                    sx={{
+                        fontWeight: 'bold',
+                        color: titleColor,
+                        fontSize: '36px',
+                    }}
+                >
                     ENTRANCE EXAMINATION SCORING
                 </Typography>
 
 
-                <Box>
+                <TextField
+                    variant="outlined"
+                    placeholder="Search Applicant Name / Email / Applicant ID"
+                    size="small"
 
-                    <TextField
-                        variant="outlined"
-                        placeholder="Search Applicant Name / Email / Applicant ID"
-                        size="small"
+                    value={searchQuery}
+                    onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setCurrentPage(1); // Corrected
+                    }}
 
-                        value={searchQuery}
-                        onChange={(e) => {
-                            setSearchQuery(e.target.value);
-                            setCurrentPage(1); // Corrected
-                        }}
-
-                        sx={{
-                            width: 450,
-                            backgroundColor: "#fff",
-                            borderRadius: 1,
-                            "& .MuiOutlinedInput-root": {
-                                borderRadius: "10px",
-                            },
-                        }}
-                        InputProps={{
-                            startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
-                        }}
-                    />
-                </Box>
+                    sx={{
+                        width: 450,
+                        backgroundColor: "#fff",
+                        borderRadius: 1,
+                        "& .MuiOutlinedInput-root": {
+                            borderRadius: "10px",
+                        },
+                    }}
+                    InputProps={{
+                        startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
+                    }}
+                />
             </Box>
 
-
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
-            <div style={{ height: "20px" }}></div>
 
+            <br />
+            <br />
 
             <Box
                 sx={{
@@ -1443,7 +1462,7 @@ const ApplicantScoring = () => {
                     justifyContent: "space-between",
                     flexWrap: "nowrap", // ❌ prevent wrapping
                     width: "100%",
-                    mt: 3,
+
                     gap: 2,
                 }}
             >
@@ -1460,7 +1479,10 @@ const ApplicantScoring = () => {
                             cursor: "pointer",
                             borderRadius: 2,
                             border: `1px solid ${borderColor}`,
-                            backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
+                            backgroundColor:
+                                activeStep === index
+                                    ? settings?.header_color || "#1976d2"
+                                    : "#E8C999",
                             color: activeStep === index ? "#fff" : "#000",
                             boxShadow:
                                 activeStep === index
@@ -1472,18 +1494,26 @@ const ApplicantScoring = () => {
                             },
                         }}
                     >
-                        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                            }}
+                        >
                             <Box sx={{ fontSize: 40, mb: 1 }}>{tab.icon}</Box>
-                            <Typography sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}>
+                            <Typography
+                                sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}
+                            >
                                 {tab.label}
                             </Typography>
                         </Box>
                     </Card>
                 ))}
             </Box>
-            <div style={{ height: "40px" }}></div>
 
-
+            <br />
+            <br />
 
             <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
                 <Table>

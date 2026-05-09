@@ -35,6 +35,8 @@ import SearchIcon from "@mui/icons-material/Search";
 import KeyIcon from "@mui/icons-material/Key";
 import CampaignIcon from '@mui/icons-material/Campaign';
 import ScoreIcon from '@mui/icons-material/Score';
+import PersonIcon from "@mui/icons-material/Person";
+import Autocomplete from "@mui/material/Autocomplete";
 
 const ExaminationProfile = ({ personId }) => {
     const settings = useContext(SettingsContext);
@@ -103,14 +105,14 @@ const ExaminationProfile = ({ personId }) => {
 
     const tabs = [
         {
-            label: "Admission Process for Registrar",
+            label: "Applicant List",
             to: "/applicant_list_admin",
             icon: <SchoolIcon fontSize="large" />,
         },
         {
-            label: "Applicant Form",
+            label: "Applicant Profile",
             to: "/admin_dashboard1",
-            icon: <DashboardIcon fontSize="large" />,
+            icon: <PersonIcon fontSize="large" />,
         },
         {
             label: "Student Requirements",
@@ -331,32 +333,8 @@ const ExaminationProfile = ({ personId }) => {
         }
     }, [selectedPerson]);
 
-    // Add this state at the top level
-    const [searchResults, setSearchResults] = useState([]);
 
-
-    // Replace your existing search useEffect with this
-    useEffect(() => {
-        const query = searchQuery.trim().toLowerCase();
-
-
-        if (!query) {
-            setSearchResults([]);
-            return;
-        }
-
-
-        const results = persons.filter((p) => {
-            const fullString = `${p.first_name ?? ''} ${p.middle_name ?? ''} ${p.last_name ?? ''} ${p.emailAddress ?? ''}`.toLowerCase();
-            const numberMatch = (p.applicant_number || '').toLowerCase().includes(query);
-            const textMatch = fullString.includes(query);
-            return numberMatch || textMatch;
-        });
-
-
-        setSearchResults(results);
-    }, [searchQuery, persons]);
-    // ✅ Fetch curriculum options
+   
     useEffect(() => {
         const fetchCurriculums = async () => {
             try {
@@ -509,333 +487,311 @@ const ExaminationProfile = ({ personId }) => {
     }
 
     return (
-        <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
-
-
-            <div className="section">
-
-                {/* Top header: DOCUMENTS SUBMITTED + Search */}
-                <Box
+        <Box
+            sx={{
+                height: "calc(100vh - 150px)",
+                overflowY: "auto",
+                paddingRight: 1,
+                backgroundColor: "transparent",
+                mt: 1,
+                padding: 2,
+            }}
+        >
+            <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
+            >
+                <Typography variant="h4"
                     sx={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        flexWrap: 'wrap',
-
-                        mb: 2,
-
+                        fontWeight: 'bold',
+                        color: titleColor,
+                        fontSize: '36px',
                     }}
                 >
-                    <Typography
-                        variant="h4"
-                        sx={{
-                            fontWeight: 'bold',
-                            color: titleColor,
-                            fontSize: '36px',
-                        }}
-                    >
-                        EXAMINATION PROFILE
-                    </Typography>
+                    EXAMINATION PROFILE
+                </Typography>
 
-                    <TextField
-                        variant="outlined"
-                        placeholder="Search Applicant Name / Email / Applicant ID"
-                        size="small"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        sx={{
-                            width: 450,
-                            backgroundColor: "#fff",
-                            borderRadius: 1,
-                            "& .MuiOutlinedInput-root": {
-                                borderRadius: "10px",
-                            },
-                        }}
-                        InputProps={{
-                            startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
-                        }}
-                    />
 
-                    {
-                        searchResults.length > 0 && (
-                            <TableContainer component={Paper} sx={{ mt: 2 }}>
-                                <Table>
 
-                                    {/* 🔹 HEADER ONLY GETS COLOR */}
-                                    <TableHead
-                                        sx={{
-                                            backgroundColor: settings?.header_color || "#1976d2",
-                                            border: `1px solid ${borderColor}`,
-                                        }}
-                                    >
-                                        <TableRow>
-                                            <TableCell sx={{ color: "white", fontWeight: "bold", border: `1px solid ${borderColor}` }}>Applicant No.</TableCell>
-                                            <TableCell sx={{ color: "white", fontWeight: "bold", border: `1px solid ${borderColor}` }}>Name</TableCell>
-                                            <TableCell sx={{ color: "white", fontWeight: "bold", border: `1px solid ${borderColor}` }}>Email</TableCell>
-                                            <TableCell
-                                                align="center"
-                                                sx={{ color: "white", fontWeight: "bold", border: `1px solid ${borderColor}` }}
-                                            >
-                                                Select
-                                            </TableCell>
-                                        </TableRow>
-                                    </TableHead>
 
-                                    {/* 🔹 BODY — WHITE BACKGROUND + BLACK BORDERS */}
-                                    <TableBody>
-                                        {searchResults.map((row, idx) => (
-                                            <TableRow
-                                                key={idx}
-                                                sx={{
-                                                    backgroundColor: "#ffffff",
-                                                    "& td": {
-                                                        border: "1px solid black",
-                                                        color: "black",
-                                                    },
-                                                }}
-                                            >
-                                                <TableCell>{row.applicant_number}</TableCell>
-                                                <TableCell>{`${row.last_name}, ${row.first_name} ${row.middle_name}`}</TableCell>
-                                                <TableCell>{row.emailAddress}</TableCell>
-
-                                                {/* 🔹 CENTER THE SELECT BUTTON */}
-                                                <TableCell align="center">
-                                                    <button
-                                                        onClick={() => {
-                                                            setSelectedPerson(row);
-                                                            fetchPersonData(row.person_id);
-                                                            setSearchResults([]);
-                                                        }}
-                                                        style={{
-                                                            padding: "6px 12px",
-                                                            backgroundColor: "#1976d2",
-                                                            color: "white",
-                                                            border: "none",
-                                                            borderRadius: "6px",
-                                                            cursor: "pointer",
-                                                            fontWeight: "bold",
-                                                        }}
-                                                    >
-                                                        Select
-                                                    </button>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-
-                                </Table>
-                            </TableContainer>
-
-                        )
+                <Autocomplete
+                    options={persons}
+                    getOptionLabel={(option) =>
+                        `${option.applicant_number} - ${option.last_name}, ${option.first_name} ${option.middle_name || ""
+                        } (${option.emailAddress})`
                     }
-                </Box>
+                    filterOptions={(options, state) => {
+                        const query = state.inputValue.toLowerCase();
 
-                <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+                        return options.filter((p) => {
+                            const fullString =
+                                `${p.first_name ?? ""} ${p.middle_name ?? ""} ${p.last_name ?? ""} ${p.emailAddress ?? ""}`
+                                    .toLowerCase();
 
-                <br />
+                            const numberMatch = (p.applicant_number || "")
+                                .toLowerCase()
+                                .includes(query);
 
+                            const textMatch = fullString.includes(query);
 
-
-                <Box
-                    sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        flexWrap: "nowrap", // ❌ prevent wrapping
-                        width: "100%",
-                        mt: 3,
-                        gap: 2,
+                            return numberMatch || textMatch;
+                        });
                     }}
-                >
-                    {tabs.map((tab, index) => (
-                        <Card
-                            key={index}
-                            onClick={() => handleStepClick(index, tab.to)}
+                    onChange={(event, newValue) => {
+                        if (newValue) {
+                            setSelectedPerson(newValue);
+                            fetchPersonData(newValue.person_id);
+
+                            setApplicantNumber(newValue.applicant_number);
+                        }
+                    }}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            variant="outlined"
+                            placeholder="Search Applicant Name / Email / Applicant ID"
+                            size="small"
                             sx={{
-                                flex: `1 1 ${100 / tabs.length}%`, // evenly divide row
-                                height: 135,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                cursor: "pointer",
-                                borderRadius: 2,
-                                border: `1px solid ${borderColor}`,
-                                backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
-                                color: activeStep === index ? "#fff" : "#000",
-                                boxShadow:
-                                    activeStep === index
-                                        ? "0px 4px 10px rgba(0,0,0,0.3)"
-                                        : "0px 2px 6px rgba(0,0,0,0.15)",
-                                transition: "0.3s ease",
-                                "&:hover": {
-                                    backgroundColor: activeStep === index ? "#000000" : "#f5d98f",
+                                width: 450,
+                                backgroundColor: "#fff",
+                                borderRadius: 1,
+                                "& .MuiOutlinedInput-root": {
+                                    borderRadius: "10px",
                                 },
                             }}
-                        >
-                            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                                <Box sx={{ fontSize: 40, mb: 1 }}>{tab.icon}</Box>
-                                <Typography sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}>
-                                    {tab.label}
-                                </Typography>
-                            </Box>
-                        </Card>
-                    ))}
-                </Box>
+                            InputProps={{
+                                ...params.InputProps,
+                                startAdornment: (
+                                    <>
+                                        <SearchIcon sx={{ mr: 1, color: "gray" }} />
+                                        {params.InputProps.startAdornment}
+                                    </>
+                                ),
+                            }}
+                        />
+                    )}
+                />
 
+            </Box>
 
-                <div style={{ height: "40px" }}></div>
+     
+            <hr style={{ border: "1px solid #ccc", width: "100%" }} />
 
+            <br />
+            <br />
 
-                <TableContainer component={Paper} sx={{ width: '100%', }}>
-                    <Table>
-                        <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `1px solid ${borderColor}`, }}>
-                            <TableRow>
-                                {/* Left cell: Applicant ID */}
-                                <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: "Arial", border: 'none' }}>
-                                    Applicant ID:&nbsp;
-                                    <span style={{ fontFamily: "Arial", fontWeight: "normal", textDecoration: "underline" }}>
-                                        {selectedPerson?.applicant_number || "N/A"}
-                                    </span>
-                                </TableCell>
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    flexWrap: "nowrap", // ❌ prevent wrapping
+                    width: "100%",
 
-                                {/* Right cell: Applicant Name, right-aligned */}
-                                <TableCell
-                                    align="right"
-                                    sx={{ color: 'white', fontSize: '20px', fontFamily: "Arial", border: 'none' }}
-                                >
-                                    Applicant Name:&nbsp;
-                                    <span style={{ fontFamily: "Arial", fontWeight: "normal", textDecoration: "underline" }}>
-                                        {selectedPerson?.last_name?.toUpperCase()}, {selectedPerson?.first_name?.toUpperCase()}{" "}
-                                        {selectedPerson?.middle_name?.toUpperCase()} {selectedPerson?.extension_name?.toUpperCase() || ""}
-                                    </span>
-                                </TableCell>
-                            </TableRow>
-                        </TableHead>
-                    </Table>
-                </TableContainer>
-
-
-                <div style={{ display: "flex", gap: "20px", marginTop: "20px", flexWrap: "wrap" }}>
-                    <button
-                        onClick={handlePrintPermit}
-                        style={{
-                            padding: "10px 20px",
-                            border: "2px solid black",
-                            backgroundColor: "#f0f0f0",
-                            color: "black",
-                            borderRadius: "5px",
+                    gap: 2,
+                }}
+            >
+                {tabs.map((tab, index) => (
+                    <Card
+                        key={index}
+                        onClick={() => handleStepClick(index, tab.to)}
+                        sx={{
+                            flex: `1 1 ${100 / tabs.length}%`, // evenly divide row
+                            height: 135,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                             cursor: "pointer",
-                            fontSize: "16px",
-                            fontWeight: "bold",
-                            transition: "background-color 0.3s, transform 0.2s",
+                            borderRadius: 2,
+                            border: `1px solid ${borderColor}`,
+                            backgroundColor:
+                                activeStep === index
+                                    ? settings?.header_color || "#1976d2"
+                                    : "#E8C999",
+                            color: activeStep === index ? "#fff" : "#000",
+                            boxShadow:
+                                activeStep === index
+                                    ? "0px 4px 10px rgba(0,0,0,0.3)"
+                                    : "0px 2px 6px rgba(0,0,0,0.15)",
+                            transition: "0.3s ease",
+                            "&:hover": {
+                                backgroundColor: activeStep === index ? "#000000" : "#f5d98f",
+                            },
                         }}
-                        onMouseEnter={(e) => (e.target.style.backgroundColor = "#d3d3d3")}
-                        onMouseLeave={(e) => (e.target.style.backgroundColor = "#f0f0f0")}
-                        onMouseDown={(e) => (e.target.style.transform = "scale(0.95)")}
-                        onMouseUp={(e) => (e.target.style.transform = "scale(1)")}
                     >
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <FcPrint size={20} />
-                            Print Examination Permit
-                        </span>
-                    </button>
-
-                    <button
-                        onClick={handlePrintChangeCourse}
-                        style={{
-                            padding: "10px 20px",
-                            border: "2px solid black",
-                            backgroundColor: "#f0f0f0",
-                            color: "black",
-                            borderRadius: "5px",
-                            cursor: "pointer",
-                            fontSize: "16px",
-                            fontWeight: "bold",
-                            transition: "background-color 0.3s, transform 0.2s",
-                        }}
-                        onMouseEnter={(e) => (e.target.style.backgroundColor = "#d3d3d3")}
-                        onMouseLeave={(e) => (e.target.style.backgroundColor = "#f0f0f0")}
-                        onMouseDown={(e) => (e.target.style.transform = "scale(0.95)")}
-                        onMouseUp={(e) => (e.target.style.transform = "scale(1)")}
-                    >
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <FcPrint size={20} />
-                            Print Applicant Change Course Form
-                        </span>
-                    </button>
-
-                    <button
-                        onClick={handlePrintNewForm}
-                        style={{
-                            padding: "10px 20px",
-                            border: "2px solid black",
-                            backgroundColor: "#f0f0f0",
-                            color: "black",
-                            borderRadius: "5px",
-                            cursor: "pointer",
-                            fontSize: "16px",
-                            fontWeight: "bold",
-                            transition: "background-color 0.3s, transform 0.2s",
-                        }}
-                        onMouseEnter={(e) => (e.target.style.backgroundColor = "#d3d3d3")}
-                        onMouseLeave={(e) => (e.target.style.backgroundColor = "#f0f0f0")}
-                        onMouseDown={(e) => (e.target.style.transform = "scale(0.95)")}
-                        onMouseUp={(e) => (e.target.style.transform = "scale(1)")}
-                    >
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <FcPrint size={20} />
-                            Print New Form
-                        </span>
-                    </button>
-                </div>
-
-
-                {selectedPerson && (
-                    <div ref={permitRef} style={{ position: "relative" }}>
-                        {/* ✅ VERIFIED Watermark */}
-                        <div
-                            style={{
-                                position: "absolute",
-                                top: "23%",
-                                left: "50%",
-                                transform: "translate(-50%, -50%)",
-                                fontSize: "120px",
-                                fontWeight: "900",
-                                color: isVerified ? "rgba(0, 128, 0, 0.15)" : "rgba(255, 0, 0, 0.18)",
-                                textTransform: "uppercase",
-                                whiteSpace: "nowrap",
-                                pointerEvents: "none",
-                                userSelect: "none",
-                                zIndex: 0,
-                                fontFamily: "Arial",
-                                letterSpacing: "0.3rem",
-                                textAlign: "center",        // 🔥 needed for stacked NOT + VERIFIED
-                                lineHeight: isVerified ? "1" : "0.8", // tighten stacked spacing
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
                             }}
                         >
-                            {isVerified ? (
-                                "VERIFIED"
-                            ) : (
-                                <>
-                                    NOT<br />VERIFIED
-                                </>
-                            )}
-                        </div>
-
-
-                        <div className="section">
-                            <table
-                                className="student-table"
-                                style={{
-                                    borderCollapse: "collapse",
-                                    fontFamily: "Arial",
-                                    width: "8in",
-                                    margin: "0 auto", // Center the table inside the form
-                                    textAlign: "center",
-                                    tableLayout: "fixed",
-
-                                }}
+                            <Box sx={{ fontSize: 40, mb: 1 }}>{tab.icon}</Box>
+                            <Typography
+                                sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}
                             >
-                                <style>{`
+                                {tab.label}
+                            </Typography>
+                        </Box>
+                    </Card>
+                ))}
+            </Box>
+
+            <br />
+            <br />
+
+            <TableContainer component={Paper} sx={{ width: '100%', }}>
+                <Table>
+                    <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `1px solid ${borderColor}`, }}>
+                        <TableRow>
+                            {/* Left cell: Applicant ID */}
+                            <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: "Arial", border: 'none' }}>
+                                Applicant ID:&nbsp;
+                                <span style={{ fontFamily: "Arial", fontWeight: "normal", textDecoration: "underline" }}>
+                                    {selectedPerson?.applicant_number || "N/A"}
+                                </span>
+                            </TableCell>
+
+                            {/* Right cell: Applicant Name, right-aligned */}
+                            <TableCell
+                                align="right"
+                                sx={{ color: 'white', fontSize: '20px', fontFamily: "Arial", border: 'none' }}
+                            >
+                                Applicant Name:&nbsp;
+                                <span style={{ fontFamily: "Arial", fontWeight: "normal", textDecoration: "underline" }}>
+                                    {selectedPerson?.last_name?.toUpperCase()}, {selectedPerson?.first_name?.toUpperCase()}{" "}
+                                    {selectedPerson?.middle_name?.toUpperCase()} {selectedPerson?.extension_name?.toUpperCase() || ""}
+                                </span>
+                            </TableCell>
+                        </TableRow>
+                    </TableHead>
+                </Table>
+            </TableContainer>
+
+
+            <div style={{ display: "flex", gap: "20px", marginTop: "20px", flexWrap: "wrap" }}>
+                <button
+                    onClick={handlePrintPermit}
+                    style={{
+                        padding: "10px 20px",
+                        border: "2px solid black",
+                        backgroundColor: "#f0f0f0",
+                        color: "black",
+                        borderRadius: "5px",
+                        cursor: "pointer",
+                        fontSize: "16px",
+                        fontWeight: "bold",
+                        transition: "background-color 0.3s, transform 0.2s",
+                    }}
+                    onMouseEnter={(e) => (e.target.style.backgroundColor = "#d3d3d3")}
+                    onMouseLeave={(e) => (e.target.style.backgroundColor = "#f0f0f0")}
+                    onMouseDown={(e) => (e.target.style.transform = "scale(0.95)")}
+                    onMouseUp={(e) => (e.target.style.transform = "scale(1)")}
+                >
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <FcPrint size={20} />
+                        Print Examination Permit
+                    </span>
+                </button>
+
+                <button
+                    onClick={handlePrintChangeCourse}
+                    style={{
+                        padding: "10px 20px",
+                        border: "2px solid black",
+                        backgroundColor: "#f0f0f0",
+                        color: "black",
+                        borderRadius: "5px",
+                        cursor: "pointer",
+                        fontSize: "16px",
+                        fontWeight: "bold",
+                        transition: "background-color 0.3s, transform 0.2s",
+                    }}
+                    onMouseEnter={(e) => (e.target.style.backgroundColor = "#d3d3d3")}
+                    onMouseLeave={(e) => (e.target.style.backgroundColor = "#f0f0f0")}
+                    onMouseDown={(e) => (e.target.style.transform = "scale(0.95)")}
+                    onMouseUp={(e) => (e.target.style.transform = "scale(1)")}
+                >
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <FcPrint size={20} />
+                        Print Applicant Change Course Form
+                    </span>
+                </button>
+
+                <button
+                    onClick={handlePrintNewForm}
+                    style={{
+                        padding: "10px 20px",
+                        border: "2px solid black",
+                        backgroundColor: "#f0f0f0",
+                        color: "black",
+                        borderRadius: "5px",
+                        cursor: "pointer",
+                        fontSize: "16px",
+                        fontWeight: "bold",
+                        transition: "background-color 0.3s, transform 0.2s",
+                    }}
+                    onMouseEnter={(e) => (e.target.style.backgroundColor = "#d3d3d3")}
+                    onMouseLeave={(e) => (e.target.style.backgroundColor = "#f0f0f0")}
+                    onMouseDown={(e) => (e.target.style.transform = "scale(0.95)")}
+                    onMouseUp={(e) => (e.target.style.transform = "scale(1)")}
+                >
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <FcPrint size={20} />
+                        Print New Form
+                    </span>
+                </button>
+            </div>
+
+
+            {selectedPerson && (
+                <div ref={permitRef} style={{ position: "relative" }}>
+                    {/* ✅ VERIFIED Watermark */}
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: "23%",
+                            left: "50%",
+                            transform: "translate(-50%, -50%)",
+                            fontSize: "120px",
+                            fontWeight: "900",
+                            color: isVerified ? "rgba(0, 128, 0, 0.15)" : "rgba(255, 0, 0, 0.18)",
+                            textTransform: "uppercase",
+                            whiteSpace: "nowrap",
+                            pointerEvents: "none",
+                            userSelect: "none",
+                            zIndex: 0,
+                            fontFamily: "Arial",
+                            letterSpacing: "0.3rem",
+                            textAlign: "center",        // 🔥 needed for stacked NOT + VERIFIED
+                            lineHeight: isVerified ? "1" : "0.8", // tighten stacked spacing
+                        }}
+                    >
+                        {isVerified ? (
+                            "VERIFIED"
+                        ) : (
+                            <>
+                                NOT<br />VERIFIED
+                            </>
+                        )}
+                    </div>
+
+
+                    <div className="section">
+                        <table
+                            className="student-table"
+                            style={{
+                                borderCollapse: "collapse",
+                                fontFamily: "Arial",
+                                width: "8in",
+                                margin: "0 auto", // Center the table inside the form
+                                textAlign: "center",
+                                tableLayout: "fixed",
+
+                            }}
+                        >
+                            <style>{`
           .certificate-wrapper {
             position: relative;
           }
@@ -869,548 +825,548 @@ const ExaminationProfile = ({ personId }) => {
 
 
 
-                                <tbody>
+                            <tbody>
 
 
-                                    <tr>
+                                <tr>
 
-                                        <td colSpan={40} style={{ height: "0.5in", textAlign: "center" }}>
-                                            {/* Header */}
-                                            <table width="100%" style={{ borderCollapse: "collapse", marginTop: "15px", fontFamily: "Arial" }}>
-                                                <tbody>
-                                                    <tr>
+                                    <td colSpan={40} style={{ height: "0.5in", textAlign: "center" }}>
+                                        {/* Header */}
+                                        <table width="100%" style={{ borderCollapse: "collapse", marginTop: "15px", fontFamily: "Arial" }}>
+                                            <tbody>
+                                                <tr>
 
 
-                                                        <td style={{ width: "20%", textAlign: "center" }}>
-                                                            <img
-                                                                src={fetchedLogo}
-                                                                alt="School Logo"
-                                                                style={{
-                                                                    marginLeft: "-10px",
-                                                                    width: "120px",
-                                                                    height: "120px",
-                                                                    borderRadius: "50%", // ✅ perfectly circular
-                                                                    objectFit: "cover",
-
-                                                                }}
-                                                            />
-                                                        </td>
-
-                                                        {/* Center Column - School Information */}
-                                                        <td style={{
-                                                            width: "60%", textAlign: "center", lineHeight: "1",
-
-                                                        }}>
-                                                            <div style={{ fontSize: "13px", fontFamily: "Arial" }}>Republic of the Philippines</div>
-                                                            <div
-                                                                style={{
-                                                                    fontWeight: "bold",
-                                                                    fontFamily: "Arial",
-                                                                    fontSize: "16px",
-                                                                    textTransform: "Uppercase"
-                                                                }}
-                                                            >
-                                                                {firstLine}
-                                                            </div>
-
-                                                            <div
-                                                                style={{
-                                                                    fontWeight: "bold",
-                                                                    fontFamily: "Arial",
-                                                                    fontSize: "16px",
-                                                                    textTransform: "Uppercase"
-                                                                }}
-                                                            >
-                                                                {secondLine}
-                                                            </div>
-
-                                                            {campusAddress && (
-                                                                <div style={{ fontSize: "13px", fontFamily: "Arial" }}>
-                                                                    {campusAddress}
-                                                                </div>
-                                                            )}
-
-                                                            {/* Add spacing here */}
-                                                            <div style={{ marginTop: "30px" }}>
-                                                                <b style={{ fontSize: "24px", letterSpacing: '1px', fontWeight: "bold" }}>
-                                                                    EXAMINATION PERMIT
-                                                                </b>
-                                                            </div>
-                                                        </td>
-
-                                                        <td
-                                                            colSpan={4}
-                                                            rowSpan={6}
+                                                    <td style={{ width: "20%", textAlign: "center" }}>
+                                                        <img
+                                                            src={fetchedLogo}
+                                                            alt="School Logo"
                                                             style={{
-                                                                textAlign: "center",
-                                                                position: "relative",
-                                                                width: "4.5cm",
-                                                                height: "4.5cm",
+                                                                marginLeft: "-10px",
+                                                                width: "120px",
+                                                                height: "120px",
+                                                                borderRadius: "50%", // ✅ perfectly circular
+                                                                objectFit: "cover",
+
+                                                            }}
+                                                        />
+                                                    </td>
+
+                                                    {/* Center Column - School Information */}
+                                                    <td style={{
+                                                        width: "60%", textAlign: "center", lineHeight: "1",
+
+                                                    }}>
+                                                        <div style={{ fontSize: "13px", fontFamily: "Arial" }}>Republic of the Philippines</div>
+                                                        <div
+                                                            style={{
+                                                                fontWeight: "bold",
+                                                                fontFamily: "Arial",
+                                                                fontSize: "16px",
+                                                                textTransform: "Uppercase"
                                                             }}
                                                         >
-                                                            <div
-                                                                style={{
-                                                                    width: "4.70cm",
-                                                                    height: "4.70cm",
-                                                                    marginRight: "10px",
-                                                                    display: "flex",
-                                                                    justifyContent: "center",
-                                                                    alignItems: "center",
-                                                                    position: "relative",
-                                                                    border: "2px solid black",
-                                                                    overflow: "hidden",
-                                                                    borderRadius: "4px",
-                                                                }}
-                                                            >
-                                                                {person.profile_img ? (
-                                                                    <img
-                                                                        src={`${API_BASE_URL}/uploads/Applicant1by1/${person.profile_img}`}
-                                                                        alt="Profile"
-                                                                        style={{
-                                                                            width: "100%",
-                                                                            height: "100%",
-                                                                            objectFit: "cover",
-
-                                                                        }}
-                                                                    />
-                                                                ) : (
-                                                                    <span style={{ fontSize: "12px", color: "#888" }}>No Image</span>
-                                                                )}
-                                                            </div>
-                                                        </td>
-
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </td>
-
-                                    </tr>
-
-
-                                </tbody>
-                            </table>
-                            <div style={{ height: "30px" }}></div>
-                            <table
-                                className="student-table"
-                                style={{
-                                    borderCollapse: "collapse",
-                                    fontFamily: "Arial",
-                                    width: "8in",
-                                    margin: "0 auto",
-
-
-                                    textAlign: "center",
-                                    tableLayout: "fixed",
-                                }}
-                            >
-
-                                <tbody>
-                                    <tr style={{ fontFamily: "Arial", fontSize: "15px" }}>
-                                        <td colSpan={40}>
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    justifyContent: "flex-end",
-                                                    width: "100%",
-                                                    gap: "10px",
-                                                }}
-                                            >
-                                                <label style={{ fontWeight: "bold", whiteSpace: "nowrap" }}>
-                                                    Applicant No.:
-                                                </label>
-                                                <div
-                                                    style={{
-                                                        borderBottom: "1px solid black",
-                                                        fontFamily: "Arial",
-                                                        fontWeight: "normal",
-                                                        fontSize: "15px",
-                                                        minWidth: "278px",
-                                                        height: "1.2em",
-                                                        display: "flex",
-                                                        alignItems: "center",
-                                                    }}
-                                                >
-                                                    {selectedPerson?.applicant_number}
-                                                </div>
-                                            </div>
-                                        </td>
-
-
-                                    </tr>
-
-                                    {/* Email & Applicant ID */}
-                                    <tr style={{ fontFamily: "Arial", fontSize: "15px" }}>
-                                        <td colSpan={20}>
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    justifyContent: "flex-start",
-                                                    width: "100%",
-                                                    gap: "10px",
-                                                }}
-                                            >
-                                                <label style={{ fontWeight: "bold", whiteSpace: "nowrap" }}>
-                                                    Name:
-                                                </label>
-                                                <div
-                                                    style={{
-                                                        borderBottom: "1px solid black",
-                                                        fontFamily: "Arial",
-                                                        fontWeight: "normal",
-                                                        fontSize: "15px",
-                                                        minWidth: "328px",
-                                                        height: "1.2em",
-                                                        display: "flex",
-                                                        alignItems: "center",
-                                                    }}
-                                                >
-                                                    {selectedPerson?.last_name?.toUpperCase()}, {selectedPerson?.first_name?.toUpperCase()}{" "}
-                                                    {selectedPerson?.middle_name?.toUpperCase() || ""}{" "}
-                                                    {selectedPerson?.extension?.toUpperCase() || ""}
-                                                </div>
-                                            </div>
-                                        </td>
-
-
-                                        <td colSpan={20}>
-                                            <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-                                                <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px" }}>Permit No.:</label>
-                                                <span style={{ flexGrow: 1, borderBottom: "1px solid black", height: "1.2em", textAlign: "left", fontFamily: "Arial" }}>{selectedPerson?.applicant_number}</span>
-                                            </div>
-                                        </td>
-                                    </tr>
-
-                                    <tr style={{ fontFamily: "Arial", fontSize: "15px" }}>
-                                        <td colSpan={20}>
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    width: "100%",
-                                                    gap: "10px",
-                                                }}
-                                            >
-                                                <label style={{ fontWeight: "bold", whiteSpace: "nowrap" }}>
-                                                    Course Applied:
-                                                </label>
-                                                <div
-                                                    style={{
-                                                        borderBottom: "1px solid black",
-                                                        fontFamily: "Arial",
-                                                        fontWeight: "normal",
-                                                        fontSize: "15px",
-                                                        minWidth: "265px",
-                                                        width: "100%", // make it extend to available space
-                                                        display: "flex",
-                                                        alignItems: "center",
-                                                        paddingRight: "5px",
-                                                        overflowWrap: "break-word", // allows long course names to wrap
-                                                    }}
-                                                >
-                                                    {curriculumOptions.length > 0
-                                                        ? curriculumOptions.find(
-                                                            (item) =>
-                                                                item?.curriculum_id?.toString() === (person?.program ?? "").toString()
-                                                        )?.program_description || (person?.program ?? "")
-                                                        : "Loading..."}
-                                                </div>
-                                            </div>
-                                        </td>
-
-                                        <td colSpan={20}>
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    width: "100%",
-                                                    gap: "10px",
-                                                }}
-                                            >
-                                                <label style={{ fontWeight: "bold", whiteSpace: "nowrap" }}>Major:</label>
-                                                <div
-                                                    style={{
-                                                        borderBottom: "1px solid black",
-                                                        fontFamily: "Arial",
-                                                        fontWeight: "normal",
-                                                        fontSize: "15px",
-                                                        width: "100%",
-                                                        display: "flex",
-                                                        alignItems: "center",
-                                                        paddingRight: "5px",
-                                                        overflowWrap: "break-word", // allows long major names to wrap
-                                                    }}
-                                                >
-                                                    {curriculumOptions.length > 0
-                                                        ? curriculumOptions.find(
-                                                            (item) =>
-                                                                item?.curriculum_id?.toString() === (person?.program ?? "").toString()
-                                                        )?.major || ""
-                                                        : "Loading..."}
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-
-
-                                    <tr style={{ fontFamily: "Arial", fontSize: "15px" }}>
-                                        <td colSpan={20}>
-                                            <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-                                                <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px" }}>Date of Exam:</label>
-                                                <span style={{ flexGrow: 1, borderBottom: "1px solid black", height: "1.2em", fontFamily: "Arial", textAlign: "left" }}>
-                                                    {examSchedule?.date_of_exam}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td colSpan={20}>
-                                            <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-                                                <label
-                                                    style={{
-                                                        fontWeight: "bold",
-                                                        whiteSpace: "nowrap",
-                                                        marginRight: "10px",
-                                                    }}
-                                                >
-                                                    Time :
-                                                </label>
-                                                <span
-                                                    style={{
-                                                        flexGrow: 1,
-                                                        borderBottom: "1px solid black",
-                                                        height: "1.2em",
-                                                        fontFamily: "Arial",
-                                                        textAlign: "left",
-                                                    }}
-                                                >
-                                                    {examSchedule
-                                                        ? new Date(`1970-01-01T${examSchedule.start_time}`).toLocaleTimeString(
-                                                            "en-US",
-                                                            { hour: "numeric", minute: "2-digit", hour12: true }
-                                                        )
-                                                        : ""}
-                                                </span>
-                                            </div>
-                                        </td>
-
-                                    </tr>
-
-                                    <tr style={{ fontFamily: "Arial", fontSize: "15px" }}>
-                                        <td colSpan={20}>
-                                            <div style={{ display: "flex", alignItems: "center", width: "100%", marginTop: "-85px" }}>
-                                                <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px" }}>
-                                                    Bldg. :
-                                                </label>
-                                                <span
-                                                    style={{
-                                                        flexGrow: 1,
-                                                        borderBottom: "1px solid black",
-                                                        height: "1.2em",
-                                                        fontFamily: "Arial",
-                                                        textAlign: "left",
-                                                    }}
-                                                >
-                                                    {examSchedule?.building_description || ""} - {getOrdinal(examSchedule?.floor)} Floor
-                                                </span>
-                                            </div>
-                                        </td>
-
-                                        {/* Room No. + QR side by side */}
-                                        <td colSpan={20}>
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    width: "100%",
-                                                    justifyContent: "space-between", // space text & QR
-                                                }}
-                                            >
-                                                <div style={{ display: "flex", alignItems: "center", marginTop: "-130px" }}>
-                                                    <label style={{ fontWeight: "bold", marginRight: "10px", width: "80px" }}>
-                                                        Room No.:
-                                                    </label>
-                                                    <span
-                                                        style={{
-                                                            flexGrow: 1,
-                                                            borderBottom: "1px solid black",
-                                                            fontFamily: "Arial",
-                                                            width: "150px",
-                                                        }}
-                                                    >
-                                                        {examSchedule?.room_description || ""}
-                                                    </span>
-                                                </div>
-
-                                                {selectedPerson?.applicant_number && (
-                                                    <div
-                                                        style={{
-                                                            width: "4.5cm",
-                                                            height: "4.5cm",
-                                                            borderRadius: "4px",
-                                                            background: "#fff",
-                                                            display: "flex",
-                                                            justifyContent: "center",
-                                                            alignItems: "center",
-                                                            position: "relative",
-                                                            overflow: "hidden",
-                                                            marginLeft: "10px"
-                                                        }}
-                                                    >
-                                                        <QRCodeSVG
-                                                            value={`${window.location.origin}/applicant_profile/${person.applicant_number}`}
-                                                            size={150}
-                                                            level="H"
-                                                        />
+                                                            {firstLine}
+                                                        </div>
 
                                                         <div
                                                             style={{
-                                                                position: "absolute",
-                                                                fontSize: "12px",
                                                                 fontWeight: "bold",
-                                                                color: "maroon",
-                                                                background: "white",
-                                                                padding: "2px 4px",
-                                                                borderRadius: "2px",
+                                                                fontFamily: "Arial",
+                                                                fontSize: "16px",
+                                                                textTransform: "Uppercase"
                                                             }}
                                                         >
-                                                            {selectedPerson.applicant_number}
+                                                            {secondLine}
                                                         </div>
-                                                    </div>
-                                                )}
+
+                                                        {campusAddress && (
+                                                            <div style={{ fontSize: "13px", fontFamily: "Arial" }}>
+                                                                {campusAddress}
+                                                            </div>
+                                                        )}
+
+                                                        {/* Add spacing here */}
+                                                        <div style={{ marginTop: "30px" }}>
+                                                            <b style={{ fontSize: "24px", letterSpacing: '1px', fontWeight: "bold" }}>
+                                                                EXAMINATION PERMIT
+                                                            </b>
+                                                        </div>
+                                                    </td>
+
+                                                    <td
+                                                        colSpan={4}
+                                                        rowSpan={6}
+                                                        style={{
+                                                            textAlign: "center",
+                                                            position: "relative",
+                                                            width: "4.5cm",
+                                                            height: "4.5cm",
+                                                        }}
+                                                    >
+                                                        <div
+                                                            style={{
+                                                                width: "4.70cm",
+                                                                height: "4.70cm",
+                                                                marginRight: "10px",
+                                                                display: "flex",
+                                                                justifyContent: "center",
+                                                                alignItems: "center",
+                                                                position: "relative",
+                                                                border: "2px solid black",
+                                                                overflow: "hidden",
+                                                                borderRadius: "4px",
+                                                            }}
+                                                        >
+                                                            {person.profile_img ? (
+                                                                <img
+                                                                    src={`${API_BASE_URL}/uploads/Applicant1by1/${person.profile_img}`}
+                                                                    alt="Profile"
+                                                                    style={{
+                                                                        width: "100%",
+                                                                        height: "100%",
+                                                                        objectFit: "cover",
+
+                                                                    }}
+                                                                />
+                                                            ) : (
+                                                                <span style={{ fontSize: "12px", color: "#888" }}>No Image</span>
+                                                            )}
+                                                        </div>
+                                                    </td>
+
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </td>
+
+                                </tr>
 
 
+                            </tbody>
+                        </table>
+                        <div style={{ height: "30px" }}></div>
+                        <table
+                            className="student-table"
+                            style={{
+                                borderCollapse: "collapse",
+                                fontFamily: "Arial",
+                                width: "8in",
+                                margin: "0 auto",
+
+
+                                textAlign: "center",
+                                tableLayout: "fixed",
+                            }}
+                        >
+
+                            <tbody>
+                                <tr style={{ fontFamily: "Arial", fontSize: "15px" }}>
+                                    <td colSpan={40}>
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "flex-end",
+                                                width: "100%",
+                                                gap: "10px",
+                                            }}
+                                        >
+                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap" }}>
+                                                Applicant No.:
+                                            </label>
+                                            <div
+                                                style={{
+                                                    borderBottom: "1px solid black",
+                                                    fontFamily: "Arial",
+                                                    fontWeight: "normal",
+                                                    fontSize: "15px",
+                                                    minWidth: "278px",
+                                                    height: "1.2em",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                }}
+                                            >
+                                                {selectedPerson?.applicant_number}
                                             </div>
-                                        </td>
-                                    </tr>
+                                        </div>
+                                    </td>
 
 
+                                </tr>
 
-                                    <tr style={{ fontFamily: "Arial", fontSize: "15px" }}>
-                                        <td colSpan={20}>
-                                            <div style={{ display: "flex", alignItems: "center", width: "100%", marginTop: "-148px" }}>
-                                                <label
-                                                    style={{
-                                                        fontWeight: "bold",
-                                                        whiteSpace: "nowrap",
-                                                        marginRight: "10px",
-                                                    }}
-                                                >
-                                                    Date:
+                                {/* Email & Applicant ID */}
+                                <tr style={{ fontFamily: "Arial", fontSize: "15px" }}>
+                                    <td colSpan={20}>
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "flex-start",
+                                                width: "100%",
+                                                gap: "10px",
+                                            }}
+                                        >
+                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap" }}>
+                                                Name:
+                                            </label>
+                                            <div
+                                                style={{
+                                                    borderBottom: "1px solid black",
+                                                    fontFamily: "Arial",
+                                                    fontWeight: "normal",
+                                                    fontSize: "15px",
+                                                    minWidth: "328px",
+                                                    height: "1.2em",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                }}
+                                            >
+                                                {selectedPerson?.last_name?.toUpperCase()}, {selectedPerson?.first_name?.toUpperCase()}{" "}
+                                                {selectedPerson?.middle_name?.toUpperCase() || ""}{" "}
+                                                {selectedPerson?.extension?.toUpperCase() || ""}
+                                            </div>
+                                        </div>
+                                    </td>
+
+
+                                    <td colSpan={20}>
+                                        <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
+                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px" }}>Permit No.:</label>
+                                            <span style={{ flexGrow: 1, borderBottom: "1px solid black", height: "1.2em", textAlign: "left", fontFamily: "Arial" }}>{selectedPerson?.applicant_number}</span>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr style={{ fontFamily: "Arial", fontSize: "15px" }}>
+                                    <td colSpan={20}>
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                width: "100%",
+                                                gap: "10px",
+                                            }}
+                                        >
+                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap" }}>
+                                                Course Applied:
+                                            </label>
+                                            <div
+                                                style={{
+                                                    borderBottom: "1px solid black",
+                                                    fontFamily: "Arial",
+                                                    fontWeight: "normal",
+                                                    fontSize: "15px",
+                                                    minWidth: "265px",
+                                                    width: "100%", // make it extend to available space
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    paddingRight: "5px",
+                                                    overflowWrap: "break-word", // allows long course names to wrap
+                                                }}
+                                            >
+                                                {curriculumOptions.length > 0
+                                                    ? curriculumOptions.find(
+                                                        (item) =>
+                                                            item?.curriculum_id?.toString() === (person?.program ?? "").toString()
+                                                    )?.program_description || (person?.program ?? "")
+                                                    : "Loading..."}
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <td colSpan={20}>
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                width: "100%",
+                                                gap: "10px",
+                                            }}
+                                        >
+                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap" }}>Major:</label>
+                                            <div
+                                                style={{
+                                                    borderBottom: "1px solid black",
+                                                    fontFamily: "Arial",
+                                                    fontWeight: "normal",
+                                                    fontSize: "15px",
+                                                    width: "100%",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    paddingRight: "5px",
+                                                    overflowWrap: "break-word", // allows long major names to wrap
+                                                }}
+                                            >
+                                                {curriculumOptions.length > 0
+                                                    ? curriculumOptions.find(
+                                                        (item) =>
+                                                            item?.curriculum_id?.toString() === (person?.program ?? "").toString()
+                                                    )?.major || ""
+                                                    : "Loading..."}
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+
+
+                                <tr style={{ fontFamily: "Arial", fontSize: "15px" }}>
+                                    <td colSpan={20}>
+                                        <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
+                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px" }}>Date of Exam:</label>
+                                            <span style={{ flexGrow: 1, borderBottom: "1px solid black", height: "1.2em", fontFamily: "Arial", textAlign: "left" }}>
+                                                {examSchedule?.date_of_exam}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td colSpan={20}>
+                                        <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
+                                            <label
+                                                style={{
+                                                    fontWeight: "bold",
+                                                    whiteSpace: "nowrap",
+                                                    marginRight: "10px",
+                                                }}
+                                            >
+                                                Time :
+                                            </label>
+                                            <span
+                                                style={{
+                                                    flexGrow: 1,
+                                                    borderBottom: "1px solid black",
+                                                    height: "1.2em",
+                                                    fontFamily: "Arial",
+                                                    textAlign: "left",
+                                                }}
+                                            >
+                                                {examSchedule
+                                                    ? new Date(`1970-01-01T${examSchedule.start_time}`).toLocaleTimeString(
+                                                        "en-US",
+                                                        { hour: "numeric", minute: "2-digit", hour12: true }
+                                                    )
+                                                    : ""}
+                                            </span>
+                                        </div>
+                                    </td>
+
+                                </tr>
+
+                                <tr style={{ fontFamily: "Arial", fontSize: "15px" }}>
+                                    <td colSpan={20}>
+                                        <div style={{ display: "flex", alignItems: "center", width: "100%", marginTop: "-85px" }}>
+                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px" }}>
+                                                Bldg. :
+                                            </label>
+                                            <span
+                                                style={{
+                                                    flexGrow: 1,
+                                                    borderBottom: "1px solid black",
+                                                    height: "1.2em",
+                                                    fontFamily: "Arial",
+                                                    textAlign: "left",
+                                                }}
+                                            >
+                                                {examSchedule?.building_description || ""} - {getOrdinal(examSchedule?.floor)} Floor
+                                            </span>
+                                        </div>
+                                    </td>
+
+                                    {/* Room No. + QR side by side */}
+                                    <td colSpan={20}>
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                width: "100%",
+                                                justifyContent: "space-between", // space text & QR
+                                            }}
+                                        >
+                                            <div style={{ display: "flex", alignItems: "center", marginTop: "-130px" }}>
+                                                <label style={{ fontWeight: "bold", marginRight: "10px", width: "80px" }}>
+                                                    Room No.:
                                                 </label>
                                                 <span
                                                     style={{
                                                         flexGrow: 1,
                                                         borderBottom: "1px solid black",
-                                                        height: "1.2em",
                                                         fontFamily: "Arial",
-                                                        textAlign: "left",
+                                                        width: "150px",
                                                     }}
                                                 >
-                                                    {examSchedule?.schedule_created_at
-                                                        ? new Date(examSchedule.schedule_created_at).toLocaleDateString("en-US", {
-                                                            month: "long",
-                                                            day: "numeric",
-                                                            year: "numeric",
-                                                        })
-                                                        : ""}
+                                                    {examSchedule?.room_description || ""}
                                                 </span>
                                             </div>
-                                        </td>
 
-                                    </tr>
-
-                                    <tr style={{ fontFamily: "Arial", fontSize: "15px" }}>
-                                        <td colSpan={20}>
-                                            <div style={{ display: "flex", alignItems: "center", width: "100%", marginTop: "-128px" }}>
-                                                <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px" }}>Scheduled by:</label>
-                                                <span
+                                            {selectedPerson?.applicant_number && (
+                                                <div
                                                     style={{
-                                                        flexGrow: 1,
-                                                        borderBottom: "1px solid black",
-                                                        fontFamily: "Arial",
+                                                        width: "4.5cm",
+                                                        height: "4.5cm",
+                                                        borderRadius: "4px",
+                                                        background: "#fff",
+                                                        display: "flex",
+                                                        justifyContent: "center",
+                                                        alignItems: "center",
+                                                        position: "relative",
+                                                        overflow: "hidden",
+                                                        marginLeft: "10px"
                                                     }}
                                                 >
-                                                    {scheduledBy || "N/A"}
-                                                </span>
+                                                    <QRCodeSVG
+                                                        value={`${window.location.origin}/applicant_profile/${person.applicant_number}`}
+                                                        size={150}
+                                                        level="H"
+                                                    />
 
-                                            </div>
-                                        </td>
-                                    </tr>
-
-                                </tbody>
-                            </table>
-
-
-
-                            <table
-                                className="student-table"
-                                style={{
-
-                                    borderCollapse: "collapse",
-                                    fontFamily: "Arial",
-                                    width: "8in",
-                                    margin: "0 auto", // Center the table inside the form
-                                    textAlign: "center",
-                                    tableLayout: "fixed",
-                                    border: "1px solid black"
-                                }}
-                            >
-                                <tbody>
+                                                    <div
+                                                        style={{
+                                                            position: "absolute",
+                                                            fontSize: "12px",
+                                                            fontWeight: "bold",
+                                                            color: "maroon",
+                                                            background: "white",
+                                                            padding: "2px 4px",
+                                                            borderRadius: "2px",
+                                                        }}
+                                                    >
+                                                        {selectedPerson.applicant_number}
+                                                    </div>
+                                                </div>
+                                            )}
 
 
-                                    <tr>
-                                        <td
-                                            colSpan={40}
-                                            style={{
-                                                color: "black",
-                                                padding: "12px",
-                                                lineHeight: "1.6",
-                                                textAlign: "left",
-                                                fontSize: "14px",
-                                                fontFamily: "Arial",
-                                            }}
-                                        >
-                                            <strong>IMPORTANT REMINDERS FOR APPLICANTS:</strong>
-
-                                            <ul style={{ marginTop: "8px" }}>
-                                                <strong>Step 1:</strong> Check your Examination Date, Time, and Room Number indicated on your permit.
-                                                <br />
-
-
-                                                <strong>Step 2:</strong> Bring all required items on the exam day:
-                                                <ul>
-                                                    <li>Official Examination Permit with VERIFIED watermark on it</li>
-                                                    <li>No. 2 Pencil (any brand)</li>
-                                                    <li>2 Short bond papers</li>
-                                                </ul>
+                                        </div>
+                                    </td>
+                                </tr>
 
 
 
-                                                <strong>Step 3:</strong> Wear the proper attire:
-                                                <ul>
-                                                    <li>Plain white T-shirt or plain white polo shirt <strong>(no prints, no logos, no designs)</strong></li>
-                                                    <li>Pants (No shorts, No ripped jeans are not Allowed)</li>
-                                                    <li>Closed shoes (no crocs, sandals, slippers)</li>
-                                                </ul>
+                                <tr style={{ fontFamily: "Arial", fontSize: "15px" }}>
+                                    <td colSpan={20}>
+                                        <div style={{ display: "flex", alignItems: "center", width: "100%", marginTop: "-148px" }}>
+                                            <label
+                                                style={{
+                                                    fontWeight: "bold",
+                                                    whiteSpace: "nowrap",
+                                                    marginRight: "10px",
+                                                }}
+                                            >
+                                                Date:
+                                            </label>
+                                            <span
+                                                style={{
+                                                    flexGrow: 1,
+                                                    borderBottom: "1px solid black",
+                                                    height: "1.2em",
+                                                    fontFamily: "Arial",
+                                                    textAlign: "left",
+                                                }}
+                                            >
+                                                {examSchedule?.schedule_created_at
+                                                    ? new Date(examSchedule.schedule_created_at).toLocaleDateString("en-US", {
+                                                        month: "long",
+                                                        day: "numeric",
+                                                        year: "numeric",
+                                                    })
+                                                    : ""}
+                                            </span>
+                                        </div>
+                                    </td>
+
+                                </tr>
+
+                                <tr style={{ fontFamily: "Arial", fontSize: "15px" }}>
+                                    <td colSpan={20}>
+                                        <div style={{ display: "flex", alignItems: "center", width: "100%", marginTop: "-128px" }}>
+                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px" }}>Scheduled by:</label>
+                                            <span
+                                                style={{
+                                                    flexGrow: 1,
+                                                    borderBottom: "1px solid black",
+                                                    fontFamily: "Arial",
+                                                }}
+                                            >
+                                                {scheduledBy || "N/A"}
+                                            </span>
+
+                                        </div>
+                                    </td>
+                                </tr>
+
+                            </tbody>
+                        </table>
 
 
-                                                <strong>Step 4:</strong>Keep the two paper sheets attached to your exam permit. You will need them for the document check and enrollment process.
-                                                <br />
-                                                <strong>Step 5:</strong>Please Arrive at least 1 hour before your examination time. Late applicants will NOT be allowed to enter once the exam room door closes.
-                                                <br />
-                                                <br />
-                                                <div style={{ textAlign: "center", marginLeft: "-50px" }}><strong>GOODLUCK FUTURE EARISTIANS!</strong></div>
+
+                        <table
+                            className="student-table"
+                            style={{
+
+                                borderCollapse: "collapse",
+                                fontFamily: "Arial",
+                                width: "8in",
+                                margin: "0 auto", // Center the table inside the form
+                                textAlign: "center",
+                                tableLayout: "fixed",
+                                border: "1px solid black"
+                            }}
+                        >
+                            <tbody>
+
+
+                                <tr>
+                                    <td
+                                        colSpan={40}
+                                        style={{
+                                            color: "black",
+                                            padding: "12px",
+                                            lineHeight: "1.6",
+                                            textAlign: "left",
+                                            fontSize: "14px",
+                                            fontFamily: "Arial",
+                                        }}
+                                    >
+                                        <strong>IMPORTANT REMINDERS FOR APPLICANTS:</strong>
+
+                                        <ul style={{ marginTop: "8px" }}>
+                                            <strong>Step 1:</strong> Check your Examination Date, Time, and Room Number indicated on your permit.
+                                            <br />
+
+
+                                            <strong>Step 2:</strong> Bring all required items on the exam day:
+                                            <ul>
+                                                <li>Official Examination Permit with VERIFIED watermark on it</li>
+                                                <li>No. 2 Pencil (any brand)</li>
+                                                <li>2 Short bond papers</li>
                                             </ul>
-                                        </td>
-                                    </tr>
 
-                                </tbody>
-                            </table>
 
-                        </div>
+
+                                            <strong>Step 3:</strong> Wear the proper attire:
+                                            <ul>
+                                                <li>Plain white T-shirt or plain white polo shirt <strong>(no prints, no logos, no designs)</strong></li>
+                                                <li>Pants (No shorts, No ripped jeans are not Allowed)</li>
+                                                <li>Closed shoes (no crocs, sandals, slippers)</li>
+                                            </ul>
+
+
+                                            <strong>Step 4:</strong>Keep the two paper sheets attached to your exam permit. You will need them for the document check and enrollment process.
+                                            <br />
+                                            <strong>Step 5:</strong>Please Arrive at least 1 hour before your examination time. Late applicants will NOT be allowed to enter once the exam room door closes.
+                                            <br />
+                                            <br />
+                                            <div style={{ textAlign: "center", marginLeft: "-50px" }}><strong>GOODLUCK FUTURE EARISTIANS!</strong></div>
+                                        </ul>
+                                    </td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+
                     </div>
-                )}
-            </div>
+                </div>
+            )}
+
             <div style={{ height: "30px" }}></div>
             {selectedPerson && (
                 <div ref={changeCourseRef} style={{ position: "relative" }}>

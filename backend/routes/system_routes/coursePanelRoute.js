@@ -1,6 +1,6 @@
 const express = require('express');
 const { db, db3 } = require('../database/database');
-const {CanCreate, CanEdit, CanDelete} = require('../../middleware/pagePermissions');
+const { CanCreate, CanEdit, CanDelete } = require('../../middleware/pagePermissions');
 const { insertAuditLogEnrollment } = require("../../utils/auditLogger");
 const router = express.Router();
 
@@ -66,19 +66,17 @@ router.post("/adding_course", CanCreate, async (req, res) => {
     lab_unit,
     prereq,
     corequisite,
-    is_included,
-    include_summa,
-    include_magna,
-    include_cum,
+    is_academic_achiever,
+    is_latin
   } = req.body;
 
   try {
     const normalizeCode = (code) =>
-    (code || "")
-      .replace(/[^A-Za-z0-9-_\. ]/g, "") 
-      .replace(/(\S) +(\S)/g, "$1 $2")    
-      .replace(/^ +| +$/g, "")          
-      .toUpperCase();
+      (code || "")
+        .replace(/[^A-Za-z0-9-_\. ]/g, "")
+        .replace(/(\S) +(\S)/g, "$1 $2")
+        .replace(/^ +| +$/g, "")
+        .toUpperCase();
 
     const normalizeDescription = (desc) => (desc || "").trim();
 
@@ -97,8 +95,8 @@ router.post("/adding_course", CanCreate, async (req, res) => {
       return res.status(400).json({ message: "Course description is required" });
     }
 
-    const [rows] = await db3.query(
-      `SELECT course_id FROM course_table 
+  const [rows] = await db3.query(
+  `SELECT course_id FROM course_table 
    WHERE course_code = ?
    AND course_description = ?
    AND course_unit = ?
@@ -106,26 +104,36 @@ router.post("/adding_course", CanCreate, async (req, res) => {
    AND lab_unit = ?
    AND (prereq <=> ?)
    AND (corequisite <=> ?)
-   AND (is_included <=> ?)
-   AND (include_summa <=> ?)
-   AND (include_magna <=> ?)
-   AND (include_cum <=> ?)`,
-      [
-        normalized_code,
-        normalized_desc,
-        unit,
-        lec,
-        lab,
-        prereq || null,
-        corequisite || null,
-        is_included ?? 1,
-        include_summa ?? 1,
-        include_magna ?? 1,
-        include_cum ?? 1
-      ]
-    );
+   AND (is_academic_achiever <=> ?)
+   AND (is_latin <=> ?)
+   AND course_id != ?`,
+  [
+    final_course_code,
+    final_course_desc,
 
-    
+    course_unit !== undefined && course_unit !== ""
+      ? parseFloat(course_unit)
+      : current.course_unit,
+
+    lec_unit !== undefined && lec_unit !== ""
+      ? parseFloat(lec_unit)
+      : current.lec_unit,
+
+    lab_unit !== undefined && lab_unit !== ""
+      ? parseFloat(lab_unit)
+      : current.lab_unit,
+
+    prereq ?? current.prereq,
+    corequisite ?? current.corequisite,
+
+    is_academic_achiever ?? current.is_academic_achiever,
+    is_latin ?? current.is_latin,
+
+    id
+  ]
+);
+
+
     if (rows.length > 0) {
       return res.status(400).json({
         message: "❌ Exact duplicate course already exists",
@@ -134,8 +142,18 @@ router.post("/adding_course", CanCreate, async (req, res) => {
 
     await db3.query(
       `INSERT INTO course_table
-  (course_code, course_description, course_unit, lec_unit, lab_unit, prereq, corequisite, is_included, include_summa, include_magna, include_cum)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  (
+    course_code,
+    course_description,
+    course_unit,
+    lec_unit,
+    lab_unit,
+    prereq,
+    corequisite,
+    is_academic_achiever,
+    is_latin
+  )
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         normalized_code,
         normalized_desc,
@@ -144,13 +162,10 @@ router.post("/adding_course", CanCreate, async (req, res) => {
         lab,
         prereq || null,
         corequisite || null,
-        is_included ?? 1,
-        include_summa ?? 1,
-        include_magna ?? 1,
-        include_cum ?? 1
+        is_academic_achiever ?? 1,
+        is_latin ?? 1
       ]
     );
-
 
     const { actorId, actorRole } = getAuditActor(req);
     const roleLabel = formatAuditActorRole(actorRole);
@@ -178,10 +193,8 @@ router.put("/update_course/:id", CanEdit, async (req, res) => {
     lab_unit,
     prereq,
     corequisite,
-    is_included,
-    include_summa,
-    include_magna,
-    include_cum
+    is_academic_achiever,
+    is_latin
   } = req.body;
 
   try {
@@ -198,11 +211,11 @@ router.put("/update_course/:id", CanEdit, async (req, res) => {
 
     // Same normalization as adding
     const normalizeCode = (code) =>
-    (code || "")
-      .replace(/[^A-Za-z0-9-_\. ]/g, "")
-      .replace(/(\S) +(\S)/g, "$1 $2") 
-      .replace(/^ +| +$/g, "")           
-      .toUpperCase();
+      (code || "")
+        .replace(/[^A-Za-z0-9-_\. ]/g, "")
+        .replace(/(\S) +(\S)/g, "$1 $2")
+        .replace(/^ +| +$/g, "")
+        .toUpperCase();
 
     const normalizeDescription = (desc) => (desc || "").trim();
 
@@ -214,8 +227,8 @@ router.put("/update_course/:id", CanEdit, async (req, res) => {
       ? normalizeDescription(course_description)
       : normalizeDescription(current.course_description);
 
-    const [rows] = await db3.query(
-      `SELECT course_id FROM course_table 
+   const [rows] = await db3.query(
+  `SELECT course_id FROM course_table 
    WHERE course_code = ?
    AND course_description = ?
    AND course_unit = ?
@@ -223,27 +236,34 @@ router.put("/update_course/:id", CanEdit, async (req, res) => {
    AND lab_unit = ?
    AND (prereq <=> ?)
    AND (corequisite <=> ?)
-   AND (is_included <=> ?)
-   AND (include_summa <=> ?)
-   AND (include_magna <=> ?)
-   AND (include_cum <=> ?)
+   AND (is_academic_achiever <=> ?)
+   AND (is_latin <=> ?)
    AND course_id != ?`,
-      [
-        final_course_code,
-        final_course_desc,
-        course_unit ?? current.course_unit,
-        lec_unit ?? current.lec_unit,
-        lab_unit ?? current.lab_unit,
-        prereq ?? current.prereq,
-        corequisite ?? current.corequisite,
-        is_included ?? current.is_included,
-        include_summa ?? current.include_summa,
-        include_magna ?? current.include_magna,
-        include_cum ?? current.include_cum,
-        id
-      ]
-    );
+  [
+    final_course_code,
+    final_course_desc,
 
+    course_unit !== undefined && course_unit !== ""
+      ? parseFloat(course_unit)
+      : current.course_unit,
+
+    lec_unit !== undefined && lec_unit !== ""
+      ? parseFloat(lec_unit)
+      : current.lec_unit,
+
+    lab_unit !== undefined && lab_unit !== ""
+      ? parseFloat(lab_unit)
+      : current.lab_unit,
+
+    prereq ?? current.prereq,
+    corequisite ?? current.corequisite,
+
+    is_academic_achiever ?? current.is_academic_achiever,
+    is_latin ?? current.is_latin,
+
+    id
+  ]
+);
     if (rows.length > 0) {
       return res.status(400).json({ message: "The course already exists" });
     }
@@ -257,10 +277,8 @@ router.put("/update_course/:id", CanEdit, async (req, res) => {
     lab_unit = ?,
     prereq = ?,
     corequisite = ?,
-    is_included = ?,
-    include_summa = ?,
-    include_magna = ?,
-    include_cum = ?
+is_academic_achiever = ?,
+is_latin = ?
   WHERE course_id = ?`,
       [
         final_course_code,
@@ -272,10 +290,8 @@ router.put("/update_course/:id", CanEdit, async (req, res) => {
         lab_unit !== undefined ? parseFloat(lab_unit) : current.lab_unit,
         prereq !== undefined ? prereq : current.prereq,
         corequisite !== undefined ? corequisite : current.corequisite,
-        is_included !== undefined ? Number(is_included) : current.is_included,
-        include_summa !== undefined ? Number(include_summa) : current.include_summa,
-        include_magna !== undefined ? Number(include_magna) : current.include_magna,
-        include_cum !== undefined ? Number(include_cum) : current.include_cum,
+        is_academic_achiever ?? current.is_academic_achiever,
+        is_latin ?? current.is_latin,
         id,
       ]
     );

@@ -288,64 +288,65 @@ const ScheduleHoverTile = () => {
     };
 
     return (
-        <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
-            {/* Title + Search Row */}
+        <Box
+            sx={{
+                height: "calc(100vh - 150px)",
+                overflowY: "auto",
+                paddingRight: 1,
+                backgroundColor: "transparent",
+                mt: 1,
+                padding: 2,
+            }}
+        >
             <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    flexWrap: "wrap",
-                    mb: 2,
-                }}
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
             >
-                {/* LEFT – Title */}
-                <Typography
-                    variant="h4"
+                <Typography variant="h4"
                     sx={{
-                        fontWeight: "bold",
+                        fontWeight: 'bold',
                         color: titleColor,
-                        fontSize: "36px",
+                        fontSize: '36px',
                     }}
                 >
                     ADMISSION ROOM MANAGEMENT
                 </Typography>
 
 
-                {/* RIGHT – Search Field */}
-                <Box sx={{ display: "flex", alignItems: "center", mt: { xs: 2, md: 0 } }}>
-                    <TextField
-                        size="small"
-                        placeholder="Search Proctor / Building / Room"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        sx={{
-                            width: 450,
-                            backgroundColor: "#fff",
-                            borderRadius: 1,
-                            "& .MuiOutlinedInput-root": {
-                                borderRadius: "10px",
-                            },
-                        }}
-                        InputProps={{
-                            startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
-                        }}
-                    />
-                </Box>
-            </Box>
+                <TextField
+                    size="small"
+                    placeholder="Search Proctor / Building / Room"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    sx={{
+                        width: 450,
+                        backgroundColor: "#fff",
+                        borderRadius: 1,
+                        "& .MuiOutlinedInput-root": {
+                            borderRadius: "10px",
+                        },
+                    }}
+                    InputProps={{
+                        startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
+                    }}
+                />
 
+            </Box>
 
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
 
             <br />
             <br />
+
             <Box
                 sx={{
                     display: "flex",
                     justifyContent: "space-between",
                     flexWrap: "nowrap", // ❌ prevent wrapping
                     width: "100%",
-                    mt: 1,
+
                     gap: 2,
                 }}
             >
@@ -362,7 +363,10 @@ const ScheduleHoverTile = () => {
                             cursor: "pointer",
                             borderRadius: 2,
                             border: `1px solid ${borderColor}`,
-                            backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
+                            backgroundColor:
+                                activeStep === index
+                                    ? settings?.header_color || "#1976d2"
+                                    : "#E8C999",
                             color: activeStep === index ? "#fff" : "#000",
                             boxShadow:
                                 activeStep === index
@@ -374,9 +378,17 @@ const ScheduleHoverTile = () => {
                             },
                         }}
                     >
-                        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                            }}
+                        >
                             <Box sx={{ fontSize: 40, mb: 1 }}>{tab.icon}</Box>
-                            <Typography sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}>
+                            <Typography
+                                sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}
+                            >
                                 {tab.label}
                             </Typography>
                         </Box>
@@ -386,6 +398,7 @@ const ScheduleHoverTile = () => {
 
             <br />
             <br />
+
             <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
                 <Table>
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>

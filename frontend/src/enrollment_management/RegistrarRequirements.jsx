@@ -42,38 +42,39 @@ import ScoreIcon from "@mui/icons-material/Score";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import SearchIcon from "@mui/icons-material/Search";
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
+import PersonIcon from "@mui/icons-material/Person";
 
 const tabs = [
-  {
-    label: "Admission Process For College",
-    to: "/applicant_list",
-    icon: <SchoolIcon fontSize="large" />,
-  },
-  {
-    label: "Applicant Form",
-    to: "/registrar_dashboard1",
-    icon: <AssignmentIcon fontSize="large" />,
-  },
-  {
-    label: "Student Requirements",
-    to: "/registrar_requirements",
-    icon: <AssignmentTurnedInIcon fontSize="large" />,
-  },
-  {
-    label: "Qualifying / Interview Schedule Management",
-    to: "/assign_schedule_applicants_qualifying_interview",
-    icon: <ScheduleIcon fontSize="large" />
-  },
-  {
-    label: "Qualifying / Interview Exam Score",
-    to: "/qualifying_interview_exam_scores",
-    icon: <ScoreIcon fontSize="large" />,
-  },
-  {
-    label: "Student Numbering",
-    to: "/student_numbering_per_college",
-    icon: <DashboardIcon fontSize="large" />,
-  },
+ {
+      label: "Applicant List",
+      to: "/applicant_list",
+      icon: <SchoolIcon fontSize="large" />,
+    },
+    {
+      label: "Applicant Form",
+      to: "/registrar_dashboard1",
+      icon: <PersonIcon fontSize="large" />,
+    },
+    {
+      label: "Student Requirements",
+      to: "/registrar_requirements",
+      icon: <AssignmentIcon fontSize="large" />,
+    },
+    {
+      label: "Qualifying / Interview Schedule Management",
+      to: "/assign_schedule_applicants_qualifying_interview",
+      icon: <ScheduleIcon fontSize="large" />
+    },
+    {
+      label: "Qualifying / Interview Exam Score",
+      to: "/qualifying_interview_exam_scores",
+      icon: <ScoreIcon fontSize="large" />,
+    },
+    {
+      label: "Student Numbering",
+      to: "/student_numbering_per_college",
+      icon: <DashboardIcon fontSize="large" />,
+    },
 
 ];
 
@@ -980,29 +981,24 @@ const RegistrarRequirements = () => {
         padding: 2,
       }}
     >
-      {/* Top header: APPLICANT ONLINE REQUIREMENTS + Search */}
       <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-
-          mb: 2,
-        }}
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={2}
       >
-        <Typography
-          variant="h4"
+        <Typography variant="h4"
           sx={{
-            fontWeight: "bold",
+            fontWeight: 'bold',
             color: titleColor,
-            fontSize: "36px",
+            fontSize: '36px',
           }}
         >
-          APPLICANT ONLINE REQUIREMENTS
+          SUBMITTED DOCUMENTS
         </Typography>
 
-        <TextField
+
+         <TextField
           variant="outlined"
           placeholder="Search Applicant Name / Email / Applicant ID"
           size="small"
@@ -1023,6 +1019,8 @@ const RegistrarRequirements = () => {
       </Box>
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+
+      <br />
       <br />
 
       <Box
@@ -1031,7 +1029,7 @@ const RegistrarRequirements = () => {
           justifyContent: "space-between",
           flexWrap: "nowrap", // ❌ prevent wrapping
           width: "100%",
-          mt: 3,
+
           gap: 2,
         }}
       >
@@ -1081,8 +1079,8 @@ const RegistrarRequirements = () => {
         ))}
       </Box>
 
-      <div style={{ height: "40px" }}></div>
-
+      <br />
+      <br />
       {/* Applicant ID and Name */}
       <TableContainer
         component={Paper}
@@ -1763,8 +1761,8 @@ const RegistrarRequirements = () => {
           </DialogContent>
           <DialogActions>
             <Button
-           color="error"
-            variant="outlined"
+              color="error"
+              variant="outlined"
               onClick={() => setConfirmOpen(false)}>
               Cancel
             </Button>

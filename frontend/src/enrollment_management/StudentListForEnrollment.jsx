@@ -38,11 +38,11 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 import SearchIcon from "@mui/icons-material/Search";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
-import GradeIcon from "@mui/icons-material/Grade";
+import PersonIcon from "@mui/icons-material/Person";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import SchoolIcon from "@mui/icons-material/School";
 import PersonSearchIcon from "@mui/icons-material/PersonSearch";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 
 const StudentListForEnrollment = () => {
     const socket = useRef(null);
@@ -115,25 +115,24 @@ const StudentListForEnrollment = () => {
         sessionStorage.setItem("edit_student_number", person.student_number || "");
         navigate(
             person.person_id
-                ? `/readmission_dashboard1?person_id=${person.person_id}`
-                : `/readmission_dashboard1?student_number=${person.student_number}`
+                ? `/official_student_dashboard1?person_id=${person.person_id}`
+                : `/official_student_dashboard1?student_number=${person.student_number}`
         );
     };
 
-    const tabs1 = [
-        { label: "Student List", to: "/student_list_for_enrollment", icon: <ListAltIcon /> },
-        { label: "Applicant Form", to: "/official_student_dashboard1", icon: <PersonAddIcon /> },
-        { label: "Submitted Documents", to: "/student_official_requirements", icon: <UploadFileIcon /> },
-        { label: "Course Tagging", to: "/course_tagging_for_college", icon: <UploadFileIcon /> },
-        { label: "Search COR", to: "/search_cor_for_college", icon: <MenuBookIcon /> },
-
-        { label: "Class List", to: "/class_roster_enrollment", icon: <PersonSearchIcon /> },
+    const tabs = [
+        { label: "Student List", to: "/student_list_for_enrollment", icon: <SchoolIcon fontSize="large"/> },
+        { label: "Applicant Form", to: "/official_student_dashboard1", icon: <PersonIcon fontSize="large" /> },
+        { label: "Submitted Documents", to: "/student_official_requirements", icon: <AssignmentIcon fontSize="large"/> },
+        { label: "Course Tagging", to: "/course_tagging_for_college", icon: <UploadFileIcon fontSize="large"/> },
+        { label: "Search COR", to: "/search_cor_for_college", icon: <MenuBookIcon fontSize="large"/> },
+        { label: "Class List", to: "/class_roster_enrollment", icon: <PersonSearchIcon fontSize="large"/> },
 
     ];
 
     const navigate = useNavigate();
     const [activeStep, setActiveStep] = useState(0);
-    const [clickedSteps, setClickedSteps] = useState(Array(tabs1.length).fill(false));
+    const [clickedSteps, setClickedSteps] = useState(Array(tabs.length).fill(false));
 
     const handleStepClick = (index, to) => {
         setActiveStep(index);
@@ -817,77 +816,121 @@ const StudentListForEnrollment = () => {
     }
 
     return (
-        <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
+        <Box
+            sx={{
+                height: "calc(100vh - 150px)",
+                overflowY: "auto",
+                paddingRight: 1,
+                backgroundColor: "transparent",
+                mt: 1,
+                padding: 2,
+            }}
+        >
             <LoadingOverlay open={documentsLoading} message="Loading..." />
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h4" fontWeight="bold" sx={{ color: titleColor }}>
-                    STUDENT RECORDS
+
+            <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
+            >
+                <Typography variant="h4"
+                    sx={{
+                        fontWeight: 'bold',
+                        color: titleColor,
+                        fontSize: '36px',
+                    }}
+                >
+                    STUDENT LIST
                 </Typography>
-                <Box>
-                    <TextField
-                        variant="outlined"
-                        placeholder="Search Student Name / Email / Student"
-                        size="small"
-                        value={searchQuery}
-                        onChange={(e) => {
-                            setSearchQuery(e.target.value);
-                            setCurrentPage(1);
-                        }}
-                        sx={{
-                            width: 450,
-                            backgroundColor: "#fff",
-                            borderRadius: 1,
-                            "& .MuiOutlinedInput-root": { borderRadius: "10px" },
-                        }}
-                        InputProps={{
-                            startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
-                        }}
-                    />
-                </Box>
+
+
+                <TextField
+                    variant="outlined"
+                    placeholder="Search Student Name / Email / Student"
+                    size="small"
+                    value={searchQuery}
+                    onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setCurrentPage(1);
+                    }}
+                    sx={{
+                        width: 450,
+                        backgroundColor: "#fff",
+                        borderRadius: 1,
+                        "& .MuiOutlinedInput-root": { borderRadius: "10px" },
+                    }}
+                    InputProps={{
+                        startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
+                    }}
+                />
+
+
             </Box>
 
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
-            <div style={{ height: "20px" }}></div>
 
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", mt: 2 }}>
-                {tabs1.map((tab, index) => (
-                    <React.Fragment key={index}>
-                        <Card
-                            onClick={() => handleStepClick(index, tab.to)}
+            <br />
+            <br />
+
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    flexWrap: "nowrap", // ❌ prevent wrapping
+                    width: "100%",
+
+                    gap: 2,
+                }}
+            >
+                {tabs.map((tab, index) => (
+                    <Card
+                        key={index}
+                        onClick={() => handleStepClick(index, tab.to)}
+                        sx={{
+                            flex: `1 1 ${100 / tabs.length}%`, // evenly divide row
+                            height: 135,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer",
+                            borderRadius: 2,
+                            border: `1px solid ${borderColor}`,
+                            backgroundColor:
+                                activeStep === index
+                                    ? settings?.header_color || "#1976d2"
+                                    : "#E8C999",
+                            color: activeStep === index ? "#fff" : "#000",
+                            boxShadow:
+                                activeStep === index
+                                    ? "0px 4px 10px rgba(0,0,0,0.3)"
+                                    : "0px 2px 6px rgba(0,0,0,0.15)",
+                            transition: "0.3s ease",
+                            "&:hover": {
+                                backgroundColor: activeStep === index ? "#000000" : "#f5d98f",
+                            },
+                        }}
+                    >
+                        <Box
                             sx={{
-                                flex: 1,
-                                maxWidth: `${100 / tabs1.length}%`,
-                                height: 140,
                                 display: "flex",
+                                flexDirection: "column",
                                 alignItems: "center",
-                                justifyContent: "center",
-                                cursor: "pointer",
-                                borderRadius: 2,
-                                border: `1px solid ${borderColor}`,
-                                backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
-                                color: activeStep === index ? "#fff" : "#000",
-                                boxShadow: activeStep === index ? "0px 4px 10px rgba(0,0,0,0.3)" : "0px 2px 6px rgba(0,0,0,0.15)",
-                                transition: "0.3s ease",
-                                "&:hover": {
-                                    backgroundColor: activeStep === index ? "#000000" : "#f5d98f",
-                                },
                             }}
                         >
-                            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                                <Box sx={{ fontSize: 32, mb: 0.5 }}>{tab.icon}</Box>
-                                <Typography sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}>
-                                    {tab.label}
-                                </Typography>
-                            </Box>
-                        </Card>
-                        {index < tabs1.length - 1 && (
-                            <Box sx={{ flex: 0.1, mx: 1 }} />
-                        )}
-                    </React.Fragment>
+                            <Box sx={{ fontSize: 40, mb: 1 }}>{tab.icon}</Box>
+                            <Typography
+                                sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}
+                            >
+                                {tab.label}
+                            </Typography>
+                        </Box>
+                    </Card>
                 ))}
             </Box>
 
-            <div style={{ height: "20px" }}></div>
+            <br />
+            <br />
 
             <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}` }}>
                 <Table>
@@ -1215,8 +1258,8 @@ const StudentListForEnrollment = () => {
                 </DialogContent>
                 <DialogActions>
                     <Button
-               color="error"
-            variant="outlined"
+                        color="error"
+                        variant="outlined"
                         onClick={handleCloseDialog}>Cancel</Button>
                     <Button onClick={handleViewDocuments} variant="contained">View</Button>
                 </DialogActions>

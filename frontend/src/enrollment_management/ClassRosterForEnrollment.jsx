@@ -35,6 +35,8 @@ import API_BASE_URL from "../apiConfig";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import PersonSearchIcon from "@mui/icons-material/PersonSearch";
 import MenuBookIcon from '@mui/icons-material/MenuBook';
+import AssignmentIcon from "@mui/icons-material/Assignment";
+import PersonIcon from "@mui/icons-material/Person";
 
 const GLOBAL_PAGE_IDS = [13,15,17,38,39,40,41,42,50,56,59,62,73,80,92,96,101,104,105,106,117];
 const GLOBAL_ACCESS_THRESHOLD = 10; // strictly more than 10
@@ -113,15 +115,14 @@ const ClassRoster = () => {
   const getStudentRegularLabel = (student) =>
     getStudentRegularStatus(student) === 1 ? "Regular" : "Irregular";
 
-  const tabs1 = [
-        { label: "Student List", to: "/student_list_for_enrollment", icon: <ListAltIcon /> },
-    { label: "Applicant Form", to: "/official_student_dashboard1", icon: <PersonAddIcon /> },
-    { label: "Submitted Documents", to: "/student_official_requirements", icon: <UploadFileIcon /> },
-    { label: "Course Tagging", to: "/course_tagging_for_college", icon: <UploadFileIcon /> },
-    { label: "Search COR", to: "/search_cor_for_college", icon: <MenuBookIcon /> },
-
-    { label: "Class List", to: "/class_roster_enrollment", icon: <PersonSearchIcon /> },
-
+  const tabs= [
+         { label: "Student List", to: "/student_list_for_enrollment", icon: <SchoolIcon fontSize="large"/> },
+           { label: "Applicant Form", to: "/official_student_dashboard1", icon: <PersonIcon fontSize="large" /> },
+           { label: "Submitted Documents", to: "/student_official_requirements", icon: <AssignmentIcon fontSize="large"/> },
+           { label: "Course Tagging", to: "/course_tagging_for_college", icon: <UploadFileIcon fontSize="large"/> },
+           { label: "Search COR", to: "/search_cor_for_college", icon: <MenuBookIcon fontSize="large"/> },
+           { label: "Class List", to: "/class_roster_enrollment", icon: <PersonSearchIcon fontSize="large"/> },
+   
   ];
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -469,49 +470,100 @@ const ClassRoster = () => {
   // Render
   // ─────────────────────────────────────────────────────────────────────────────
   return (
-    <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, p: 2 }}>
-
-      {/* ── Header ── */}
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Typography variant="h4" sx={{ fontWeight: "bold", color: titleColor, fontSize: "36px" }}>
-          CLASS LIST
+     <Box
+      sx={{
+        height: "calc(100vh - 150px)",
+        overflowY: "auto",
+        paddingRight: 1,
+        backgroundColor: "transparent",
+        mt: 1,
+        padding: 2,
+      }}
+    >
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={2}
+      >
+        <Typography variant="h4"
+          sx={{
+            fontWeight: 'bold',
+            color: titleColor,
+            fontSize: '36px',
+          }}
+        >
+        CLASS LIST
         </Typography>
+
+
+    
       </Box>
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+
+      <br />
       <br />
 
-      {/* ── Navigation tabs ── */}
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", mt: 2 }}>
-        {tabs1.map((tab, index) => (
-          <React.Fragment key={index}>
-            <Card
-              onClick={() => handleStepClick(index, tab.to)}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          flexWrap: "nowrap", // ❌ prevent wrapping
+          width: "100%",
+
+          gap: 2,
+        }}
+      >
+        {tabs.map((tab, index) => (
+          <Card
+            key={index}
+            onClick={() => handleStepClick(index, tab.to)}
+            sx={{
+              flex: `1 1 ${100 / tabs.length}%`, // evenly divide row
+              height: 135,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              borderRadius: 2,
+              border: `1px solid ${borderColor}`,
+              backgroundColor:
+                activeStep === index
+                  ? settings?.header_color || "#1976d2"
+                  : "#E8C999",
+              color: activeStep === index ? "#fff" : "#000",
+              boxShadow:
+                activeStep === index
+                  ? "0px 4px 10px rgba(0,0,0,0.3)"
+                  : "0px 2px 6px rgba(0,0,0,0.15)",
+              transition: "0.3s ease",
+              "&:hover": {
+                backgroundColor: activeStep === index ? "#000000" : "#f5d98f",
+              },
+            }}
+          >
+            <Box
               sx={{
-                flex: 1,
-                maxWidth: `${100 / tabs1.length}%`,
-                height: 100,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                cursor: "pointer", borderRadius: 2,
-                border: `1px solid ${borderColor}`,
-                backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
-                color: activeStep === index ? "#fff" : "#000",
-                boxShadow: activeStep === index ? "0px 4px 10px rgba(0,0,0,0.3)" : "0px 2px 6px rgba(0,0,0,0.15)",
-                transition: "0.3s ease",
-                "&:hover": { backgroundColor: activeStep === index ? "#000000" : "#f5d98f" },
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
               }}
             >
-              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                <Box sx={{ fontSize: 32, mb: 0.5 }}>{tab.icon}</Box>
-                <Typography sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}>{tab.label}</Typography>
-              </Box>
-            </Card>
-            {index < tabs1.length - 1 && <Box sx={{ flex: 0.1, mx: 1 }} />}
-          </React.Fragment>
+              <Box sx={{ fontSize: 40, mb: 1 }}>{tab.icon}</Box>
+              <Typography
+                sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}
+              >
+                {tab.label}
+              </Typography>
+            </Box>
+          </Card>
         ))}
       </Box>
 
-      <br />
+     <br/>
+     <br/>
+
 
       {/* ── Pagination bar ── */}
       <TableContainer component={Paper} sx={{ width: "100%" }}>

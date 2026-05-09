@@ -71,38 +71,37 @@ const RegistrarDashboard3 = () => {
     }, [settings]);
 
     const stepsData = [
-     {
-          label: "Admission Process For College",
-          to: "/applicant_list",
-          icon: <SchoolIcon fontSize="large" />,
-        },
-        {
-          label: "Applicant Form",
-          to: "/registrar_dashboard1",
-          icon: <AssignmentIcon fontSize="large" />,
-        },
-        {
-          label: "Student Requirements",
-          to: "/registrar_requirements",
-          icon: <AssignmentTurnedInIcon fontSize="large" />,
-        },
-        { 
-          label: "Qualifying / Interview Schedule Management", 
-          to: "/assign_schedule_applicants_qualifying_interview", 
-          icon: <ScheduleIcon fontSize="large" /> 
-        },
-        {
-          label: "Qualifying / Interview Exam Score",
-          to: "/qualifying_interview_exam_scores",
-          icon: <ScoreIcon fontSize="large" />,
-        },
-        {
-          label: "Student Numbering",
-          to: "/student_numbering_per_college",
-          icon: <DashboardIcon fontSize="large" />,
-        },
-    
-      
+         {
+             label: "Applicant List",
+             to: "/applicant_list",
+             icon: <SchoolIcon fontSize="large" />,
+           },
+           {
+             label: "Applicant Form",
+             to: "/registrar_dashboard1",
+             icon: <PersonIcon fontSize="large" />,
+           },
+           {
+             label: "Student Requirements",
+             to: "/registrar_requirements",
+             icon: <AssignmentIcon fontSize="large" />,
+           },
+           {
+             label: "Qualifying / Interview Schedule Management",
+             to: "/assign_schedule_applicants_qualifying_interview",
+             icon: <ScheduleIcon fontSize="large" />
+           },
+           {
+             label: "Qualifying / Interview Exam Score",
+             to: "/qualifying_interview_exam_scores",
+             icon: <ScoreIcon fontSize="large" />,
+           },
+           {
+             label: "Student Numbering",
+             to: "/student_numbering_per_college",
+             icon: <DashboardIcon fontSize="large" />,
+           },
+
     ];
     const [currentStep, setCurrentStep] = useState(1);
     const [visitedSteps, setVisitedSteps] = useState(Array(stepsData.length).fill(false));
@@ -589,7 +588,7 @@ const RegistrarDashboard3 = () => {
 
     // Put this at the very bottom before the return 
     if (loading || hasAccess === null) {
-       return <LoadingOverlay open={loading} message="Loading..." />;
+        return <LoadingOverlay open={loading} message="Loading..." />;
     }
 
     if (!hasAccess) {
@@ -599,7 +598,7 @@ const RegistrarDashboard3 = () => {
     }
 
     return (
-         <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
+        <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
             {showPrintView && (
                 <div ref={divToPrintRef} style={{ display: "block" }}>
                     <ExamPermit personId={userID} />   {/* ✅ pass the searched person_id */}
@@ -626,12 +625,12 @@ const RegistrarDashboard3 = () => {
                         fontSize: '36px',
                     }}
                 >
-                      EDUCATIONAL ATTAINMENT
+                    EDUCATIONAL ATTAINMENT
                 </Typography>
             </Box>
-             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
-      <br />
-      <br />
+            <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+            <br />
+            
 
             <Box
                 sx={{
@@ -693,7 +692,7 @@ const RegistrarDashboard3 = () => {
                         {index < stepsData.length - 1 && (
                             <Box
                                 sx={{
-                                    flex: 0.05,
+
                                     mx: 1, // spacing between cards
                                 }}
                             />
@@ -703,7 +702,8 @@ const RegistrarDashboard3 = () => {
             </Box>
 
 
-            <div style={{ height: "40px" }}></div>
+            <br />
+            <br />
 
 
 
@@ -973,10 +973,10 @@ const RegistrarDashboard3 = () => {
                                     <Box
                                         sx={{
                                             height: "2px",
-                    backgroundColor: mainButtonColor,
-                    flex: 1,
-                    alignSelf: "center",
-                    mx: 2,
+                                            backgroundColor: mainButtonColor,
+                                            flex: 1,
+                                            alignSelf: "center",
+                                            mx: 2,
                                         }}
                                     />
                                 )}

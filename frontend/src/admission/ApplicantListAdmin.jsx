@@ -48,6 +48,7 @@ import CampaignIcon from "@mui/icons-material/Campaign";
 import API_BASE_URL from "../apiConfig";
 import ScoreIcon from "@mui/icons-material/Score";
 import DateField from "../components/DateField";
+import PersonIcon from "@mui/icons-material/Person";
 
 const AdminApplicantList = () => {
   const socket = useRef(null);
@@ -163,14 +164,14 @@ const AdminApplicantList = () => {
 
   const tabs = [
     {
-      label: "Admission Process for Registrar",
+      label: "Applicant List",
       to: "/applicant_list_admin",
       icon: <SchoolIcon fontSize="large" />,
     },
     {
-      label: "Applicant Form",
+      label: "Applicant Profile",
       to: "/admin_dashboard1",
-      icon: <DashboardIcon fontSize="large" />,
+      icon: <PersonIcon fontSize="large" />,
     },
     {
       label: "Student Requirements",
@@ -1146,78 +1147,16 @@ const AdminApplicantList = () => {
         alignItems="center"
         mb={2}
       >
-        <Typography variant="h4" fontWeight="bold" sx={{ color: titleColor }}>
-          ADMISSION PROCESS FOR REGISTRAR
+        <Typography variant="h4"
+          sx={{
+            fontWeight: 'bold',
+            color: titleColor,
+            fontSize: '36px',
+          }}
+        >
+          APPLICANT LIST
         </Typography>
-        <Box sx={{ position: "absolute", top: 10, right: 24 }}>
-          <Button
-            sx={{
-              width: 65,
-              height: 65,
-              borderRadius: "50%",
-              "&:hover": {
-                backgroundColor: settings?.header_color || "#1976d2",
-              },
-            }}
-            onClick={() => setShowNotifications(!showNotifications)}
-          >
-            <NotificationsIcon sx={{ fontSize: 50, color: "white" }} />
-            {notifications.length > 0 && (
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: 5,
-                  right: 5,
-                  background: "red",
-                  color: "white",
-                  borderRadius: "50%",
-                  width: 20,
-                  height: 20,
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  fontSize: "12px",
-                }}
-              >
-                {notifications.length}
-              </Box>
-            )}
-          </Button>
 
-          {showNotifications && (
-            <Paper
-              sx={{
-                position: "absolute",
-                top: 70,
-                right: 0,
-                width: 300,
-                maxHeight: 400,
-                overflowY: "auto",
-                bgcolor: "white",
-                boxShadow: 3,
-                zIndex: 10,
-                borderRadius: 1,
-              }}
-            >
-              {notifications.length === 0 ? (
-                <Typography sx={{ p: 2 }}>No notifications</Typography>
-              ) : (
-                notifications.map((notif, idx) => (
-                  <Box key={idx} sx={{ p: 1, borderBottom: "1px solid #ccc" }}>
-                    <Typography sx={{ fontSize: "14px" }}>
-                      {notif.message}
-                    </Typography>
-                    <Typography sx={{ fontSize: "10px", color: "#888" }}>
-                      {new Date(notif.timestamp).toLocaleString("en-PH", {
-                        timeZone: "Asia/Manila",
-                      })}
-                    </Typography>
-                  </Box>
-                ))
-              )}
-            </Paper>
-          )}
-        </Box>
 
         <Box>
           <TextField
@@ -1244,6 +1183,7 @@ const AdminApplicantList = () => {
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
 
       <br />
+      <br />
 
       <Box
         sx={{
@@ -1251,7 +1191,7 @@ const AdminApplicantList = () => {
           justifyContent: "space-between",
           flexWrap: "nowrap", // ❌ prevent wrapping
           width: "100%",
-          mt: 3,
+
           gap: 2,
         }}
       >
@@ -1301,7 +1241,8 @@ const AdminApplicantList = () => {
         ))}
       </Box>
 
-      <div style={{ height: "40px" }}></div>
+      <br />
+      <br />
 
       <TableContainer
         component={Paper}

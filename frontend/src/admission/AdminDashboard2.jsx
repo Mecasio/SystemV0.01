@@ -72,14 +72,14 @@ const AdminDashboard2 = () => {
 
   const stepsData = [
     {
-      label: "Admission Process for Registrar",
+      label: "Applicant List",
       to: "/applicant_list_admin",
       icon: <SchoolIcon fontSize="large" />,
     },
     {
-      label: "Applicant Form",
+      label: "Applicant Profile",
       to: "/admin_dashboard1",
-      icon: <DashboardIcon fontSize="large" />,
+      icon: <PersonIcon fontSize="large" />,
     },
     {
       label: "Student Requirements",
@@ -809,7 +809,7 @@ const AdminDashboard2 = () => {
               sx={{
                 flex: 1,
                 maxWidth: `${100 / stepsData.length}%`, // evenly fit 100%
-                height: 135,
+                height: 140,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -848,7 +848,7 @@ const AdminDashboard2 = () => {
             {index < stepsData.length - 1 && (
               <Box
                 sx={{
-                  flex: 0.1,
+                  
                   mx: 1, // margin to keep spacing
                 }}
               />
@@ -857,8 +857,8 @@ const AdminDashboard2 = () => {
         ))}
       </Box>
 
-      <div style={{ height: "40px" }}></div>
-
+       <br/>
+     <br/>
 
 
 

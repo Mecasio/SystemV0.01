@@ -451,7 +451,9 @@ const ProgramEvaluationForRegistrar = () => {
       >
         {isEditing ? "Cancel Editing" : "Edit Student Grade"}
       </button>
-
+      
+      <br/>
+      <br/>
       <style>
         {`
           /* Both columns visible on screen */

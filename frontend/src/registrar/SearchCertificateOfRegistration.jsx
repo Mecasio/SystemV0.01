@@ -28,7 +28,9 @@ import MenuBookIcon from "@mui/icons-material/MenuBook";
 import SchoolIcon from "@mui/icons-material/School";
 import { useLocation, useNavigate } from "react-router-dom";
 import API_BASE_URL from "../apiConfig";
-
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import AssignmentIcon from "@mui/icons-material/Assignment";
+import PersonIcon from "@mui/icons-material/Person";
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
@@ -135,13 +137,13 @@ const SearchCertificateOfRegistration = () => {
   const [activeStep, setActiveStep] = useState(3);
   const [clickedSteps, setClickedSteps] = useState([]);
 
-  const tabs1 = [
-    { label: "Student Records", to: "/student_list", icon: <ListAltIcon /> },
-    { label: "Applicant Form", to: "/readmission_dashboard1", icon: <PersonAddIcon /> },
-    { label: "Submitted Documents", to: "/submitted_documents", icon: <UploadFileIcon /> },
-    { label: "Search Certificate of Registration", to: "/search_cor", icon: <ListAltIcon /> },
-    { label: "Report of Grades", to: "/report_of_grades", icon: <GradeIcon /> },
-    { label: "Transcript of Records", to: "/transcript_of_records", icon: <SchoolIcon /> },
+  const tabs = [
+    { label: "Student List", to: "/student_list", icon: <SchoolIcon fontSize="large" /> },
+    { label: "Applicant Form", to: "/readmission_dashboard1", icon: <PersonIcon fontSize="large" /> },
+    { label: "Submitted Documents", to: "/submitted_documents", icon: <AssignmentIcon fontSize="large" /> },
+    { label: "Search Certificate of Registration", to: "/search_cor", icon: <ListAltIcon fontSize="large" /> },
+    { label: "Report of Grades", to: "/report_of_grades", icon: <GradeIcon fontSize="large" /> },
+    { label: "Transcript of Records", to: "/transcript_of_records", icon: <ReceiptLongIcon fontSize="large" /> },
   ];
 
   const [studentNumber, setStudentNumber] = useState(() => {
@@ -298,13 +300,13 @@ const SearchCertificateOfRegistration = () => {
   const divToPrintRef = useRef();
   const [pdfLoading, setPdfLoading] = useState(false);
 
- const handleGeneratePdf = async () => {
-  if (!divToPrintRef.current || pdfLoading) return;
+  const handleGeneratePdf = async () => {
+    if (!divToPrintRef.current || pdfLoading) return;
 
-  setPdfLoading(true);
+    setPdfLoading(true);
 
-  try {
-    const html = `
+    try {
+      const html = `
       <!DOCTYPE html>
       <html>
         <head>
@@ -324,49 +326,49 @@ const SearchCertificateOfRegistration = () => {
       </html>
     `;
 
-    const res = await fetch(`${API_BASE_URL}/api/generate-cor-pdf`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ html }),
-    });
+      const res = await fetch(`${API_BASE_URL}/api/generate-cor-pdf`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ html }),
+      });
 
-    const contentType = res.headers.get("content-type");
+      const contentType = res.headers.get("content-type");
 
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => null);
-      console.error("Backend error:", errorData);
-      throw new Error(errorData?.error || "PDF failed");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        console.error("Backend error:", errorData);
+        throw new Error(errorData?.error || "PDF failed");
+      }
+
+      if (!contentType || !contentType.includes("application/pdf")) {
+        const text = await res.text();
+        console.error("Unexpected response:", text);
+        throw new Error("Server did not return a valid PDF");
+      }
+
+      const blob = await res.blob();
+
+      if (blob.size === 0) {
+        throw new Error("Generated PDF is empty");
+      }
+
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "certificate_of_registration.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Generate PDF error:", err);
+      alert(err.message || "PDF failed");
+    } finally {
+      setPdfLoading(false);
     }
-
-    if (!contentType || !contentType.includes("application/pdf")) {
-      const text = await res.text();
-      console.error("Unexpected response:", text);
-      throw new Error("Server did not return a valid PDF");
-    }
-
-    const blob = await res.blob();
-
-    if (blob.size === 0) {
-      throw new Error("Generated PDF is empty");
-    }
-
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "certificate_of_registration.pdf";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);
-  } catch (err) {
-    console.error("Generate PDF error:", err);
-    alert(err.message || "PDF failed");
-  } finally {
-    setPdfLoading(false);
-  }
-};
+  };
 
 
 
@@ -466,7 +468,7 @@ const SearchCertificateOfRegistration = () => {
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
-     
+
       <br />
 
 
@@ -476,17 +478,17 @@ const SearchCertificateOfRegistration = () => {
           justifyContent: "space-between",
           alignItems: "center",
           width: "100%",
-          mt: 2,
+
         }}
       >
-        {tabs1.map((tab, index) => (
+        {tabs.map((tab, index) => (
           <React.Fragment key={index}>
             {/* Step Card */}
             <Card
               onClick={() => handleStepClick(index, tab.to)}
               sx={{
                 flex: 1,
-                maxWidth: `${100 / tabs1.length}%`, // evenly fit 100%
+                maxWidth: `${100 / tabs.length}%`, // evenly fit 100%
                 height: 140,
                 display: "flex",
                 alignItems: "center",
@@ -523,7 +525,7 @@ const SearchCertificateOfRegistration = () => {
             </Card>
 
             {/* Spacer instead of line */}
-            {index < tabs1.length - 1 && (
+            {index < tabs.length - 1 && (
               <Box
                 sx={{
                   flex: 0.1,
@@ -537,7 +539,9 @@ const SearchCertificateOfRegistration = () => {
 
 
       <br />
-       <TableContainer component={Paper} sx={{ width: '100%' }}>
+
+      <br />
+      <TableContainer component={Paper} sx={{ width: '100%' }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `1px solid ${borderColor}`, }}>
             <TableRow>

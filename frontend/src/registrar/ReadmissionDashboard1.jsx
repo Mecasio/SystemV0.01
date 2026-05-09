@@ -37,6 +37,8 @@ import MenuBookIcon from "@mui/icons-material/MenuBook";
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import DateField from "../components/DateField";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 
 
 
@@ -102,12 +104,12 @@ const ReadmissionDashboard1 = () => {
 
 
   const stepsData = [
-    { label: "Student Records", to: "/student_list", icon: <ListAltIcon /> },
-    { label: "Applicant Form", to: "/readmission_dashboard1", icon: <PersonAddIcon /> },
-    { label: "Submitted Documents", to: "/submitted_documents", icon: <UploadFileIcon /> },
-    { label: "Search Certificate of Registration", to: "/search_cor", icon: <ListAltIcon /> },
-    { label: "Report of Grades", to: "/report_of_grades", icon: <GradeIcon /> },
-    { label: "Transcript of Records", to: "/transcript_of_records", icon: <SchoolIcon /> },
+  { label: "Student List", to: "/student_list", icon: <SchoolIcon fontSize="large"/> },
+        { label: "Applicant Form", to: "/readmission_dashboard1", icon: <PersonIcon fontSize="large"/> },
+        { label: "Submitted Documents", to: "/submitted_documents", icon: <AssignmentIcon fontSize="large"/> },
+        { label: "Search Certificate of Registration", to: "/search_cor", icon: <ListAltIcon fontSize="large"/> },
+        { label: "Report of Grades", to: "/report_of_grades", icon: <GradeIcon fontSize="large"/> },
+        { label: "Transcript of Records", to: "/transcript_of_records", icon: <ReceiptLongIcon fontSize="large"/> },
   ];
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -1325,7 +1327,7 @@ const ReadmissionDashboard1 = () => {
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
 
-      <br />
+ 
       <Box
         sx={{
           display: "flex",
@@ -1388,7 +1390,7 @@ const ReadmissionDashboard1 = () => {
             {index < stepsData.length - 1 && (
               <Box
                 sx={{
-                  flex: 0.1,
+              
                   mx: 1, // spacing between cards
                 }}
               />
@@ -1397,6 +1399,7 @@ const ReadmissionDashboard1 = () => {
         ))}
       </Box>
       <br />
+          <br />
       <TableContainer component={Paper} sx={{ width: '100%', mb: 1 }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `1px solid ${borderColor}`, }}>

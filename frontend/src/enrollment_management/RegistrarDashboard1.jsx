@@ -91,45 +91,44 @@ const RegistrarDashboard1 = () => {
     }, [settings]);
 
 
-     const getBranchLabel = (branchId) => {
-    const branch = branches.find((item) => String(item.id) === String(branchId));
-    return branch?.branch || "—";
-  };  
+    const getBranchLabel = (branchId) => {
+        const branch = branches.find((item) => String(item.id) === String(branchId));
+        return branch?.branch || "—";
+    };
 
 
 
     const stepsData = [
-        {
-            label: "Admission Process For College",
-            to: "/applicant_list",
-            icon: <SchoolIcon fontSize="large" />,
-        },
-        {
-            label: "Applicant Form",
-            to: "/registrar_dashboard1",
-            icon: <AssignmentIcon fontSize="large" />,
-        },
-        {
-            label: "Student Requirements",
-            to: "/registrar_requirements",
-            icon: <AssignmentTurnedInIcon fontSize="large" />,
-        },
-        {
-            label: "Qualifying / Interview Schedule Management",
-            to: "/assign_schedule_applicants_qualifying_interview",
-            icon: <ScheduleIcon fontSize="large" />
-        },
-        {
-            label: "Qualifying / Interview Exam Score",
-            to: "/qualifying_interview_exam_scores",
-            icon: <ScoreIcon fontSize="large" />,
-        },
-        {
-            label: "Student Numbering",
-            to: "/student_numbering_per_college",
-            icon: <DashboardIcon fontSize="large" />,
-        },
-
+     {
+         label: "Applicant List",
+         to: "/applicant_list",
+         icon: <SchoolIcon fontSize="large" />,
+       },
+       {
+         label: "Applicant Form",
+         to: "/registrar_dashboard1",
+         icon: <PersonIcon fontSize="large" />,
+       },
+       {
+         label: "Student Requirements",
+         to: "/registrar_requirements",
+         icon: <AssignmentIcon fontSize="large" />,
+       },
+       {
+         label: "Qualifying / Interview Schedule Management",
+         to: "/assign_schedule_applicants_qualifying_interview",
+         icon: <ScheduleIcon fontSize="large" />
+       },
+       {
+         label: "Qualifying / Interview Exam Score",
+         to: "/qualifying_interview_exam_scores",
+         icon: <ScoreIcon fontSize="large" />,
+       },
+       {
+         label: "Student Numbering",
+         to: "/student_numbering_per_college",
+         icon: <DashboardIcon fontSize="large" />,
+       },
 
     ];
 
@@ -1262,7 +1261,7 @@ const RegistrarDashboard1 = () => {
                         fontSize: '36px',
                     }}
                 >
-                     PERSONAL INFORMATION
+                    PERSONAL INFORMATION
                 </Typography>
 
                 <TextField
@@ -1287,7 +1286,7 @@ const RegistrarDashboard1 = () => {
             {searchError && <Typography color="error">{searchError}</Typography>}
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
-            <br />
+         
 
 
             <Box
@@ -1350,7 +1349,7 @@ const RegistrarDashboard1 = () => {
                         {index < stepsData.length - 1 && (
                             <Box
                                 sx={{
-                                    flex: 0.05,
+
                                     mx: 1, // spacing between cards
                                 }}
                             />
@@ -1359,7 +1358,8 @@ const RegistrarDashboard1 = () => {
                 ))}
             </Box>
 
-            <div style={{ height: "40px" }}></div>
+            <br />
+            <br />
 
 
 
@@ -1851,33 +1851,33 @@ const RegistrarDashboard1 = () => {
                                     {/* Program 1 */}
                                     <Box display="flex" alignItems="center" gap={2} mb={3}>
                                         <label className="w-40 font-medium">Course Applied:</label>
-                                       <FormControl fullWidth size="small" required error={!!errors.program}>
-                                                                                 <InputLabel>Course Applied</InputLabel>
-                                                                                 <Select
-                                                                                     name="program"
-                                                                                     value={person.program || ""}
-                                                                                     onBlur={() => handleUpdate(person)} onChange={handleChange}
-                                                                                     label="Program"
-                                                                                 >
-                                                                                     <MenuItem value=""><em>Select Program</em></MenuItem>
-                                                                                     {filteredCurriculum.map((item, index) => (
-                                                                                         <MenuItem key={index} value={item.curriculum_id}>
-                                                                                             {`(${item.program_code}): ${item.program_description}${item.major ? ` (${item.major})` : ""
-                                                                                                 } (${item.current_year}-${item.next_year}) (${getBranchLabel(item.components)})`}
-                                                                                         </MenuItem>
-                                                                                     ))}
-                                     
-                                     
-                                                                                 </Select>
-                                                                                 {errors.program && (
-                                                                                     <FormHelperText>This field is required.</FormHelperText>
-                                                                                 )}
-                                                                             </FormControl>
+                                        <FormControl fullWidth size="small" required error={!!errors.program}>
+                                            <InputLabel>Course Applied</InputLabel>
+                                            <Select
+                                                name="program"
+                                                value={person.program || ""}
+                                                onBlur={() => handleUpdate(person)} onChange={handleChange}
+                                                label="Program"
+                                            >
+                                                <MenuItem value=""><em>Select Program</em></MenuItem>
+                                                {filteredCurriculum.map((item, index) => (
+                                                    <MenuItem key={index} value={item.curriculum_id}>
+                                                        {`(${item.program_code}): ${item.program_description}${item.major ? ` (${item.major})` : ""
+                                                            } (${item.current_year}-${item.next_year}) (${getBranchLabel(item.components)})`}
+                                                    </MenuItem>
+                                                ))}
+
+
+                                            </Select>
+                                            {errors.program && (
+                                                <FormHelperText>This field is required.</FormHelperText>
+                                            )}
+                                        </FormControl>
                                     </Box>
 
 
 
-                             {/* <Box display="flex" alignItems="center" gap={2} mb={1}>
+                                    {/* <Box display="flex" alignItems="center" gap={2} mb={1}>
                            <label className="w-40 font-medium">Course Applied:</label>
                             <FormControl fullWidth size="small" required error={!!errors.program2}>
                                                                       <InputLabel>Course Applied</InputLabel>
@@ -1903,8 +1903,8 @@ const RegistrarDashboard1 = () => {
                                                                   </FormControl>
                          </Box> */}
 
-                  {/* Program 3 */}
-                  {/* <Box display="flex" alignItems="center" gap={2}>
+                                    {/* Program 3 */}
+                                    {/* <Box display="flex" alignItems="center" gap={2}>
                            <label className="w-40 font-medium">Course Applied:</label>
                           <FormControl fullWidth size="small" required error={!!errors.program3}>
                                                                     <InputLabel>Course Applied</InputLabel>

@@ -26,6 +26,7 @@ import {
   TableHead,
   Snackbar,
   Alert,
+  IconButton,
 } from "@mui/material";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import SchoolIcon from "@mui/icons-material/School";
@@ -44,6 +45,9 @@ import API_BASE_URL from "../apiConfig";
 import CampaignIcon from '@mui/icons-material/Campaign';
 import { Toc } from "@mui/icons-material";
 import ScoreIcon from '@mui/icons-material/Score';
+import PersonIcon from "@mui/icons-material/Person";
+import CloseIcon from '@mui/icons-material/Close'; // or use the custom SVG below
+
 
 const AssignScheduleToApplicants = () => {
   const socket = useRef(null);
@@ -108,14 +112,14 @@ const AssignScheduleToApplicants = () => {
 
   const tabs = [
     {
-      label: "Admission Process for Registrar",
+      label: "Applicant List",
       to: "/applicant_list_admin",
       icon: <SchoolIcon fontSize="large" />,
     },
     {
-      label: "Applicant Form",
+      label: "Applicant Profile",
       to: "/admin_dashboard1",
-      icon: <DashboardIcon fontSize="large" />,
+      icon: <PersonIcon fontSize="large" />,
     },
     {
       label: "Student Requirements",
@@ -1111,20 +1115,23 @@ This printed permit must be presented to your proctor on the exam day to verify 
 
 
   return (
-    <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
+    <Box
+      sx={{
+        height: "calc(100vh - 150px)",
+        overflowY: "auto",
+        paddingRight: 1,
+        backgroundColor: "transparent",
+        mt: 1,
+        padding: 2,
+      }}
+    >
       <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-
-          mb: 2,
-
-        }}
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={2}
       >
-        <Typography
-          variant="h4"
+        <Typography variant="h4"
           sx={{
             fontWeight: 'bold',
             color: titleColor,
@@ -1133,6 +1140,7 @@ This printed permit must be presented to your proctor on the exam day to verify 
         >
           ENTRANCE EXAM SCHEDULE MANAGEMENT
         </Typography>
+
 
         <TextField
           variant="outlined"
@@ -1158,19 +1166,20 @@ This printed permit must be presented to your proctor on the exam day to verify 
           }}
         />
 
-
       </Box>
+
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
 
       <br />
       <br />
+
       <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
           flexWrap: "nowrap", // ❌ prevent wrapping
           width: "100%",
-          mt: 1,
+
           gap: 2,
         }}
       >
@@ -1187,7 +1196,10 @@ This printed permit must be presented to your proctor on the exam day to verify 
               cursor: "pointer",
               borderRadius: 2,
               border: `1px solid ${borderColor}`,
-              backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
+              backgroundColor:
+                activeStep === index
+                  ? settings?.header_color || "#1976d2"
+                  : "#E8C999",
               color: activeStep === index ? "#fff" : "#000",
               boxShadow:
                 activeStep === index
@@ -1199,9 +1211,17 @@ This printed permit must be presented to your proctor on the exam day to verify 
               },
             }}
           >
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+            >
               <Box sx={{ fontSize: 40, mb: 1 }}>{tab.icon}</Box>
-              <Typography sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}>
+              <Typography
+                sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}
+              >
                 {tab.label}
               </Typography>
             </Box>
@@ -1945,11 +1965,10 @@ This printed permit must be presented to your proctor on the exam day to verify 
                               };
 
                               setEmailMessage(
-  `Hello, ${person.first_name} ${
-    person.middle_name
-      ? person.middle_name.charAt(0) + "."
-      : ""
-  } ${person.last_name}
+                                `Hello, ${person.first_name} ${person.middle_name
+                                  ? person.middle_name.charAt(0) + "."
+                                  : ""
+                                } ${person.last_name}
 
 You have been assigned to the following Entrance Examination schedule:
 
@@ -1961,9 +1980,9 @@ You have been assigned to the following Entrance Examination schedule:
 Please log in to your Applicant Form Dashboard, click on your Exam Permit, and print it.
 This printed permit must be presented to your proctor on the exam day to verify your eligibility.
 `
-);
+                              );
 
-setCustomReminders(`- Arrive at least 1 hour before your scheduled exam.
+                              setCustomReminders(`- Arrive at least 1 hour before your scheduled exam.
 - Bring your printed exam permit, a valid ID, your own pen, and all required documents.
 - Wear a plain white t-shirt on the exam day.`);
                               setConfirmOpen(true);
@@ -2175,16 +2194,33 @@ setCustomReminders(`- Arrive at least 1 hour before your scheduled exam.
       <Dialog
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
-        maxWidth="md"
+        maxWidth="lg"
         fullWidth
       >
-        <DialogTitle sx={{ backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
-           ✉️ Message
+        <DialogTitle sx={{ bgcolor: settings?.header_color || "#1976d2", color: "white", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          ✉️ Message
+          <IconButton
+            onClick={() => setConfirmOpen(false)}
+            sx={{
+              color: "white",
+              border: "2px solid rgba(255,255,255,0.6)",
+              borderRadius: "50%",
+              width: 48,
+              height: 48,
+              padding: 0,
+              "&:hover": {
+                backgroundColor: "rgba(255,255,255,0.2)",
+                border: "2px solid white",
+              },
+            }}
+          >
+            <CloseIcon sx={{ fontSize: 18 }} />
+          </IconButton>
         </DialogTitle>
 
         <DialogContent dividers sx={{ p: 3 }}>
 
-          {/* Subject */}
+          {/* Subject - full width on top */}
           <TextField
             label="Email Subject"
             value={emailSubject}
@@ -2193,37 +2229,51 @@ setCustomReminders(`- Arrive at least 1 hour before your scheduled exam.
             sx={{ mb: 3 }}
           />
 
-          {/* Email Preview (Read Only) — updates live as reminders change */}
-          <TextField
-            label="Email Preview (Read Only)"
-            value={finalPreview}
-            fullWidth
-            multiline
-            minRows={10}
-            InputProps={{ readOnly: true }}
-            sx={{ mb: 3 }}
-          />
+          {/* Two-column layout */}
+          <Box sx={{ display: "flex", gap: 3 }}>
 
-          {/* Editable Reminders Only */}
-          <TextField
-            label="Important Reminders"
-            value={customReminders}
-            onChange={(e) => setCustomReminders(e.target.value)}
-            fullWidth
-            multiline
-            minRows={6}
-            placeholder="Edit reminders here..."
-            sx={{ mb: 2, fontFamily: "monospace", whiteSpace: "pre-wrap" }}
-          />
+            {/* LEFT SIDE - Preview */}
+            <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+              <Typography variant="subtitle2" color="text.secondary" fontWeight={600}>
+                👁️ Email Preview
+              </Typography>
 
-          <Typography
-            variant="caption"
-            color="gray"
-            sx={{ display: "block", mt: 1 }}
-          >
-            🔑 Available placeholders:
-            {` {first_name}, {last_name}, {applicant_number}, {day}, {room}, {start_time}, {end_time}, {office} `}
-          </Typography>
+              <TextField
+                label="Email Preview (Read Only)"
+                value={finalPreview}
+                fullWidth
+                multiline
+                minRows={18}
+                InputProps={{ readOnly: true }}
+                sx={{
+                  "& .MuiInputBase-root": {
+                    backgroundColor: "#f9f9f9",
+                  }
+                }}
+              />
+            </Box>
+
+            {/* RIGHT SIDE - Edit */}
+            <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+              <Typography variant="subtitle2" color="text.secondary" fontWeight={600}>
+                ✏️ Edit Fields
+              </Typography>
+
+              <TextField
+                label="Important Reminders"
+                value={customReminders}
+                onChange={(e) => setCustomReminders(e.target.value)}
+                fullWidth
+                multiline
+                minRows={18}
+                placeholder="Edit reminders here..."
+                sx={{ fontFamily: "monospace", whiteSpace: "pre-wrap" }}
+              />
+
+
+            </Box>
+
+          </Box>
 
         </DialogContent>
 
@@ -2247,7 +2297,6 @@ setCustomReminders(`- Arrive at least 1 hour before your scheduled exam.
           </Button>
         </DialogActions>
       </Dialog>
-
       <LoadingOverlay open={loading2} message="Sending emails, please wait..." />
     </Box>
   );

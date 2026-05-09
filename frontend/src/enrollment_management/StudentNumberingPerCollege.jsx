@@ -43,6 +43,7 @@ import API_BASE_URL from "../apiConfig";
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import ScoreIcon from '@mui/icons-material/Score';
 import CloseIcon from "@mui/icons-material/Close";
+import PersonIcon from "@mui/icons-material/Person";
 
 const StudentNumbering = () => {
     const socket = useRef(null);
@@ -107,36 +108,36 @@ const StudentNumbering = () => {
     }, []);
 
     const tabs = [
-        {
-            label: "Admission Process For College",
-            to: "/applicant_list",
-            icon: <SchoolIcon fontSize="large" />,
-        },
-        {
-            label: "Applicant Form",
-            to: "/registrar_dashboard1",
-            icon: <AssignmentIcon fontSize="large" />,
-        },
-        {
-            label: "Student Requirements",
-            to: "/registrar_requirements",
-            icon: <AssignmentTurnedInIcon fontSize="large" />,
-        },
-        {
-            label: "Qualifying / Interview Schedule Management",
-            to: "/assign_schedule_applicants_qualifying_interview",
-            icon: <ScheduleIcon fontSize="large" />
-        },
-        {
-            label: "Qualifying / Interview Exam Score",
-            to: "/qualifying_interview_exam_scores",
-            icon: <ScoreIcon fontSize="large" />,
-        },
-        {
-            label: "Student Numbering",
-            to: "/student_numbering_per_college",
-            icon: <DashboardIcon fontSize="large" />,
-        },
+      {
+      label: "Applicant List",
+      to: "/applicant_list",
+      icon: <SchoolIcon fontSize="large" />,
+    },
+    {
+      label: "Applicant Form",
+      to: "/registrar_dashboard1",
+      icon: <PersonIcon fontSize="large" />,
+    },
+    {
+      label: "Student Requirements",
+      to: "/registrar_requirements",
+      icon: <AssignmentIcon fontSize="large" />,
+    },
+    {
+      label: "Qualifying / Interview Schedule Management",
+      to: "/assign_schedule_applicants_qualifying_interview",
+      icon: <ScheduleIcon fontSize="large" />
+    },
+    {
+      label: "Qualifying / Interview Exam Score",
+      to: "/qualifying_interview_exam_scores",
+      icon: <ScoreIcon fontSize="large" />,
+    },
+    {
+      label: "Student Numbering",
+      to: "/student_numbering_per_college",
+      icon: <DashboardIcon fontSize="large" />,
+    },
 
 
     ];
@@ -684,11 +685,32 @@ const StudentNumbering = () => {
     }
 
     return (
-        <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h4" fontWeight="bold" sx={{ color: titleColor }}>
-                    ASSIGN STUDENT NUMBER FOR COLLEGES
+        <Box
+            sx={{
+                height: "calc(100vh - 150px)",
+                overflowY: "auto",
+                paddingRight: 1,
+                backgroundColor: "transparent",
+                mt: 1,
+                padding: 2,
+            }}
+        >
+            <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
+            >
+                <Typography variant="h4"
+                    sx={{
+                        fontWeight: 'bold',
+                        color: titleColor,
+                        fontSize: '36px',
+                    }}
+                >
+                    STUDENT NUMBERING
                 </Typography>
+
 
                 <TextField
                     variant="outlined"
@@ -712,10 +734,14 @@ const StudentNumbering = () => {
                         startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
                     }}
                 />
+
             </Box>
+
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+
             <br />
             <br />
+
             <Box
                 sx={{
                     display: "flex",
@@ -732,14 +758,17 @@ const StudentNumbering = () => {
                         onClick={() => handleStepClick(index, tab.to)}
                         sx={{
                             flex: `1 1 ${100 / tabs.length}%`, // evenly divide row
-                            height: 140,
+                            height: 135,
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
                             cursor: "pointer",
                             borderRadius: 2,
                             border: `1px solid ${borderColor}`,
-                            backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
+                            backgroundColor:
+                                activeStep === index
+                                    ? settings?.header_color || "#1976d2"
+                                    : "#E8C999",
                             color: activeStep === index ? "#fff" : "#000",
                             boxShadow:
                                 activeStep === index
@@ -747,13 +776,21 @@ const StudentNumbering = () => {
                                     : "0px 2px 6px rgba(0,0,0,0.15)",
                             transition: "0.3s ease",
                             "&:hover": {
-                                backgroundColor: activeStep === index ? "#000" : "#f5d98f",
+                                backgroundColor: activeStep === index ? "#000000" : "#f5d98f",
                             },
                         }}
                     >
-                        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                            }}
+                        >
                             <Box sx={{ fontSize: 40, mb: 1 }}>{tab.icon}</Box>
-                            <Typography sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}>
+                            <Typography
+                                sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}
+                            >
                                 {tab.label}
                             </Typography>
                         </Box>
@@ -761,7 +798,9 @@ const StudentNumbering = () => {
                 ))}
             </Box>
 
-            <div style={{ height: "40px" }}></div>
+            <br />
+            <br />
+
 
 
             <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
@@ -1435,15 +1474,15 @@ const StudentNumbering = () => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setOpenModal(false)}
-                     color="error"
-            variant="outlined"
+                        color="error"
+                        variant="outlined"
                     >
                         Cancel
                     </Button>
                     <Button
                         onClick={confirmAssignNumber}
                         variant="contained"
-                       
+
                     >
                         Confirm Assign & Send Email
                     </Button>

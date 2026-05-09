@@ -34,6 +34,7 @@ import ListAltIcon from "@mui/icons-material/ListAlt";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import PersonSearchIcon from "@mui/icons-material/PersonSearch";
+import PersonIcon from "@mui/icons-material/Person";
 
 const SearchCorForCollege = () => {
     const settings = useContext(SettingsContext);
@@ -146,14 +147,13 @@ const SearchCorForCollege = () => {
     const COLLEGE_COR_SEARCH_KEY = "college_cor_search_student_number";
 
     const tabs = [
-          { label: "Student List", to: "/student_list_for_enrollment", icon: <ListAltIcon /> },
-    { label: "Applicant Form", to: "/official_student_dashboard1", icon: <PersonAddIcon /> },
-    { label: "Submitted Documents", to: "/student_official_requirements", icon: <UploadFileIcon /> },
-    { label: "Course Tagging", to: "/course_tagging_for_college", icon: <UploadFileIcon /> },
-    { label: "Search COR", to: "/search_cor_for_college", icon: <MenuBookIcon /> },
-
-    { label: "Class List", to: "/class_roster_enrollment", icon: <PersonSearchIcon /> },
-
+           { label: "Student List", to: "/student_list_for_enrollment", icon: <SchoolIcon fontSize="large"/> },
+             { label: "Applicant Form", to: "/official_student_dashboard1", icon: <PersonIcon fontSize="large" /> },
+             { label: "Submitted Documents", to: "/student_official_requirements", icon: <AssignmentIcon fontSize="large"/> },
+             { label: "Course Tagging", to: "/course_tagging_for_college", icon: <UploadFileIcon fontSize="large"/> },
+             { label: "Search COR", to: "/search_cor_for_college", icon: <MenuBookIcon fontSize="large"/> },
+             { label: "Class List", to: "/class_roster_enrollment", icon: <PersonSearchIcon fontSize="large"/> },
+     
     ];
     const [activeStep, setActiveStep] = useState(4);
 
@@ -443,24 +443,27 @@ const SearchCorForCollege = () => {
     }
 
     return (
-        <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
+        <Box
+            sx={{
+                height: "calc(100vh - 150px)",
+                overflowY: "auto",
+                paddingRight: 1,
+                backgroundColor: "transparent",
+                mt: 1,
+                padding: 2,
+            }}
+        >
             <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    flexWrap: "wrap",
-
-                    mb: 2,
-
-                }}
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
             >
-                <Typography
-                    variant="h4"
+                <Typography variant="h4"
                     sx={{
-                        fontWeight: "bold",
+                        fontWeight: 'bold',
                         color: titleColor,
-                        fontSize: "36px",
+                        fontSize: '36px',
                     }}
                 >
                     SEARCH CERTIFICATE OF REGISTRATION
@@ -488,14 +491,17 @@ const SearchCorForCollege = () => {
             </Box>
 
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+
             <br />
             <br />
+
             <Box
                 sx={{
                     display: "flex",
                     justifyContent: "space-between",
-                    flexWrap: "nowrap",
+                    flexWrap: "nowrap", // ❌ prevent wrapping
                     width: "100%",
+
                     gap: 2,
                 }}
             >
@@ -504,15 +510,18 @@ const SearchCorForCollege = () => {
                         key={index}
                         onClick={() => handleStepClick(index, tab.to)}
                         sx={{
-                            flex: `1 1 ${100 / tabs.length}%`,
-                            height: 140,
+                            flex: `1 1 ${100 / tabs.length}%`, // evenly divide row
+                            height: 135,
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
                             cursor: "pointer",
                             borderRadius: 2,
                             border: `1px solid ${borderColor}`,
-                            backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
+                            backgroundColor:
+                                activeStep === index
+                                    ? settings?.header_color || "#1976d2"
+                                    : "#E8C999",
                             color: activeStep === index ? "#fff" : "#000",
                             boxShadow:
                                 activeStep === index
@@ -520,13 +529,21 @@ const SearchCorForCollege = () => {
                                     : "0px 2px 6px rgba(0,0,0,0.15)",
                             transition: "0.3s ease",
                             "&:hover": {
-                                backgroundColor: activeStep === index ? "#000" : "#f5d98f",
+                                backgroundColor: activeStep === index ? "#000000" : "#f5d98f",
                             },
                         }}
                     >
-                        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                            }}
+                        >
                             <Box sx={{ fontSize: 40, mb: 1 }}>{tab.icon}</Box>
-                            <Typography sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}>
+                            <Typography
+                                sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}
+                            >
                                 {tab.label}
                             </Typography>
                         </Box>
@@ -534,7 +551,9 @@ const SearchCorForCollege = () => {
                 ))}
             </Box>
 
-            <div style={{ height: "40px" }}></div>
+            <br />
+            <br />
+
 
             <TableContainer component={Paper} sx={{ width: '100%' }}>
                 <Table>

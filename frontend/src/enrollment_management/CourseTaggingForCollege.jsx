@@ -41,6 +41,7 @@ import ScoreIcon from "@mui/icons-material/Score";
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
+import PersonIcon from "@mui/icons-material/Person";
 
 const CourseTaggingForCollege = () => {
   const settings = useContext(SettingsContext);
@@ -161,37 +162,13 @@ const CourseTaggingForCollege = () => {
   };
 
   const tabs = [
-    {
-      label: "Student List",
-      to: "/student_list_for_enrollment",
-      icon: <ListAltIcon />,
-    },
-    {
-      label: "Applicant Form",
-      to: "/official_student_dashboard1",
-      icon: <PersonAddIcon />,
-    },
-    {
-      label: "Submitted Documents",
-      to: "/student_official_requirements",
-      icon: <UploadFileIcon />,
-    },
-    {
-      label: "Course Tagging",
-      to: "/course_tagging_for_college",
-      icon: <UploadFileIcon />,
-    },
-    {
-      label: "Search COR",
-      to: "/search_cor_for_college",
-      icon: <MenuBookIcon />,
-    },
-
-    {
-      label: "Class List",
-      to: "/class_roster_enrollment",
-      icon: <PersonSearchIcon />,
-    },
+         { label: "Student List", to: "/student_list_for_enrollment", icon: <SchoolIcon fontSize="large"/> },
+               { label: "Applicant Form", to: "/official_student_dashboard1", icon: <PersonIcon fontSize="large" /> },
+               { label: "Submitted Documents", to: "/student_official_requirements", icon: <AssignmentIcon fontSize="large"/> },
+               { label: "Course Tagging", to: "/course_tagging_for_college", icon: <UploadFileIcon fontSize="large"/> },
+               { label: "Search COR", to: "/search_cor_for_college", icon: <MenuBookIcon fontSize="large"/> },
+               { label: "Class List", to: "/class_roster_enrollment", icon: <PersonSearchIcon fontSize="large"/> },
+       
   ];
 
   const navigate = useNavigate();
@@ -1116,36 +1093,35 @@ const CourseTaggingForCollege = () => {
       sx={{
         height: "calc(100vh - 150px)",
         overflowY: "auto",
-        paddingRight: 2,
+        paddingRight: 1,
         backgroundColor: "transparent",
         mt: 1,
         padding: 2,
       }}
     >
       <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-
-          mb: 2,
-          px: 1,
-        }}
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={2}
       >
-        <Typography
-          variant="h4"
+        <Typography variant="h4"
           sx={{
-            fontWeight: "bold",
+            fontWeight: 'bold',
             color: titleColor,
-            fontSize: "36px",
+            fontSize: '36px',
           }}
         >
           COURSE TAGGING PANEL
         </Typography>
+
+
+
       </Box>
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+
+      <br />
       <br />
 
       <Box
@@ -1154,9 +1130,7 @@ const CourseTaggingForCollege = () => {
           justifyContent: "space-between",
           flexWrap: "nowrap", // ❌ prevent wrapping
           width: "100%",
-          mt: 2,
-          paddingRight: 2,
-          mr: 2,
+
           gap: 2,
         }}
       >
@@ -1166,10 +1140,8 @@ const CourseTaggingForCollege = () => {
             onClick={() => handleStepClick(index, tab.to)}
             sx={{
               flex: `1 1 ${100 / tabs.length}%`, // evenly divide row
-              height: 140,
+              height: 135,
               display: "flex",
-
-              mr: 2,
               alignItems: "center",
               justifyContent: "center",
               cursor: "pointer",
@@ -1186,7 +1158,7 @@ const CourseTaggingForCollege = () => {
                   : "0px 2px 6px rgba(0,0,0,0.15)",
               transition: "0.3s ease",
               "&:hover": {
-                backgroundColor: activeStep === index ? "#000" : "#f5d98f",
+                backgroundColor: activeStep === index ? "#000000" : "#f5d98f",
               },
             }}
           >
@@ -1199,11 +1171,7 @@ const CourseTaggingForCollege = () => {
             >
               <Box sx={{ fontSize: 40, mb: 1 }}>{tab.icon}</Box>
               <Typography
-                sx={{
-                  fontSize: 14,
-                  fontWeight: "bold",
-                  textAlign: "center",
-                }}
+                sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}
               >
                 {tab.label}
               </Typography>
@@ -1212,7 +1180,9 @@ const CourseTaggingForCollege = () => {
         ))}
       </Box>
 
-      <div style={{ height: "40px" }}></div>
+      <br />
+      <br />
+
 
       <Box
         sx={{
@@ -1989,7 +1959,7 @@ const CourseTaggingForCollege = () => {
         </DialogContent>
         <DialogActions>
           <Button
-        color="error"
+            color="error"
             variant="outlined"
 
             onClick={handleConfirmDialogClose}>Cancel</Button>

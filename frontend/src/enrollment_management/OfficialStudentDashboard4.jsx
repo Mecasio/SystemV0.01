@@ -25,9 +25,11 @@ import SearchIcon from "@mui/icons-material/Search";
 import ConfirmationNumberIcon from "@mui/icons-material/ConfirmationNumber";
 import GradeIcon from "@mui/icons-material/Grade";
 import API_BASE_URL from "../apiConfig";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import PersonSearchIcon from "@mui/icons-material/PersonSearch";
 import DateField from "../components/DateField";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 
 const OfficialStudentDashboard4 = () => {
 
@@ -74,13 +76,12 @@ const OfficialStudentDashboard4 = () => {
 
 
     const stepsData = [
-    { label: "Student List", to: "/student_list_for_enrollment", icon: <ListAltIcon /> },
-    { label: "Applicant Form", to: "/official_student_dashboard1", icon: <PersonAddIcon /> },
-    { label: "Submitted Documents", to: "/student_official_requirements", icon: <UploadFileIcon /> },
-    { label: "Course Tagging", to: "/course_tagging_for_college", icon: <UploadFileIcon /> },
-    { label: "Search COR", to: "/search_cor_for_college", icon: <MenuBookIcon /> },
-
-    { label: "Class List", to: "/class_roster_enrollment", icon: <PersonSearchIcon /> },
+        { label: "Student List", to: "/student_list_for_enrollment", icon: <SchoolIcon fontSize="large" /> },
+        { label: "Applicant Form", to: "/official_student_dashboard1", icon: <PersonIcon fontSize="large" /> },
+        { label: "Submitted Documents", to: "/student_official_requirements", icon: <AssignmentIcon fontSize="large" /> },
+        { label: "Course Tagging", to: "/course_tagging_for_college", icon: <UploadFileIcon fontSize="large" /> },
+        { label: "Search COR", to: "/search_cor_for_college", icon: <MenuBookIcon fontSize="large" /> },
+        { label: "Class List", to: "/class_roster_enrollment", icon: <PersonSearchIcon fontSize="large" /> },
 
     ];
 
@@ -361,11 +362,11 @@ const OfficialStudentDashboard4 = () => {
     const [clickedSteps, setClickedSteps] = useState([]);
 
     const steps = [
-        { label: "Personal Information", icon: <PersonIcon />, path: "/readmission_dashboard1" },
-        { label: "Family Background", icon: <FamilyRestroomIcon />, path: "/readmission_dashboard2" },
-        { label: "Educational Attainment", icon: <SchoolIcon />, path: "/readmission_dashboard3" },
-        { label: "Health Medical Records", icon: <HealthAndSafetyIcon />, path: "/readmission_dashboard4" },
-        { label: "Other Information", icon: <InfoIcon />, path: "/readmission_dashboard5" },
+        { label: "Personal Information", icon: <PersonIcon />, path: "/official_student_dashboard1" },
+        { label: "Family Background", icon: <FamilyRestroomIcon />, path: "/official_student_dashboard2" },
+        { label: "Educational Attainment", icon: <SchoolIcon />, path: "/official_student_dashboard3" },
+        { label: "Health Medical Records", icon: <HealthAndSafetyIcon />, path: "/official_student_dashboard4" },
+        { label: "Other Information", icon: <InfoIcon />, path: "/official_student_dashboard5" },
     ];
 
     const handleStepClick = (index) => {
@@ -529,14 +530,13 @@ const OfficialStudentDashboard4 = () => {
                         fontSize: '36px',
                     }}
                 >
-                     HEALTH MEDICAL RECORDS
+                    HEALTH MEDICAL RECORDS
                 </Typography>
 
 
             </Box>
 
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
-            <br />
             <br />
 
 
@@ -559,7 +559,7 @@ const OfficialStudentDashboard4 = () => {
                             onClick={() => handleNavigateStep(index, step.to)}
                             sx={{
                                 flex: `1 1 ${100 / stepsData.length}%`, // evenly divide width
-                                height: 120,
+                                height: 140,
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
@@ -602,15 +602,16 @@ const OfficialStudentDashboard4 = () => {
                         {index < stepsData.length - 1 && (
                             <Box
                                 sx={{
-                                    flex: 0.05,
+
                                     mx: 1, // spacing between cards
                                 }}
-                      />
+                            />
                         )}
                     </React.Fragment>
                 ))}
             </Box>
 
+            <br />
             <br />
 
 
@@ -775,7 +776,7 @@ const OfficialStudentDashboard4 = () => {
                             <PictureAsPdfIcon
                                 className="card-icon"
                                 sx={{ fontSize: 35, color: mainButtonColor, mr: 1.5 }}
-                      />
+                            />
 
                             {/* Label */}
                             <Typography
@@ -885,7 +886,7 @@ const OfficialStudentDashboard4 = () => {
                                         alignSelf: "center",
                                         mx: 2,
                                     }}
-                      />
+                                />
                             )}
                         </React.Fragment>
                     ))}
@@ -941,11 +942,11 @@ const OfficialStudentDashboard4 = () => {
                                                 handleUpdate(updatedPerson);
                                             }}
                                             onBlur={handleBlur}
-                      />
+                                        />
                                     }
                                     label={symptom.charAt(0).toUpperCase() + symptom.slice(1)}
                                     sx={{ ml: 5 }}
-                      />
+                                />
                             ))}
                         </FormGroup>
 
@@ -1020,7 +1021,7 @@ const OfficialStudentDashboard4 = () => {
                                                                             handleUpdate(updatedPerson);
                                                                         }}
                                                                         onBlur={handleBlur}
-                      />
+                                                                    />
                                                                     <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>Yes</span>
                                                                 </div>
 
@@ -1039,7 +1040,7 @@ const OfficialStudentDashboard4 = () => {
                                                                             handleUpdate(updatedPerson);
                                                                         }}
                                                                         onBlur={handleBlur}
-                      />
+                                                                    />
                                                                     <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>No</span>
                                                                 </div>
                                                             </div>
@@ -1080,10 +1081,10 @@ const OfficialStudentDashboard4 = () => {
                                                         handleUpdate(updatedPerson);
                                                     }}
                                                     onBlur={handleBlur}
-                      />
+                                                />
                                             }
                                             label="Yes"
-                      />
+                                        />
 
                                         {/* NO */}
                                         <FormControlLabel
@@ -1101,10 +1102,10 @@ const OfficialStudentDashboard4 = () => {
                                                         handleUpdate(updatedPerson);
                                                     }}
                                                     onBlur={handleBlur}
-                      />
+                                                />
                                             }
                                             label="No"
-                      />
+                                        />
 
 
                                     </Box>
@@ -1138,7 +1139,7 @@ const OfficialStudentDashboard4 = () => {
                                     handleUpdate(updatedPerson);
                                 }}
                                 onBlur={handleBlur}
-                      />
+                            />
                         </Box>
 
                         <br />
@@ -1170,7 +1171,7 @@ const OfficialStudentDashboard4 = () => {
                                     handleUpdate(updatedPerson);
                                 }}
                                 onBlur={handleBlur}
-                      />
+                            />
                         </Box>
 
                         {/* IV. COVID PROFILE */}
@@ -1219,7 +1220,7 @@ const OfficialStudentDashboard4 = () => {
                                                             handleUpdate(updatedPerson);
                                                         }}
                                                         onBlur={handleBlur}
-                      />
+                                                    />
                                                     <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>YES</span>
                                                 </Box>
 
@@ -1238,7 +1239,7 @@ const OfficialStudentDashboard4 = () => {
                                                             handleUpdate(updatedPerson);
                                                         }}
                                                         onBlur={handleBlur}
-                      />
+                                                    />
                                                     <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>NO</span>
 
 
@@ -1248,8 +1249,8 @@ const OfficialStudentDashboard4 = () => {
                                             {/* IF YES, WHEN */}
                                             <span>IF YES, WHEN:</span>
                                             <DateField
-                                                  size="small"
-                        readOnly
+                                                size="small"
+                                                readOnly
                                                 name="covidDate"
                                                 value={person.covidDate || ""}
                                                 onChange={(e) => {
@@ -1269,7 +1270,7 @@ const OfficialStudentDashboard4 = () => {
                                                     border: "1px solid #ccc",
                                                     borderRadius: "4px",
                                                 }}
-                      />
+                                            />
                                         </Box>
                                     </td>
                                 </tr>
@@ -1325,7 +1326,7 @@ const OfficialStudentDashboard4 = () => {
                                                                 }}
                                                                 onBlur={handleBlur}
                                                                 style={inputStyle}
-                      />
+                                                            />
                                                         </td>
                                                     ))}
                                                 </tr>
@@ -1337,8 +1338,8 @@ const OfficialStudentDashboard4 = () => {
                                                     {["vaccine1Date", "vaccine2Date", "booster1Date", "booster2Date"].map((field) => (
                                                         <td key={field} style={{ padding: "4px" }}>
                                                             <DateField
-                                                                  size="small"
-                        readOnly
+                                                                size="small"
+                                                                readOnly
                                                                 name={field}
                                                                 value={person[field] || ""}
                                                                 onChange={(e) => {
@@ -1351,7 +1352,7 @@ const OfficialStudentDashboard4 = () => {
                                                                 }}
                                                                 onBlur={handleBlur}
                                                                 style={inputStyle}
-                      />
+                                                            />
                                                         </td>
                                                     ))}
                                                 </tr>
@@ -1390,7 +1391,7 @@ const OfficialStudentDashboard4 = () => {
                                             }}
                                             onBlur={handleBlur}
                                             className="w-full border px-3 py-2 rounded"
-                      />
+                                        />
                                     </td>
                                 </tr>
 
@@ -1411,7 +1412,7 @@ const OfficialStudentDashboard4 = () => {
                                             }}
                                             onBlur={handleBlur}
                                             className="w-full border px-3 py-2 rounded"
-                      />
+                                        />
                                     </td>
                                 </tr>
 
@@ -1432,7 +1433,7 @@ const OfficialStudentDashboard4 = () => {
                                             }}
                                             onBlur={handleBlur}
                                             className="w-full border px-3 py-2 rounded"
-                      />
+                                        />
                                     </td>
                                 </tr>
 
@@ -1453,7 +1454,7 @@ const OfficialStudentDashboard4 = () => {
                                             }}
                                             onBlur={handleBlur}
                                             className="w-full border px-3 py-2 rounded"
-                      />
+                                        />
                                     </td>
                                 </tr>
                             </tbody>
@@ -1507,7 +1508,7 @@ const OfficialStudentDashboard4 = () => {
                                                             handleUpdate(updatedPerson);
                                                         }}
                                                         onBlur={handleBlur}
-                      />
+                                                    />
                                                     <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>Physically Fit</span>
                                                 </div>
 
@@ -1526,7 +1527,7 @@ const OfficialStudentDashboard4 = () => {
                                                             handleUpdate(updatedPerson);
                                                         }}
                                                         onBlur={handleBlur}
-                      />
+                                                    />
                                                     <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>For Compliance</span>
                                                 </div>
                                             </div>
@@ -1580,7 +1581,7 @@ const OfficialStudentDashboard4 = () => {
                                                         padding: 0,
                                                     },
                                                 }}
-                      />
+                                            />
                                         </TableCell>
                                     </TableRow>
                                 </TableBody>
@@ -1643,7 +1644,7 @@ const OfficialStudentDashboard4 = () => {
                                             color: "#000",
                                             transition: "color 0.3s",
                                         }}
-                      />
+                                    />
                                 }
                                 sx={{
                                     backgroundColor: subButtonColor,
@@ -1675,7 +1676,7 @@ const OfficialStudentDashboard4 = () => {
                                             color: '#fff',
                                             transition: 'color 0.3s',
                                         }}
-                      />
+                                    />
                                 }
                                 sx={{
                                     backgroundColor: mainButtonColor,
@@ -1705,4 +1706,4 @@ const OfficialStudentDashboard4 = () => {
 };
 
 
-export default OfficialDashboard4;
+export default OfficialStudentDashboard4;

@@ -584,29 +584,33 @@ const VerifyDocumentsSchedule = () => {
 
 
     return (
-        <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
-            {/* ===== PAGE HEADER ===== */}
+        <Box
+            sx={{
+                height: "calc(100vh - 150px)",
+                overflowY: "auto",
+                paddingRight: 1,
+                backgroundColor: "transparent",
+                mt: 1,
+                padding: 2,
+            }}
+        >
             <Box
-                sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-
-                    mb: 2,
-
-                }}
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
             >
-                <Typography
-                    variant="h4"
+                <Typography variant="h4"
                     sx={{
-                        fontWeight: 700,
+                        fontWeight: 'bold',
                         color: titleColor,
-                        letterSpacing: 1,
+                        fontSize: '36px',
                     }}
                 >
                     VERIFY DOCUMENT ROOM ASSIGNMENT
                 </Typography>
+
+
 
                 <TextField
                     size="small"
@@ -630,26 +634,26 @@ const VerifyDocumentsSchedule = () => {
                     }}
                 />
             </Box>
+
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
 
             <br />
             <br />
 
-
-
-            {/* ===== NAV CARDS ===== */}
             <Box
                 sx={{
                     display: "flex",
                     justifyContent: "space-between",
                     flexWrap: "nowrap", // ❌ prevent wrapping
                     width: "100%",
-                    mt: 1,
+
                     gap: 2,
                 }}
             >
                 {tabs.map((tab, index) => (
-                    <Card key={tab.to} onClick={() => handleStepClick(index, tab.to)}
+                    <Card
+                        key={index}
+                        onClick={() => handleStepClick(index, tab.to)}
                         sx={{
                             flex: `1 1 ${100 / tabs.length}%`, // evenly divide row
                             height: 135,
@@ -659,7 +663,10 @@ const VerifyDocumentsSchedule = () => {
                             cursor: "pointer",
                             borderRadius: 2,
                             border: `1px solid ${borderColor}`,
-                            backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
+                            backgroundColor:
+                                activeStep === index
+                                    ? settings?.header_color || "#1976d2"
+                                    : "#E8C999",
                             color: activeStep === index ? "#fff" : "#000",
                             boxShadow:
                                 activeStep === index
@@ -667,13 +674,21 @@ const VerifyDocumentsSchedule = () => {
                                     : "0px 2px 6px rgba(0,0,0,0.15)",
                             transition: "0.3s ease",
                             "&:hover": {
-                                backgroundColor: activeStep === index ? "#000" : "#f5d98f",
+                                backgroundColor: activeStep === index ? "#000000" : "#f5d98f",
                             },
                         }}
                     >
-                        <Box textAlign="center">
-                            <Box sx={{ fontSize: 42, mb: 1 }}>{tab.icon}</Box>
-                            <Typography fontWeight={700} fontSize={14}>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                            }}
+                        >
+                            <Box sx={{ fontSize: 40, mb: 1 }}>{tab.icon}</Box>
+                            <Typography
+                                sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}
+                            >
                                 {tab.label}
                             </Typography>
                         </Box>
@@ -683,53 +698,55 @@ const VerifyDocumentsSchedule = () => {
 
             <br />
             <br />
+
             <TableContainer
                 component={Paper}
                 sx={{ width: "100%", border: `1px solid ${borderColor}` }}
             >
                 <Table>
-                    <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
+                    <TableHead
+                        sx={{ backgroundColor: settings?.header_color || "#1976d2" }}
+                    >
                         <TableRow>
-                            <Box
-                                sx={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                    width: "100%"
-                                }}
-                            >
-                                <TableCell sx={{ color: "white", textAlign: "center" }}>
-                                    Existing Schedules
-                                </TableCell>
+                            <TableCell sx={{ color: "white", p: 1 }}>
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        alignItems: "center",
+                                        width: "100%",
+                                    }}
+                                >
+                                    {/* LEFT SIDE */}
+                                    <Typography sx={{ fontWeight: "bold", color: "white", marginLeft: "15px" }}>
+                                       Existing Schedules
+                                    </Typography>
 
-
-                                {showCreateActions && (
-                                    <Button
-                                        variant="contained"
-                                        onClick={() => setOpenFormDialog(true)}
-                                        sx={{
-                                            backgroundColor: "#1976d2", // ✅ Blue
-                                            color: "#fff",
-                                            fontWeight: "bold",
-                                            borderRadius: "8px",
-                                            width: "250px",
-                                            textTransform: "none",
-                                            px: 2,
-                                            mr: "15px",
-                                            '&:hover': {
-                                                backgroundColor: "#1565c0" // darker blue hover
-                                            }
-                                        }}
-                                    >
-                                        + Add Schedule
-                                    </Button>
-                                )}
-                            </Box>
+                                    {showCreateActions && (
+                                        <Button
+                                            variant="contained"
+                                            onClick={() => setOpenFormDialog(true)}
+                                            sx={{
+                                                backgroundColor: "#1976d2", // ✅ Blue
+                                                color: "#fff",
+                                                fontWeight: "bold",
+                                                borderRadius: "8px",
+                                                width: "250px",
+                                                textTransform: "none",
+                                                px: 2,
+                                                mr: "15px",
+                                                '&:hover': {
+                                                    backgroundColor: "#1565c0" // darker blue hover
+                                                }
+                                            }}
+                                        >
+                                            + Add Schedule
+                                        </Button>
+                                    )}
+                                </Box>
+                            </TableCell>
                         </TableRow>
-
                     </TableHead>
-
-
                 </Table>
             </TableContainer>
 

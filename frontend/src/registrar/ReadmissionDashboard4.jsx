@@ -27,6 +27,9 @@ import GradeIcon from "@mui/icons-material/Grade";
 import API_BASE_URL from "../apiConfig";
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import DateField from "../components/DateField";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import AssignmentIcon from "@mui/icons-material/Assignment";
+
 const ReadmissionDashboard4 = () => {
 
     const settings = useContext(SettingsContext);
@@ -72,12 +75,12 @@ const ReadmissionDashboard4 = () => {
 
 
     const stepsData = [
-        { label: "Student Records", to: "/student_list", icon: <ListAltIcon /> },
-        { label: "Applicant Form", to: "/readmission_dashboard1", icon: <PersonAddIcon /> },
-        { label: "Submitted Documents", to: "/submitted_documents", icon: <UploadFileIcon /> },
-        { label: "Search Certificate of Registration", to: "/search_cor", icon: <ListAltIcon /> },
-        { label: "Report of Grades", to: "/report_of_grades", icon: <GradeIcon /> },
-        { label: "Transcript of Records", to: "/transcript_of_records", icon: <SchoolIcon /> },
+        { label: "Student List", to: "/student_list", icon: <SchoolIcon fontSize="large" /> },
+        { label: "Applicant Form", to: "/readmission_dashboard1", icon: <PersonIcon fontSize="large" /> },
+        { label: "Submitted Documents", to: "/submitted_documents", icon: <AssignmentIcon fontSize="large" /> },
+        { label: "Search Certificate of Registration", to: "/search_cor", icon: <ListAltIcon fontSize="large" /> },
+        { label: "Report of Grades", to: "/report_of_grades", icon: <GradeIcon fontSize="large" /> },
+        { label: "Transcript of Records", to: "/transcript_of_records", icon: <ReceiptLongIcon fontSize="large" /> },
     ];
 
     const [currentStep, setCurrentStep] = useState(1);
@@ -204,27 +207,27 @@ const ReadmissionDashboard4 = () => {
         setUserID("");
     }, [queryPersonId]);
 
-  const [studentData, setStudentData] = useState(null);
+    const [studentData, setStudentData] = useState(null);
 
-  const params = new URLSearchParams(location.search);
+    const params = new URLSearchParams(location.search);
 
-  const person_id = params.get("person_id");
-  const student_number = params.get("student_number");
+    const person_id = params.get("person_id");
+    const student_number = params.get("student_number");
 
-  useEffect(() => {
-    const fetchStudent = async () => {
-      try {
-        const res = await axios.get(`${API_BASE_URL}/api/student-info`, {
-          params: { person_id, student_number }
-        });
-        setStudentData(res.data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
+    useEffect(() => {
+        const fetchStudent = async () => {
+            try {
+                const res = await axios.get(`${API_BASE_URL}/api/student-info`, {
+                    params: { person_id, student_number }
+                });
+                setStudentData(res.data);
+            } catch (err) {
+                console.error(err);
+            }
+        };
 
-    if (person_id || student_number) fetchStudent();
-  }, [person_id, student_number]);
+        if (person_id || student_number) fetchStudent();
+    }, [person_id, student_number]);
 
 
     const [selectedPerson, setSelectedPerson] = useState(null);
@@ -486,7 +489,7 @@ const ReadmissionDashboard4 = () => {
 
     // Put this at the very bottom before the return 
     if (loading || hasAccess === null) {
-       return <LoadingOverlay open={loading} message="Loading..." />;
+        return <LoadingOverlay open={loading} message="Loading..." />;
     }
 
     if (!hasAccess) {
@@ -498,7 +501,7 @@ const ReadmissionDashboard4 = () => {
 
     // dot not alter
     return (
-          <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
+        <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
             {showPrintView && (
                 <div ref={divToPrintRef} style={{ display: "block" }}>
                     <ExamPermit personId={userID} />   {/* ✅ pass the searched person_id */}
@@ -531,9 +534,8 @@ const ReadmissionDashboard4 = () => {
 
             </Box>
 
-              <hr style={{ border: "1px solid #ccc", width: "100%" }} />
-      <br />
-      <br />
+            <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+            <br />
 
 
 
@@ -555,7 +557,7 @@ const ReadmissionDashboard4 = () => {
                             onClick={() => handleNavigateStep(index, step.to)}
                             sx={{
                                 flex: `1 1 ${100 / stepsData.length}%`, // evenly divide width
-                                height: 120,
+                                height: 140,
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
@@ -598,45 +600,45 @@ const ReadmissionDashboard4 = () => {
                         {index < stepsData.length - 1 && (
                             <Box
                                 sx={{
-                                    flex: 0.05,
+
                                     mx: 1, // spacing between cards
                                 }}
-                      />
+                            />
                         )}
                     </React.Fragment>
                 ))}
             </Box>
 
             <br />
+            <br />
 
-           
-<TableContainer component={Paper} sx={{ width: '100%', mb: 1 }}>
-        <Table>
-          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `1px solid ${borderColor}`, }}>
-            <TableRow>
-              {/* Left cell: Student Number */}
-              <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: "Poppins, sans-serif", border: 'none' }}>
-                Student Number:&nbsp;
-                <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: "normal", textDecoration: "underline" }}>
-                  {person?.student_number || "N/A"}
-                </span>
-              </TableCell>
+            <TableContainer component={Paper} sx={{ width: '100%', mb: 1 }}>
+                <Table>
+                    <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `1px solid ${borderColor}`, }}>
+                        <TableRow>
+                            {/* Left cell: Student Number */}
+                            <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: "Poppins, sans-serif", border: 'none' }}>
+                                Student Number:&nbsp;
+                                <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: "normal", textDecoration: "underline" }}>
+                                    {person?.student_number || "N/A"}
+                                </span>
+                            </TableCell>
 
-              {/* Right cell: Student Name */}
-              <TableCell
-                align="right"
-                sx={{ color: 'white', fontSize: '20px', fontFamily: "Poppins, sans-serif", border: 'none' }}
-              >
-                Student Name:&nbsp;
-                <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: "normal", textDecoration: "underline" }}>
-                  {person?.last_name?.toUpperCase()}, {person?.first_name?.toUpperCase()}{" "}
-                  {person?.middle_name?.toUpperCase()} {person?.extension?.toUpperCase() || ""}
-                </span>
-              </TableCell>
-            </TableRow>
-          </TableHead>
-        </Table>
-      </TableContainer>
+                            {/* Right cell: Student Name */}
+                            <TableCell
+                                align="right"
+                                sx={{ color: 'white', fontSize: '20px', fontFamily: "Poppins, sans-serif", border: 'none' }}
+                            >
+                                Student Name:&nbsp;
+                                <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: "normal", textDecoration: "underline" }}>
+                                    {person?.last_name?.toUpperCase()}, {person?.first_name?.toUpperCase()}{" "}
+                                    {person?.middle_name?.toUpperCase()} {person?.extension?.toUpperCase() || ""}
+                                </span>
+                            </TableCell>
+                        </TableRow>
+                    </TableHead>
+                </Table>
+            </TableContainer>
 
             <Box
                 sx={{
@@ -771,7 +773,7 @@ const ReadmissionDashboard4 = () => {
                             <PictureAsPdfIcon
                                 className="card-icon"
                                 sx={{ fontSize: 35, color: mainButtonColor, mr: 1.5 }}
-                      />
+                            />
 
                             {/* Label */}
                             <Typography
@@ -875,13 +877,13 @@ const ReadmissionDashboard4 = () => {
                             {index < steps.length - 1 && (
                                 <Box
                                     sx={{
-                                            height: "2px",
-                    backgroundColor: mainButtonColor,
-                    flex: 1,
-                    alignSelf: "center",
-                    mx: 2,
+                                        height: "2px",
+                                        backgroundColor: mainButtonColor,
+                                        flex: 1,
+                                        alignSelf: "center",
+                                        mx: 2,
                                     }}
-                      />
+                                />
                             )}
                         </React.Fragment>
                     ))}
@@ -937,11 +939,11 @@ const ReadmissionDashboard4 = () => {
                                                 handleUpdate(updatedPerson);
                                             }}
                                             onBlur={handleBlur}
-                      />
+                                        />
                                     }
                                     label={symptom.charAt(0).toUpperCase() + symptom.slice(1)}
                                     sx={{ ml: 5 }}
-                      />
+                                />
                             ))}
                         </FormGroup>
 
@@ -1016,7 +1018,7 @@ const ReadmissionDashboard4 = () => {
                                                                             handleUpdate(updatedPerson);
                                                                         }}
                                                                         onBlur={handleBlur}
-                      />
+                                                                    />
                                                                     <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>Yes</span>
                                                                 </div>
 
@@ -1035,7 +1037,7 @@ const ReadmissionDashboard4 = () => {
                                                                             handleUpdate(updatedPerson);
                                                                         }}
                                                                         onBlur={handleBlur}
-                      />
+                                                                    />
                                                                     <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>No</span>
                                                                 </div>
                                                             </div>
@@ -1076,10 +1078,10 @@ const ReadmissionDashboard4 = () => {
                                                         handleUpdate(updatedPerson);
                                                     }}
                                                     onBlur={handleBlur}
-                      />
+                                                />
                                             }
                                             label="Yes"
-                      />
+                                        />
 
                                         {/* NO */}
                                         <FormControlLabel
@@ -1097,10 +1099,10 @@ const ReadmissionDashboard4 = () => {
                                                         handleUpdate(updatedPerson);
                                                     }}
                                                     onBlur={handleBlur}
-                      />
+                                                />
                                             }
                                             label="No"
-                      />
+                                        />
 
 
                                     </Box>
@@ -1134,7 +1136,7 @@ const ReadmissionDashboard4 = () => {
                                     handleUpdate(updatedPerson);
                                 }}
                                 onBlur={handleBlur}
-                      />
+                            />
                         </Box>
 
                         <br />
@@ -1166,7 +1168,7 @@ const ReadmissionDashboard4 = () => {
                                     handleUpdate(updatedPerson);
                                 }}
                                 onBlur={handleBlur}
-                      />
+                            />
                         </Box>
 
                         {/* IV. COVID PROFILE */}
@@ -1215,7 +1217,7 @@ const ReadmissionDashboard4 = () => {
                                                             handleUpdate(updatedPerson);
                                                         }}
                                                         onBlur={handleBlur}
-                      />
+                                                    />
                                                     <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>YES</span>
                                                 </Box>
 
@@ -1234,7 +1236,7 @@ const ReadmissionDashboard4 = () => {
                                                             handleUpdate(updatedPerson);
                                                         }}
                                                         onBlur={handleBlur}
-                      />
+                                                    />
                                                     <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>NO</span>
 
 
@@ -1244,8 +1246,8 @@ const ReadmissionDashboard4 = () => {
                                             {/* IF YES, WHEN */}
                                             <span>IF YES, WHEN:</span>
                                             <DateField
-                                                  size="small"
-                        readOnly
+                                                size="small"
+                                                readOnly
                                                 name="covidDate"
                                                 value={person.covidDate || ""}
                                                 onChange={(e) => {
@@ -1265,7 +1267,7 @@ const ReadmissionDashboard4 = () => {
                                                     border: "1px solid #ccc",
                                                     borderRadius: "4px",
                                                 }}
-                      />
+                                            />
                                         </Box>
                                     </td>
                                 </tr>
@@ -1321,7 +1323,7 @@ const ReadmissionDashboard4 = () => {
                                                                 }}
                                                                 onBlur={handleBlur}
                                                                 style={inputStyle}
-                      />
+                                                            />
                                                         </td>
                                                     ))}
                                                 </tr>
@@ -1333,8 +1335,8 @@ const ReadmissionDashboard4 = () => {
                                                     {["vaccine1Date", "vaccine2Date", "booster1Date", "booster2Date"].map((field) => (
                                                         <td key={field} style={{ padding: "4px" }}>
                                                             <DateField
-                                                                  size="small"
-                        readOnly
+                                                                size="small"
+                                                                readOnly
                                                                 name={field}
                                                                 value={person[field] || ""}
                                                                 onChange={(e) => {
@@ -1347,7 +1349,7 @@ const ReadmissionDashboard4 = () => {
                                                                 }}
                                                                 onBlur={handleBlur}
                                                                 style={inputStyle}
-                      />
+                                                            />
                                                         </td>
                                                     ))}
                                                 </tr>
@@ -1386,7 +1388,7 @@ const ReadmissionDashboard4 = () => {
                                             }}
                                             onBlur={handleBlur}
                                             className="w-full border px-3 py-2 rounded"
-                      />
+                                        />
                                     </td>
                                 </tr>
 
@@ -1407,7 +1409,7 @@ const ReadmissionDashboard4 = () => {
                                             }}
                                             onBlur={handleBlur}
                                             className="w-full border px-3 py-2 rounded"
-                      />
+                                        />
                                     </td>
                                 </tr>
 
@@ -1428,7 +1430,7 @@ const ReadmissionDashboard4 = () => {
                                             }}
                                             onBlur={handleBlur}
                                             className="w-full border px-3 py-2 rounded"
-                      />
+                                        />
                                     </td>
                                 </tr>
 
@@ -1449,7 +1451,7 @@ const ReadmissionDashboard4 = () => {
                                             }}
                                             onBlur={handleBlur}
                                             className="w-full border px-3 py-2 rounded"
-                      />
+                                        />
                                     </td>
                                 </tr>
                             </tbody>
@@ -1503,7 +1505,7 @@ const ReadmissionDashboard4 = () => {
                                                             handleUpdate(updatedPerson);
                                                         }}
                                                         onBlur={handleBlur}
-                      />
+                                                    />
                                                     <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>Physically Fit</span>
                                                 </div>
 
@@ -1522,7 +1524,7 @@ const ReadmissionDashboard4 = () => {
                                                             handleUpdate(updatedPerson);
                                                         }}
                                                         onBlur={handleBlur}
-                      />
+                                                    />
                                                     <span style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>For Compliance</span>
                                                 </div>
                                             </div>
@@ -1576,7 +1578,7 @@ const ReadmissionDashboard4 = () => {
                                                         padding: 0,
                                                     },
                                                 }}
-                      />
+                                            />
                                         </TableCell>
                                     </TableRow>
                                 </TableBody>
@@ -1639,7 +1641,7 @@ const ReadmissionDashboard4 = () => {
                                             color: "#000",
                                             transition: "color 0.3s",
                                         }}
-                      />
+                                    />
                                 }
                                 sx={{
                                     backgroundColor: subButtonColor,
@@ -1671,7 +1673,7 @@ const ReadmissionDashboard4 = () => {
                                             color: '#fff',
                                             transition: 'color 0.3s',
                                         }}
-                      />
+                                    />
                                 }
                                 sx={{
                                     backgroundColor: mainButtonColor,

@@ -3193,22 +3193,44 @@ WHERE proctor LIKE ?
   // (UPDATED!)
 
   app.get("/api/slot-monitoring-sections", async (req, res) => {
-    const { departmentId, courseId, programId, yearId, semesterId, campus } =
+    const {
+      departmentId,
+      courseId,
+      programId,
+      curriculumId,
+      yearLevelId,
+      semesterId,
+      campus,
+      activeSchoolYearId,
+    } =
       req.query;
 
     if (
       !departmentId ||
-      !courseId ||
       !programId ||
-      !yearId ||
+      !curriculumId ||
+      !yearLevelId ||
       !semesterId ||
-      !campus
+      !campus ||
+      !activeSchoolYearId
     ) {
       return res.status(400).json({
         error:
-          "departmentId, courseId, programId, yearId, semesterId, and campus are required",
+          "departmentId, programId, curriculumId, yearLevelId, semesterId, campus, and activeSchoolYearId are required",
       });
     }
+
+    const params = [
+      activeSchoolYearId,
+      yearLevelId,
+      semesterId,
+      departmentId,
+      programId,
+      curriculumId,
+      campus,
+    ];
+    const courseFilter = courseId ? "AND tt.course_id = ?" : "";
+    if (courseId) params.push(courseId);
 
     const query = `
     SELECT
@@ -3217,7 +3239,9 @@ WHERE proctor LIKE ?
       pt.program_code,
       pt.program_description,
       st.description AS section_description,
+      cst.course_id,
       cst.course_code,
+      cst.course_description,
       GROUP_CONCAT(
         DISTINCT CONCAT(
           TIME_FORMAT(tt.school_time_start, '%h:%i %p'),
@@ -3231,30 +3255,30 @@ WHERE proctor LIKE ?
     FROM dprtmnt_section_table dst
     INNER JOIN dprtmnt_curriculum_table dct ON dst.curriculum_id = dct.curriculum_id
     INNER JOIN section_table st ON dst.section_id = st.id
-    LEFT JOIN time_table tt ON dst.id = tt.department_section_id
     INNER JOIN curriculum_table ct ON dct.curriculum_id = ct.curriculum_id
     INNER JOIN program_table pt ON ct.program_id = pt.program_id
-    LEFT JOIN active_school_year_table sy ON tt.school_year_id = sy.id
-    LEFT JOIN course_table cst ON tt.course_id = cst.course_id
+    LEFT JOIN time_table tt
+      ON dst.id = tt.department_section_id
+      AND tt.school_year_id = ?
+    LEFT JOIN program_tagging_table ptt
+      ON ptt.curriculum_id = dst.curriculum_id
+      AND ptt.course_id = tt.course_id
+      AND ptt.year_level_id = ?
+      AND ptt.semester_id = ?
+    LEFT JOIN course_table cst
+      ON cst.course_id = tt.course_id
+      AND ptt.program_tagging_id IS NOT NULL
     WHERE dct.dprtmnt_id = ?
-      AND tt.course_id = ?
       AND pt.program_id = ?
-      AND sy.year_id = ?
-      AND sy.semester_id = ?
+      AND ct.curriculum_id = ?
       AND pt.components = ?
-    GROUP BY dst.id, ct.curriculum_id, pt.program_code, pt.program_description, st.description, cst.course_code, dst.max_slots
-    ORDER BY st.description ASC
+      ${courseFilter}
+    GROUP BY dst.id, ct.curriculum_id, pt.program_code, pt.program_description, st.description, cst.course_id, cst.course_code, cst.course_description, dst.max_slots
+    ORDER BY st.description ASC, cst.course_code ASC
   `;
 
     try {
-      const [rows] = await db3.query(query, [
-        departmentId,
-        courseId,
-        programId,
-        yearId,
-        semesterId,
-        campus,
-      ]);
+      const [rows] = await db3.query(query, params);
       return res.status(200).json(rows);
     } catch (err) {
       console.error("Error fetching slot monitoring sections:", err);
@@ -3268,9 +3292,9 @@ WHERE proctor LIKE ?
   app.post("/api/slot-monitoring-enrolled-count", async (req, res) => {
     const { curriculumId, sectionIds, activeSchoolYearId, courseId } = req.body;
 
-    if (!curriculumId || !activeSchoolYearId || !courseId) {
+    if (!curriculumId || !activeSchoolYearId) {
       return res.status(400).json({
-        error: "curriculumId, activeSchoolYearId, and courseId are required",
+        error: "curriculumId and activeSchoolYearId are required",
       });
     }
 
@@ -3280,22 +3304,25 @@ WHERE proctor LIKE ?
 
     const sectionPlaceholders = sectionIds.map(() => "?").join(", ");
 
+    const courseFilter = courseId ? "AND es.course_id = ?" : "";
     const query = `
     SELECT
       es.department_section_id,
-      COUNT(es.student_number) AS enrolled_student
+      es.course_id,
+      COUNT(DISTINCT es.student_number) AS enrolled_student
     FROM enrolled_subject es
     INNER JOIN dprtmnt_section_table dst ON es.department_section_id = dst.id
     INNER JOIN active_school_year_table sy ON es.active_school_year_id = sy.id
     WHERE es.curriculum_id = ?
       AND es.department_section_id IN (${sectionPlaceholders})
       AND es.active_school_year_id = ?
-      AND es.course_id = ?
-    GROUP BY es.department_section_id
+      ${courseFilter}
+    GROUP BY es.department_section_id, es.course_id
   `;
 
     try {
-      const params = [curriculumId, ...sectionIds, activeSchoolYearId, courseId];
+      const params = [curriculumId, ...sectionIds, activeSchoolYearId];
+      if (courseId) params.push(courseId);
       const [rows] = await db3.query(query, params);
       console.log("Enrolled counts:", rows);
       return res.status(200).json(rows);
@@ -5781,17 +5808,24 @@ WHERE proctor LIKE ?
   //  Toggle submitted_medical (1 = checked, 0 = unchecked)
   app.put("/api/submitted-medical/:upload_id", async (req, res) => {
     const { upload_id } = req.params;
-    const { submitted_medical, user_person_id } = req.body;
+    const {
+      submitted_medical,
+      user_person_id,
+      audit_actor_id,
+      audit_actor_role,
+    } = req.body;
 
     try {
       // 1  Find person_id
       const [[row]] = await db.query(
-        "SELECT person_id FROM requirement_uploads WHERE upload_id = ?",
+        "SELECT person_id, submitted_medical FROM requirement_uploads WHERE upload_id = ?",
         [upload_id],
       );
       if (!row) return res.status(404).json({ error: "Upload not found" });
 
       const person_id = row.person_id;
+      const previousSubmittedMedical = Number(row.submitted_medical || 0);
+      const nextSubmittedMedical = submitted_medical ? 1 : 0;
 
       // 2  Applicant info
       const [[appInfo]] = await db.query(
@@ -5810,7 +5844,7 @@ WHERE proctor LIKE ?
       // 3  Update submitted_medical
       await db.query(
         "UPDATE requirement_uploads SET submitted_medical = ? WHERE person_id = ?",
-        [submitted_medical ? 1 : 0, person_id],
+        [nextSubmittedMedical, person_id],
       );
 
       // 4  Create message
@@ -5823,6 +5857,15 @@ WHERE proctor LIKE ?
       //  Full actor info (same as exam/save)
       let actorEmail = "earistmis@gmail.com";
       let actorName = "SYSTEM";
+      let auditActorId =
+        audit_actor_id ||
+        req.headers["x-audit-actor-id"] ||
+        user_person_id ||
+        "unknown";
+      let auditActorRole =
+        audit_actor_role ||
+        req.headers["x-audit-actor-role"] ||
+        "";
 
       if (user_person_id) {
         const [actorRows] = await db3.query(
@@ -5844,7 +5887,25 @@ WHERE proctor LIKE ?
 
           actorEmail = email;
           actorName = `${role} (${empId}) - ${lname}, ${fname} ${mname}`.trim();
+          auditActorId = auditActorId === user_person_id
+            ? empId || email || user_person_id
+            : auditActorId;
+          auditActorRole = auditActorRole || u.role || "registrar";
         }
+      }
+      auditActorRole = auditActorRole || "registrar";
+
+      if (previousSubmittedMedical !== nextSubmittedMedical) {
+        const roleLabel = formatAuditActorRole(auditActorRole);
+        await insertAuditLogAdmission({
+          actorId: auditActorId,
+          role: auditActorRole,
+          action: nextSubmittedMedical
+            ? "MEDICAL_DOCUMENTS_SUBMIT"
+            : "MEDICAL_DOCUMENTS_UNSUBMIT",
+          severity: "INFO",
+          message: `${roleLabel} (${auditActorId}) marked submitted medical documents of Applicant (${applicant_number}) as ${nextSubmittedMedical ? "submitted" : "unsubmitted"}.`,
+        });
       }
 
       //  No duplicates per day (same logic as exam/save)
@@ -7284,13 +7345,13 @@ WHERE proctor LIKE ?
         [userID],
       );
 
-      if (userData === 0) {
-        res.status(400).send({ message: "No Data found" });
+      if (userData.length === 0) {
+        return res.status(400).send({ message: "No Data found" });
       }
 
       const user = userData[0];
       const UserID = user.employee_id;
-      const fullName = `${user.last_name}, ${prof.first_name} ${prof.middle_name}`;
+      const fullName = `${user.last_name || ""}, ${user.first_name || ""} ${user.middle_name || ""}`.trim();
       const email = user.email;
 
       await db.query(

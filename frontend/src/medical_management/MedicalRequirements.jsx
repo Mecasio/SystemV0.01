@@ -35,38 +35,16 @@ import UploadFileIcon from "@mui/icons-material/UploadFile";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 import SearchIcon from "@mui/icons-material/Search";
-
-const tabs1 = [
-  {
-    label: "Medical Applicant List",
-    to: "/medical_applicant_list",
-    icon: <ListAltIcon />,
-  },
-  {
-    label: "Applicant Form",
-    to: "/medical_dashboard1",
-    icon: <HowToRegIcon />,
-  },
-  {
-    label: "Submitted Documents",
-    to: "/medical_requirements",
-    icon: <UploadFileIcon />,
-  },
-  {
-    label: "Medical History",
-    to: "/medical_requirements_form",
-    icon: <PersonIcon />,
-  },
-  {
-    label: "Dental Assessment",
-    to: "/dental_assessment",
-    icon: <DescriptionIcon />,
-  },
-  {
-    label: "Physical and Neurological Examination",
-    to: "/physical_neuro_exam",
-    icon: <SchoolIcon />,
-  },
+import PsychologyIcon from "@mui/icons-material/Psychology";
+import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
+import AssignmentIcon from "@mui/icons-material/Assignment";
+const tabs = [
+  { label: "Student List", to: "/medical_student_list", icon: <SchoolIcon fontSize="large" /> },
+  { label: "Applicant Form", to: "/medical_dashboard1", icon: <PersonIcon fontSize="large" /> },
+  { label: "Submitted Documents", to: "/medical_requirements", icon: <AssignmentIcon fontSize="large" /> }, // updated icon
+  { label: "Medical History", to: "/medical_requirements_form", icon: <HealthAndSafetyIcon fontSize="large" /> },
+  { label: "Dental Assessment", to: "/dental_assessment", icon: <DescriptionIcon fontSize="large" /> },
+  { label: "Physical and Neurological Examination", to: "/physical_neuro_exam", icon: <PsychologyIcon fontSize="large" /> },
 ];
 
 const MedicalRequirements = () => {
@@ -815,7 +793,7 @@ const MedicalRequirements = () => {
   }
 
   return (
-    <Box
+  <Box
       sx={{
         height: "calc(100vh - 150px)",
         overflowY: "auto",
@@ -825,22 +803,22 @@ const MedicalRequirements = () => {
         padding: 2,
       }}
     >
-      {/* Top header: APPLICANT ONLINE REQUIREMENTS + Search */}
       <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          mb: 2,
-        }}
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={2}
       >
-        <Typography
-          variant="h4"
-          sx={{ fontWeight: "bold", color: titleColor, fontSize: "36px" }}
+        <Typography variant="h4"
+          sx={{
+            fontWeight: 'bold',
+            color: titleColor,
+            fontSize: '36px',
+          }}
         >
-          APPLICANT ONLINE REQUIREMENTS
+          ADMISSION PROCESS FOR REGISTRAR
         </Typography>
+
 
         <TextField
           variant="outlined"
@@ -863,24 +841,26 @@ const MedicalRequirements = () => {
       </Box>
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+
+      <br />
       <br />
 
       <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
-          flexWrap: "nowrap",
+          flexWrap: "nowrap", // ❌ prevent wrapping
           width: "100%",
-          mt: 3,
+
           gap: 2,
         }}
       >
-        {tabs1.map((tab, index) => (
+        {tabs.map((tab, index) => (
           <Card
             key={index}
             onClick={() => handleStepClick(index, tab.to)}
             sx={{
-              flex: `1 1 ${100 / tabs1.length}%`,
+              flex: `1 1 ${100 / tabs.length}%`, // evenly divide row
               height: 135,
               display: "flex",
               alignItems: "center",
@@ -921,8 +901,8 @@ const MedicalRequirements = () => {
         ))}
       </Box>
 
-      <br />
-
+     <br/>
+     <br/>
       {/* Student ID and Name */}
       <TableContainer
         component={Paper}
@@ -1496,8 +1476,8 @@ const MedicalRequirements = () => {
           </DialogContent>
           <DialogActions>
             <Button
-           color="error"
-            variant="outlined"
+              color="error"
+              variant="outlined"
               onClick={() => setConfirmOpen(false)}>
               Cancel
             </Button>

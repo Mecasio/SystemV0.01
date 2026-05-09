@@ -29,6 +29,8 @@ import API_BASE_URL from "../apiConfig";
 import DescriptionIcon from "@mui/icons-material/Description";
 import HowToRegIcon from '@mui/icons-material/HowToReg';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
+import PsychologyIcon from "@mui/icons-material/Psychology";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 const MedicalDashboard2 = () => {
 
     const settings = useContext(SettingsContext);
@@ -71,12 +73,12 @@ const MedicalDashboard2 = () => {
     }, [settings]);
 
     const stepsData = [
-        { label: "Medical Applicant List", to: "/medical_applicant_list", icon: <ListAltIcon /> },
-        { label: "Applicant Form", to: "/medical_dashboard1", icon: <HowToRegIcon /> },
-        { label: "Submitted Documents", to: "/medical_requirements", icon: <UploadFileIcon /> }, // updated icon
-        { label: "Medical History", to: "/medical_requirements_form", icon: <PersonIcon /> },
-        { label: "Dental Assessment", to: "/dental_assessment", icon: <DescriptionIcon /> },
-        { label: "Physical and Neurological Examination", to: "/physical_neuro_exam", icon: <SchoolIcon /> },
+    { label: "Student List", to: "/medical_student_list", icon: <SchoolIcon fontSize="large" /> },
+           { label: "Applicant Form", to: "/medical_dashboard1", icon: <PersonIcon fontSize="large" /> },
+           { label: "Submitted Documents", to: "/medical_requirements", icon: <AssignmentIcon fontSize="large" /> }, // updated icon
+           { label: "Medical History", to: "/medical_requirements_form", icon: <HealthAndSafetyIcon fontSize="large" /> },
+           { label: "Dental Assessment", to: "/dental_assessment", icon: <DescriptionIcon fontSize="large" /> },
+           { label: "Physical and Neurological Examination", to: "/physical_neuro_exam", icon: <PsychologyIcon fontSize="large" /> },
     ];
 
     const [currentStep, setCurrentStep] = useState(1);
@@ -668,7 +670,7 @@ const MedicalDashboard2 = () => {
 
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
-            <br />
+         
 
 
 
@@ -689,7 +691,7 @@ const MedicalDashboard2 = () => {
                             onClick={() => handleNavigateStep(index, step.to)}
                             sx={{
                                 flex: `1 1 ${100 / stepsData.length}%`, // evenly divide width
-                                height: 120,
+                                height: 140,
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
@@ -732,7 +734,7 @@ const MedicalDashboard2 = () => {
                         {index < stepsData.length - 1 && (
                             <Box
                                 sx={{
-                                    flex: 0.05,
+                            
                                     mx: 1, // spacing between cards
                                 }}
                             />
@@ -742,7 +744,7 @@ const MedicalDashboard2 = () => {
             </Box>
 
             <br />
-
+    <br />
 
 
             <TableContainer component={Paper} sx={{ width: '100%', mb: 1 }}>

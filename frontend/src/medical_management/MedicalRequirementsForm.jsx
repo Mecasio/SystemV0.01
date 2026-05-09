@@ -34,7 +34,8 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import Search from '@mui/icons-material/Search';
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
-
+import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 
 const MedicalRequirements = () => {
 
@@ -288,12 +289,12 @@ const MedicalRequirements = () => {
   const [activeStep, setActiveStep] = useState(3);
 
   const tabs = [
-    { label: "Medical Applicant List", to: "/medical_applicant_list", icon: <ListAltIcon /> },
-    { label: "Applicant Form", to: "/medical_dashboard1", icon: <HowToRegIcon /> },
-    { label: "Submitted Documents", to: "/medical_requirements", icon: <UploadFileIcon /> }, // updated icon
-    { label: "Medical History", to: "/medical_requirements_form", icon: <PersonIcon /> },
-    { label: "Dental Assessment", to: "/dental_assessment", icon: <DescriptionIcon /> },
-    { label: "Physical and Neurological Examination", to: "/physical_neuro_exam", icon: <SchoolIcon /> },
+    { label: "Student List", to: "/medical_student_list", icon: <SchoolIcon fontSize="large" /> },
+    { label: "Applicant Form", to: "/medical_dashboard1", icon: <PersonIcon fontSize="large" /> },
+    { label: "Submitted Documents", to: "/medical_requirements", icon: <AssignmentIcon fontSize="large" /> }, // updated icon
+    { label: "Medical History", to: "/medical_requirements_form", icon: <HealthAndSafetyIcon fontSize="large" /> },
+    { label: "Dental Assessment", to: "/dental_assessment", icon: <DescriptionIcon fontSize="large" /> },
+    { label: "Physical and Neurological Examination", to: "/physical_neuro_exam", icon: <PsychologyIcon fontSize="large" /> },
   ];
 
 
@@ -582,75 +583,65 @@ const MedicalRequirements = () => {
   }
 
   return (
-    <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
-      {/* 🟥 HEADER SECTION */}
+    <Box
+      sx={{
+        height: "calc(100vh - 150px)",
+        overflowY: "auto",
+        paddingRight: 1,
+        backgroundColor: "transparent",
+        mt: 1,
+        padding: 2,
+      }}
+    >
       <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 1,
-
-        }}
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={2}
       >
-        {/* 🦷 Left side: Title */}
-        <Typography
-          variant="h4"
-          fontWeight="bold"
+        <Typography variant="h4"
           sx={{
-            fontWeight: "bold",
+            fontWeight: 'bold',
             color: titleColor,
-            fontSize: "36px",
+            fontSize: '36px',
           }}
         >
           MEDICAL AND PHYSICAL EXAMINATION
         </Typography>
 
-        {/* 🔍 Right side: Search input + button */}
-        <Box
+
+        <TextField
+          variant="outlined"
+          placeholder="Search Student Name / Email / Applicant ID "
+          size="small"
+          value={studentNumber}
+          onChange={(e) => setStudentNumber(e.target.value)}
           sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1.5,
-
+            width: 450,
+            backgroundColor: "#fff",
+            borderRadius: 1,
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "10px",
+            },
           }}
-        >
-          <TextField
-            variant="outlined"
-            placeholder="Search Student Name / Email / Applicant ID "
-            size="small"
-            value={studentNumber}
-            onChange={(e) => setStudentNumber(e.target.value)}
-            sx={{
-              width: 450,
-              backgroundColor: "#fff",
-              borderRadius: 1,
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "10px",
-              },
-            }}
-            InputProps={{
-              startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
-            }}
-          />
+          InputProps={{
+            startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
+          }}
+        />
 
-
-
-        </Box>
       </Box>
 
-
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+
       <br />
       <br />
-      {/* 🔹 Top Navigation Tabs */}
+
       <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
           flexWrap: "nowrap", // ❌ prevent wrapping
           width: "100%",
-          mt: 2,
 
           gap: 2,
         }}
@@ -679,7 +670,7 @@ const MedicalRequirements = () => {
                   : "0px 2px 6px rgba(0,0,0,0.15)",
               transition: "0.3s ease",
               "&:hover": {
-                backgroundColor: activeStep === index ? "#000" : "#f5d98f",
+                backgroundColor: activeStep === index ? "#000000" : "#f5d98f",
               },
             }}
           >
@@ -700,7 +691,10 @@ const MedicalRequirements = () => {
           </Card>
         ))}
       </Box>
+
       <br />
+      <br />
+
 
       <TableContainer component={Paper} sx={{ width: '100%', }}>
         <Table>
@@ -736,7 +730,7 @@ const MedicalRequirements = () => {
         maxWidth="100%"
         sx={{
           backgroundColor: "#f1f1f1",
-         border: `1px solid ${borderColor}`,
+          border: `1px solid ${borderColor}`,
           padding: 2,
 
           boxShadow: 3,

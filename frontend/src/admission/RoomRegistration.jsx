@@ -185,7 +185,7 @@ const RoomRegistration = () => {
       to: "/verify_document_schedule",
       icon: <MeetingRoomIcon fontSize="large" />,
     },
- 
+
     {
       label: "Evaluator's Applicant List",
       to: "/evaluator_schedule_room_list",
@@ -196,13 +196,13 @@ const RoomRegistration = () => {
       to: "/assign_entrance_exam",
       icon: <MeetingRoomIcon fontSize="large" />,
     },
-   
+
     {
       label: "Proctor's Applicant List",
       to: "/admission_schedule_room_list",
       icon: <PeopleIcon fontSize="large" />,
     },
-  
+
     {
       label: "Subject Management",
       to: "/applicant_exam_subjects",
@@ -488,26 +488,22 @@ const RoomRegistration = () => {
         padding: 2,
       }}
     >
-      {/* Header */}
       <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          mb: 2,
-        }}
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={2}
       >
-        <Typography
-          variant="h4"
+        <Typography variant="h4"
           sx={{
-            fontWeight: "bold",
+            fontWeight: 'bold',
             color: titleColor,
-            fontSize: "36px",
+            fontSize: '36px',
           }}
         >
           ROOM REGISTRATION
         </Typography>
+
 
         <TextField
           fullWidth
@@ -529,19 +525,21 @@ const RoomRegistration = () => {
             startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
           }}
         />
+
       </Box>
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
-      <br />
 
       <br />
+      <br />
+
       <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
           flexWrap: "nowrap", // ❌ prevent wrapping
           width: "100%",
-          mt: 1,
+
           gap: 2,
         }}
       >
@@ -590,591 +588,591 @@ const RoomRegistration = () => {
           </Card>
         ))}
       </Box>
+
       <br />
       <br />
 
-      <Grid item xs={12} md={7}>
-        <TableContainer
-          component={Paper}
-          sx={{ width: "100%", border: `1px solid ${borderColor}` }}
+
+      <TableContainer
+        component={Paper}
+        sx={{ width: "100%", border: `1px solid ${borderColor}` }}
+      >
+        <Table>
+          <TableHead
+            sx={{ backgroundColor: settings?.header_color || "#1976d2" }}
+          >
+            <TableRow>
+              <TableCell sx={{ color: "white", p: 1 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    width: "100%",
+                  }}
+                >
+                  <Typography sx={{ fontWeight: "bold", color: "white", marginLeft: "15px" }}>
+                   Room Registered
+                  </Typography>
+
+                  {/* RIGHT SIDE BUTTON */}
+                  {showCreateActions && (
+                    <Button
+                      variant="contained"
+                      onClick={() => setOpenFormDialog(true)}
+                      sx={{
+                        backgroundColor: "#1976d2", // ✅ Blue
+                        color: "#fff",
+                        fontWeight: "bold",
+                        borderRadius: "8px",
+                        width: "250px",
+                        textTransform: "none",
+                        px: 2,
+                        "&:hover": {
+                          backgroundColor: "#1565c0", // darker blue hover
+                        },
+                      }}
+                    >
+                      + Add Room
+                    </Button>
+                  )}
+                </Box>
+              </TableCell>
+            </TableRow>
+          </TableHead>
+        </Table>
+      </TableContainer>
+
+      <Paper
+        elevation={3}
+        sx={{
+          p: 3,
+          border: `1px solid ${borderColor}`,
+        }}
+      >
+        <Box
+          sx={{
+            border: `1px solid ${borderColor}`,
+            borderRadius: 2,
+            p: 3,
+            mb: 3,
+            display: "flex",
+            gap: 3,
+            flexWrap: "wrap",
+            backgroundColor: "#fafafa",
+          }}
         >
-          <Table>
-            <TableHead
-              sx={{ backgroundColor: settings?.header_color || "#1976d2" }}
+          {/* 🔹 BRANCH */}
+          <Box sx={{ minWidth: 220, flex: 1 }}>
+            <Typography
+              sx={{
+                fontWeight: "bold",
+                mb: 1,
+                fontSize: 14,
+              }}
             >
+              Branch
+            </Typography>
+
+            <Select
+              fullWidth
+              size="small"
+              value={selectedBranch}
+              onChange={(e) => {
+                setSelectedBranch(e.target.value);
+                fetchRoomList(e.target.value);
+                setRoomPage(1);
+              }}
+            >
+              <MenuItem value="">
+                <em>All Branches</em>
+              </MenuItem>
+
+              {branches.map((b) => (
+                <MenuItem key={b.id} value={b.id}>
+                  {b.branch}
+                </MenuItem>
+              ))}
+            </Select>
+          </Box>
+
+          {/* 🔹 BUILDING */}
+          <Box sx={{ minWidth: 220, flex: 1 }}>
+            <Typography
+              sx={{
+                fontWeight: "bold",
+                mb: 1,
+                fontSize: 14,
+              }}
+            >
+              Building
+            </Typography>
+
+            <Select
+              fullWidth
+              size="small"
+              value={selectedBuilding}
+              onChange={(e) => {
+                setSelectedBuilding(e.target.value);
+                setRoomPage(1);
+              }}
+            >
+              <MenuItem value="">
+                <em>All Buildings</em>
+              </MenuItem>
+
+              {[...new Set(roomList.map((r) => r.building_description))].map(
+                (bld, idx) => (
+                  <MenuItem key={idx} value={bld}>
+                    {bld}
+                  </MenuItem>
+                ),
+              )}
+            </Select>
+          </Box>
+
+          {/* 🔹 ROOM */}
+          <Box sx={{ minWidth: 220, flex: 1 }}>
+            <Typography
+              sx={{
+                fontWeight: "bold",
+                mb: 1,
+                fontSize: 14,
+              }}
+            >
+              Room
+            </Typography>
+
+            <Select
+              fullWidth
+              size="small"
+              value={selectedRoom}
+              onChange={(e) => {
+                setSelectedRoom(e.target.value);
+                setRoomPage(1);
+              }}
+            >
+              <MenuItem value="">
+                <em>All Rooms</em>
+              </MenuItem>
+
+              {roomList.map((room) => (
+                <MenuItem key={room.room_id} value={room.room_description}>
+                  {room.room_description}
+                </MenuItem>
+              ))}
+            </Select>
+          </Box>
+        </Box>
+        <hr />
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
               <TableRow>
-                <TableCell sx={{ color: "white", p: 1 }}>
+                <TableCell
+                  colSpan={8}
+                  sx={{
+                    border: `1px solid ${borderColor}`,
+                    py: 0.5,
+                    backgroundColor: settings?.header_color || "#1976d2",
+                    color: "white",
+                  }}
+                >
                   <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      width: "100%",
-                    }}
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    flexWrap="wrap"
+                    gap={1}
                   >
                     {/* LEFT SIDE */}
-                    <Typography sx={{ fontWeight: "bold", color: "white" }}>
-                      Room Registered
+                    <Typography
+                      fontSize="14px"
+                      fontWeight="bold"
+                      color="white"
+                    >
+                      Total Registered Rooms: {filteredRooms.length}
                     </Typography>
 
-                    {/* RIGHT SIDE BUTTON */}
-                    {showCreateActions && (
+                    {/* RIGHT SIDE */}
+                    <Box
+                      display="flex"
+                      alignItems="center"
+                      gap={1}
+                      flexWrap="wrap"
+                    >
                       <Button
-                        variant="contained"
-                        onClick={() => setOpenFormDialog(true)}
-                        sx={{
-                          backgroundColor: "#1976d2", // ✅ Blue
-                          color: "#fff",
-                          fontWeight: "bold",
-                          borderRadius: "8px",
-                          width: "250px",
-                          textTransform: "none",
-                          px: 2,
-                          "&:hover": {
-                            backgroundColor: "#1565c0", // darker blue hover
-                          },
-                        }}
+                        onClick={() => setRoomPage(1)}
+                        disabled={roomPage === 1}
+                        variant="outlined"
+                        size="small"
+                        sx={paginationButtonStyle}
                       >
-                        + Add Room
+                        First
                       </Button>
-                    )}
+
+                      <Button
+                        onClick={() =>
+                          setRoomPage((prev) => Math.max(prev - 1, 1))
+                        }
+                        disabled={roomPage === 1}
+                        variant="outlined"
+                        size="small"
+                        sx={paginationButtonStyle}
+                      >
+                        Prev
+                      </Button>
+
+                      <FormControl size="small" sx={{ minWidth: 80 }}>
+                        <Select
+                          value={roomPage}
+                          onChange={(e) =>
+                            setRoomPage(Number(e.target.value))
+                          }
+                          sx={paginationSelectStyle}
+                          MenuProps={{
+                            PaperProps: { sx: { maxHeight: 200 } },
+                          }}
+                        >
+                          {Array.from({ length: totalRoomPages }, (_, i) => (
+                            <MenuItem key={i + 1} value={i + 1}>
+                              Page {i + 1}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+
+                      <Typography fontSize="11px" color="white">
+                        of {totalRoomPages} page
+                        {totalRoomPages > 1 ? "s" : ""}
+                      </Typography>
+
+                      <Button
+                        onClick={() =>
+                          setRoomPage((prev) =>
+                            Math.min(prev + 1, totalRoomPages),
+                          )
+                        }
+                        disabled={roomPage === totalRoomPages}
+                        variant="outlined"
+                        size="small"
+                        sx={paginationButtonStyle}
+                      >
+                        Next
+                      </Button>
+
+                      <Button
+                        onClick={() => setRoomPage(totalRoomPages)}
+                        disabled={roomPage === totalRoomPages}
+                        variant="outlined"
+                        size="small"
+                        sx={paginationButtonStyle}
+                      >
+                        Last
+                      </Button>
+                    </Box>
                   </Box>
                 </TableCell>
               </TableRow>
             </TableHead>
           </Table>
         </TableContainer>
+        <Box sx={{ maxHeight: 750, overflowY: "auto" }}>
+          <Table stickyHeader size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell
+                  sx={{
+                    border: `1px solid ${borderColor}`,
+                    backgroundColor: "#f5f5f5",
+                    color: "black",
+                  }}
+                >
+                  Room ID
+                </TableCell>
+                <TableCell
+                  sx={{
+                    border: `1px solid ${borderColor}`,
+                    backgroundColor: "#f5f5f5",
+                    color: "black",
+                  }}
+                >
+                  Building
+                </TableCell>
+                <TableCell
+                  sx={{
+                    border: `1px solid ${borderColor}`,
+                    backgroundColor: "#f5f5f5",
+                    color: "black",
+                  }}
+                >
+                  Room Name
+                </TableCell>
 
-        <Paper
-          elevation={3}
-          sx={{
-            p: 3,
-            border: `1px solid ${borderColor}`,
-          }}
-        >
-          <Box
-            sx={{
-              border: `1px solid ${borderColor}`,
-              borderRadius: 2,
-              p: 3,
-              mb: 3,
-              display: "flex",
-              gap: 3,
-              flexWrap: "wrap",
-              backgroundColor: "#fafafa",
-            }}
-          >
-            {/* 🔹 BRANCH */}
-            <Box sx={{ minWidth: 220, flex: 1 }}>
-              <Typography
-                sx={{
-                  fontWeight: "bold",
-                  mb: 1,
-                  fontSize: 14,
-                }}
-              >
-                Branch
-              </Typography>
+                {/* ✅ NEW */}
+                <TableCell
+                  sx={{
+                    border: `1px solid ${borderColor}`,
+                    backgroundColor: "#f5f5f5",
+                    color: "black",
+                  }}
+                >
+                  Floor
+                </TableCell>
+                <TableCell
+                  sx={{
+                    border: `1px solid ${borderColor}`,
+                    backgroundColor: "#f5f5f5",
+                    color: "black",
+                  }}
+                >
+                  Type
+                </TableCell>
+                <TableCell
+                  sx={{
+                    border: `1px solid ${borderColor}`,
+                    backgroundColor: "#f5f5f5",
+                    color: "black",
+                  }}
+                >
+                  Branch
+                </TableCell>
+                <TableCell
+                  sx={{
+                    border: `1px solid ${borderColor}`,
+                    backgroundColor: "#f5f5f5",
+                    color: "black",
+                  }}
+                >
+                  Aircon
+                </TableCell>
 
-              <Select
-                fullWidth
-                size="small"
-                value={selectedBranch}
-                onChange={(e) => {
-                  setSelectedBranch(e.target.value);
-                  fetchRoomList(e.target.value);
-                  setRoomPage(1);
-                }}
-              >
-                <MenuItem value="">
-                  <em>All Branches</em>
-                </MenuItem>
-
-                {branches.map((b) => (
-                  <MenuItem key={b.id} value={b.id}>
-                    {b.branch}
-                  </MenuItem>
-                ))}
-              </Select>
-            </Box>
-
-            {/* 🔹 BUILDING */}
-            <Box sx={{ minWidth: 220, flex: 1 }}>
-              <Typography
-                sx={{
-                  fontWeight: "bold",
-                  mb: 1,
-                  fontSize: 14,
-                }}
-              >
-                Building
-              </Typography>
-
-              <Select
-                fullWidth
-                size="small"
-                value={selectedBuilding}
-                onChange={(e) => {
-                  setSelectedBuilding(e.target.value);
-                  setRoomPage(1);
-                }}
-              >
-                <MenuItem value="">
-                  <em>All Buildings</em>
-                </MenuItem>
-
-                {[...new Set(roomList.map((r) => r.building_description))].map(
-                  (bld, idx) => (
-                    <MenuItem key={idx} value={bld}>
-                      {bld}
-                    </MenuItem>
-                  ),
+                {showActionColumn && (
+                  <TableCell
+                    sx={{
+                      border: `1px solid ${borderColor}`,
+                      backgroundColor: "#f5f5f5",
+                      color: "black",
+                    }}
+                  >
+                    Actions
+                  </TableCell>
                 )}
-              </Select>
-            </Box>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {paginatedRooms.map((room, index) => (
+                <TableRow key={index}>
+                  <TableCell sx={{ border: `1px solid ${borderColor}` }}>
+                    {index + 1}
+                  </TableCell>
 
-            {/* 🔹 ROOM */}
-            <Box sx={{ minWidth: 220, flex: 1 }}>
-              <Typography
-                sx={{
-                  fontWeight: "bold",
-                  mb: 1,
-                  fontSize: 14,
-                }}
-              >
-                Room
-              </Typography>
+                  <TableCell sx={{ border: `1px solid ${borderColor}` }}>
+                    {room.building_description || "N/A"}
+                  </TableCell>
 
-              <Select
-                fullWidth
-                size="small"
-                value={selectedRoom}
-                onChange={(e) => {
-                  setSelectedRoom(e.target.value);
-                  setRoomPage(1);
-                }}
-              >
-                <MenuItem value="">
-                  <em>All Rooms</em>
-                </MenuItem>
-
-                {roomList.map((room) => (
-                  <MenuItem key={room.room_id} value={room.room_description}>
+                  <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                     {room.room_description}
-                  </MenuItem>
-                ))}
-              </Select>
-            </Box>
-          </Box>
-          <hr />
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell
-                    colSpan={8}
-                    sx={{
-                      border: `1px solid ${borderColor}`,
-                      py: 0.5,
-                      backgroundColor: settings?.header_color || "#1976d2",
-                      color: "white",
-                    }}
-                  >
-                    <Box
-                      display="flex"
-                      justifyContent="space-between"
-                      alignItems="center"
-                      flexWrap="wrap"
-                      gap={1}
-                    >
-                      {/* LEFT SIDE */}
-                      <Typography
-                        fontSize="14px"
-                        fontWeight="bold"
-                        color="white"
-                      >
-                        Total Registered Rooms: {filteredRooms.length}
-                      </Typography>
-
-                      {/* RIGHT SIDE */}
-                      <Box
-                        display="flex"
-                        alignItems="center"
-                        gap={1}
-                        flexWrap="wrap"
-                      >
-                        <Button
-                          onClick={() => setRoomPage(1)}
-                          disabled={roomPage === 1}
-                          variant="outlined"
-                          size="small"
-                          sx={paginationButtonStyle}
-                        >
-                          First
-                        </Button>
-
-                        <Button
-                          onClick={() =>
-                            setRoomPage((prev) => Math.max(prev - 1, 1))
-                          }
-                          disabled={roomPage === 1}
-                          variant="outlined"
-                          size="small"
-                          sx={paginationButtonStyle}
-                        >
-                          Prev
-                        </Button>
-
-                        <FormControl size="small" sx={{ minWidth: 80 }}>
-                          <Select
-                            value={roomPage}
-                            onChange={(e) =>
-                              setRoomPage(Number(e.target.value))
-                            }
-                            sx={paginationSelectStyle}
-                            MenuProps={{
-                              PaperProps: { sx: { maxHeight: 200 } },
-                            }}
-                          >
-                            {Array.from({ length: totalRoomPages }, (_, i) => (
-                              <MenuItem key={i + 1} value={i + 1}>
-                                Page {i + 1}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-
-                        <Typography fontSize="11px" color="white">
-                          of {totalRoomPages} page
-                          {totalRoomPages > 1 ? "s" : ""}
-                        </Typography>
-
-                        <Button
-                          onClick={() =>
-                            setRoomPage((prev) =>
-                              Math.min(prev + 1, totalRoomPages),
-                            )
-                          }
-                          disabled={roomPage === totalRoomPages}
-                          variant="outlined"
-                          size="small"
-                          sx={paginationButtonStyle}
-                        >
-                          Next
-                        </Button>
-
-                        <Button
-                          onClick={() => setRoomPage(totalRoomPages)}
-                          disabled={roomPage === totalRoomPages}
-                          variant="outlined"
-                          size="small"
-                          sx={paginationButtonStyle}
-                        >
-                          Last
-                        </Button>
-                      </Box>
-                    </Box>
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-            </Table>
-          </TableContainer>
-          <Box sx={{ maxHeight: 750, overflowY: "auto" }}>
-            <Table stickyHeader size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell
-                    sx={{
-                      border: `1px solid ${borderColor}`,
-                      backgroundColor: "#f5f5f5",
-                      color: "black",
-                    }}
-                  >
-                    Room ID
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      border: `1px solid ${borderColor}`,
-                      backgroundColor: "#f5f5f5",
-                      color: "black",
-                    }}
-                  >
-                    Building
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      border: `1px solid ${borderColor}`,
-                      backgroundColor: "#f5f5f5",
-                      color: "black",
-                    }}
-                  >
-                    Room Name
                   </TableCell>
 
-                  {/* ✅ NEW */}
-                  <TableCell
-                    sx={{
-                      border: `1px solid ${borderColor}`,
-                      backgroundColor: "#f5f5f5",
-                      color: "black",
-                    }}
-                  >
-                    Floor
+                  {/* ✅ NEW COLUMNS */}
+
+                  <TableCell sx={{ border: `1px solid ${borderColor}` }}>
+                    {room.floor || "N/A"}
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      border: `1px solid ${borderColor}`,
-                      backgroundColor: "#f5f5f5",
-                      color: "black",
-                    }}
-                  >
-                    Type
+
+                  <TableCell sx={{ border: `1px solid ${borderColor}` }}>
+                    {room.type || "N/A"}
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      border: `1px solid ${borderColor}`,
-                      backgroundColor: "#f5f5f5",
-                      color: "black",
-                    }}
-                  >
-                    Branch
+
+                  <TableCell sx={{ border: `1px solid ${borderColor}` }}>
+                    {branches.find((b) => b.id === Number(room.branch))
+                      ?.branch || "N/A"}
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      border: `1px solid ${borderColor}`,
-                      backgroundColor: "#f5f5f5",
-                      color: "black",
-                    }}
-                  >
-                    Aircon
+
+                  <TableCell sx={{ border: `1px solid ${borderColor}` }}>
+                    {AIRCON_OPTIONS.find(
+                      (a) => a.value === Number(room.is_airconditioned),
+                    )?.label || "N/A"}
                   </TableCell>
 
                   {showActionColumn && (
                     <TableCell
                       sx={{
                         border: `1px solid ${borderColor}`,
-                        backgroundColor: "#f5f5f5",
-                        color: "black",
+                        textAlign: "center",
+
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        gap: "10px", // space between buttons
                       }}
                     >
-                      Actions
+                      {canEdit && (
+                        <Button
+                          variant="contained"
+                          size="small"
+                          sx={{
+                            backgroundColor: "green",
+                            color: "white",
+                            borderRadius: "5px",
+                            padding: "8px 14px",
+                            width: "100px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "5px",
+                          }}
+                          onClick={() => handleEditRoom(room)}
+                        >
+                          <EditIcon fontSize="small" /> Edit
+                        </Button>
+                      )}
+
+                      {canDelete && (
+                        <Button
+                          variant="contained"
+                          size="small"
+                          sx={{
+                            backgroundColor: "#9E0000",
+                            color: "white",
+                            borderRadius: "5px",
+                            padding: "8px 14px",
+                            width: "100px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "5px",
+                          }}
+                          onClick={() => {
+                            setRoomToDelete(room);
+                            setOpenDeleteDialog(true);
+                          }}
+                        >
+                          <DeleteIcon fontSize="small" /> Delete
+                        </Button>
+                      )}
                     </TableCell>
                   )}
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {paginatedRooms.map((room, index) => (
-                  <TableRow key={index}>
-                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
-                      {index + 1}
-                    </TableCell>
-
-                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
-                      {room.building_description || "N/A"}
-                    </TableCell>
-
-                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
-                      {room.room_description}
-                    </TableCell>
-
-                    {/* ✅ NEW COLUMNS */}
-
-                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
-                      {room.floor || "N/A"}
-                    </TableCell>
-
-                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
-                      {room.type || "N/A"}
-                    </TableCell>
-
-                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
-                      {branches.find((b) => b.id === Number(room.branch))
-                        ?.branch || "N/A"}
-                    </TableCell>
-
-                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
-                      {AIRCON_OPTIONS.find(
-                        (a) => a.value === Number(room.is_airconditioned),
-                      )?.label || "N/A"}
-                    </TableCell>
-
-                    {showActionColumn && (
-                      <TableCell
-                        sx={{
-                          border: `1px solid ${borderColor}`,
-                          textAlign: "center",
-
-                          display: "flex",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          gap: "10px", // space between buttons
-                        }}
-                      >
-                        {canEdit && (
-                          <Button
-                            variant="contained"
-                            size="small"
-                            sx={{
-                              backgroundColor: "green",
-                              color: "white",
-                              borderRadius: "5px",
-                              padding: "8px 14px",
-                              width: "100px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              gap: "5px",
-                            }}
-                            onClick={() => handleEditRoom(room)}
-                          >
-                            <EditIcon fontSize="small" /> Edit
-                          </Button>
-                        )}
-
-                        {canDelete && (
-                          <Button
-                            variant="contained"
-                            size="small"
-                            sx={{
-                              backgroundColor: "#9E0000",
-                              color: "white",
-                              borderRadius: "5px",
-                              padding: "8px 14px",
-                              width: "100px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              gap: "5px",
-                            }}
-                            onClick={() => {
-                              setRoomToDelete(room);
-                              setOpenDeleteDialog(true);
-                            }}
-                          >
-                            <DeleteIcon fontSize="small" /> Delete
-                          </Button>
-                        )}
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Box>
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell
-                    colSpan={8}
-                    sx={{
-                      border: `1px solid ${borderColor}`,
-                      py: 0.5,
-                      backgroundColor: settings?.header_color || "#1976d2",
-                      color: "white",
-                    }}
+              ))}
+            </TableBody>
+          </Table>
+        </Box>
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell
+                  colSpan={8}
+                  sx={{
+                    border: `1px solid ${borderColor}`,
+                    py: 0.5,
+                    backgroundColor: settings?.header_color || "#1976d2",
+                    color: "white",
+                  }}
+                >
+                  <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    flexWrap="wrap"
+                    gap={1}
                   >
+                    {/* LEFT SIDE */}
+                    <Typography
+                      fontSize="14px"
+                      fontWeight="bold"
+                      color="white"
+                    >
+                      Total Registered Rooms: {filteredRooms.length}
+                    </Typography>
+
+                    {/* RIGHT SIDE */}
                     <Box
                       display="flex"
-                      justifyContent="space-between"
                       alignItems="center"
-                      flexWrap="wrap"
                       gap={1}
+                      flexWrap="wrap"
                     >
-                      {/* LEFT SIDE */}
-                      <Typography
-                        fontSize="14px"
-                        fontWeight="bold"
-                        color="white"
+                      <Button
+                        onClick={() => setRoomPage(1)}
+                        disabled={roomPage === 1}
+                        variant="outlined"
+                        size="small"
+                        sx={paginationButtonStyle}
                       >
-                        Total Registered Rooms: {filteredRooms.length}
+                        First
+                      </Button>
+
+                      <Button
+                        onClick={() =>
+                          setRoomPage((prev) => Math.max(prev - 1, 1))
+                        }
+                        disabled={roomPage === 1}
+                        variant="outlined"
+                        size="small"
+                        sx={paginationButtonStyle}
+                      >
+                        Prev
+                      </Button>
+
+                      <FormControl size="small" sx={{ minWidth: 80 }}>
+                        <Select
+                          value={roomPage}
+                          onChange={(e) =>
+                            setRoomPage(Number(e.target.value))
+                          }
+                          sx={paginationSelectStyle}
+                          MenuProps={{
+                            PaperProps: { sx: { maxHeight: 200 } },
+                          }}
+                        >
+                          {Array.from({ length: totalRoomPages }, (_, i) => (
+                            <MenuItem key={i + 1} value={i + 1}>
+                              Page {i + 1}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+
+                      <Typography fontSize="11px" color="white">
+                        of {totalRoomPages} page
+                        {totalRoomPages > 1 ? "s" : ""}
                       </Typography>
 
-                      {/* RIGHT SIDE */}
-                      <Box
-                        display="flex"
-                        alignItems="center"
-                        gap={1}
-                        flexWrap="wrap"
+                      <Button
+                        onClick={() =>
+                          setRoomPage((prev) =>
+                            Math.min(prev + 1, totalRoomPages),
+                          )
+                        }
+                        disabled={roomPage === totalRoomPages}
+                        variant="outlined"
+                        size="small"
+                        sx={paginationButtonStyle}
                       >
-                        <Button
-                          onClick={() => setRoomPage(1)}
-                          disabled={roomPage === 1}
-                          variant="outlined"
-                          size="small"
-                          sx={paginationButtonStyle}
-                        >
-                          First
-                        </Button>
+                        Next
+                      </Button>
 
-                        <Button
-                          onClick={() =>
-                            setRoomPage((prev) => Math.max(prev - 1, 1))
-                          }
-                          disabled={roomPage === 1}
-                          variant="outlined"
-                          size="small"
-                          sx={paginationButtonStyle}
-                        >
-                          Prev
-                        </Button>
-
-                        <FormControl size="small" sx={{ minWidth: 80 }}>
-                          <Select
-                            value={roomPage}
-                            onChange={(e) =>
-                              setRoomPage(Number(e.target.value))
-                            }
-                            sx={paginationSelectStyle}
-                            MenuProps={{
-                              PaperProps: { sx: { maxHeight: 200 } },
-                            }}
-                          >
-                            {Array.from({ length: totalRoomPages }, (_, i) => (
-                              <MenuItem key={i + 1} value={i + 1}>
-                                Page {i + 1}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-
-                        <Typography fontSize="11px" color="white">
-                          of {totalRoomPages} page
-                          {totalRoomPages > 1 ? "s" : ""}
-                        </Typography>
-
-                        <Button
-                          onClick={() =>
-                            setRoomPage((prev) =>
-                              Math.min(prev + 1, totalRoomPages),
-                            )
-                          }
-                          disabled={roomPage === totalRoomPages}
-                          variant="outlined"
-                          size="small"
-                          sx={paginationButtonStyle}
-                        >
-                          Next
-                        </Button>
-
-                        <Button
-                          onClick={() => setRoomPage(totalRoomPages)}
-                          disabled={roomPage === totalRoomPages}
-                          variant="outlined"
-                          size="small"
-                          sx={paginationButtonStyle}
-                        >
-                          Last
-                        </Button>
-                      </Box>
+                      <Button
+                        onClick={() => setRoomPage(totalRoomPages)}
+                        disabled={roomPage === totalRoomPages}
+                        variant="outlined"
+                        size="small"
+                        sx={paginationButtonStyle}
+                      >
+                        Last
+                      </Button>
                     </Box>
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-            </Table>
-          </TableContainer>
-        </Paper>
-      </Grid>
+                  </Box>
+                </TableCell>
+              </TableRow>
+            </TableHead>
+          </Table>
+        </TableContainer>
+      </Paper>
+
 
       <br />
       <br />

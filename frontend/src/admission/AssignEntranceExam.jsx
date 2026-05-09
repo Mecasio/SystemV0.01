@@ -524,31 +524,33 @@ const AssignEntranceExam = () => {
   }
 
   return (
-    <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
-      {/* ===== PAGE HEADER WITH SEARCH ===== */}
+    <Box
+      sx={{
+        height: "calc(100vh - 150px)",
+        overflowY: "auto",
+        paddingRight: 1,
+        backgroundColor: "transparent",
+        mt: 1,
+        padding: 2,
+      }}
+    >
       <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          mb: 2,
-          gap: 2,
-        }}
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={2}
       >
-        {/* Title */}
-        <Typography
-          variant="h4"
+        <Typography variant="h4"
           sx={{
-            fontWeight: "bold",
+            fontWeight: 'bold',
             color: titleColor,
-            fontSize: "36px",
+            fontSize: '36px',
           }}
         >
           ENTRANCE EXAM ROOM ASSIGNMENT
         </Typography>
 
-        {/* Search */}
+
         <TextField
           size="small"
           placeholder="Search Proctor, Building, Room"
@@ -583,12 +585,14 @@ const AssignEntranceExam = () => {
           justifyContent: "space-between",
           flexWrap: "nowrap", // ❌ prevent wrapping
           width: "100%",
-          mt: 1,
+
           gap: 2,
         }}
       >
         {tabs.map((tab, index) => (
-          <Card key={tab.to} onClick={() => handleStepClick(index, tab.to)}
+          <Card
+            key={index}
+            onClick={() => handleStepClick(index, tab.to)}
             sx={{
               flex: `1 1 ${100 / tabs.length}%`, // evenly divide row
               height: 135,
@@ -598,7 +602,10 @@ const AssignEntranceExam = () => {
               cursor: "pointer",
               borderRadius: 2,
               border: `1px solid ${borderColor}`,
-              backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
+              backgroundColor:
+                activeStep === index
+                  ? settings?.header_color || "#1976d2"
+                  : "#E8C999",
               color: activeStep === index ? "#fff" : "#000",
               boxShadow:
                 activeStep === index
@@ -610,9 +617,17 @@ const AssignEntranceExam = () => {
               },
             }}
           >
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+            >
               <Box sx={{ fontSize: 40, mb: 1 }}>{tab.icon}</Box>
-              <Typography sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}>
+              <Typography
+                sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}
+              >
                 {tab.label}
               </Typography>
             </Box>
@@ -622,55 +637,61 @@ const AssignEntranceExam = () => {
 
       <br />
       <br />
+
       <TableContainer
         component={Paper}
         sx={{ width: "100%", border: `1px solid ${borderColor}` }}
       >
         <Table>
-          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
+          <TableHead
+            sx={{ backgroundColor: settings?.header_color || "#1976d2" }}
+          >
             <TableRow>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  width: "100%"
-                }}
-              >
-                <TableCell sx={{ color: "white", textAlign: "center" }}>
-                  Existing Schedules
-                </TableCell>
+              <TableCell sx={{ color: "white", p: 1 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    width: "100%",
+                  }}
+                >
+                  {/* LEFT SIDE */}
+                  <Typography sx={{ fontWeight: "bold", color: "white", marginLeft: "15px" }}>
+                    Existing Schedules
+                  </Typography>
 
-
-                {showCreateActions && (
-                  <Button
-                    variant="contained"
-                    onClick={() => {
-                      setEditingSchedule(null);
-                      setOpenFormDialog(true);
-                    }}
-                    sx={{
-                      backgroundColor: "#1976d2", // ✅ Blue
-                      color: "#fff",
-                      fontWeight: "bold",
-                      borderRadius: "8px",
-                      width: "250px",
-                      textTransform: "none",
-                      px: 2,
-                      mr: "15px",
-                      '&:hover': {
-                        backgroundColor: "#1565c0" // darker blue hover
-                      }
-                    }}
-                  >
-                    + Add Schedule
-                  </Button>
-                )}
-              </Box>
+                  {showCreateActions && (
+                    <Button
+                      variant="contained"
+                      onClick={() => {
+                        setEditingSchedule(null);
+                        setOpenFormDialog(true);
+                      }}
+                      sx={{
+                        backgroundColor: "#1976d2", // ✅ Blue
+                        color: "#fff",
+                        fontWeight: "bold",
+                        borderRadius: "8px",
+                        width: "250px",
+                        textTransform: "none",
+                        px: 2,
+                        mr: "15px",
+                        '&:hover': {
+                          backgroundColor: "#1565c0" // darker blue hover
+                        }
+                      }}
+                    >
+                      + Add Schedule
+                    </Button>
+                  )}
+                </Box>
+              </TableCell>
             </TableRow>
           </TableHead>
         </Table>
       </TableContainer>
+
 
       <Paper
         elevation={3}

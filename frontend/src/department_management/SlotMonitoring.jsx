@@ -55,6 +55,7 @@ const SectionSlotMonitoring = () => {
     const [courses, setCourses] = useState([]);
     const [selectedCourse, setSelectedCourse] = useState("");
     const [slotRows, setSlotRows] = useState([]);
+    const [sectionOptionRows, setSectionOptionRows] = useState([]);
     const [selectedSectionFilter, setSelectedSectionFilter] = useState("");
     const [savingSlotBySection, setSavingSlotBySection] = useState({});
     const saveTimersRef = useRef({});
@@ -233,25 +234,84 @@ const SectionSlotMonitoring = () => {
         }
         axios
             .get(`${API_BASE_URL}/courses/${selectedCurriculumId}`)
-            .then((res) => setCourses(res.data || []))
+            .then((res) => {
+                const taggedCourses = (res.data || []).filter((course) => {
+                    const matchesYearLevel =
+                        !selectedYearLevel ||
+                        String(course.year_level_id) === String(selectedYearLevel);
+                    const matchesSemester =
+                        !selectedSchoolSemester ||
+                        String(course.semester_id) === String(selectedSchoolSemester);
+                    return matchesYearLevel && matchesSemester;
+                });
+                setCourses(taggedCourses);
+            })
             .catch((err) => {
                 console.error(err);
                 setCourses([]);
             });
-    }, [selectedCurriculumId]);
+    }, [selectedCurriculumId, selectedYearLevel, selectedSchoolSemester]);
 
     useEffect(() => {
-        if (courses.length > 0 && !selectedCourse) {
-            setSelectedCourse(courses[0].course_id);
-        }
-    }, [courses, selectedCourse]);
+        setSelectedCourse("");
+    }, [selectedCurriculumId, selectedYearLevel, selectedSchoolSemester]);
+
+    useEffect(() => {
+        const fetchSectionOptions = async () => {
+            if (
+                !selectedDepartmentFilter ||
+                !selectedProgram ||
+                !selectedCurriculumId ||
+                !selectedYearLevel ||
+                !selectedSchoolYear ||
+                !selectedSchoolSemester ||
+                !selectedActiveSchoolYear ||
+                !campusFilter
+            ) {
+                setSectionOptionRows([]);
+                return;
+            }
+
+            try {
+                const sectionResponse = await axios.get(`${API_BASE_URL}/api/slot-monitoring-sections`, {
+                    params: {
+                        departmentId: selectedDepartmentFilter,
+                        programId: selectedProgram,
+                        curriculumId: selectedCurriculumId,
+                        yearLevelId: selectedYearLevel,
+                        yearId: selectedSchoolYear,
+                        semesterId: selectedSchoolSemester,
+                        campus: campusFilter,
+                        activeSchoolYearId: selectedActiveSchoolYear,
+                    },
+                });
+
+                setSectionOptionRows(sectionResponse.data || []);
+            } catch (err) {
+                console.error("Error fetching section options:", err);
+                setSectionOptionRows([]);
+            }
+        };
+
+        fetchSectionOptions();
+    }, [
+        selectedDepartmentFilter,
+        selectedProgram,
+        selectedYearLevel,
+        selectedSchoolYear,
+        selectedSchoolSemester,
+        selectedActiveSchoolYear,
+        campusFilter,
+        selectedCurriculumId,
+    ]);
 
     useEffect(() => {
         const fetchSlotMonitoringSections = async () => {
             if (
                 !selectedDepartmentFilter ||
-                !selectedCourse ||
                 !selectedProgram ||
+                !selectedCurriculumId ||
+                !selectedYearLevel ||
                 !selectedSchoolYear ||
                 !selectedSchoolSemester ||
                 !selectedActiveSchoolYear ||
@@ -265,11 +325,14 @@ const SectionSlotMonitoring = () => {
                 const slotResponse = await axios.get(`${API_BASE_URL}/api/slot-monitoring-sections`, {
                     params: {
                         departmentId: selectedDepartmentFilter,
-                        courseId: selectedCourse,
                         programId: selectedProgram,
+                        curriculumId: selectedCurriculumId,
+                        yearLevelId: selectedYearLevel,
                         yearId: selectedSchoolYear,
                         semesterId: selectedSchoolSemester,
                         campus: campusFilter,
+                        activeSchoolYearId: selectedActiveSchoolYear,
+                        ...(selectedCourse ? { courseId: selectedCourse } : {}),
                     },
                 });
                 const rows = slotResponse.data || [];
@@ -300,13 +363,13 @@ const SectionSlotMonitoring = () => {
                         curriculumId,
                         sectionIds,
                         activeSchoolYearId: selectedActiveSchoolYear,
-                        courseId: selectedCourse,
+                        ...(selectedCourse ? { courseId: selectedCourse } : {}),
                     },
                 );
 
                 const enrolledMap = new Map(
                     (enrolledResponse.data || []).map((item) => [
-                        String(item.department_section_id),
+                        `${item.department_section_id}:${item.course_id || ""}`,
                         Number(item.enrolled_student) || 0,
                     ]),
                 );
@@ -314,7 +377,7 @@ const SectionSlotMonitoring = () => {
                 const mergedRows = rows.map((row) => ({
                     ...row,
                     enrolled_student:
-                        enrolledMap.get(String(row.department_section_id)) || 0,
+                        enrolledMap.get(`${row.department_section_id}:${row.course_id || ""}`) || 0,
                 }));
 
                 setSlotRows(mergedRows);
@@ -330,6 +393,7 @@ const SectionSlotMonitoring = () => {
         selectedDepartmentFilter,
         selectedCourse,
         selectedProgram,
+        selectedYearLevel,
         selectedSchoolYear,
         selectedSchoolSemester,
         selectedActiveSchoolYear,
@@ -345,19 +409,32 @@ const SectionSlotMonitoring = () => {
 
     useEffect(() => {
         setSelectedSectionFilter("");
-    }, [selectedDepartmentFilter, selectedProgram, selectedCourse, selectedSchoolYear, selectedSchoolSemester, campusFilter]);
+    }, [selectedDepartmentFilter, selectedProgram, selectedCurriculumId, selectedYearLevel, selectedSchoolYear, selectedSchoolSemester, campusFilter]);
 
     const sectionOptions = [
         ...new Map(
-            slotRows.map((row) => [String(row.department_section_id), row]),
+            sectionOptionRows.map((row) => [String(row.department_section_id), row]),
         ).values(),
     ];
+
+    const sectionSummaryRows = sectionOptions.map((section) => ({
+        ...section,
+        course_id: null,
+        course_code: "",
+        course_description: "",
+        schedule: "",
+        enrolled_student: null,
+    }));
 
     const filteredSlotRows = selectedSectionFilter
         ? slotRows.filter(
             (row) => String(row.department_section_id) === String(selectedSectionFilter),
         )
-        : slotRows;
+        : sectionSummaryRows;
+
+    const subjectRows = selectedSectionFilter
+        ? filteredSlotRows.filter((row) => row.course_id)
+        : [];
 
     const selectedBranch = branches.find(
         (branch) => String(branch.id) === String(campusFilter),
@@ -394,7 +471,7 @@ const SectionSlotMonitoring = () => {
     };
 
     const handleDownloadSubjectsPdf = async () => {
-        if (filteredSlotRows.length === 0) {
+        if (subjectRows.length === 0) {
             showSnackbar("No subjects available for PDF.", "error");
             return;
         }
@@ -509,7 +586,7 @@ const SectionSlotMonitoring = () => {
         autoTable(doc, {
             startY: dividerY + 11,
             head: [["Program Description", "Section", "Subject"]],
-            body: filteredSlotRows.map((row) => [
+            body: subjectRows.map((row) => [
                 row.program_description || "-",
                 `${row.program_code || ""}-${row.section_description || ""}`,
                 row.course_code || "-",
@@ -521,7 +598,7 @@ const SectionSlotMonitoring = () => {
         });
 
         // --- Save ---
-        const firstRow = filteredSlotRows[0];
+        const firstRow = subjectRows[0];
         const rawFileName = `${firstRow.program_code || "program"}-${firstRow.section_description || "section"}.pdf`;
         const safeFileName = rawFileName.replace(/[<>:"/\\|?*\x00-\x1F]/g, "_");
         doc.save(safeFileName);
@@ -734,31 +811,6 @@ const SectionSlotMonitoring = () => {
                                 <Box>
                                     <Box sx={{ textAlign: "Center", display: "flex", alignItems: "center", gap: "1rem" }}>
                                         <Typography sx={{ width: "100px", textAlign: "left" }}>
-                                            Course:
-                                        </Typography>
-                                        <Select
-                                            name="course"
-                                            value={selectedCourse}
-                                            onChange={(e) => setSelectedCourse(e.target.value)}
-                                            sx={{ width: "230px", textAlign: "left" }}
-                                            MenuProps={{
-                                                PaperProps: {
-                                                    sx: {
-                                                        marginTop: "8px",
-                                                        height: "265px"
-                                                    },
-                                                },
-                                            }}
-                                        >
-                                            {courses.map((course) => (
-                                                <MenuItem key={course.course_id} value={course.course_id}>
-                                                    {course.course_code} - {course.course_description}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </Box>
-                                    <Box sx={{ textAlign: "Center", display: "flex", alignItems: "center", gap: "1rem", marginTop: "1rem" }}>
-                                        <Typography sx={{ width: "100px", textAlign: "left" }}>
                                             Section:
                                         </Typography>
                                         <Select
@@ -782,6 +834,32 @@ const SectionSlotMonitoring = () => {
                                                     value={section.department_section_id}
                                                 >
                                                     {section.program_code}-{section.section_description}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </Box>
+                                    <Box sx={{ textAlign: "Center", display: "flex", alignItems: "center", gap: "1rem", marginTop: "1rem"}}>
+                                        <Typography sx={{ width: "100px", textAlign: "left" }}>
+                                            Course:
+                                        </Typography>
+                                        <Select
+                                            name="course"
+                                            value={selectedCourse}
+                                            onChange={(e) => setSelectedCourse(e.target.value)}
+                                            sx={{ width: "230px", textAlign: "left" }}
+                                            MenuProps={{
+                                                PaperProps: {
+                                                    sx: {
+                                                        marginTop: "8px",
+                                                        height: "265px"
+                                                    },
+                                                },
+                                            }}
+                                        >
+                                            <MenuItem value="">All Tagged Subjects</MenuItem>
+                                            {courses.map((course) => (
+                                                <MenuItem key={course.course_id} value={course.course_id}>
+                                                    {course.course_code} - {course.course_description}
                                                 </MenuItem>
                                             ))}
                                         </Select>
@@ -851,7 +929,7 @@ const SectionSlotMonitoring = () => {
                                     Actual Size
                                 </Button>
                                 <Button
-                                    disabled={filteredSlotRows.length === 0}
+                                    disabled={!selectedSectionFilter || subjectRows.length === 0}
                                     sx={{backgroundColor: settings?.main_button_color || settings?.header_color || "#1976d2", color: "white"}}
                                     onClick={() => setSubjectsModalOpen(true)}
                                 >
@@ -869,7 +947,7 @@ const SectionSlotMonitoring = () => {
                         <TableRow>
                             <TableCell sx={{ color: "white", textAlign: "center", border: `1px solid ${borderColor}`, width: "70px" }}>#</TableCell>
                             <TableCell sx={{ color: "white", textAlign: "center", border: `1px solid ${borderColor}` }}>Section</TableCell>
-                            <TableCell sx={{ color: "white", textAlign: "center", border: `1px solid ${borderColor}` }}>Course</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "center", border: `1px solid ${borderColor}` }}>Subject</TableCell>
                             <TableCell sx={{ color: "white", textAlign: "center", border: `1px solid ${borderColor}` }}>Schedule</TableCell>
                             <TableCell sx={{ color: "white", textAlign: "center", width: "120px", border: `1px solid ${borderColor}` }}>Slots</TableCell>
                             <TableCell sx={{ color: "white", textAlign: "center", width: "120px", border: `1px solid ${borderColor}` }}>Enrolled</TableCell>
@@ -878,11 +956,15 @@ const SectionSlotMonitoring = () => {
                     <TableBody>
                         {filteredSlotRows.length > 0 ? (
                             filteredSlotRows.map((row, index) => (
-                                <TableRow key={`${row.section_description}-${row.course_code}-${index}`}>
+                                <TableRow key={`${row.department_section_id}-${row.course_id || "section"}-${index}`}>
                                     <TableCell sx={{ textAlign: "center" }}>{index + 1}</TableCell>
                                     <TableCell sx={{ textAlign: "center" }}>{row.program_code}-{row.section_description || ""}</TableCell>
-                                    <TableCell sx={{ textAlign: "center" }}>{row.course_code || "-"}</TableCell>
-                                    <TableCell sx={{ textAlign: "center" }}>{row.schedule || "-"}</TableCell>
+                                    <TableCell sx={{ textAlign: "center" }}>
+                                        {row.course_code || (selectedSectionFilter ? "-" : "Select section to view subjects")}
+                                    </TableCell>
+                                    <TableCell sx={{ textAlign: "center" }}>
+                                        {row.schedule || (selectedSectionFilter ? "-" : "Select section to view schedules")}
+                                    </TableCell>
                                     <TableCell sx={{ textAlign: "center" }}>
                                         <TextField
                                             type="number"
@@ -903,7 +985,9 @@ const SectionSlotMonitoring = () => {
                                             </Typography>
                                         ) : null}
                                     </TableCell>
-                                    <TableCell sx={{ textAlign: "center" }}>{row.enrolled_student ?? 0}</TableCell>
+                                    <TableCell sx={{ textAlign: "center" }}>
+                                        {selectedSectionFilter ? row.enrolled_student ?? 0 : "-"}
+                                    </TableCell>
                                 </TableRow>
                             ))
                         ) : (
@@ -935,14 +1019,14 @@ const SectionSlotMonitoring = () => {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {filteredSlotRows.length > 0 ? (
-                                    filteredSlotRows.map((row, index) => (
+                                {subjectRows.length > 0 ? (
+                                    subjectRows.map((row, index) => (
                                         <TableRow key={`subject-row-${index}`}>
                                             <TableCell sx={{ textAlign: "center" }}>
                                                 {row.program_description || "-"}
                                             </TableCell>
                                             <TableCell sx={{ textAlign: "center" }}>
-                                                {row.program_code || ""}{row.section_description || ""}
+                                                {row.program_code || ""}-{row.section_description || ""}
                                             </TableCell>
                                             <TableCell sx={{ textAlign: "center" }}>
                                                 {row.course_code || "-"}
@@ -966,7 +1050,7 @@ const SectionSlotMonitoring = () => {
                     </Button>
                     <Button
                         variant="contained"
-                        disabled={filteredSlotRows.length === 0}
+                        disabled={subjectRows.length === 0}
                         onClick={handleDownloadSubjectsPdf}
                         sx={{ backgroundColor: settings?.main_button_color || settings?.header_color || "#1976d2" }}
                     >

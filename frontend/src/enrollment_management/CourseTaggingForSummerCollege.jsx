@@ -1110,37 +1110,39 @@ const CourseTaggingForSummerCollege = () => {
       sx={{
         height: "calc(100vh - 150px)",
         overflowY: "auto",
-        paddingRight: 2,
+        paddingRight: 1,
         backgroundColor: "transparent",
         mt: 1,
         padding: 2,
       }}
     >
       <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-
-          mb: 2,
-          px: 1,
-        }}
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={2}
       >
-        <Typography
-          variant="h4"
+        <Typography variant="h4"
           sx={{
-            fontWeight: "bold",
+            fontWeight: 'bold',
             color: titleColor,
-            fontSize: "36px",
+            fontSize: '36px',
           }}
         >
-          COURSE TAGGING PANEL
+          COURSE TAGGING PANEL SUMMER CLASS
         </Typography>
+
+
+
       </Box>
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+
+    
+
       <br />
+      <br />
+
       <Box
         sx={{
           display: "flex",
@@ -1908,7 +1910,7 @@ const CourseTaggingForSummerCollege = () => {
         </DialogContent>
         <DialogActions>
           <Button
-             color="error"
+            color="error"
             variant="outlined"
 
 

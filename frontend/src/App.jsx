@@ -29,7 +29,7 @@ import Clock from "./components/Clock";
 import ProtectedRoute, { isTokenValid } from "./components/ProtectedRoute";
 
 import API_BASE_URL from "./apiConfig";
-import StudentListForEnrollment from "./registrar/StudentListForEnrollment";
+import StudentListForEnrollment from "./enrollment_management/StudentListForEnrollment";
 import ApplicationProcessAdmin from "./admission/ApplicationProcessAdmin";
 import CourseTaggingForSummerCollege from "./enrollment_management/CourseTaggingForSummerCollege";
 import StudentAccounts from "./account_management/StudentAccounts";
@@ -233,7 +233,7 @@ const AnnouncementForAdmission = lazy(
 );
 const StudentList = lazy(() => import("./registrar/StudentList"));
 const SubmittedDocuments = lazy(() => import("./registrar/SubmittedDocuments"));
-const ProgramSlotLimit = lazy(() => import("./admission/ProgramSlotLimit"));
+const ProgramSlotLimit = lazy(() => import("./system_management/ProgramSlotLimit"));
 const GradingEvaluationForRegistrar = lazy(
   () => import("./registrar/GradingEvaluationForRegistrar"),
 );
@@ -1451,7 +1451,7 @@ function App() {
                         }
                       />
                       <Route
-                        path="/medical_applicant_list"
+                        path="/medical_student_list"
                         element={
                           <ProtectedRoute>
                             <MedicalApplicantList />

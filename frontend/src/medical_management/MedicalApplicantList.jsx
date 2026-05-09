@@ -44,13 +44,14 @@ import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 import SearchIcon from "@mui/icons-material/Search";
 import DateField from "../components/DateField";
+import PsychologyIcon from "@mui/icons-material/Psychology";
+import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 
-const MedicalApplicantList = () => {
+const MedicalStudentList = () => {
     const socket = useRef(null);
 
-
     const settings = useContext(SettingsContext);
-
     const [titleColor, setTitleColor] = useState("#000000");
     const [subtitleColor, setSubtitleColor] = useState("#555555");
     const [borderColor, setBorderColor] = useState("#000000");
@@ -193,7 +194,7 @@ const MedicalApplicantList = () => {
             const tsStr = sessionStorage.getItem("admin_edit_person_id_ts");
             const id = sessionStorage.getItem("admin_edit_person_id");
             const ts = tsStr ? parseInt(tsStr, 10) : 0;
-            const isFresh = source === "medical_applicant_list" && Date.now() - ts < 5 * 60 * 1000;
+            const isFresh = source === "medical_student_list" && Date.now() - ts < 5 * 60 * 1000;
 
             if (id && isFresh) {
                 await fetchByPersonId(id);
@@ -239,18 +240,18 @@ const MedicalApplicantList = () => {
 
 
 
-    const tabs1 = [
-        { label: "Medical Applicant List", to: "/medical_applicant_list", icon: <ListAltIcon /> },
-        { label: "Applicant Form", to: "/medical_dashboard1", icon: <HowToRegIcon /> },
-        { label: "Submitted Documents", to: "/medical_requirements", icon: <UploadFileIcon /> }, // updated icon
-        { label: "Medical History", to: "/medical_requirements_form", icon: <PersonIcon /> },
-        { label: "Dental Assessment", to: "/dental_assessment", icon: <DescriptionIcon /> },
-        { label: "Physical and Neurological Examination", to: "/physical_neuro_exam", icon: <SchoolIcon /> },
+    const tabs = [
+        { label: "Student List", to: "/medical_student_list", icon: <SchoolIcon fontSize="large" /> },
+        { label: "Applicant Form", to: "/medical_dashboard1", icon: <PersonIcon fontSize="large" /> },
+        { label: "Submitted Documents", to: "/medical_requirements", icon: <AssignmentIcon fontSize="large" /> }, // updated icon
+        { label: "Medical History", to: "/medical_requirements_form", icon: <HealthAndSafetyIcon fontSize="large" /> },
+        { label: "Dental Assessment", to: "/dental_assessment", icon: <DescriptionIcon fontSize="large" /> },
+        { label: "Physical and Neurological Examination", to: "/physical_neuro_exam", icon: <PsychologyIcon fontSize="large" /> },
     ];
 
     const navigate = useNavigate();
     const [activeStep, setActiveStep] = useState(0);
-    const [clickedSteps, setClickedSteps] = useState(Array(tabs1.length).fill(false));
+    const [clickedSteps, setClickedSteps] = useState(Array(tabs.length).fill(false));
 
 
     const handleStepClick = (index, to) => {
@@ -270,7 +271,7 @@ const MedicalApplicantList = () => {
 
     useEffect(() => {
         if (location.search.includes("person_id")) {
-            navigate("/medical_applicant_list", { replace: true });
+            navigate("/medical_student_list", { replace: true });
         }
     }, [location, navigate]);
 
@@ -423,7 +424,7 @@ const MedicalApplicantList = () => {
     // ⬇️ Add this inside ApplicantList component, before useEffect
     const fetchApplicants = async () => {
         try {
-            const res = await fetch(`${API_BASE_URL}/api/medical-applicants`);
+            const res = await fetch(`${API_BASE_URL}/api/medical-students`);
             const data = await res.json();
             setPersons(data);
         } catch (err) {
@@ -435,6 +436,12 @@ const MedicalApplicantList = () => {
     const [confirmAction, setConfirmAction] = useState(null); // holds which action to confirm
     const [confirmMessage, setConfirmMessage] = useState("");
 
+    const getAuditHeaders = () => ({
+        headers: {
+            "x-audit-actor-id": employeeID || localStorage.getItem("employee_id") || "",
+            "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+        },
+    });
 
     const handleSubmittedMedicalChange = async (upload_id, checked) => {
         try {
@@ -443,7 +450,8 @@ const MedicalApplicantList = () => {
                 {
                     submitted_medical: checked ? 1 : 0,
                     user_person_id: localStorage.getItem("person_id"),
-                }
+                },
+                getAuditHeaders(),
             );
 
             setSnack({
@@ -458,13 +466,9 @@ const MedicalApplicantList = () => {
         }
     };
 
-
-
-
-
     useEffect(() => {
         // Replace this with your actual API endpoint
-        fetch(`${API_BASE_URL}/api/medical-applicants`)
+        fetch(`${API_BASE_URL}/api/medical-students`)
             .then((res) => res.json())
             .then((data) => setPersons(data)) // ✅ Correct
 
@@ -472,7 +476,7 @@ const MedicalApplicantList = () => {
 
     useEffect(() => {
         socket.current.on("document_status_updated", () => {
-            fetch(`${API_BASE_URL}/api/medical-applicants`)
+            fetch(`${API_BASE_URL}/api/medical-students`)
                 .then((res) => res.json())
                 .then((data) => setPersons(data));
         });
@@ -662,7 +666,7 @@ const MedicalApplicantList = () => {
     }
 
     useEffect(() => {
-        fetch(`${API_BASE_URL}/api/medical-applicants`) // 👈 This is the new endpoint
+        fetch(`${API_BASE_URL}/api/medical-students`) // 👈 This is the new endpoint
             .then((res) => res.json())
 
             .catch((err) => console.error("Error fetching applicants:", err));
@@ -822,7 +826,7 @@ const MedicalApplicantList = () => {
         newWin.document.write(`
        <html>
          <head>
-           <title>Applicant List</title>
+           <title>Student List</title>
           <style>
    @page { size: A4 landscape; margin: 5mm; }
  
@@ -937,7 +941,7 @@ const MedicalApplicantList = () => {
                  <div style="font-size: 13px; font-family: Arial">${resolvedCampusAddress}</div>
    
                  <div style="margin-top: 30px;">
-                   <b style="font-size: 24px; letter-spacing: 1px;">Applicant List</b>
+                   <b style="font-size: 24px; letter-spacing: 1px;">Student List</b>
                  </div>
                </div>
              </div>
@@ -1010,44 +1014,63 @@ const MedicalApplicantList = () => {
 
 
     return (
-        <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h4" fontWeight="bold" sx={{ color: titleColor, }}>
-                    STUDENT MEDICAL RECORDS
+        <Box
+            sx={{
+                height: "calc(100vh - 150px)",
+                overflowY: "auto",
+                paddingRight: 1,
+                backgroundColor: "transparent",
+                mt: 1,
+                padding: 2,
+            }}
+        >
+            <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
+            >
+                <Typography variant="h4"
+                    sx={{
+                        fontWeight: 'bold',
+                        color: titleColor,
+                        fontSize: '36px',
+                    }}
+                >
+                    APPLICANT LIST
                 </Typography>
 
 
-                <Box>
+                <TextField
+                    variant="outlined"
+                    placeholder="Search Student Name / Email / Student"
+                    size="small"
 
-                    <TextField
-                        variant="outlined"
-                        placeholder="Search Student Name / Email / Student"
-                        size="small"
+                    value={searchQuery}
+                    onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setCurrentPage(1); // Corrected
+                    }}
 
-                        value={searchQuery}
-                        onChange={(e) => {
-                            setSearchQuery(e.target.value);
-                            setCurrentPage(1); // Corrected
-                        }}
+                    sx={{
+                        width: 450,
+                        backgroundColor: "#fff",
+                        borderRadius: 1,
+                        "& .MuiOutlinedInput-root": {
+                            borderRadius: "10px",
+                        },
+                    }}
+                    InputProps={{
+                        startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
+                    }}
+                />
 
-                        sx={{
-                            width: 450,
-                            backgroundColor: "#fff",
-                            borderRadius: 1,
-                            "& .MuiOutlinedInput-root": {
-                                borderRadius: "10px",
-                            },
-                        }}
-                        InputProps={{
-                            startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
-                        }}
-                    />
-                </Box>
             </Box>
 
-
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
-            <div style={{ height: "20px" }}></div>
+
+            <br />
+            <br />
 
             <Box
                 sx={{
@@ -1055,16 +1078,16 @@ const MedicalApplicantList = () => {
                     justifyContent: "space-between",
                     flexWrap: "nowrap", // ❌ prevent wrapping
                     width: "100%",
-                    mt: 3,
+
                     gap: 2,
                 }}
             >
-                {tabs1.map((tab, index) => (
+                {tabs.map((tab, index) => (
                     <Card
                         key={index}
                         onClick={() => handleStepClick(index, tab.to)}
                         sx={{
-                            flex: `1 1 ${100 / tabs1.length}%`, // evenly divide row
+                            flex: `1 1 ${100 / tabs.length}%`, // evenly divide row
                             height: 135,
                             display: "flex",
                             alignItems: "center",
@@ -1105,7 +1128,8 @@ const MedicalApplicantList = () => {
                 ))}
             </Box>
 
-            <div style={{ height: "20px" }}></div>
+            <br />
+            <br />
 
 
             <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
@@ -1737,8 +1761,8 @@ const MedicalApplicantList = () => {
                 </Alert>
             </Snackbar>
 
-        </Box>
+        </Box >
     );
 };
 
-export default MedicalApplicantList;
+export default MedicalStudentList;

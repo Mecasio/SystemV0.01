@@ -59,11 +59,11 @@ const applicantDocsDir = path.join(
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "http://192.168.0.180:5173",
+  "http://192.168.50.45:5173",
   "http://192.168.50.55:5173",
   "http://192.168.50.211:5173",
   "http://136.239.248.62:5173",
-  "http://192.168.0.180:5173",
+  "http://192.168.50.45:5173",
   "http://192.168.1.9:5173",
 ];
 
@@ -1299,7 +1299,7 @@ app.get("/api/notifications", async (req, res) => {
 });
 
 // -------------------------------------------- GET APPLICANT ADMISSION DATA ------------------------------------------------//
-app.get("/api/medical-applicants", async (req, res) => {
+app.get("/api/medical-students", async (req, res) => {
   try {
     const [rows] = await db.execute(`
       SELECT

@@ -73,14 +73,14 @@ const AdminDashboard3 = () => {
 
   const stepsData = [
     {
-      label: "Admission Process for Registrar",
+      label: "Applicant List Records",
       to: "/applicant_list_admin",
       icon: <SchoolIcon fontSize="large" />,
     },
     {
-      label: "Applicant Form",
+      label: "Applicant Profile",
       to: "/admin_dashboard1",
-      icon: <DashboardIcon fontSize="large" />,
+      icon: <PersonIcon fontSize="large" />,
     },
     {
       label: "Student Requirements",
@@ -667,7 +667,7 @@ const AdminDashboard3 = () => {
             fontSize: '36px',
           }}
         >
-           EDUCATIONAL ATTAINMENT
+          EDUCATIONAL ATTAINMENT
         </Typography>
       </Box>
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
@@ -692,7 +692,7 @@ const AdminDashboard3 = () => {
               sx={{
                 flex: 1,
                 maxWidth: `${100 / stepsData.length}%`, // evenly fit 100%
-                height: 135,
+                height: 140,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -731,7 +731,7 @@ const AdminDashboard3 = () => {
             {index < stepsData.length - 1 && (
               <Box
                 sx={{
-                  flex: 0.1,
+
                   mx: 1, // margin to keep spacing
                 }}
               />
@@ -739,40 +739,40 @@ const AdminDashboard3 = () => {
           </React.Fragment>
         ))}
       </Box>
-      <div style={{ height: "40px" }}></div>
+      <br />
+      <br />
 
 
 
-
-      <TableContainer component={Paper} sx={{ width: '100%', mb: 1 }}>
-        <Table>
-          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `1px solid ${borderColor}`, }}>
-            <TableRow>
-              {/* Left cell: Applicant ID */}
-              <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: "Poppins, sans-serif", }}>
-                Applicant ID:&nbsp;
-                <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: "normal", textDecoration: "underline" }}>
-                  {person?.applicant_number || "N/A"}
-
-                </span>
-              </TableCell>
-
-              {/* Right cell: Applicant Name */}
-              <TableCell
-                align="right"
-                sx={{ color: 'white', fontSize: '20px', fontFamily: "Poppins, sans-serif", border: 'none' }}
-              >
-                Applicant Name:&nbsp;
-                <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: "normal", textDecoration: "underline" }}>
-                  {person?.last_name?.toUpperCase()}, {person?.first_name?.toUpperCase()}{" "}
-                  {person?.middle_name?.toUpperCase()} {person?.extension?.toUpperCase() || ""}
-                </span>
-              </TableCell>
-            </TableRow>
-          </TableHead>
-        </Table>
-      </TableContainer>
-
+     <TableContainer component={Paper} sx={{ width: '100%', mb: 1 }}>
+           <Table>
+             <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `1px solid ${borderColor}`, }}>
+               <TableRow>
+                 {/* Left cell: Applicant ID */}
+                 <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: "Poppins, sans-serif", border: 'none' }}>
+                   Applicant ID:&nbsp;
+                   <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: "normal", textDecoration: "underline" }}>
+                     {person?.applicant_number || "N/A"}
+   
+                   </span>
+                 </TableCell>
+   
+                 {/* Right cell: Applicant Name */}
+                 <TableCell
+                   align="right"
+                   sx={{ color: 'white', fontSize: '20px', fontFamily: "Poppins, sans-serif", border: 'none' }}
+                 >
+                   Applicant Name:&nbsp;
+                   <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: "normal", textDecoration: "underline" }}>
+                     {person?.last_name?.toUpperCase()}, {person?.first_name?.toUpperCase()}{" "}
+                     {person?.middle_name?.toUpperCase()} {person?.extension?.toUpperCase() || ""}
+                   </span>
+                 </TableCell>
+               </TableRow>
+             </TableHead>
+           </Table>
+         </TableContainer>
+   
 
       <Box
         sx={{

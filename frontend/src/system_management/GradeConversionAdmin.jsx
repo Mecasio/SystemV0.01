@@ -154,7 +154,7 @@ const GradeConversionAdmin = () => {
     };
 
     const [rows, setRows] = useState([]);
-    const EMPTY_GRADE_FORM = { id: null, min_score: "", max_score: "", equivalent_grade: "", descriptive_rating: "" };
+    const EMPTY_GRADE_FORM = { id: null, min_score: "", max_score: "", equivalent_grade: "", descriptive_rating: "", is_disqualified: "" };
     const [gradeDialogOpen, setGradeDialogOpen] = useState(false);
     const [gradeForm, setGradeForm] = useState(EMPTY_GRADE_FORM);
     const [gradeDeleteDialogOpen, setGradeDeleteDialogOpen] = useState(false);
@@ -230,7 +230,14 @@ const GradeConversionAdmin = () => {
 
     // ── Honors state ──
     const [honors, setHonors] = useState([]);
-    const EMPTY_HONOR_FORM = { id: null, title: "", min_grade: "", max_allowed_grade: "", type: 1 };
+    const EMPTY_HONOR_FORM = {
+        id: null,
+        title: "",
+        category: 0,
+        min_gwa: "",
+        max_gwa: "",
+        max_subject_grade: "",
+    };
     const [honorDialogOpen, setHonorDialogOpen] = useState(false);
     const [honorForm, setHonorForm] = useState(EMPTY_HONOR_FORM);
     const [honorDeleteDialogOpen, setHonorDeleteDialogOpen] = useState(false);
@@ -258,7 +265,12 @@ const GradeConversionAdmin = () => {
     };
 
     const handleSaveHonor = async () => {
-        if (!honorForm.title) {
+        if (
+            !honorForm.title ||
+            honorForm.min_gwa === "" ||
+            honorForm.max_gwa === "" ||
+            honorForm.max_subject_grade === ""
+        ) {
             setSnack({ open: true, message: "Title is required", severity: "warning" });
             return;
         }
@@ -431,6 +443,7 @@ const GradeConversionAdmin = () => {
                             <TableCell sx={thCellSx}>Max Score</TableCell>
                             <TableCell sx={thCellSx}>Equivalent Grade</TableCell>
                             <TableCell sx={thCellSx}>Descriptive Rating</TableCell>
+                            <TableCell sx={thCellSx}>Disqualified</TableCell>
                             {showActionColumn && <TableCell sx={thCellSx}>Actions</TableCell>}
                         </TableRow>
                     </TableHead>
@@ -471,6 +484,20 @@ const GradeConversionAdmin = () => {
                                     <TableCell sx={tdCellSx}>
                                         <Box sx={pillSx(`${resolvedHeader}18`, resolvedHeader)}>
                                             {row.descriptive_rating}
+                                        </Box>
+                                    </TableCell>
+                                    <TableCell sx={tdCellSx}>
+                                        <Box
+                                            sx={pillSx(
+                                                row.is_disqualified
+                                                    ? "rgba(181,32,32,0.15)"
+                                                    : "rgba(26,92,54,0.12)",
+                                                row.is_disqualified
+                                                    ? "#b52020"
+                                                    : "#1a5c36"
+                                            )}
+                                        >
+                                            {row.is_disqualified ? "YES" : "NO"}
                                         </Box>
                                     </TableCell>
                                     {showActionColumn && (
@@ -566,9 +593,10 @@ const GradeConversionAdmin = () => {
                         <TableHead>
                             <TableRow>
                                 <TableCell sx={thCellSx}>Title</TableCell>
-                                <TableCell sx={thCellSx}>Max Grade</TableCell>
-                                <TableCell sx={thCellSx}>Min Grade</TableCell>
-                                <TableCell sx={thCellSx}>Type</TableCell>
+                                <TableCell sx={thCellSx}>Min GWA</TableCell>
+                                <TableCell sx={thCellSx}>Max GWA</TableCell>
+                                <TableCell sx={thCellSx}>Max Subject Grade</TableCell>
+                                <TableCell sx={thCellSx}>Category</TableCell>
                                 {showActionColumn && <TableCell sx={thCellSx}>Actions</TableCell>}
                             </TableRow>
                         </TableHead>
@@ -604,21 +632,35 @@ const GradeConversionAdmin = () => {
                                         </Stack>
                                     </TableCell>
                                     <TableCell sx={tdCellSx}>
-                                        <Box sx={pillSx("rgba(139,26,26,0.09)", C.redDark)}>
-                                            {row.max_allowed_grade}
-                                        </Box>
-                                    </TableCell>
-                                    <TableCell sx={tdCellSx}>
                                         <Box sx={pillSx("rgba(26,92,54,0.09)", C.greenDark)}>
-                                            {row.min_grade}
+                                            {row.min_gwa}
                                         </Box>
                                     </TableCell>
+
                                     <TableCell sx={tdCellSx}>
-                                        <Box sx={pillSx(
-                                            row.type === 2 ? `${resolvedHeader}20` : "rgba(26,26,46,0.07)",
-                                            row.type === 2 ? resolvedHeader : C.textMain
-                                        )}>
-                                            {row.type === 2 ? "Graduation" : "Semester"}
+                                        <Box sx={pillSx("rgba(139,26,26,0.09)", C.redDark)}>
+                                            {row.max_gwa}
+                                        </Box>
+                                    </TableCell>
+
+                                    <TableCell sx={tdCellSx}>
+                                        <Box sx={pillSx(`${resolvedHeader}20`, resolvedHeader)}>
+                                            {row.max_subject_grade}
+                                        </Box>
+                                    </TableCell>
+
+                                    <TableCell sx={tdCellSx}>
+                                        <Box
+                                            sx={pillSx(
+                                                row.category === 1
+                                                    ? `${resolvedHeader}20`
+                                                    : "rgba(26,26,46,0.07)",
+                                                row.category === 1
+                                                    ? resolvedHeader
+                                                    : C.textMain
+                                            )}
+                                        >
+                                            {row.category === 1 ? "Graduation" : "Semester"}
                                         </Box>
                                     </TableCell>
                                     {showActionColumn && (
@@ -704,6 +746,22 @@ const GradeConversionAdmin = () => {
                             value={gradeForm.descriptive_rating}
                             onChange={(e) => setGradeForm({ ...gradeForm, descriptive_rating: e.target.value })}
                         />
+                        <TextField
+                            label="Disqualified"
+                            fullWidth
+                            size="small"
+                            select
+                            value={gradeForm.is_disqualified}
+                            onChange={(e) =>
+                                setGradeForm({
+                                    ...gradeForm,
+                                    is_disqualified: e.target.value,
+                                })
+                            }
+                        >
+                            <MenuItem value={0}>No</MenuItem>
+                            <MenuItem value={1}>Yes</MenuItem>
+                        </TextField>
                     </Stack>
                 </DialogContent>
                 <DialogActions sx={{ px: 3, pb: 2 }}>
@@ -775,35 +833,59 @@ const GradeConversionAdmin = () => {
                             Min Grades
                         </Typography>
                         <TextField
-                            label="Min Grade (Latin Honors)"
+                            label="Min GWA"
                             fullWidth
                             size="small"
-                            value={honorForm.min_grade}
-                            onChange={(e) => setHonorForm({ ...honorForm, min_grade: e.target.value })}
+                            value={honorForm.min_gwa}
+                            onChange={(e) =>
+                                setHonorForm({
+                                    ...honorForm,
+                                    min_gwa: e.target.value,
+                                })
+                            }
                         />
-                        <Typography fontWeight="bold" mb={1} mt={3}>
-                           Max Allowed Grades
-                        </Typography>
+
                         <TextField
-                            label="Max Allowed Grade"
+                            label="Max GWA"
                             fullWidth
                             size="small"
-                            value={honorForm.max_allowed_grade}
-                            onChange={(e) => setHonorForm({ ...honorForm, max_allowed_grade: e.target.value })}
+                            value={honorForm.max_gwa}
+                            onChange={(e) =>
+                                setHonorForm({
+                                    ...honorForm,
+                                    max_gwa: e.target.value,
+                                })
+                            }
                         />
-                         <Typography fontWeight="bold" mb={1} mt={3}>
-                           Type
-                        </Typography>
+
                         <TextField
-                            label="Type"
+                            label="Max Subject Grade"
+                            fullWidth
+                            size="small"
+                            value={honorForm.max_subject_grade}
+                            onChange={(e) =>
+                                setHonorForm({
+                                    ...honorForm,
+                                    max_subject_grade: e.target.value,
+                                })
+                            }
+                        />
+
+                        <TextField
+                            label="Category"
                             fullWidth
                             size="small"
                             select
-                            value={honorForm.type}
-                            onChange={(e) => setHonorForm({ ...honorForm, type: e.target.value })}
+                            value={honorForm.category}
+                            onChange={(e) =>
+                                setHonorForm({
+                                    ...honorForm,
+                                    category: e.target.value,
+                                })
+                            }
                         >
-                            <MenuItem value={1}>Semester</MenuItem>
-                            <MenuItem value={2}>Graduation</MenuItem>
+                            <MenuItem value={0}>Semester</MenuItem>
+                            <MenuItem value={1}>Graduation</MenuItem>
                         </TextField>
                     </Stack>
                 </DialogContent>

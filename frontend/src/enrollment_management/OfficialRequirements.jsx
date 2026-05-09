@@ -40,39 +40,16 @@ import LoadingOverlay from "../components/LoadingOverlay";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import PersonSearchIcon from "@mui/icons-material/PersonSearch";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 
-const tabs1 = [
-  {
-    label: "Student List",
-    to: "/student_list_for_enrollment",
-    icon: <ListAltIcon />,
-  },
-  {
-    label: "Applicant Form",
-    to: "/official_student_dashboard1",
-    icon: <PersonAddIcon />,
-  },
-  {
-    label: "Submitted Documents",
-    to: "/student_official_requirements",
-    icon: <UploadFileIcon />,
-  },
-  {
-    label: "Course Tagging",
-    to: "/course_tagging_for_college",
-    icon: <UploadFileIcon />,
-  },
-  {
-    label: "Search COR",
-    to: "/search_cor_for_college",
-    icon: <MenuBookIcon />,
-  },
+const tabs = [
+     { label: "Student List", to: "/student_list_for_enrollment", icon: <SchoolIcon fontSize="large"/> },
+        { label: "Applicant Form", to: "/official_student_dashboard1", icon: <PersonIcon fontSize="large" /> },
+        { label: "Submitted Documents", to: "/student_official_requirements", icon: <AssignmentIcon fontSize="large"/> },
+        { label: "Course Tagging", to: "/course_tagging_for_college", icon: <UploadFileIcon fontSize="large"/> },
+        { label: "Search COR", to: "/search_cor_for_college", icon: <MenuBookIcon fontSize="large"/> },
+        { label: "Class List", to: "/class_roster_enrollment", icon: <PersonSearchIcon fontSize="large"/> },
 
-  {
-    label: "Class List",
-    to: "/class_roster_enrollment",
-    icon: <PersonSearchIcon />,
-  },
 ];
 
 const OfficialRequirements = () => {
@@ -118,7 +95,7 @@ const OfficialRequirements = () => {
   const navigate = useNavigate();
   const [activeStep, setActiveStep] = useState(2);
   const [clickedSteps, setClickedSteps] = useState(
-    Array(tabs1.length).fill(false),
+    Array(tabs.length).fill(false),
   );
   const socketRef = useRef(null);
 
@@ -960,27 +937,23 @@ const OfficialRequirements = () => {
         padding: 2,
       }}
     >
-      {/* Top header: APPLICANT ONLINE REQUIREMENTS + Search */}
       <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-
-          mb: 2,
-        }}
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={2}
       >
-        <Typography
-          variant="h4"
+        <Typography variant="h4"
           sx={{
-            fontWeight: "bold",
+            fontWeight: 'bold',
             color: titleColor,
-            fontSize: "36px",
+            fontSize: '36px',
           }}
         >
-          APPLICANT ONLINE REQUIREMENTS
+          SUBMITTED DOCUMENTS
         </Typography>
+
+
 
         <TextField
           variant="outlined"
@@ -1003,6 +976,8 @@ const OfficialRequirements = () => {
       </Box>
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+
+      <br />
       <br />
 
       <Box
@@ -1011,16 +986,16 @@ const OfficialRequirements = () => {
           justifyContent: "space-between",
           flexWrap: "nowrap", // ❌ prevent wrapping
           width: "100%",
-          mt: 3,
+
           gap: 2,
         }}
       >
-        {tabs1.map((tab, index) => (
+        {tabs.map((tab, index) => (
           <Card
             key={index}
             onClick={() => handleStepClick(index, tab.to)}
             sx={{
-              flex: `1 1 ${100 / tabs1.length}%`, // evenly divide row
+              flex: `1 1 ${100 / tabs.length}%`, // evenly divide row
               height: 135,
               display: "flex",
               alignItems: "center",
@@ -1062,7 +1037,8 @@ const OfficialRequirements = () => {
       </Box>
 
       <br />
-      {/* Student ID and Name */}
+      <br />
+
       <TableContainer
         component={Paper}
         sx={{ width: "100%", border: `1px solid ${borderColor}` }}
@@ -1744,8 +1720,8 @@ const OfficialRequirements = () => {
           </DialogContent>
           <DialogActions>
             <Button
-           color="error"
-            variant="outlined"
+              color="error"
+              variant="outlined"
               onClick={() => setConfirmOpen(false)}>
               Cancel
             </Button>
