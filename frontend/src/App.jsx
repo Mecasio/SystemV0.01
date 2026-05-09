@@ -34,6 +34,7 @@ import ApplicationProcessAdmin from "./admission/ApplicationProcessAdmin";
 import CourseTaggingForSummerCollege from "./enrollment_management/CourseTaggingForSummerCollege";
 import StudentAccounts from "./account_management/StudentAccounts";
 import GradeConversionAdmin from "./system_management/GradeConversionAdmin";
+import HonorsReport from "./system_management/HonorsReport";
 
 // ✅ Create a Context so all components can access settings
 export const SettingsContext = createContext(null);
@@ -1495,6 +1496,14 @@ function App() {
                         element={
                           <ProtectedRoute>
                             <GradeConversionAdmin />
+                          </ProtectedRoute>
+                        }
+                      />
+                        <Route
+                        path="/honors_report"
+                        element={
+                          <ProtectedRoute>
+                            <HonorsReport />
                           </ProtectedRoute>
                         }
                       />

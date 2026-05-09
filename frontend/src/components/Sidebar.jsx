@@ -422,7 +422,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
         { title: "Proctor's Applicant List", link: "/admission_schedule_room_list", icon: People, page_id: 33 },
         { title: "Subject Management", link: "/applicant_exam_subjects", icon: SchoolIcon, page_id: 145 },
         { title: "Announcement", link: "/announcement_for_admission", icon: Campaign, page_id: 98 },
-      
+
         { title: "Application Process Admin", link: "/application_process_admin", icon: PersonAdd, page_id: 139 },
       ]
     },
@@ -527,7 +527,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
     {
       key: "settingsCommunication", label: "Settings & Communication", icon: Campaign, items: [
         { title: `${shortTerm} Profile`, link: "/settings", icon: Settings, page_id: 74 },
-          { title: "Program Slot Remaining", link: "/program_slot_limit", icon: People, page_id: 110 },
+        { title: "Program Slot Remaining", link: "/program_slot_limit", icon: People, page_id: 110 },
         { title: "Branch Management", link: "/admin_branches", icon: Settings, page_id: 138 },
         { title: "Grade Conversion Management", link: "/grade_conversion_admin", icon: Email, page_id: 144 },
         { title: "Email Sender", link: "/email_template_manager", icon: Email, page_id: 67 },
@@ -569,6 +569,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
         { title: "Settings", link: "/registrar_reset_password", icon: Settings, page_id: 73 },
         { title: "Student Grade File", link: "/student_grade_file", icon: Settings, page_id: 126 },
         { title: "Migration Data Panel", link: "/migration_data_panel", icon: Settings, page_id: 114 },
+        { title: "Academic Achiever Awardee's", link: "/honors_report", icon: Settings, page_id: 146 },
 
       ]
 
@@ -826,7 +827,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
             <NavItem to="/student_faculty_evaluation" icon={AssignmentTurnedInIcon} label="Faculty Evaluation" active={isActive("/student_faculty_evaluation")} />
             <NavItem to="/student_dashboard1" icon={PersonIcon} label="Student Profile" active={/^\/student_dashboard[1-5]$/.test(loc)} />
             <NavItem to="/student_online_requirements" icon={FolderCopy} label="Student Online Requirements" active={isActive("/student_online_requirements")} />
-             <NavItem to="/student_account_balance" icon={PaymentIcon} label="Student Account Balance" active={isActive("/student_account_balance")} />
+            <NavItem to="/student_account_balance" icon={PaymentIcon} label="Student Account Balance" active={isActive("/student_account_balance")} />
             <div className="sb-section-label">Setting</div>
             <NavItem to="/student_reset_password" icon={Settings} label="Settings" active={isActive("/student_reset_password")} />
           </>

@@ -59,11 +59,11 @@ const applicantDocsDir = path.join(
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "http://192.168.50.45:5173",
+  "http://192.168.1.12:5173",
   "http://192.168.50.55:5173",
   "http://192.168.50.211:5173",
   "http://136.239.248.62:5173",
-  "http://192.168.50.45:5173",
+  "http://192.168.1.12:5173",
   "http://192.168.1.9:5173",
 ];
 
@@ -143,6 +143,7 @@ const payment = require("./routes/payment/payment");
 const evaluation = require("./routes/system_routes/evaluation");
 const yearLevelRoute = require("./routes/system_routes/yearLevel");
 const gradeConversionRoute = require("./routes/system_routes/gradeConversion");
+const honorRoutes = require("./routes/system_routes/honorRoutes");
 const nstpTagging = require("./routes/system_routes/nstpTagging");
 const departmentSectionTagging = require("./routes/system_routes/departmentSectionTagging");
 const auditLogsRoute = require("./routes/system_routes/auditLogsRoute");
@@ -208,6 +209,7 @@ app.use("/", section);
 app.use("/api", studentAccountRoute);
 app.use("/", yearLevelRoute);
 app.use("/", gradeConversionRoute);
+app.use("/api", honorRoutes);
 
 const uploadPath = path.join(__dirname, "uploads");
 
