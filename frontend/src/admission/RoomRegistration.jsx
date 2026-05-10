@@ -174,58 +174,6 @@ const RoomRegistration = () => {
     }
   };
 
-  const tabs = [
-    {
-      label: "Room Registration",
-      to: "/room_registration",
-      icon: <KeyIcon fontSize="large" />,
-    },
-    {
-      label: "Verify Documents Room Assignment",
-      to: "/verify_document_schedule",
-      icon: <MeetingRoomIcon fontSize="large" />,
-    },
-
-    {
-      label: "Evaluator's Applicant List",
-      to: "/evaluator_schedule_room_list",
-      icon: <PeopleIcon fontSize="large" />,
-    },
-    {
-      label: "Entrance Exam Room Assignment",
-      to: "/assign_entrance_exam",
-      icon: <MeetingRoomIcon fontSize="large" />,
-    },
-
-    {
-      label: "Proctor's Applicant List",
-      to: "/admission_schedule_room_list",
-      icon: <PeopleIcon fontSize="large" />,
-    },
-
-    {
-      label: "Subject Management",
-      to: "/applicant_exam_subjects",
-      icon: <SchoolIcon fontSize="large" />,
-    },
-
-    {
-      label: "Announcement",
-      to: "/announcement_for_admission",
-      icon: <CampaignIcon fontSize="large" />,
-    },
-  ];
-
-  const navigate = useNavigate();
-  const [activeStep, setActiveStep] = useState(0);
-  const [clickedSteps, setClickedSteps] = useState(
-    Array(tabs.length).fill(false),
-  );
-
-  const handleStepClick = (index, to) => {
-    setActiveStep(index);
-    navigate(to); // this will actually change the page
-  };
 
   // 🔹 Room management states
   const [roomName, setRoomName] = useState("");
@@ -533,64 +481,6 @@ const RoomRegistration = () => {
       <br />
       <br />
 
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          flexWrap: "nowrap", // ❌ prevent wrapping
-          width: "100%",
-
-          gap: 2,
-        }}
-      >
-        {tabs.map((tab, index) => (
-          <Card
-            key={index}
-            onClick={() => handleStepClick(index, tab.to)}
-            sx={{
-              flex: `1 1 ${100 / tabs.length}%`, // evenly divide row
-              height: 135,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              borderRadius: 2,
-              border: `1px solid ${borderColor}`,
-              backgroundColor:
-                activeStep === index
-                  ? settings?.header_color || "#1976d2"
-                  : "#E8C999",
-              color: activeStep === index ? "#fff" : "#000",
-              boxShadow:
-                activeStep === index
-                  ? "0px 4px 10px rgba(0,0,0,0.3)"
-                  : "0px 2px 6px rgba(0,0,0,0.15)",
-              transition: "0.3s ease",
-              "&:hover": {
-                backgroundColor: activeStep === index ? "#000000" : "#f5d98f",
-              },
-            }}
-          >
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-              }}
-            >
-              <Box sx={{ fontSize: 40, mb: 1 }}>{tab.icon}</Box>
-              <Typography
-                sx={{ fontSize: 14, fontWeight: "bold", textAlign: "center" }}
-              >
-                {tab.label}
-              </Typography>
-            </Box>
-          </Card>
-        ))}
-      </Box>
-
-      <br />
-      <br />
 
 
       <TableContainer

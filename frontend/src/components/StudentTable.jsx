@@ -22,6 +22,7 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import API_BASE_URL from "../apiConfig";
+import { postAuditEvent } from "../utils/auditEvents";
 
 const StudentTable = ({ data, paymentType, onRemove }) => {
   const settings = useContext(SettingsContext);
@@ -44,15 +45,9 @@ const StudentTable = ({ data, paymentType, onRemove }) => {
 
   const insertTransferAuditLog = async (row, target) => {
     try {
-      const actorId =
-        localStorage.getItem("employee_id") ||
-        localStorage.getItem("person_id") ||
-        "";
-      const actorEmail = localStorage.getItem("email") || "unknown";
-
-      await axios.post(`${API_BASE_URL}/insert-logs/${actorId}`, {
-        message: `Employee ID #${actorId} - ${actorEmail} successfully transferred student #${row.student_number} payment to ${target}`,
-        type: "insert",
+      await postAuditEvent("payment_transferred", {
+        student_number: row.student_number,
+        payment_target: target,
       });
     } catch (err) {
       console.error("Error inserting audit log");

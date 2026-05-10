@@ -26,6 +26,7 @@ import {
   Grid,
   Chip,
   Snackbar,
+  Paper,
   Alert,
 } from "@mui/material";
 import API_BASE_URL from "../apiConfig";
@@ -48,7 +49,11 @@ const HONOR_COLORS = {
 };
 
 const getHonorChip = (title) => {
-  const style = HONOR_COLORS[title] || { bg: "#f5f5f5", color: "#333", border: "#ccc" };
+  const style = HONOR_COLORS[title] || {
+    bg: "#f5f5f5",
+    color: "#333",
+    border: "#ccc",
+  };
   return (
     <Chip
       label={title}
@@ -65,8 +70,16 @@ const getHonorChip = (title) => {
 };
 
 const TABS = [
-  { key: "academic", label: "Academic Achievers", icon: <EmojiEventsIcon fontSize="small" /> },
-  { key: "latin", label: "Latin Honors", icon: <SchoolIcon fontSize="small" /> },
+  {
+    key: "academic",
+    label: "Academic Achievers",
+    icon: <EmojiEventsIcon fontSize="small" />,
+  },
+  {
+    key: "latin",
+    label: "Latin Honors",
+    icon: <SchoolIcon fontSize="small" />,
+  },
 ];
 
 const rowsPerPage = 100;
@@ -103,12 +116,13 @@ export default function HonorsReport() {
     if (settings.title_color) setTitleColor(settings.title_color);
     if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
     if (settings.border_color) setBorderColor(settings.border_color);
-    if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
+    if (settings.main_button_color)
+      setMainButtonColor(settings.main_button_color);
     if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);
     if (settings.stepper_color) setStepperColor(settings.stepper_color);
 
     setFetchedLogo(
-      settings.logo_url ? `${API_BASE_URL}${settings.logo_url}` : EaristLogo
+      settings.logo_url ? `${API_BASE_URL}${settings.logo_url}` : EaristLogo,
     );
 
     if (settings.company_name) setCompanyName(settings.company_name);
@@ -136,7 +150,7 @@ export default function HonorsReport() {
     if (!settings) return;
 
     const matchedBranch = branches.find(
-      (branch) => String(branch?.id) === String(campusId)
+      (branch) => String(branch?.id) === String(campusId),
     );
 
     if (matchedBranch?.address) {
@@ -168,7 +182,11 @@ export default function HonorsReport() {
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   // ── auth ───────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -187,7 +205,9 @@ export default function HonorsReport() {
 
   const checkAccess = async (employeeID) => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`);
+      const res = await axios.get(
+        `${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`,
+      );
       setHasAccess(res.data?.page_privilege === 1);
     } catch {
       setHasAccess(false);
@@ -197,54 +217,72 @@ export default function HonorsReport() {
   // ── Load dropdowns once ────────────────────────────────────────────────────
   useEffect(() => {
     if (!hasAccess) return;
-    axios.get(`${API_BASE_URL}/api/honors/programs`)
-      .then(r => setPrograms(r.data))
+    axios
+      .get(`${API_BASE_URL}/api/honors/programs`)
+      .then((r) => setPrograms(r.data))
       .catch(console.error);
-    axios.get(`${API_BASE_URL}/api/honors/school_years`)
-      .then(r => setSchoolYears(r.data))
+    axios
+      .get(`${API_BASE_URL}/api/honors/school_years`)
+      .then((r) => setSchoolYears(r.data))
       .catch(console.error);
     // Semesters from DB (semester_table) — no more hardcoded S1/S2/S3
-    axios.get(`${API_BASE_URL}/api/honors/semesters`)
-      .then(r => setSemesters(r.data))
+    axios
+      .get(`${API_BASE_URL}/api/honors/semesters`)
+      .then((r) => setSemesters(r.data))
       .catch(console.error);
   }, [hasAccess]);
 
   // ── Fetch list ─────────────────────────────────────────────────────────────
-  const endpoint = activeTab === "academic"
-    ? "/api/honors/academic_achievers"
-    : "/api/honors/latin_honors";
+  const endpoint =
+    activeTab === "academic"
+      ? "/api/honors/academic_achievers"
+      : "/api/honors/latin_honors";
 
-  const fetchData = useCallback(async (signal) => {
-    setListLoading(true);
-    try {
-      const res = await axios.get(`${API_BASE_URL}${endpoint}`, {
-        params: {
-          page: currentPage,
-          limit: rowsPerPage,
-          search: searchQuery,
-          program_id: programId || undefined,
-          school_year_id: schoolYearId || undefined,
-          semester_id: semesterId || undefined,
-          campus_id: campusId || undefined,
-        },
-        signal,
-      });
-      setRows(res.data.data);
-      setTotal(res.data.total);
-      setTotalPages(res.data.totalPages);
-    } catch (err) {
-      if (axios.isCancel(err) || err.name === "CanceledError") return;
-      console.error(err);
-    } finally {
-      if (!signal?.aborted) setListLoading(false);
-    }
-  }, [endpoint, currentPage, searchQuery, programId, schoolYearId, semesterId, campusId]);
+  const fetchData = useCallback(
+    async (signal) => {
+      setListLoading(true);
+      try {
+        const res = await axios.get(`${API_BASE_URL}${endpoint}`, {
+          params: {
+            page: currentPage,
+            limit: rowsPerPage,
+            search: searchQuery,
+            program_id: programId || undefined,
+            school_year_id: schoolYearId || undefined,
+            semester_id: semesterId || undefined,
+            campus_id: campusId || undefined,
+          },
+          signal,
+        });
+        setRows(res.data.data);
+        setTotal(res.data.total);
+        setTotalPages(res.data.totalPages);
+      } catch (err) {
+        if (axios.isCancel(err) || err.name === "CanceledError") return;
+        console.error(err);
+      } finally {
+        if (!signal?.aborted) setListLoading(false);
+      }
+    },
+    [
+      endpoint,
+      currentPage,
+      searchQuery,
+      programId,
+      schoolYearId,
+      semesterId,
+      campusId,
+    ],
+  );
 
   useEffect(() => {
     if (!hasAccess) return;
     const ctrl = new AbortController();
     const timeout = setTimeout(() => fetchData(ctrl.signal), 400);
-    return () => { clearTimeout(timeout); ctrl.abort(); };
+    return () => {
+      clearTimeout(timeout);
+      ctrl.abort();
+    };
   }, [fetchData, hasAccess]);
 
   // Reset to page 1 when filters/tab change
@@ -254,15 +292,32 @@ export default function HonorsReport() {
 
   // ── Pagination helpers ─────────────────────────────────────────────────────
   const startIndex = (currentPage - 1) * rowsPerPage;
-  const pageOptions = useMemo(() => Array.from({ length: totalPages }, (_, i) => i + 1), [totalPages]);
+  const pageOptions = useMemo(
+    () => Array.from({ length: totalPages }, (_, i) => i + 1),
+    [totalPages],
+  );
 
   const btnStyle = {
-    minWidth: 70, color: "white", borderColor: "white", backgroundColor: "transparent",
-    "&:hover": { borderColor: "white", backgroundColor: "rgba(255,255,255,0.1)" },
-    "&.Mui-disabled": { color: "white", borderColor: "white", backgroundColor: "transparent", opacity: 1 },
+    minWidth: 70,
+    color: "white",
+    borderColor: "white",
+    backgroundColor: "transparent",
+    "&:hover": {
+      borderColor: "white",
+      backgroundColor: "rgba(255,255,255,0.1)",
+    },
+    "&.Mui-disabled": {
+      color: "white",
+      borderColor: "white",
+      backgroundColor: "transparent",
+      opacity: 1,
+    },
   };
   const selectStyle = {
-    fontSize: "12px", height: 36, color: "white", border: "1px solid white",
+    fontSize: "12px",
+    height: 36,
+    color: "white",
+    border: "1px solid white",
     backgroundColor: "transparent",
     ".MuiOutlinedInput-notchedOutline": { borderColor: "white" },
     "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
@@ -272,8 +327,7 @@ export default function HonorsReport() {
 
   // ── Print — layout from printDiv reference ─────────────────────────────────
   const handlePrint = () => {
-    const resolvedCampusAddress =
-      campusAddress || "No address set in Settings";
+    const resolvedCampusAddress = campusAddress || "No address set in Settings";
 
     // ✅ Dynamic logo and company name
     const logoSrc = fetchedLogo || EaristLogo;
@@ -291,45 +345,36 @@ export default function HonorsReport() {
         : "Latin Honors List";
 
     const selectedProgram = programs.find(
-      (p) => String(p.program_id) === String(programId)
+      (p) => String(p.program_id) === String(programId),
     );
 
     const selectedSchoolYear = schoolYears.find(
-      (s) => String(s.school_year_id) === String(schoolYearId)
+      (s) => String(s.school_year_id) === String(schoolYearId),
     );
 
     const selectedSemester = semesters.find(
-      (s) => String(s.semester_id) === String(semesterId)
+      (s) => String(s.semester_id) === String(semesterId),
     );
 
     const selectedCampus = branches.find(
-      (b) => String(b.id) === String(campusId)
+      (b) => String(b.id) === String(campusId),
     );
 
     const filterMeta = [
       selectedCampus && selectedCampus.branch,
       selectedProgram &&
-      `${selectedProgram.program_code}${selectedProgram.major
-        ? ` (${selectedProgram.major})`
-        : ""
-      }`,
-      selectedSchoolYear &&
-      selectedSchoolYear.school_year_description,
-      selectedSemester &&
-      selectedSemester.semester_description,
+        `${selectedProgram.program_code}${
+          selectedProgram.major ? ` (${selectedProgram.major})` : ""
+        }`,
+      selectedSchoolYear && selectedSchoolYear.school_year_description,
+      selectedSemester && selectedSemester.semester_description,
     ]
       .filter(Boolean)
       .join(" | ");
 
-    const gwaCol =
-      activeTab === "academic"
-        ? "gwa"
-        : "cumulative_gwa";
+    const gwaCol = activeTab === "academic" ? "gwa" : "cumulative_gwa";
 
-    const honorCol =
-      activeTab === "academic"
-        ? "honor_title"
-        : "latin_honor";
+    const honorCol = activeTab === "academic" ? "honor_title" : "latin_honor";
 
     // ✅ Generate printable HTML
     const newWin = window.open("", "Print-Window");
@@ -439,23 +484,25 @@ export default function HonorsReport() {
                 Republic of the Philippines
               </div>
 
-              ${name
-        ? `
+              ${
+                name
+                  ? `
                     <b style="letter-spacing: 1px; font-size: 20px; font-family: Arial, sans-serif;">
                       ${firstLine}
                     </b>
 
-                    ${secondLine
-          ? `
+                    ${
+                      secondLine
+                        ? `
                           <div style="letter-spacing: 1px; font-size: 20px; font-family: Arial, sans-serif;">
                             <b>${secondLine}</b>
                           </div>
                         `
-          : ""
-        }
+                        : ""
+                    }
                   `
-        : ""
-      }
+                  : ""
+              }
 
               <div style="font-size: 13px; font-family: Arial">
                 ${resolvedCampusAddress}
@@ -467,14 +514,15 @@ export default function HonorsReport() {
                 </b>
               </div>
 
-              ${filterMeta
-        ? `
+              ${
+                filterMeta
+                  ? `
                     <div class="filter-meta">
                       ${filterMeta}
                     </div>
                   `
-        : ""
-      }
+                  : ""
+              }
 
               <div class="filter-meta">
                 Total: ${total} student(s)
@@ -501,10 +549,11 @@ export default function HonorsReport() {
 
             <tbody>
 
-              ${rows.length > 0
-        ? rows
-          .map(
-            (row, idx) => `
+              ${
+                rows.length > 0
+                  ? rows
+                      .map(
+                        (row, idx) => `
                           <tr>
 
                             <td>
@@ -527,10 +576,7 @@ export default function HonorsReport() {
 
                             <td>
                               ${row.program_code || "—"}
-                              ${row.major
-                ? ` (${row.major})`
-                : ""
-              }
+                              ${row.major ? ` (${row.major})` : ""}
                             </td>
 
                             <td class="honor-badge">
@@ -546,17 +592,17 @@ export default function HonorsReport() {
                             </td>
 
                           </tr>
-                        `
-          )
-          .join("")
-        : `
+                        `,
+                      )
+                      .join("")
+                  : `
                     <tr>
                       <td colspan="8" style="text-align:center;">
                         No data found
                       </td>
                     </tr>
                   `
-      }
+              }
 
             </tbody>
 
@@ -579,59 +625,98 @@ export default function HonorsReport() {
   const honorCol = activeTab === "academic" ? "honor_title" : "latin_honor";
 
   return (
-    <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", p: 2, backgroundColor: "transparent" }}>
+    <Box
+      sx={{
+        height: "calc(100vh - 150px)",
+        overflowY: "auto",
+        p: 2,
+        backgroundColor: "transparent",
+      }}
+    >
       <LoadingOverlay open={loading} message="Loading..." />
 
       {/* ── Page Title ── */}
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", mb: 2 }}>
-        <Typography variant="h4" sx={{ fontWeight: "bold", color: titleColor, fontSize: "36px" }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          mb: 2,
+        }}
+      >
+        <Typography
+          variant="h4"
+          sx={{ fontWeight: "bold", color: titleColor, fontSize: "36px" }}
+        >
           HONORS REPORT
         </Typography>
         <Box display="flex" alignItems="flex-end" gap={2}>
-          {/* Print Button */}
-          <Button
-            onClick={handlePrint}
-            style={{
-              padding: "5px 20px",
-              border: "2px solid black",
-              backgroundColor: "#f0f0f0",
-              color: "black",
-              borderRadius: "5px",
-              cursor: "pointer",
-              fontSize: "14px",
-              fontWeight: "bold",
-              transition: "background-color 0.3s, transform 0.2s",
-              height: "40px",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              userSelect: "none",
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Search Student Number / Name"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            sx={{
+              width: 450,
+              backgroundColor: "#fff",
+              borderRadius: 1,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "10px",
+              },
             }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "#d3d3d3")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "#f0f0f0")
-            }
-            onMouseDown={(e) =>
-              (e.currentTarget.style.transform = "scale(0.95)")
-            }
-            onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
-            type="button"
+            InputProps={{
+              startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
+            }}
+          />
+        </Box>
+      </Box>
+
+      <hr
+        style={{ border: "1px solid #ccc", width: "100%", marginBottom: 16 }}
+      />
+      <br />
+      <br />
+      <TableContainer
+        component={Paper}
+        sx={{ width: "100%", border: `1px solid ${borderColor}` }}
+      >
+        <Table>
+          <TableHead
+            sx={{ backgroundColor: settings?.header_color || "#1976d2" }}
           >
-            <FcPrint size={20} />
-           Print Academic Achiever's
-          </Button>
+            <TableRow>
+              <TableCell sx={{ color: "white", textAlign: "Center" }}>
+                Academic's Filter
+              </TableCell>
+            </TableRow>
+          </TableHead>
+        </Table>
+      </TableContainer>
+      <Box
+        sx={{
+          p: 3,
 
-        </Box>
-        
-        </Box>
-
-        <hr style={{ border: "1px solid #ccc", width: "100%", marginBottom: 16 }} />
-
+          background: "linear-gradient(135deg, #ffffff, #f8f9ff)",
+          boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+          border: `1px solid ${borderColor}`,
+          mb: 3,
+        }}
+      >
         {/* ── Tabs ── */}
-        <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-          {TABS.map(tab => (
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            mb: 3,
+            flexWrap: "wrap",
+            p: 1,
+            borderRadius: "14px",
+            backgroundColor: "#f4f6fb",
+          }}
+        >
+          {TABS.map((tab) => (
             <Button
               key={tab.key}
               variant={activeTab === tab.key ? "contained" : "outlined"}
@@ -639,9 +724,20 @@ export default function HonorsReport() {
               onClick={() => setActiveTab(tab.key)}
               sx={{
                 fontWeight: 700,
-                backgroundColor: activeTab === tab.key ? headerColor : "transparent",
+                borderRadius: "12px",
+                px: 2.5,
+                py: 1,
+                textTransform: "none",
+                backgroundColor:
+                  activeTab === tab.key ? headerColor : "transparent",
                 borderColor: headerColor,
-                color: activeTab === tab.key ? "white" : headerColor,
+                color: activeTab === tab.key ? "#fff" : headerColor,
+                transition: "all 0.25s ease",
+                "&:hover": {
+                  backgroundColor:
+                    activeTab === tab.key ? headerColor : "#eef2ff",
+                  transform: "translateY(-2px)",
+                },
               }}
             >
               {tab.label}
@@ -650,26 +746,24 @@ export default function HonorsReport() {
         </Box>
 
         {/* ── Filters ── */}
-        <Grid container spacing={1.5} sx={{ mb: 2 }}>
-          {/* Search */}
-          <Grid item xs={12} sm={3}>
-            <TextField
-              fullWidth size="small"
-              placeholder="Search Student Number / Name"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              sx={{ backgroundColor: "#fff", borderRadius: 1, "& .MuiOutlinedInput-root": { borderRadius: "8px" } }}
-              InputProps={{ startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} /> }}
-            />
-          </Grid>
-
+        <Grid container spacing={2} alignItems="center">
           {/* Campus */}
-          <Grid item xs={12} sm={2}>
+          <Grid item xs={12} sm={3}>
             <FormControl fullWidth size="small">
               <InputLabel>Campus</InputLabel>
-              <Select value={campusId} label="Campus" onChange={e => setCampusId(e.target.value)}
-                sx={{ backgroundColor: "#fff" }}>
-                <MenuItem value=""><em>All Campuses</em></MenuItem>
+              <Select
+                value={campusId}
+                label="Campus"
+                onChange={(e) => setCampusId(e.target.value)}
+                sx={{
+                  borderRadius: "12px",
+                  backgroundColor: "#fff",
+                }}
+              >
+                <MenuItem value="">
+                  <em>All Campuses</em>
+                </MenuItem>
+
                 {branches.map((b) => (
                   <MenuItem key={b.id} value={b.id}>
                     {b.branch}
@@ -680,13 +774,23 @@ export default function HonorsReport() {
           </Grid>
 
           {/* Program */}
-          <Grid item xs={12} sm={3}>
+          <Grid item xs={12} sm={4}>
             <FormControl fullWidth size="small">
               <InputLabel>Program</InputLabel>
-              <Select value={programId} label="Program" onChange={e => setProgramId(e.target.value)}
-                sx={{ backgroundColor: "#fff" }}>
-                <MenuItem value=""><em>All Programs</em></MenuItem>
-                {programs.map(p => (
+              <Select
+                value={programId}
+                label="Program"
+                onChange={(e) => setProgramId(e.target.value)}
+                sx={{
+                  borderRadius: "12px",
+                  backgroundColor: "#fff",
+                }}
+              >
+                <MenuItem value="">
+                  <em>All Programs</em>
+                </MenuItem>
+
+                {programs.map((p) => (
                   <MenuItem key={p.program_id} value={p.program_id}>
                     {p.program_code} – {p.program_description}
                     {p.major ? ` (${p.major})` : ""}
@@ -697,13 +801,23 @@ export default function HonorsReport() {
           </Grid>
 
           {/* School Year */}
-          <Grid item xs={12} sm={2}>
+          <Grid item xs={12} sm={2.5}>
             <FormControl fullWidth size="small">
               <InputLabel>School Year</InputLabel>
-              <Select value={schoolYearId} label="School Year" onChange={e => setSchoolYearId(e.target.value)}
-                sx={{ backgroundColor: "#fff" }}>
-                <MenuItem value=""><em>All Years</em></MenuItem>
-                {schoolYears.map(sy => (
+              <Select
+                value={schoolYearId}
+                label="School Year"
+                onChange={(e) => setSchoolYearId(e.target.value)}
+                sx={{
+                  borderRadius: "12px",
+                  backgroundColor: "#fff",
+                }}
+              >
+                <MenuItem value="">
+                  <em>All Years</em>
+                </MenuItem>
+
+                {schoolYears.map((sy) => (
                   <MenuItem key={sy.school_year_id} value={sy.school_year_id}>
                     {sy.school_year_description}
                   </MenuItem>
@@ -712,15 +826,26 @@ export default function HonorsReport() {
             </FormControl>
           </Grid>
 
-          {/* Semester — academic achievers only */}
+          {/* Semester */}
           {activeTab === "academic" && (
-            <Grid item xs={12} sm={2}>
+            <Grid item xs={12} sm={2.5}>
               <FormControl fullWidth size="small">
                 <InputLabel>Semester</InputLabel>
-                <Select value={semesterId} label="Semester" onChange={e => setSemesterId(e.target.value)}
-                  sx={{ backgroundColor: "#fff" }}>
-                  <MenuItem value=""><em>All</em></MenuItem>
-                  {semesters.map(s => (
+
+                <Select
+                  value={semesterId}
+                  label="Semester"
+                  onChange={(e) => setSemesterId(e.target.value)}
+                  sx={{
+                    borderRadius: "12px",
+                    backgroundColor: "#fff",
+                  }}
+                >
+                  <MenuItem value="">
+                    <em>All</em>
+                  </MenuItem>
+
+                  {semesters.map((s) => (
                     <MenuItem key={s.semester_id} value={s.semester_id}>
                       {s.semester_description}
                     </MenuItem>
@@ -729,129 +854,359 @@ export default function HonorsReport() {
               </FormControl>
             </Grid>
           )}
-        </Grid>
 
-        {/* ── Top Pagination ── */}
-        <TableContainer>
-          <Table size="small">
+          {/* Print Button */}
+          <Grid item xs={12} sm="auto">
+            <Button
+              onClick={handlePrint}
+              style={{
+                padding: "5px 20px",
+                border: "2px solid black",
+                backgroundColor: "#f0f0f0",
+                color: "black",
+                borderRadius: "5px",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: "bold",
+                transition: "background-color 0.3s, transform 0.2s",
+                height: "40px",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                userSelect: "none",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.backgroundColor = "#d3d3d3")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.backgroundColor = "#f0f0f0")
+              }
+              onMouseDown={(e) =>
+                (e.currentTarget.style.transform = "scale(0.95)")
+              }
+              onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
+              type="button"
+            >
+              <FcPrint size={20} />
+              Print Academic Achiever's
+            </Button>
+          </Grid>
+        </Grid>
+      </Box>
+
+      <br />
+
+      {/* ── Top Pagination ── */}
+      <TableContainer>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell
+                colSpan={8}
+                sx={{
+                  border: `1px solid ${borderColor}`,
+                  py: 0.5,
+                  backgroundColor: headerColor,
+                }}
+              >
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  flexWrap="wrap"
+                  gap={1}
+                >
+                  <Typography fontSize="14px" fontWeight="bold" color="white">
+                    Total: {total} student{total !== 1 ? "s" : ""}
+                  </Typography>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <Button
+                      onClick={() => setCurrentPage(1)}
+                      disabled={currentPage === 1}
+                      variant="outlined"
+                      size="small"
+                      sx={btnStyle}
+                    >
+                      First
+                    </Button>
+                    <Button
+                      onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                      disabled={currentPage === 1}
+                      variant="outlined"
+                      size="small"
+                      sx={btnStyle}
+                    >
+                      Prev
+                    </Button>
+                    <FormControl size="small" sx={{ minWidth: 80 }}>
+                      <Select
+                        value={currentPage}
+                        onChange={(e) => setCurrentPage(Number(e.target.value))}
+                        sx={selectStyle}
+                        MenuProps={{ PaperProps: { sx: { maxHeight: 200 } } }}
+                      >
+                        {pageOptions.map((p) => (
+                          <MenuItem key={p} value={p}>
+                            Page {p}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    <Typography fontSize="11px" color="white">
+                      of {totalPages} page{totalPages > 1 ? "s" : ""}
+                    </Typography>
+                    <Button
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(p + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages}
+                      variant="outlined"
+                      size="small"
+                      sx={btnStyle}
+                    >
+                      Next
+                    </Button>
+                    <Button
+                      onClick={() => setCurrentPage(totalPages)}
+                      disabled={currentPage === totalPages}
+                      variant="outlined"
+                      size="small"
+                      sx={btnStyle}
+                    >
+                      Last
+                    </Button>
+                  </Box>
+                </Box>
+              </TableCell>
+            </TableRow>
+          </TableHead>
+        </Table>
+      </TableContainer>
+
+      {/* ── Main Table ── */}
+      <Box sx={{ overflowX: "auto" }}>
+        <div ref={printRef}>
+          <Table stickyHeader size="small">
             <TableHead>
               <TableRow>
-                <TableCell colSpan={8} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: headerColor }}>
-                  <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
-                    <Typography fontSize="14px" fontWeight="bold" color="white">
-                      Total: {total} student{total !== 1 ? "s" : ""}
-                    </Typography>
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <Button onClick={() => setCurrentPage(1)} disabled={currentPage === 1} variant="outlined" size="small" sx={btnStyle}>First</Button>
-                      <Button onClick={() => setCurrentPage(p => Math.max(p - 1, 1))} disabled={currentPage === 1} variant="outlined" size="small" sx={btnStyle}>Prev</Button>
-                      <FormControl size="small" sx={{ minWidth: 80 }}>
-                        <Select value={currentPage} onChange={e => setCurrentPage(Number(e.target.value))} sx={selectStyle}
-                          MenuProps={{ PaperProps: { sx: { maxHeight: 200 } } }}>
-                          {pageOptions.map(p => <MenuItem key={p} value={p}>Page {p}</MenuItem>)}
-                        </Select>
-                      </FormControl>
-                      <Typography fontSize="11px" color="white">of {totalPages} page{totalPages > 1 ? "s" : ""}</Typography>
-                      <Button onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages} variant="outlined" size="small" sx={btnStyle}>Next</Button>
-                      <Button onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages} variant="outlined" size="small" sx={btnStyle}>Last</Button>
-                    </Box>
-                  </Box>
-                </TableCell>
+                {[
+                  "#",
+                  "Student No.",
+                  "Name",
+                  "Department",
+                  "Program",
+                  "Honor",
+                  "GWA",
+                  "Subjects",
+                ].map((h, i) => (
+                  <TableCell
+                    key={i}
+                    sx={{
+                      border: `1px solid ${borderColor}`,
+                      backgroundColor: "#f5f5f5",
+                      fontWeight: 700,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {h}
+                  </TableCell>
+                ))}
               </TableRow>
             </TableHead>
-          </Table>
-        </TableContainer>
-
-        {/* ── Main Table ── */}
-        <Box sx={{ overflowX: "auto" }}>
-          <div ref={printRef}>
-            <Table stickyHeader size="small">
-              <TableHead>
+            <TableBody>
+              {listLoading ? (
                 <TableRow>
-                  {["#", "Student No.", "Name", "Department", "Program", "Honor", "GWA", "Subjects"].map((h, i) => (
-                    <TableCell key={i} sx={{ border: `1px solid ${borderColor}`, backgroundColor: "#f5f5f5", fontWeight: 700, whiteSpace: "nowrap" }}>
-                      {h}
-                    </TableCell>
-                  ))}
+                  <TableCell
+                    colSpan={8}
+                    sx={{
+                      border: `1px solid ${borderColor}`,
+                      textAlign: "center",
+                      py: 4,
+                    }}
+                  >
+                    Loading...
+                  </TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {listLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={8} sx={{ border: `1px solid ${borderColor}`, textAlign: "center", py: 4 }}>
-                      Loading...
+              ) : rows.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={8}
+                    sx={{
+                      border: `1px solid ${borderColor}`,
+                      textAlign: "center",
+                      py: 4,
+                    }}
+                  >
+                    No students found for the selected filters.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                rows.map((row, idx) => (
+                  <TableRow
+                    key={row.student_number}
+                    sx={{
+                      backgroundColor: idx % 2 === 0 ? "#ffffff" : "lightgray", // white / light gray
+                    }}
+                  >
+                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
+                      {startIndex + idx + 1}
                     </TableCell>
-                  </TableRow>
-                ) : rows.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} sx={{ border: `1px solid ${borderColor}`, textAlign: "center", py: 4 }}>
-                      No students found for the selected filters.
+                    <TableCell
+                      sx={{
+                        border: `1px solid ${borderColor}`,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {row.student_number}
                     </TableCell>
-                  </TableRow>
-                ) : rows.map((row, idx) => (
-                  <TableRow key={row.student_number} sx={{ backgroundColor: idx % 2 === 0 ? "#ffffff" : "#f9f9f9" }}>
-                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>{startIndex + idx + 1}</TableCell>
-                    <TableCell sx={{ border: `1px solid ${borderColor}`, fontWeight: 600 }}>{row.student_number}</TableCell>
-                    <TableCell sx={{ border: `1px solid ${borderColor}`, whiteSpace: "nowrap" }}>
+                    <TableCell
+                      sx={{
+                        border: `1px solid ${borderColor}`,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {row.last_name}, {row.first_name} {row.middle_name || ""}
                     </TableCell>
-                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>{row.dprtmnt_name || "—"}</TableCell>
-                    <TableCell sx={{ border: `1px solid ${borderColor}`, whiteSpace: "nowrap" }}>
+                    <TableCell sx={{ border: `1px solid ${borderColor}` }}>
+                      {row.dprtmnt_name || "—"}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        border: `1px solid ${borderColor}`,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {row.program_code || "—"}
                       {row.major ? ` (${row.major})` : ""}
                     </TableCell>
                     <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                       {getHonorChip(row[honorCol])}
                     </TableCell>
-                    <TableCell sx={{ border: `1px solid ${borderColor}`, fontWeight: 700, color: "#1976d2" }}>
+                    <TableCell
+                      sx={{
+                        border: `1px solid ${borderColor}`,
+                        fontWeight: 700,
+                        color: "#1976d2",
+                      }}
+                    >
                       {row[gwaCol]}
                     </TableCell>
-                    <TableCell sx={{ border: `1px solid ${borderColor}`, textAlign: "center" }}>
+                    <TableCell
+                      sx={{
+                        border: `1px solid ${borderColor}`,
+                        textAlign: "center",
+                      }}
+                    >
                       {row.subject_count}
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </Box>
-
-        {/* ── Bottom Pagination ── */}
-        <TableContainer>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell colSpan={8} sx={{ border: `1px solid ${borderColor}`, py: 0.5, backgroundColor: headerColor }}>
-                  <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
-                    <Typography fontSize="14px" fontWeight="bold" color="white">
-                      Total: {total} student{total !== 1 ? "s" : ""}
-                    </Typography>
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <Button onClick={() => setCurrentPage(1)} disabled={currentPage === 1} variant="outlined" size="small" sx={btnStyle}>First</Button>
-                      <Button onClick={() => setCurrentPage(p => Math.max(p - 1, 1))} disabled={currentPage === 1} variant="outlined" size="small" sx={btnStyle}>Prev</Button>
-                      <FormControl size="small" sx={{ minWidth: 80 }}>
-                        <Select value={currentPage} onChange={e => setCurrentPage(Number(e.target.value))} sx={selectStyle}>
-                          {pageOptions.map(p => <MenuItem key={p} value={p}>Page {p}</MenuItem>)}
-                        </Select>
-                      </FormControl>
-                      <Typography fontSize="11px" color="white">of {totalPages} page{totalPages > 1 ? "s" : ""}</Typography>
-                      <Button onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages} variant="outlined" size="small" sx={btnStyle}>Next</Button>
-                      <Button onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages} variant="outlined" size="small" sx={btnStyle}>Last</Button>
-                    </Box>
-                  </Box>
-                </TableCell>
-              </TableRow>
-            </TableHead>
+                ))
+              )}
+            </TableBody>
           </Table>
-        </TableContainer>
-
-        <Snackbar open={snackbar.open} autoHideDuration={3000}
-          onClose={() => setSnackbar(s => ({ ...s, open: false }))}
-          anchorOrigin={{ vertical: "top", horizontal: "center" }}>
-          <Alert severity={snackbar.severity} variant="filled"
-            onClose={() => setSnackbar(s => ({ ...s, open: false }))}>
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
+        </div>
       </Box>
-      );
+
+      {/* ── Bottom Pagination ── */}
+      <TableContainer>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell
+                colSpan={8}
+                sx={{
+                  border: `1px solid ${borderColor}`,
+                  py: 0.5,
+                  backgroundColor: headerColor,
+                }}
+              >
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  flexWrap="wrap"
+                  gap={1}
+                >
+                  <Typography fontSize="14px" fontWeight="bold" color="white">
+                    Total: {total} student{total !== 1 ? "s" : ""}
+                  </Typography>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <Button
+                      onClick={() => setCurrentPage(1)}
+                      disabled={currentPage === 1}
+                      variant="outlined"
+                      size="small"
+                      sx={btnStyle}
+                    >
+                      First
+                    </Button>
+                    <Button
+                      onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                      disabled={currentPage === 1}
+                      variant="outlined"
+                      size="small"
+                      sx={btnStyle}
+                    >
+                      Prev
+                    </Button>
+                    <FormControl size="small" sx={{ minWidth: 80 }}>
+                      <Select
+                        value={currentPage}
+                        onChange={(e) => setCurrentPage(Number(e.target.value))}
+                        sx={selectStyle}
+                      >
+                        {pageOptions.map((p) => (
+                          <MenuItem key={p} value={p}>
+                            Page {p}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    <Typography fontSize="11px" color="white">
+                      of {totalPages} page{totalPages > 1 ? "s" : ""}
+                    </Typography>
+                    <Button
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(p + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages}
+                      variant="outlined"
+                      size="small"
+                      sx={btnStyle}
+                    >
+                      Next
+                    </Button>
+                    <Button
+                      onClick={() => setCurrentPage(totalPages)}
+                      disabled={currentPage === totalPages}
+                      variant="outlined"
+                      size="small"
+                      sx={btnStyle}
+                    >
+                      Last
+                    </Button>
+                  </Box>
+                </Box>
+              </TableCell>
+            </TableRow>
+          </TableHead>
+        </Table>
+      </TableContainer>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          severity={snackbar.severity}
+          variant="filled"
+          onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Box>
+  );
 }

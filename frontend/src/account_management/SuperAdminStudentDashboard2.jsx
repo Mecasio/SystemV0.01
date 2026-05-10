@@ -83,6 +83,22 @@ const SuperAdminStudentDashboard2 = () => {
 
     const [employeeID, setEmployeeID] = useState("");
 
+    const getAuditHeaders = () => ({
+        headers: {
+            "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+            "x-page-id": pageId,
+            "x-audit-change-section": "family_information",
+            "x-audit-actor-id":
+                employeeID ||
+                localStorage.getItem("employee_id") ||
+                localStorage.getItem("person_id") ||
+                localStorage.getItem("email") ||
+                "unknown",
+            "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+            Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        },
+    });
+
     useEffect(() => {
 
         const storedUser = localStorage.getItem("email");
@@ -291,7 +307,7 @@ const SuperAdminStudentDashboard2 = () => {
 
     const handleBlur = async () => {
         try {
-            await axios.put(`${API_BASE_URL}/api/enrollment/person/${userID}`, person);
+            await axios.put(`${API_BASE_URL}/api/enrollment/person/${userID}`, person, getAuditHeaders());
             console.log("✅ Auto-saved (on blur) to ENROLLMENT DB3");
         } catch (err) {
             console.error("❌ Auto-save failed (on blur):", err);

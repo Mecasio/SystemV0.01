@@ -129,6 +129,9 @@ const AssignScheduleToApplicantsInterviewer = () => {
   const [userID, setUserID] = useState("");
   const [userRole, setUserRole] = useState("");
   const [hasAccess, setHasAccess] = useState(null);
+  const [canCreate, setCanCreate] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
+  const [canDelete, setCanDelete] = useState(false);
 
   const pageId = 12;
 
@@ -172,12 +175,21 @@ const AssignScheduleToApplicantsInterviewer = () => {
       );
       if (response.data && response.data.page_privilege === 1) {
         setHasAccess(true);
+        setCanCreate(response.data?.can_create === 1);
+        setCanEdit(response.data?.can_edit === 1);
+        setCanDelete(response.data?.can_delete === 1);
       } else {
         setHasAccess(false);
+        setCanCreate(false);
+        setCanEdit(false);
+        setCanDelete(false);
       }
     } catch (error) {
       console.error("Error checking access:", error);
       setHasAccess(false);
+      setCanCreate(false);
+      setCanEdit(false);
+      setCanDelete(false);
       if (error.response && error.response.data.message) {
         console.log(error.response.data.message);
       } else {
@@ -479,6 +491,15 @@ const AssignScheduleToApplicantsInterviewer = () => {
 
   // toggleSelectApplicant
   const handleAssignSingle = (id) => {
+    if (!canCreate) {
+      setSnack({
+        open: true,
+        message: "You do not have permission to assign interview schedules.",
+        severity: "warning",
+      });
+      return;
+    }
+
     if (!selectedSchedule) {
       setSnack({
         open: true,
@@ -514,6 +535,15 @@ const AssignScheduleToApplicantsInterviewer = () => {
 
   // handleAssign40 (assign max up to room_quota)
   const handleAssign40 = () => {
+    if (!canCreate) {
+      setSnack({
+        open: true,
+        message: "You do not have permission to assign interview schedules.",
+        severity: "warning",
+      });
+      return;
+    }
+
     if (!selectedSchedule) {
       setSnack({
         open: true,
@@ -601,6 +631,15 @@ const AssignScheduleToApplicantsInterviewer = () => {
 
   // handleUnassignImmediate
   const handleUnassignImmediate = async (applicant_number) => {
+    if (!canDelete) {
+      setSnack({
+        open: true,
+        message: "You do not have permission to unassign interview schedules.",
+        severity: "warning",
+      });
+      return;
+    }
+
     try {
       await axios.post(`${API_BASE_URL}/unassign_interview`, {
         applicant_number,
@@ -638,6 +677,15 @@ const AssignScheduleToApplicantsInterviewer = () => {
 
   // handleAssignCustom
   const handleAssignCustom = () => {
+    if (!canCreate) {
+      setSnack({
+        open: true,
+        message: "You do not have permission to assign interview schedules.",
+        severity: "warning",
+      });
+      return;
+    }
+
     if (!selectedSchedule) {
       setSnack({
         open: true,
@@ -735,6 +783,15 @@ const AssignScheduleToApplicantsInterviewer = () => {
 
   // handleUnassignAll
   const handleUnassignAll = async () => {
+    if (!canDelete) {
+      setSnack({
+        open: true,
+        message: "You do not have permission to unassign interview schedules.",
+        severity: "warning",
+      });
+      return;
+    }
+
     if (!selectedSchedule) {
       setSnack({
         open: true,
@@ -987,6 +1044,15 @@ ${requirementsSection}
   };
 
   const handleSendEmails = () => {
+    if (!canEdit) {
+      setSnack({
+        open: true,
+        message: "You do not have permission to update interview email status.",
+        severity: "warning",
+      });
+      return;
+    }
+
     if (!selectedSchedule) {
       setSnack({
         open: true,
@@ -1069,6 +1135,15 @@ ${requirementsSection}
   };
 
   const handleSendEmailSingle = (applicant) => {
+    if (!canEdit) {
+      setSnack({
+        open: true,
+        message: "You do not have permission to update interview email status.",
+        severity: "warning",
+      });
+      return;
+    }
+
     if (!applicant) {
       setSnack({
         open: true,
@@ -1146,6 +1221,7 @@ ${requirementsSection}
             emailRes.sent.map((applicantId) =>
               axios.put(
                 `${API_BASE_URL}/api/interview_applicants/${applicantId}/action`,
+                auditActor(),
               ),
             ),
           ).catch((err) => {

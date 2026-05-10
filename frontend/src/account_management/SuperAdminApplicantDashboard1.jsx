@@ -206,6 +206,22 @@ const SuperAdminApplicantDashboard1 = () => {
 
     const [employeeID, setEmployeeID] = useState("");
 
+    const getAuditHeaders = () => ({
+        headers: {
+            "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+            "x-page-id": pageId,
+            "x-audit-change-section": "personal_information",
+            "x-audit-actor-id":
+                employeeID ||
+                localStorage.getItem("employee_id") ||
+                localStorage.getItem("person_id") ||
+                localStorage.getItem("email") ||
+                "unknown",
+            "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+            Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        },
+    });
+
     useEffect(() => {
 
         const storedUser = localStorage.getItem("email");
@@ -570,7 +586,7 @@ const SuperAdminApplicantDashboard1 = () => {
             }
 
             // ✅ Execute safe update
-            await axios.put(`${API_BASE_URL}/api/person/${targetId}`, cleanedData);
+            await axios.put(`${API_BASE_URL}/api/person/${targetId}`, cleanedData, getAuditHeaders());
             console.log(`💾 Auto-saved (on blur) for person_id: ${targetId}`);
         } catch (err) {
             console.error("❌ Auto-save (on blur) failed:", {
@@ -648,7 +664,7 @@ const SuperAdminApplicantDashboard1 = () => {
                 return;
             }
 
-            await axios.put(`${API_BASE_URL}/api/person/${targetId}`, cleanedData);
+            await axios.put(`${API_BASE_URL}/api/person/${targetId}`, cleanedData, getAuditHeaders());
             console.log(`💾 Auto-saved (manual) for person_id: ${targetId}`);
         } catch (err) {
             console.error("❌ Auto-save (manual) failed:", {

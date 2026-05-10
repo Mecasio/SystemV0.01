@@ -30,6 +30,7 @@ import LoadingOverlay from "../components/LoadingOverlay";
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import API_BASE_URL from "../apiConfig";
 import SearchIcon from "@mui/icons-material/Search";
+import { postAuditEvent } from "../utils/auditEvents";
 
 const CollegeScheduleChecker = () => {
   const settings = useContext(SettingsContext);
@@ -403,12 +404,9 @@ const CollegeScheduleChecker = () => {
     }
   }, [schoolYearList]);
 
-  const insertAuditLog = async (message, type) => {
+  const insertAuditLog = async (eventType, details = {}) => {
     try {
-      await axios.post(`${API_BASE_URL}/insert-logs/${userID}`, {
-        message,
-        type,
-      });
+      await postAuditEvent(eventType, details);
     } catch (err) {
       console.error("Error inserting audit log");
     }
@@ -520,10 +518,10 @@ const CollegeScheduleChecker = () => {
         setMessage("Schedule inserted successfully.");
         setOpenSnackbar(true);
         const scheduleType = isHonorarium ? "honorarium" : "regular";
-        await insertAuditLog(
-          `Employee ID #${userID} - ${user} successfully inserted ${scheduleType} schedule in College Schedule Checker`,
-          "insert"
-        );
+        await insertAuditLog("schedule_inserted", {
+          schedule_type: scheduleType,
+          page_name: "College Schedule Checker",
+        });
       }
 
       setSelectedDay("");
@@ -631,10 +629,9 @@ const CollegeScheduleChecker = () => {
       if (response.status === 200) {
         setMessage("Schedule inserted successfully.");
         setOpenSnackbar(true);
-        await insertAuditLog(
-          `Employee ID #${userID} - ${user} successfully inserted designation schedule in College Schedule Checker`,
-          "insert"
-        );
+        await insertAuditLog("schedule_designation_inserted", {
+          page_name: "College Schedule Checker",
+        });
       }
 
       setSelectedDay("");
@@ -670,10 +667,9 @@ const CollegeScheduleChecker = () => {
       }
 
       fetchSchedule();
-      await insertAuditLog(
-        `Employee ID #${userID} - ${user} successfully deleted schedule in College Schedule Checker`,
-        "delete"
-      );
+      await insertAuditLog("schedule_deleted", {
+        page_name: "College Schedule Checker",
+      });
     } catch (error) {
       console.error("Error deleting schedule:", error);
       setMessage("Failed to delete schedule.");

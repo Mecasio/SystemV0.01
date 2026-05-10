@@ -94,6 +94,9 @@ const ReceiptCounterAssignment = () => {
 
     const [loading, setLoading] = useState(false);
     const [hasAccess, setHasAccess] = useState(null);
+    const [canCreate, setCanCreate] = useState(false);
+    const [canEdit, setCanEdit] = useState(false);
+    const [canDelete, setCanDelete] = useState(false);
     const pageId = 122;
 
     const [employeesData, setEmployeesData] = useState([]);
@@ -167,12 +170,21 @@ const ReceiptCounterAssignment = () => {
             );
             if (response.data && response.data.page_privilege === 1) {
                 setHasAccess(true);
+                setCanCreate(Number(response.data?.can_create) === 1);
+                setCanEdit(Number(response.data?.can_edit) === 1);
+                setCanDelete(Number(response.data?.can_delete) === 1);
             } else {
                 setHasAccess(false);
+                setCanCreate(false);
+                setCanEdit(false);
+                setCanDelete(false);
             }
         } catch (error) {
             console.error("Error checking access:", error);
             setHasAccess(false);
+            setCanCreate(false);
+            setCanEdit(false);
+            setCanDelete(false);
         } finally {
             setLoading(false);
         }
@@ -263,6 +275,15 @@ const ReceiptCounterAssignment = () => {
     }, [selectedDepartmentFilter, sortOrder]);
 
     const openAssignDialog = (employee) => {
+        if (!canCreate) {
+            setSnackbar({
+                open: true,
+                message: "You do not have permission to assign receipt counters.",
+                severity: "error"
+            });
+            return;
+        }
+
         setModalMode("assign");
         setSelectedEmployee(employee);
         setSelectedAssignment(null);
@@ -276,6 +297,15 @@ const ReceiptCounterAssignment = () => {
     };
 
     const openEditDialog = (employee, assignment) => {
+        if (!canEdit) {
+            setSnackbar({
+                open: true,
+                message: "You do not have permission to edit receipt counter assignments.",
+                severity: "error"
+            });
+            return;
+        }
+
         setModalMode("edit");
         setSelectedEmployee(employee);
         setSelectedAssignment(assignment);
@@ -289,6 +319,33 @@ const ReceiptCounterAssignment = () => {
     };
 
     const handleOpenConfirm = (action) => {
+        if (action === "assign" && !canCreate) {
+            setSnackbar({
+                open: true,
+                message: "You do not have permission to assign receipt counters.",
+                severity: "error"
+            });
+            return;
+        }
+
+        if (action === "edit" && !canEdit) {
+            setSnackbar({
+                open: true,
+                message: "You do not have permission to edit receipt counter assignments.",
+                severity: "error"
+            });
+            return;
+        }
+
+        if (action === "deassign" && !canDelete) {
+            setSnackbar({
+                open: true,
+                message: "You do not have permission to deassign receipt counters.",
+                severity: "error"
+            });
+            return;
+        }
+
         if (action === "deassign") {
             setConfirmAction("deassign");
             setOpenConfirmDialog(true);

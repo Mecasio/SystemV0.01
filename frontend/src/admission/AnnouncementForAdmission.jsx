@@ -42,6 +42,7 @@ import Cropper from "react-easy-crop";
 import { useNavigate, useLocation } from "react-router-dom";
 import SaveIcon from '@mui/icons-material/Save';
 import SchoolIcon from "@mui/icons-material/School";
+import SearchIcon from "@mui/icons-material/Search";
 
 const AnnouncementPanel = () => {
     const settings = useContext(SettingsContext);
@@ -115,13 +116,8 @@ const AnnouncementPanel = () => {
         }
     }, []);
 
-
-    const tabs = [
-        {
-            label: "Room Registration",
-            to: "/room_registration",
-            icon: <KeyIcon fontSize="large" />,
-        },
+   const tabs = [
+   
         {
             label: "Verify Documents Room Assignment",
             to: "/verify_document_schedule",
@@ -157,9 +153,8 @@ const AnnouncementPanel = () => {
             icon: <CampaignIcon fontSize="large" />,
         },
     ];
-
     const navigate = useNavigate();
-    const [activeStep, setActiveStep] = useState(6);
+    const [activeStep, setActiveStep] = useState(5);
     const [clickedSteps, setClickedSteps] = useState(Array(tabs.length).fill(false));
 
     const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -307,11 +302,24 @@ const AnnouncementPanel = () => {
     const [announcementPage, setAnnouncementPage] = useState(1);
     const announcementsPerPage = 20; // change if you want
 
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const filteredAnnouncements = announcements.filter((a) => {
+        const search = searchTerm.toLowerCase();
+
+        return (
+            a.title?.toLowerCase().includes(search) ||
+            a.content?.toLowerCase().includes(search) ||
+            a.target_role?.toLowerCase().includes(search) ||
+            getBranchName(a.campus)?.toLowerCase().includes(search)
+        );
+    });
+
     const totalAnnouncementPages = Math.ceil(
-        announcements.length / announcementsPerPage
+        filteredAnnouncements.length / announcementsPerPage
     );
 
-    const paginatedAnnouncements = announcements.slice(
+    const paginatedAnnouncements = filteredAnnouncements.slice(
         (announcementPage - 1) * announcementsPerPage,
         announcementPage * announcementsPerPage
     );
@@ -467,23 +475,47 @@ const AnnouncementPanel = () => {
             }}
         >
             <Box
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                mb={2}
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+
+                    mb: 2,
+
+                }}
             >
-                <Typography variant="h4"
+                <Typography
+                    variant="h4"
                     sx={{
                         fontWeight: 'bold',
                         color: titleColor,
                         fontSize: '36px',
                     }}
                 >
-                   ANNOUNCEMENT FOR APPLICANTS
+                    ANNOUNCEMENT
                 </Typography>
 
-
-            
+                <TextField
+                    size="small"
+                    placeholder="Search announcements..."
+                    value={searchTerm}
+                    onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        setAnnouncementPage(1);
+                    }}
+                    sx={{
+                        width: 450,
+                        backgroundColor: "#fff",
+                        borderRadius: 1,
+                        "& .MuiOutlinedInput-root": {
+                            borderRadius: "10px",
+                        },
+                    }}
+                    InputProps={{
+                        startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
+                    }}
+                />
             </Box>
 
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
@@ -578,7 +610,7 @@ const AnnouncementPanel = () => {
                                 >
                                     {/* LEFT SIDE */}
                                     <Typography fontSize="14px" fontWeight="bold" color="white">
-                                        Total Announcements: {announcements.length}
+                                        Total Announcements: {filteredAnnouncements.length}
                                     </Typography>
 
                                     {/* RIGHT SIDE */}
@@ -709,7 +741,7 @@ const AnnouncementPanel = () => {
 
 
 
-                {announcements.length === 0 ? (
+                {filteredAnnouncements.length === 0 ? (
                     <Box
                         sx={{
                             height: "90%",
@@ -960,7 +992,7 @@ const AnnouncementPanel = () => {
                                 >
                                     {/* LEFT SIDE */}
                                     <Typography fontSize="14px" fontWeight="bold" color="white">
-                                        Total Announcements: {announcements.length}
+                                        Total Announcements: {filteredAnnouncements.length}
                                     </Typography>
 
                                     {/* RIGHT SIDE */}

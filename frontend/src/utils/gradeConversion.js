@@ -39,6 +39,7 @@ const findConversionByEquivalent = (gradeConversions, equivalentGrade) => {
 
 const isPassingConversion = (conversion) => {
   if (!conversion) return false;
+  if (Number(conversion.is_disqualified) === 1) return false;
 
   const descriptiveRating = String(
     conversion.descriptive_rating || "",
@@ -73,5 +74,6 @@ export const setRemarksFromRatingDynamic = (rating, gradeConversions) => {
 
   const conversion = findConversionByEquivalent(gradeConversions, rating);
   if (!conversion) return 3;
+  if (Number(conversion.is_disqualified) === 1) return 2;
   return isPassingConversion(conversion) ? 1 : 2;
 };

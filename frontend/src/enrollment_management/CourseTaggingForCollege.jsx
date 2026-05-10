@@ -99,6 +99,9 @@ const CourseTaggingForCollege = () => {
   const [userID, setUserID] = useState("");
   const [user, setUser] = useState("");
   const [userRole, setUserRole] = useState("");
+  const [canCreate, setCanCreate] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
+  const [canDelete, setCanDelete] = useState(false);
 
   ///////////
   const pageId = 124;
@@ -145,12 +148,21 @@ const CourseTaggingForCollege = () => {
       );
       if (response.data && response.data.page_privilege === 1) {
         setHasAccess(true);
+        setCanCreate(Number(response.data?.can_create) === 1);
+        setCanEdit(Number(response.data?.can_edit) === 1);
+        setCanDelete(Number(response.data?.can_delete) === 1);
       } else {
         setHasAccess(false);
+        setCanCreate(false);
+        setCanEdit(false);
+        setCanDelete(false);
       }
     } catch (error) {
       console.error("Error checking access:", error);
       setHasAccess(false);
+      setCanCreate(false);
+      setCanEdit(false);
+      setCanDelete(false);
       if (error.response && error.response.data.message) {
         console.log(error.response.data.message);
       } else {
@@ -377,6 +389,7 @@ const CourseTaggingForCollege = () => {
   };
 
   const handleSectionChange = async (e) => {
+    if (!canEdit) { setSnack({ open: true, message: "You do not have permission to change active curriculum.", severity: "error" }); return; }
     const sectionId = e.target.value;
     setSelectedSection(sectionId);
     console.log("Selected section ID:", sectionId);
@@ -515,6 +528,7 @@ const CourseTaggingForCollege = () => {
   }, [userId, courses]);
 
   const addToCart = async (course) => {
+    if (!canCreate) { setSnack({ open: true, message: "You do not have permission to enroll subjects.", severity: "error" }); return; }
     if (!selectedSection) {
       setSnack({
         open: true,
@@ -575,6 +589,7 @@ const CourseTaggingForCollege = () => {
   //------------delete
   //------------delete
   const deleteFromCart = async (id) => {
+    if (!canDelete) { setSnack({ open: true, message: "You do not have permission to unenroll subjects.", severity: "error" }); return; }
     if (!id) {
       console.error("No ID provided to deleteFromCart");
       return;
@@ -616,6 +631,7 @@ const CourseTaggingForCollege = () => {
   //-------delete
 
   const addAllToCart = async (yearLevelId) => {
+    if (!canCreate) { setSnack({ open: true, message: "You do not have permission to bulk enroll subjects.", severity: "error" }); return; }
     const newCourses = courses.filter(
       (c) =>
         !isEnrolled(c.course_id) &&
@@ -704,6 +720,7 @@ const CourseTaggingForCollege = () => {
   };
 
   const deleteAllCart = async () => {
+    if (!canDelete) { setSnack({ open: true, message: "You do not have permission to unenroll subjects.", severity: "error" }); return; }
     try {
       // Delete all user courses
       await axios.delete(`${API_BASE_URL}/courses/user/${userId}`, auditConfig);

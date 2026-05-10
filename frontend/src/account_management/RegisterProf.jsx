@@ -102,6 +102,8 @@ const RegisterProf = () => {
   const [userRole, setUserRole] = useState("");
 
   const [hasAccess, setHasAccess] = useState(null);
+  const [canCreate, setCanCreate] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
   const [canDelete, setCanDelete] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -150,14 +152,20 @@ const RegisterProf = () => {
       const response = await axios.get(`${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`);
       if (response.data && response.data.page_privilege === 1) {
         setHasAccess(true);
+        setCanCreate(Number(response.data?.can_create) === 1);
+        setCanEdit(Number(response.data?.can_edit) === 1);
         setCanDelete(Number(response.data?.can_delete) === 1);
       } else {
         setHasAccess(false);
+        setCanCreate(false);
+        setCanEdit(false);
         setCanDelete(false);
       }
     } catch (error) {
       console.error('Error checking access:', error);
       setHasAccess(false);
+      setCanCreate(false);
+      setCanEdit(false);
       setCanDelete(false);
       if (error.response && error.response.data.message) {
         console.log(error.response.data.message);
@@ -562,6 +570,20 @@ const RegisterProf = () => {
     });
 
     try {
+      if (editData && !canEdit) {
+        setSnackbarMessage("You do not have permission to edit professors.");
+        setSnackbarSeverity("error");
+        setOpenSnackbar(true);
+        return;
+      }
+
+      if (!editData && !canCreate) {
+        setSnackbarMessage("You do not have permission to create professors.");
+        setSnackbarSeverity("error");
+        setOpenSnackbar(true);
+        return;
+      }
+
       let response;
       if (editData) {
         response = await axios.put(
@@ -630,6 +652,13 @@ const RegisterProf = () => {
   };
 
   const handleEdit = (prof) => {
+    if (!canEdit) {
+      setSnackbarMessage("You do not have permission to edit professors.");
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
+      return;
+    }
+
     setEditData(prof);
     setForm({
       employee_id: prof.employee_id || "",
@@ -664,6 +693,13 @@ const RegisterProf = () => {
   };
 
   const handleToggleStatus = async (prof_id, currentStatus) => {
+    if (!canEdit) {
+      setSnackbarMessage("You do not have permission to edit professors.");
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
+      return;
+    }
+
     try {
       const newStatus = currentStatus === 1 ? 0 : 1;
       await axios.put(

@@ -27,6 +27,7 @@ import API_BASE_URL from "../apiConfig";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 import EaristLogo from "../assets/EaristLogo.png";
+import { postAuditEvent } from "../utils/auditEvents";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
@@ -102,7 +103,20 @@ const GradeConversionAdmin = () => {
     const [loading, setLoading] = useState(false);
     const pageId = 144;
     const [employeeID, setEmployeeID] = useState("");
-    const permissionHeaders = { headers: { "x-employee-id": employeeID, "x-page-id": pageId } };
+    const getAuditHeaders = () => ({
+        headers: {
+            "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+            "x-page-id": pageId,
+            "x-audit-actor-id":
+                employeeID ||
+                localStorage.getItem("employee_id") ||
+                localStorage.getItem("person_id") ||
+                localStorage.getItem("email") ||
+                "unknown",
+            "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+        },
+    });
+    const permissionHeaders = getAuditHeaders();
 
     useEffect(() => {
         const storedUser = localStorage.getItem("email");
@@ -142,19 +156,16 @@ const GradeConversionAdmin = () => {
     };
 
     // ── Grade Conversion state ──
-    const insertAuditLog = async (message, type) => {
+    const insertAuditLog = async (eventType, details = {}) => {
         try {
-            await axios.post(`${API_BASE_URL}/insert-logs/${userID}`, {
-                message,
-                type,
-            });
+            await postAuditEvent(eventType, details);
         } catch (err) {
             console.error("Error inserting audit log");
         }
     };
 
     const [rows, setRows] = useState([]);
-    const EMPTY_GRADE_FORM = { id: null, min_score: "", max_score: "", equivalent_grade: "", descriptive_rating: "", is_disqualified: "" };
+    const EMPTY_GRADE_FORM = { id: null, min_score: "", max_score: "", equivalent_grade: "", descriptive_rating: "", is_disqualified: 0 };
     const [gradeDialogOpen, setGradeDialogOpen] = useState(false);
     const [gradeForm, setGradeForm] = useState(EMPTY_GRADE_FORM);
     const [gradeDeleteDialogOpen, setGradeDeleteDialogOpen] = useState(false);
@@ -189,21 +200,38 @@ const GradeConversionAdmin = () => {
     };
 
     const handleSaveGrade = async () => {
-        if (!gradeForm.min_score || !gradeForm.max_score || !gradeForm.equivalent_grade) {
-            setSnack({ open: true, message: "Please fill in all required fields", severity: "warning" });
+        const hasScoreRange = gradeForm.min_score !== "" || gradeForm.max_score !== "";
+        if (!gradeForm.equivalent_grade || (hasScoreRange && (gradeForm.min_score === "" || gradeForm.max_score === ""))) {
+            setSnack({ open: true, message: "Equivalent grade is required. Fill both score fields or leave both blank for special grades.", severity: "warning" });
+            return;
+        }
+        if (
+            gradeForm.min_score !== "" &&
+            gradeForm.max_score !== "" &&
+            Number(gradeForm.min_score) > Number(gradeForm.max_score)
+        ) {
+            setSnack({ open: true, message: "Min score cannot be greater than max score", severity: "warning" });
             return;
         }
         try {
             const isUpdate = Boolean(gradeForm.id);
-            await axios.post(`${API_BASE_URL}/admin/grade-conversion`, gradeForm, permissionHeaders);
+            const payload = {
+                ...gradeForm,
+                min_score: gradeForm.min_score === "" ? null : gradeForm.min_score,
+                max_score: gradeForm.max_score === "" ? null : gradeForm.max_score,
+                is_disqualified: Number(gradeForm.is_disqualified) === 1 ? 1 : 0,
+            };
+            await axios.post(`${API_BASE_URL}/admin/grade-conversion`, payload, permissionHeaders);
             setGradeDialogOpen(false);
             setGradeForm(EMPTY_GRADE_FORM);
             fetchData();
             setSnack({ open: true, message: "Grade entry saved successfully!", severity: "success" });
-            await insertAuditLog(
-                `Employee ID #${userID} - ${user} successfully ${isUpdate ? "updated" : "created"} grade conversion entry (${gradeForm.min_score}-${gradeForm.max_score} = ${gradeForm.equivalent_grade})`,
-                isUpdate ? "update" : "insert",
-            );
+            await insertAuditLog("grade_conversion_saved", {
+                is_update: isUpdate,
+                min_score: gradeForm.min_score,
+                max_score: gradeForm.max_score,
+                equivalent_grade: gradeForm.equivalent_grade,
+            });
         } catch (err) {
             console.error(err);
             setSnack({ open: true, message: "Save failed. Please try again.", severity: "error" });
@@ -218,10 +246,11 @@ const GradeConversionAdmin = () => {
             setGradeToDelete(null);
             fetchData();
             setSnack({ open: true, message: "Entry deleted.", severity: "info" });
-            await insertAuditLog(
-                `Employee ID #${userID} - ${user} successfully deleted grade conversion entry (${gradeToDelete.min_score}-${gradeToDelete.max_score} = ${gradeToDelete.equivalent_grade})`,
-                "delete",
-            );
+            await insertAuditLog("grade_conversion_deleted", {
+                min_score: gradeToDelete.min_score,
+                max_score: gradeToDelete.max_score,
+                equivalent_grade: gradeToDelete.equivalent_grade,
+            });
         } catch (err) {
             console.error(err);
             setSnack({ open: true, message: "Delete failed. Please try again.", severity: "error" });
@@ -281,10 +310,10 @@ const GradeConversionAdmin = () => {
             setHonorForm(EMPTY_HONOR_FORM);
             fetchHonors();
             setSnack({ open: true, message: "Honors rule saved!", severity: "success" });
-            await insertAuditLog(
-                `Employee ID #${userID} - ${user} successfully ${isUpdate ? "updated" : "created"} honors rule (${honorForm.title})`,
-                isUpdate ? "update" : "insert",
-            );
+            await insertAuditLog("honors_rule_saved", {
+                is_update: isUpdate,
+                title: honorForm.title,
+            });
         } catch (err) {
             setSnack({ open: true, message: "Save failed. Please try again.", severity: "error" });
         }
@@ -298,10 +327,9 @@ const GradeConversionAdmin = () => {
             setHonorToDelete(null);
             fetchHonors();
             setSnack({ open: true, message: "Honors rule deleted.", severity: "info" });
-            await insertAuditLog(
-                `Employee ID #${userID} - ${user} successfully deleted honors rule (${honorToDelete.title})`,
-                "delete",
-            );
+            await insertAuditLog("honors_rule_deleted", {
+                title: honorToDelete.title,
+            });
         } catch (err) {
             console.error(err);
             setSnack({ open: true, message: "Delete failed. Please try again.", severity: "error" });
@@ -474,8 +502,8 @@ const GradeConversionAdmin = () => {
                                         transition: "background 0.12s",
                                     }}
                                 >
-                                    <TableCell sx={tdCellSx}>{row.min_score}</TableCell>
-                                    <TableCell sx={tdCellSx}>{row.max_score}</TableCell>
+                                    <TableCell sx={tdCellSx}>{row.min_score ?? "Special"}</TableCell>
+                                    <TableCell sx={tdCellSx}>{row.max_score ?? "Special"}</TableCell>
                                     <TableCell sx={tdCellSx}>
                                         <Box sx={{ fontWeight: 700, color: resolvedHeader }}>
                                             {row.equivalent_grade}
@@ -652,15 +680,15 @@ const GradeConversionAdmin = () => {
                                     <TableCell sx={tdCellSx}>
                                         <Box
                                             sx={pillSx(
-                                                row.category === 1
+                                                Number(row.category) === 1
                                                     ? `${resolvedHeader}20`
                                                     : "rgba(26,26,46,0.07)",
-                                                row.category === 1
+                                                Number(row.category) === 1
                                                     ? resolvedHeader
                                                     : C.textMain
                                             )}
                                         >
-                                            {row.category === 1 ? "Graduation" : "Semester"}
+                                            {Number(row.category) === 1 ? "Graduation" : "Semester"}
                                         </Box>
                                     </TableCell>
                                     {showActionColumn && (

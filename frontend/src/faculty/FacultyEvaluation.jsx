@@ -38,6 +38,7 @@ import { Message } from "@mui/icons-material";
 import { FcPrint } from "react-icons/fc";
 import EaristLogo from "../assets/EaristLogo.png";
 import API_BASE_URL from "../apiConfig";
+import { postAuditEvent } from "../utils/auditEvents";
 const FacultyEvaluation = () => {
   const settings = useContext(SettingsContext);
 
@@ -264,17 +265,9 @@ const FacultyEvaluation = () => {
 
   const AuditLog = async () => {
     try {
-      const page_name = "Faculty Evaluation Report";
-      const fullName = `${profData.lname}, ${profData.fname} ${profData.mname}`;
-      const type = "Printing";
-
-      await axios.post(
-        `${API_BASE_URL}/insert-logs/faculty/${profData.prof_id}`,
-        {
-          message: `User #${profData.prof_id} - ${fullName} printed ${page_name}`,
-          type: type,
-        },
-      );
+      await postAuditEvent("faculty_evaluation_printed", {
+        prof_id: profData.prof_id,
+      });
     } catch (err) {
       console.error("Error inserting audit log:", err);
       alert("Failed to insert audit log.");

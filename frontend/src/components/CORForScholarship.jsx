@@ -33,6 +33,7 @@ import LoadingOverlay from "../components/LoadingOverlay";
 import { MdOutlinePayment } from "react-icons/md";
 import { IoMdSchool } from "react-icons/io";
 import API_BASE_URL from "../apiConfig";
+import { postAuditEvent } from "../utils/auditEvents";
 
 const CertificateOfRegistration = forwardRef(
 
@@ -930,14 +931,14 @@ const CertificateOfRegistration = forwardRef(
       };
     };
 
-    const insertPaymentAuditLog = async (paymentTarget) => {
-      try {
-        await axios.post(`${API_BASE_URL}/insert-logs/${userID}`, {
-          message: `Employee ID #${userID} - ${user} successfully saved student #${requestedData.student_number} payment to ${paymentTarget}`,
-          type: "insert",
-        });
-      } catch (err) {
-        console.error("Error inserting audit log");
+  const insertPaymentAuditLog = async (paymentTarget) => {
+    try {
+      await postAuditEvent("payment_saved", {
+        student_number: requestedData.student_number,
+        payment_target: paymentTarget,
+      });
+    } catch (err) {
+      console.error("Error inserting audit log");
       }
     };
 

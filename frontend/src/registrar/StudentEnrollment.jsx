@@ -52,6 +52,7 @@ import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import BusinessIcon from "@mui/icons-material/Business";
 import { DeleteOutline } from "@mui/icons-material";
 import axios from "axios";
+import Unauthorized from "../components/Unauthorized";
 
 // ── Constants ──────────────────────────────────────────────────────────────
 const REASONS = [
@@ -342,6 +343,65 @@ const StudentEnrollment = () => {
   const [searchStatus, setSearchStatus] = useState("");
   const [isLoadingStudentDirectory, setIsLoadingStudentDirectory] = useState(false);
   const [isLoadingStudentRecord, setIsLoadingStudentRecord] = useState(false);
+  const [hasAccess, setHasAccess] = useState(null);
+  const [canCreate, setCanCreate] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
+  const [canDelete, setCanDelete] = useState(false);
+  const pageId = 126;
+
+  const auditConfig = () => ({
+    headers: {
+      "x-employee-id": localStorage.getItem("employee_id") || "",
+      "x-page-id": pageId,
+      "x-audit-actor-id":
+        localStorage.getItem("employee_id") ||
+        localStorage.getItem("email") ||
+        "unknown",
+      "x-audit-actor-role": localStorage.getItem("role") || "registrar",
+    },
+  });
+
+  useEffect(() => {
+    const storedRole = localStorage.getItem("role");
+    const storedEmployeeID = localStorage.getItem("employee_id");
+
+    if (!storedRole || !storedEmployeeID) {
+      window.location.href = "/login";
+      return;
+    }
+
+    if (storedRole !== "registrar") {
+      window.location.href = "/login";
+      return;
+    }
+
+    const checkAccess = async () => {
+      try {
+        const response = await axios.get(
+          `${API_BASE_URL}/api/page_access/${storedEmployeeID}/${pageId}`,
+        );
+        if (response.data?.page_privilege === 1) {
+          setHasAccess(true);
+          setCanCreate(response.data?.can_create === 1);
+          setCanEdit(response.data?.can_edit === 1);
+          setCanDelete(response.data?.can_delete === 1);
+        } else {
+          setHasAccess(false);
+          setCanCreate(false);
+          setCanEdit(false);
+          setCanDelete(false);
+        }
+      } catch (error) {
+        console.error("Error checking access:", error);
+        setHasAccess(false);
+        setCanCreate(false);
+        setCanEdit(false);
+        setCanDelete(false);
+      }
+    };
+
+    checkAccess();
+  }, []);
 
   const [titleColor, setTitleColor] = useState("#7f1d1d");
   const [mainButtonColor, setMainButtonColor] = useState("#7f1d1d");
@@ -786,6 +846,11 @@ const StudentEnrollment = () => {
   };
 
   const handleAddNewCourse = async (course) => {
+    if (!canCreate) {
+      setSearchStatus("You do not have permission to add courses");
+      return;
+    }
+
     if (!selectedStudentNumber || !selectedAddCurriculum || !course?.course_id) {
       setSearchStatus("Select student, department, curriculum, and course first");
       return;
@@ -800,6 +865,7 @@ const StudentEnrollment = () => {
           active_school_year_id: studentActiveSchoolYearId,
           curriculum_id: selectedAddCurriculum,
         },
+        auditConfig(),
       );
       await fetchStudentCourses(selectedStudentNumber);
       setIsAddCourseOpen(false);
@@ -917,13 +983,18 @@ const StudentEnrollment = () => {
   };
 
   const handleConfirmChangeCourse = async () => {
+    if (!canEdit) {
+      setSearchStatus("You do not have permission to change courses");
+      return;
+    }
+
     if (!pendingChangeCourse?.id || !selectedChangeCourse?.course_id) return;
 
     try {
       setIsChangingCourse(true);
       await axios.put(`${API_BASE_URL}/courses/change/${pendingChangeCourse.id}`, {
         course_id: selectedChangeCourse.course_id,
-      });
+      }, auditConfig());
       setLastChangedCourse({
         from: pendingChangeCourse,
         to: {
@@ -964,11 +1035,16 @@ const StudentEnrollment = () => {
   };
 
   const handleConfirmDeleteCourse = async () => {
+    if (!canDelete) {
+      setSearchStatus("You do not have permission to delete courses");
+      return;
+    }
+
     if (!pendingDeleteCourse?.id) return;
 
     try {
       setIsDeletingCourse(true);
-      await axios.delete(`${API_BASE_URL}/courses/delete/${pendingDeleteCourse.id}`);
+      await axios.delete(`${API_BASE_URL}/courses/delete/${pendingDeleteCourse.id}`, auditConfig());
       setStudentCourses((courses) =>
         courses.filter((course) => course.id !== pendingDeleteCourse.id),
       );
@@ -998,11 +1074,16 @@ const StudentEnrollment = () => {
   };
 
   const handleConfirmDropCourse = async () => {
+    if (!canEdit) {
+      setSearchStatus("You do not have permission to drop courses");
+      return;
+    }
+
     if (!pendingDropCourse?.id) return;
 
     try {
       setIsDroppingCourse(true);
-      await axios.put(`${API_BASE_URL}/courses/dropped/${pendingDropCourse.id}`);
+      await axios.put(`${API_BASE_URL}/courses/dropped/${pendingDropCourse.id}`, {}, auditConfig());
       setStudentCourses((courses) =>
         courses.filter((course) => course.id !== pendingDropCourse.id),
       );
@@ -1035,6 +1116,16 @@ const StudentEnrollment = () => {
     const branch = branches.find((b) => String(b?.id) === String(s.campus));
     return branch?.branch || s.campus || "Campus";
   })();
+
+  if (hasAccess === null) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!hasAccess) return <Unauthorized />;
 
   return (
     <Box

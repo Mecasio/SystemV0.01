@@ -96,6 +96,20 @@ const MedicalRequirements = () => {
 
   const [employeeID, setEmployeeID] = useState("");
 
+  const getAuditHeaders = () => ({
+    headers: {
+      "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+      "x-page-id": pageId,
+      "x-audit-actor-id":
+        employeeID ||
+        localStorage.getItem("employee_id") ||
+        localStorage.getItem("person_id") ||
+        localStorage.getItem("email") ||
+        "unknown",
+      "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+    },
+  });
+
   useEffect(() => {
 
     const storedUser = localStorage.getItem("email");
@@ -463,7 +477,7 @@ const MedicalRequirements = () => {
       await axios.put(`${API_BASE_URL}/api/medical-requirements`, {
         ...form,
         student_number: studentNumber,
-      });
+      }, getAuditHeaders());
 
       setSnack({ open: true, message: "Record saved successfully!", severity: "success" });
     } catch (err) {

@@ -83,6 +83,9 @@ const AdminSubjects = () => {
     const [user, setUser] = useState("");
     const [userRole, setUserRole] = useState("");
     const [hasAccess, setHasAccess] = useState(null);
+    const [canCreate, setCanCreate] = useState(false);
+    const [canEdit, setCanEdit] = useState(false);
+    const [canDelete, setCanDelete] = useState(false);
     const [loading, setLoading] = useState(false);
     const pageId = 145;
     const [employeeID, setEmployeeID] = useState("");
@@ -122,28 +125,65 @@ const AdminSubjects = () => {
             const response = await axios.get(`${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`);
             if (response.data && response.data.page_privilege === 1) {
                 setHasAccess(true);
+                setCanCreate(Number(response.data?.can_create) === 1);
+                setCanEdit(Number(response.data?.can_edit) === 1);
+                setCanDelete(Number(response.data?.can_delete) === 1);
             } else {
                 setHasAccess(false);
+                setCanCreate(false);
+                setCanEdit(false);
+                setCanDelete(false);
             }
         } catch (error) {
             console.error("Error checking access:", error);
             setHasAccess(false);
+            setCanCreate(false);
+            setCanEdit(false);
+            setCanDelete(false);
             setLoading(false);
         }
     };
 
-    const tabs = [
-        { label: "Room Registration", to: "/room_registration", icon: <KeyIcon fontSize="large" /> },
-        { label: "Verify Documents Room Assignment", to: "/verify_document_schedule", icon: <MeetingRoomIcon fontSize="large" /> },
-        { label: "Evaluator's Applicant List", to: "/evaluator_schedule_room_list", icon: <PeopleIcon fontSize="large" /> },
-        { label: "Entrance Exam Room Assignment", to: "/assign_entrance_exam", icon: <MeetingRoomIcon fontSize="large" /> },
-        { label: "Proctor's Applicant List", to: "/admission_schedule_room_list", icon: <PeopleIcon fontSize="large" /> },
-        { label: "Subject Management", to: "/applicant_exam_subjects", icon: <SchoolIcon fontSize="large" /> },
-        { label: "Announcement", to: "/announcement_for_admission", icon: <CampaignIcon fontSize="large" /> },
+   const tabs = [
+   
+        {
+            label: "Verify Documents Room Assignment",
+            to: "/verify_document_schedule",
+            icon: <MeetingRoomIcon fontSize="large" />,
+        },
+
+        {
+            label: "Evaluator's Applicant List",
+            to: "/evaluator_schedule_room_list",
+            icon: <PeopleIcon fontSize="large" />,
+        },
+        {
+            label: "Entrance Exam Room Assignment",
+            to: "/assign_entrance_exam",
+            icon: <MeetingRoomIcon fontSize="large" />,
+        },
+
+        {
+            label: "Proctor's Applicant List",
+            to: "/admission_schedule_room_list",
+            icon: <PeopleIcon fontSize="large" />,
+        },
+
+        {
+            label: "Subject Management",
+            to: "/applicant_exam_subjects",
+            icon: <SchoolIcon fontSize="large" />,
+        },
+
+        {
+            label: "Announcement",
+            to: "/announcement_for_admission",
+            icon: <CampaignIcon fontSize="large" />,
+        },
     ];
 
     const navigate = useNavigate();
-    const [activeStep, setActiveStep] = useState(5);
+    const [activeStep, setActiveStep] = useState(4);
 
     const handleStepClick = (index, to) => {
         setActiveStep(index);
@@ -176,6 +216,11 @@ const AdminSubjects = () => {
     };
 
     const openAddDialog = () => {
+        if (!canCreate) {
+            setSnack({ open: true, message: "You do not have permission to create subjects.", severity: "error" });
+            return;
+        }
+
         setEditingSubject(null);
         setModalName("");
         setModalMaxScore("");
@@ -184,6 +229,11 @@ const AdminSubjects = () => {
     };
 
     const openEditDialog = (subject) => {
+        if (!canEdit) {
+            setSnack({ open: true, message: "You do not have permission to edit subjects.", severity: "error" });
+            return;
+        }
+
         setEditingSubject(subject);
         setModalName(subject.name);
         setModalMaxScore(subject.max_score);
@@ -197,6 +247,16 @@ const AdminSubjects = () => {
     };
 
     const handleSave = async () => {
+        if (editingSubject && !canEdit) {
+            setSnack({ open: true, message: "You do not have permission to edit subjects.", severity: "error" });
+            return;
+        }
+
+        if (!editingSubject && !canCreate) {
+            setSnack({ open: true, message: "You do not have permission to create subjects.", severity: "error" });
+            return;
+        }
+
         if (!modalName || !modalMaxScore) {
             setSnack({ open: true, message: "Please fill in all fields.", severity: "warning" });
             return;
@@ -239,6 +299,11 @@ const AdminSubjects = () => {
 
     // Quick toggle active without opening modal
     const handleDeleteSubject = async (subject) => {
+        if (!canDelete) {
+            setSnack({ open: true, message: "You do not have permission to delete subjects.", severity: "error" });
+            return;
+        }
+
         try {
             await axios.delete(`${API_BASE_URL}/api/subjects/${subject.id}`, auditConfig);
 

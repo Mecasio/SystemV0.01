@@ -12,6 +12,7 @@ import {
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
+import { postAuditEvent } from "../utils/auditEvents";
 const ChangeGradingPeriod = () => {
   const settings = useContext(SettingsContext);
 
@@ -94,12 +95,9 @@ const ChangeGradingPeriod = () => {
     fetchYearPeriod();
   }, []);
 
-  const insertAuditLog = async (message, type) => {
+  const insertAuditLog = async (eventType, details = {}) => {
     try {
-      await axios.post(`${API_BASE_URL}/insert-logs/${userID}`, {
-        message,
-        type,
-      });
+      await postAuditEvent(eventType, details);
     } catch (err) {
       console.error("Error inserting audit log");
     }
@@ -111,10 +109,10 @@ const ChangeGradingPeriod = () => {
       const activatedPeriod = gradingPeriod.find((period) => String(period.id) === String(id));
       setSnackbar({ open: true, message: "Grading period activated!", severity: "success" });
       fetchYearPeriod();
-      await insertAuditLog(
-        `Employee ID #${userID} - ${user} successfully activated grading period (${activatedPeriod?.description || id})`,
-        "update",
-      );
+      await insertAuditLog("grading_period_activated", {
+        id,
+        description: activatedPeriod?.description,
+      });
     } catch (error) {
       console.error("Error activating grading period:", error);
       setSnackbar({ open: true, message: "Failed to activate grading period", severity: "error" });

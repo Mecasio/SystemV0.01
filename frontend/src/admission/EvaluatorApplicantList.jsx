@@ -20,18 +20,22 @@ import { FcPrint } from "react-icons/fc";
 import EaristLogo from "../assets/EaristLogo.png";
 import SchoolIcon from "@mui/icons-material/School";
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
-import PeopleIcon from "@mui/icons-material/People"
+import PeopleIcon from "@mui/icons-material/People";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 import SearchIcon from "@mui/icons-material/Search";
 import KeyIcon from "@mui/icons-material/Key";
 import API_BASE_URL from "../apiConfig";
-import CampaignIcon from '@mui/icons-material/Campaign';
+import CampaignIcon from "@mui/icons-material/Campaign";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
-import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material";
 import { Snackbar, Alert } from "@mui/material";
-
 
 const EvaluatorApplicantList = () => {
   const settings = useContext(SettingsContext);
@@ -39,8 +43,8 @@ const EvaluatorApplicantList = () => {
   const [subtitleColor, setSubtitleColor] = useState("#555555");
   const [borderColor, setBorderColor] = useState("#000000");
   const [mainButtonColor, setMainButtonColor] = useState("#1976d2");
-  const [subButtonColor, setSubButtonColor] = useState("#ffffff");   // ✅ NEW
-  const [stepperColor, setStepperColor] = useState("#000000");       // ✅ NEW
+  const [subButtonColor, setSubButtonColor] = useState("#ffffff"); // ✅ NEW
+  const [stepperColor, setStepperColor] = useState("#000000"); // ✅ NEW
 
   const [fetchedLogo, setFetchedLogo] = useState(null);
   const [companyName, setCompanyName] = useState("");
@@ -55,9 +59,10 @@ const EvaluatorApplicantList = () => {
     if (settings.title_color) setTitleColor(settings.title_color);
     if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
     if (settings.border_color) setBorderColor(settings.border_color);
-    if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
-    if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);   // ✅ NEW
-    if (settings.stepper_color) setStepperColor(settings.stepper_color);           // ✅ NEW
+    if (settings.main_button_color)
+      setMainButtonColor(settings.main_button_color);
+    if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color); // ✅ NEW
+    if (settings.stepper_color) setStepperColor(settings.stepper_color); // ✅ NEW
 
     // 🏫 Logo
     if (settings.logo_url) {
@@ -83,7 +88,6 @@ const EvaluatorApplicantList = () => {
         setBranches([]);
       }
     }
-
   }, [settings]);
 
   const words = companyName.trim().split(" ");
@@ -91,16 +95,9 @@ const EvaluatorApplicantList = () => {
   const firstLine = words.slice(0, middle).join(" ");
   const secondLine = words.slice(middle).join(" ");
 
-
   const location = useLocation();
 
-
   const tabs = [
-    {
-      label: "Room Registration",
-      to: "/room_registration",
-      icon: <KeyIcon fontSize="large" />,
-    },
     {
       label: "Verify Documents Room Assignment",
       to: "/verify_document_schedule",
@@ -136,8 +133,6 @@ const EvaluatorApplicantList = () => {
       icon: <CampaignIcon fontSize="large" />,
     },
   ];
-
-
 
   const [snack, setSnack] = useState({
     open: false,
@@ -177,7 +172,6 @@ const EvaluatorApplicantList = () => {
   });
 
   useEffect(() => {
-
     const storedUser = localStorage.getItem("email");
     const storedRole = localStorage.getItem("role");
     const storedID = localStorage.getItem("person_id");
@@ -201,14 +195,16 @@ const EvaluatorApplicantList = () => {
 
   const checkAccess = async (employeeID) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`);
+      const response = await axios.get(
+        `${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`,
+      );
       if (response.data && response.data.page_privilege === 1) {
         setHasAccess(true);
       } else {
         setHasAccess(false);
       }
     } catch (error) {
-      console.error('Error checking access:', error);
+      console.error("Error checking access:", error);
       setHasAccess(false);
       if (error.response && error.response.data.message) {
         console.log(error.response.data.message);
@@ -219,14 +215,14 @@ const EvaluatorApplicantList = () => {
     }
   };
 
-
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [applicantToDelete, setApplicantToDelete] = useState(null);
 
   const navigate = useNavigate();
-  const [activeStep, setActiveStep] = useState(2);
-  const [clickedSteps, setClickedSteps] = useState(Array(tabs.length).fill(false));
-
+  const [activeStep, setActiveStep] = useState(1);
+  const [clickedSteps, setClickedSteps] = useState(
+    Array(tabs.length).fill(false),
+  );
 
   const handleStepClick = (index, to) => {
     setActiveStep(index);
@@ -243,17 +239,12 @@ const EvaluatorApplicantList = () => {
     middle_name: "",
     program: "",
     extension: "",
-
-
   });
 
   const handleSearchByEvaluator = async (evaluatorName, scheduleID) => {
-    const { data } = await axios.get(
-      `${API_BASE_URL}/evaluator-applicants`,
-      {
-        params: { query: evaluatorName, schedule_id: scheduleID }
-      }
-    );
+    const { data } = await axios.get(`${API_BASE_URL}/evaluator-applicants`, {
+      params: { query: evaluatorName, schedule_id: scheduleID },
+    });
 
     if (data.length === 0) {
       setEvaluator(null);
@@ -263,17 +254,15 @@ const EvaluatorApplicantList = () => {
 
     setEvaluator(data[0].schedule);
 
-    const mergedApplicants = data.flatMap(d => d.applicants);
+    const mergedApplicants = data.flatMap((d) => d.applicants);
     setApplicants(mergedApplicants);
   };
 
-
   const handleSearch = async () => {
     try {
-      const { data } = await axios.get(
-        `${API_BASE_URL}/evaluator-applicants`,
-        { params: { query: searchQuery } }
-      );
+      const { data } = await axios.get(`${API_BASE_URL}/evaluator-applicants`, {
+        params: { query: searchQuery },
+      });
 
       if (data.length === 0) {
         setEvaluator(null);
@@ -283,13 +272,12 @@ const EvaluatorApplicantList = () => {
 
       setEvaluator(data[0].schedule);
 
-      const mergedApplicants = data.flatMap(d => d.applicants);
+      const mergedApplicants = data.flatMap((d) => d.applicants);
       setApplicants(mergedApplicants);
     } catch (err) {
       console.error(err);
     }
   };
-
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -300,7 +288,6 @@ const EvaluatorApplicantList = () => {
       setSearchQuery(evaluatorParam);
       handleSearchByEvaluator(evaluatorParam, scheduleParam);
     }
-
   }, [location.search]);
 
   useEffect(() => {
@@ -316,7 +303,6 @@ const EvaluatorApplicantList = () => {
 
     return () => clearTimeout(delay);
   }, [searchQuery]);
-
 
   const [curriculumOptions, setCurriculumOptions] = useState([]);
 
@@ -349,7 +335,9 @@ const EvaluatorApplicantList = () => {
     const matchedBranch = branchList.find(
       (branch) =>
         String(branch?.branch).trim().toLowerCase() ===
-        String(evaluator?.branch || "").trim().toLowerCase()
+        String(evaluator?.branch || "")
+          .trim()
+          .toLowerCase(),
     );
     const address =
       matchedBranch?.address ||
@@ -453,17 +441,24 @@ const EvaluatorApplicantList = () => {
           </tr>
         </thead>
         <tbody>
-          ${applicants.map((a, index) => {
-      const programItem = curriculumOptions.find(item => item.curriculum_id?.toString() === a.program?.toString());
-      const program = programItem ? `(${programItem.program_code}) - ${programItem.program_description} ${programItem.major || ""}` : "N/A";
-      return `
+          ${applicants
+            .map((a, index) => {
+              const programItem = curriculumOptions.find(
+                (item) =>
+                  item.curriculum_id?.toString() === a.program?.toString(),
+              );
+              const program = programItem
+                ? `(${programItem.program_code}) - ${programItem.program_description} ${programItem.major || ""}`
+                : "N/A";
+              return `
             <tr>
               <td style="width:20%; text-align:center;">${a.applicant_number}</td>
               <td style="width:30%; text-align:left;">${a.last_name}, ${a.first_name} ${a.middle_name || ""}</td>
               <td style="width:30%; text-align:center;">${program}</td>
               <td style="width:20%; text-align:center;"></td>
             </tr>`;
-    }).join("")}
+            })
+            .join("")}
           <tr>
             <td colspan="5" style="text-align:right; font-weight:bold;">Total Applicants: ${applicants.length}</td>
           </tr>
@@ -478,9 +473,6 @@ const EvaluatorApplicantList = () => {
     newWin.document.close();
   };
 
-
-
-
   const formatDateLong = (dateString) => {
     if (!dateString) return "";
 
@@ -494,20 +486,14 @@ const EvaluatorApplicantList = () => {
     });
   };
 
-
-
-
-  // Put this at the very bottom before the return 
+  // Put this at the very bottom before the return
   if (loading || hasAccess === null) {
     return <LoadingOverlay open={loading} message="Loading..." />;
   }
 
   if (!hasAccess) {
-    return (
-      <Unauthorized />
-    );
+    return <Unauthorized />;
   }
-
 
   return (
     <Box
@@ -526,22 +512,21 @@ const EvaluatorApplicantList = () => {
         alignItems="center"
         mb={2}
       >
-        <Typography variant="h4"
+        <Typography
+          variant="h4"
           sx={{
-            fontWeight: 'bold',
+            fontWeight: "bold",
             color: titleColor,
-            fontSize: '36px',
+            fontSize: "36px",
           }}
         >
           EVALUATOR APPLICANT LIST
         </Typography>
 
-
         <TextField
           variant="outlined"
           placeholder="Search Evaluator Name / Email"
           size="small"
-
           value={searchQuery}
           onChange={(e) => {
             setSearchQuery(e.target.value);
@@ -635,31 +620,44 @@ const EvaluatorApplicantList = () => {
             fontSize: "16px",
           }}
         >
-          <span><b>Evaluator:</b> {evaluator.evaluator || "N/A"} |{" "}</span>
-          <span><b>Building:</b> {evaluator.building_description || "N/A"} |{" "}</span>
-          <span><b>Room:</b> {evaluator.room_description || "N/A"} |{" "}</span>
-          <span><b>Schedule:</b> {formatDateLong(evaluator?.schedule_date)} |{" "}</span>
+          <span>
+            <b>Evaluator:</b> {evaluator.evaluator || "N/A"} |{" "}
+          </span>
+          <span>
+            <b>Building:</b> {evaluator.building_description || "N/A"} |{" "}
+          </span>
+          <span>
+            <b>Room:</b> {evaluator.room_description || "N/A"} |{" "}
+          </span>
+          <span>
+            <b>Schedule:</b> {formatDateLong(evaluator?.schedule_date)} |{" "}
+          </span>
 
-          <span><b>Time: </b>
+          <span>
+            <b>Time: </b>
             {evaluator.start_time
-              ? new Date(`1970-01-01T${evaluator.start_time}`).toLocaleTimeString("en-US", {
-                hour: "numeric",
-                minute: "2-digit",
-                hour12: true,
-              })
+              ? new Date(
+                  `1970-01-01T${evaluator.start_time}`,
+                ).toLocaleTimeString("en-US", {
+                  hour: "numeric",
+                  minute: "2-digit",
+                  hour12: true,
+                })
               : ""}{" "}
             -{" "}
             {evaluator.end_time
-              ? new Date(`1970-01-01T${evaluator.end_time}`).toLocaleTimeString("en-US", {
-                hour: "numeric",
-                minute: "2-digit",
-                hour12: true,
-              })
+              ? new Date(`1970-01-01T${evaluator.end_time}`).toLocaleTimeString(
+                  "en-US",
+                  {
+                    hour: "numeric",
+                    minute: "2-digit",
+                    hour12: true,
+                  },
+                )
               : ""}
           </span>
         </Box>
       )}
-
 
       {applicants.length > 0 && (
         <Button
@@ -690,7 +688,6 @@ const EvaluatorApplicantList = () => {
         >
           Print Applicant List
         </Button>
-
       )}
       <br />
 
@@ -714,31 +711,105 @@ const EvaluatorApplicantList = () => {
       {applicants.length > 0 && (
         <TableContainer component={Paper}>
           <Table>
-            <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
+            <TableHead
+              sx={{ backgroundColor: settings?.header_color || "#1976d2" }}
+            >
               <TableRow>
-                <TableCell sx={{ color: "white", textAlign: "center", border: `1px solid ${borderColor}` }}>#</TableCell>
-                <TableCell sx={{ color: "white", textAlign: "center", border: `1px solid ${borderColor}` }}>Applicant</TableCell>
-                <TableCell sx={{ color: "white", textAlign: "center", border: `1px solid ${borderColor}` }}>Name</TableCell>
-                <TableCell sx={{ color: "white", textAlign: "center", border: `1px solid ${borderColor}` }}>Program</TableCell>
-                <TableCell sx={{ color: "white", textAlign: "center", border: `1px solid ${borderColor}` }}>Building</TableCell>
-                <TableCell sx={{ color: "white", textAlign: "center", border: `1px solid ${borderColor}` }}>Room</TableCell>
-                <TableCell sx={{ color: "white", textAlign: "center", border: `1px solid ${borderColor}` }}>Action</TableCell>
-
+                <TableCell
+                  sx={{
+                    color: "white",
+                    textAlign: "center",
+                    border: `1px solid ${borderColor}`,
+                  }}
+                >
+                  #
+                </TableCell>
+                <TableCell
+                  sx={{
+                    color: "white",
+                    textAlign: "center",
+                    border: `1px solid ${borderColor}`,
+                  }}
+                >
+                  Applicant
+                </TableCell>
+                <TableCell
+                  sx={{
+                    color: "white",
+                    textAlign: "center",
+                    border: `1px solid ${borderColor}`,
+                  }}
+                >
+                  Name
+                </TableCell>
+                <TableCell
+                  sx={{
+                    color: "white",
+                    textAlign: "center",
+                    border: `1px solid ${borderColor}`,
+                  }}
+                >
+                  Program
+                </TableCell>
+                <TableCell
+                  sx={{
+                    color: "white",
+                    textAlign: "center",
+                    border: `1px solid ${borderColor}`,
+                  }}
+                >
+                  Building
+                </TableCell>
+                <TableCell
+                  sx={{
+                    color: "white",
+                    textAlign: "center",
+                    border: `1px solid ${borderColor}`,
+                  }}
+                >
+                  Room
+                </TableCell>
+                <TableCell
+                  sx={{
+                    color: "white",
+                    textAlign: "center",
+                    border: `1px solid ${borderColor}`,
+                  }}
+                >
+                  Action
+                </TableCell>
               </TableRow>
             </TableHead>
 
             <TableBody>
               {applicants.map((a, idx) => (
                 <TableRow key={idx}>
-                  <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>{idx + 1}</TableCell>
-                  <TableCell align="left" sx={{ border: `1px solid ${borderColor}` }}>{a.applicant_number}</TableCell>
-                  <TableCell align="left" sx={{ border: `1px solid ${borderColor}` }}>
+                  <TableCell
+                    align="center"
+                    sx={{ border: `1px solid ${borderColor}` }}
+                  >
+                    {idx + 1}
+                  </TableCell>
+                  <TableCell
+                    align="left"
+                    sx={{ border: `1px solid ${borderColor}` }}
+                  >
+                    {a.applicant_number}
+                  </TableCell>
+                  <TableCell
+                    align="left"
+                    sx={{ border: `1px solid ${borderColor}` }}
+                  >
                     {`${a.last_name}, ${a.first_name} ${a.middle_name || ""}`}
                   </TableCell>
-                  <TableCell align="left" sx={{ border: `1px solid ${borderColor}` }}>
+                  <TableCell
+                    align="left"
+                    sx={{ border: `1px solid ${borderColor}` }}
+                  >
                     {(() => {
                       const item = curriculumOptions.find(
-                        (x) => x.curriculum_id?.toString() === a.program?.toString()
+                        (x) =>
+                          x.curriculum_id?.toString() === a.program?.toString(),
                       );
 
                       return item
@@ -747,13 +818,26 @@ const EvaluatorApplicantList = () => {
                     })()}
                   </TableCell>
 
-                  <TableCell align="left" sx={{ border: `1px solid ${borderColor}` }}>
-                    {a.building_description || evaluator?.building_description || "N/A"} {/* ✅ NEW */}
+                  <TableCell
+                    align="left"
+                    sx={{ border: `1px solid ${borderColor}` }}
+                  >
+                    {a.building_description ||
+                      evaluator?.building_description ||
+                      "N/A"}{" "}
+                    {/* ✅ NEW */}
                   </TableCell>
-                  <TableCell align="left" sx={{ border: `1px solid ${borderColor}` }}>
-                    {a.room_description || evaluator?.room_description || "N/A"} {/* ✅ NEW */}
+                  <TableCell
+                    align="left"
+                    sx={{ border: `1px solid ${borderColor}` }}
+                  >
+                    {a.room_description || evaluator?.room_description || "N/A"}{" "}
+                    {/* ✅ NEW */}
                   </TableCell>
-                  <TableCell align="center" sx={{ border: `1px solid ${borderColor}` }}>
+                  <TableCell
+                    align="center"
+                    sx={{ border: `1px solid ${borderColor}` }}
+                  >
                     <IconButton
                       color="error"
                       onClick={() => {
@@ -769,9 +853,7 @@ const EvaluatorApplicantList = () => {
                     >
                       <CloseIcon />
                     </IconButton>
-
                   </TableCell>
-
                 </TableRow>
               ))}
             </TableBody>
@@ -793,7 +875,6 @@ const EvaluatorApplicantList = () => {
               </Alert>
             </Snackbar>
 
-
             <Dialog
               open={openDeleteDialog}
               onClose={() => {
@@ -806,7 +887,10 @@ const EvaluatorApplicantList = () => {
               <DialogContent>
                 <Typography>
                   Are you sure you want to remove applicant{" "}
-                  <b>{applicantToDelete?.last_name}, {applicantToDelete?.first_name}</b>
+                  <b>
+                    {applicantToDelete?.last_name},{" "}
+                    {applicantToDelete?.first_name}
+                  </b>
                   from the exam schedule?
                 </Typography>
               </DialogContent>
@@ -815,15 +899,10 @@ const EvaluatorApplicantList = () => {
                 <Button
                   color="error"
                   variant="outlined"
-
-
                   onClick={() => {
                     setOpenDeleteDialog(false);
                     setApplicantToDelete(null);
-
-
                   }}
-
                 >
                   Cancel
                 </Button>
@@ -839,7 +918,7 @@ const EvaluatorApplicantList = () => {
                         `${API_BASE_URL}/unassign_verify_evaluator_applicant_list`,
                         withAuditActor({
                           applicant_number: applicantToDelete.applicant_number,
-                        })
+                        }),
                       );
 
                       // ✅ Success Snackbar
@@ -853,9 +932,8 @@ const EvaluatorApplicantList = () => {
                       // Refresh list
                       handleSearchByEvaluator(
                         evaluator.evaluator,
-                        evaluator.schedule_id
+                        evaluator.schedule_id,
                       );
-
                     } catch (error) {
                       console.error("Error removing applicant:", error);
 
@@ -875,16 +953,11 @@ const EvaluatorApplicantList = () => {
                 </Button>
               </DialogActions>
             </Dialog>
-
-
           </Table>
         </TableContainer>
-
-
       )}
     </Box>
   );
 };
 
 export default EvaluatorApplicantList;
-

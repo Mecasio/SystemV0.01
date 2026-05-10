@@ -100,6 +100,9 @@ const AdminBranches = () => {
   const [user, setUser] = useState("");
   const [userRole, setUserRole] = useState("");
   const [hasAccess, setHasAccess] = useState(null);
+  const [canCreate, setCanCreate] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
+  const [canDelete, setCanDelete] = useState(false);
   const [loading, setLoading] = useState(false);
   const pageId = 138;
 
@@ -142,12 +145,21 @@ const AdminBranches = () => {
       const response = await axios.get(`${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`);
       if (response.data && response.data.page_privilege === 1) {
         setHasAccess(true);
+        setCanCreate(Number(response.data?.can_create) === 1);
+        setCanEdit(Number(response.data?.can_edit) === 1);
+        setCanDelete(Number(response.data?.can_delete) === 1);
       } else {
         setHasAccess(false);
+        setCanCreate(false);
+        setCanEdit(false);
+        setCanDelete(false);
       }
     } catch (error) {
       console.error('Error checking access:', error);
       setHasAccess(false);
+      setCanCreate(false);
+      setCanEdit(false);
+      setCanDelete(false);
       if (error.response && error.response.data.message) {
         console.log(error.response.data.message);
       } else {
@@ -205,6 +217,11 @@ const AdminBranches = () => {
   };
 
   const handleUpdate = async (branch) => {
+    if (!canEdit) {
+      setSnack({ open: true, message: "You do not have permission to edit branches", severity: "error" });
+      return;
+    }
+
     try {
       await axios.put(`${API_BASE_URL}/api/branches/${branch.id}`, branch, getAuditHeaders());
       setIsEditing(false);
@@ -216,6 +233,11 @@ const AdminBranches = () => {
   };
 
   const handleDelete = async (id) => {
+    if (!canDelete) {
+      setSnack({ open: true, message: "You do not have permission to delete branches", severity: "error" });
+      return;
+    }
+
     try {
       await axios.delete(`${API_BASE_URL}/api/branches/${id}`, getAuditHeaders());
       setSnack({ open: true, message: "Deleted", severity: "success" });

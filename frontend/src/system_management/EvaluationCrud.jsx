@@ -84,6 +84,9 @@ const EvaluationCRUD = () => {
     const [user, setUser] = useState("");
     const [userRole, setUserRole] = useState("");
     const [hasAccess, setHasAccess] = useState(null);
+    const [canCreate, setCanCreate] = useState(false);
+    const [canEdit, setCanEdit] = useState(false);
+    const [canDelete, setCanDelete] = useState(false);
     const [loading, setLoading] = useState(false);
     const pageId = 23;
 
@@ -126,12 +129,21 @@ const EvaluationCRUD = () => {
             const response = await axios.get(`${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`);
             if (response.data && response.data.page_privilege === 1) {
                 setHasAccess(true);
+                setCanCreate(Number(response.data?.can_create) === 1);
+                setCanEdit(Number(response.data?.can_edit) === 1);
+                setCanDelete(Number(response.data?.can_delete) === 1);
             } else {
                 setHasAccess(false);
+                setCanCreate(false);
+                setCanEdit(false);
+                setCanDelete(false);
             }
         } catch (error) {
             console.error('Error checking access:', error);
             setHasAccess(false);
+            setCanCreate(false);
+            setCanEdit(false);
+            setCanDelete(false);
             if (error.response && error.response.data.message) {
                 console.log(error.response.data.message);
             } else {
@@ -272,6 +284,16 @@ const EvaluationCRUD = () => {
     };
 
     const handleSaveQuestion = async () => {
+        if (editMode && !canEdit) {
+            alert("You do not have permission to edit questions");
+            return;
+        }
+
+        if (!editMode && !canCreate) {
+            alert("You do not have permission to create questions");
+            return;
+        }
+
         try {
             if (editMode) {
                 const response = await axios.put(
@@ -301,6 +323,16 @@ const EvaluationCRUD = () => {
     };
 
     const handleSaveCategory = async () => {
+        if (categoryEditMode && !canEdit) {
+            alert("You do not have permission to edit categories");
+            return;
+        }
+
+        if (!categoryEditMode && !canCreate) {
+            alert("You do not have permission to create categories");
+            return;
+        }
+
         try {
             if (categoryEditMode) {
                 await axios.put(`${API_BASE_URL}/update_category/${selectedCategoryId}`, categoryFormData, getAuditHeaders());
@@ -319,6 +351,11 @@ const EvaluationCRUD = () => {
     };
 
     const handleEdit = (question) => {
+        if (!canEdit) {
+            alert("You do not have permission to edit questions");
+            return;
+        }
+
         setFormData({
             category: question.category,
             question: question.question_description,
@@ -334,6 +371,11 @@ const EvaluationCRUD = () => {
     };
 
     const handleEditCategory = (cat) => {
+        if (!canEdit) {
+            alert("You do not have permission to edit categories");
+            return;
+        }
+
         setCategoryFormData({ title: cat.title, description: cat.description });
         setSelectedCategoryId(cat.id);
         setCategoryEditMode(true);
@@ -341,6 +383,11 @@ const EvaluationCRUD = () => {
     };
 
     const handleDeleteCategory = async (categoryId) => {
+        if (!canDelete) {
+            alert("You do not have permission to delete categories");
+            return;
+        }
+
         if (window.confirm("Are you sure you want to delete this category?")) {
             try {
                 await axios.delete(`${API_BASE_URL}/delete_category/${categoryId}`, getAuditHeaders());
@@ -355,6 +402,11 @@ const EvaluationCRUD = () => {
     };
 
     const handleDeleteQuestion = async (questionId) => {
+        if (!canDelete) {
+            alert("You do not have permission to delete questions");
+            return;
+        }
+
         if (window.confirm("Are you sure you want to delete this question?")) {
             try {
                 await axios.delete(`${API_BASE_URL}/delete_question/${questionId}`, getAuditHeaders());

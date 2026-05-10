@@ -35,6 +35,9 @@ const SchoolYearPanel = () => {
   const [userRole, setUserRole] = useState("");
   const [employeeID, setEmployeeID] = useState("");
   const [hasAccess, setHasAccess] = useState(null);
+  const [canCreate, setCanCreate] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
+  const [canDelete, setCanDelete] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const pageId = 55;
@@ -87,9 +90,16 @@ const SchoolYearPanel = () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`);
-      setHasAccess(response.data?.page_privilege === 1);
+      const allowed = response.data?.page_privilege === 1;
+      setHasAccess(allowed);
+      setCanCreate(allowed && Number(response.data?.can_create) === 1);
+      setCanEdit(allowed && Number(response.data?.can_edit) === 1);
+      setCanDelete(allowed && Number(response.data?.can_delete) === 1);
     } catch {
       setHasAccess(false);
+      setCanCreate(false);
+      setCanEdit(false);
+      setCanDelete(false);
       setSnackbar({ open: true, message: "Failed to check access", severity: "error" });
     } finally {
       setLoading(false);
@@ -125,6 +135,16 @@ const SchoolYearPanel = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const handleSubmitOrUpdate = async (e) => {
     if (e) e.preventDefault();
+    if (editID && !canEdit) {
+      setSnackbar({ open: true, message: "You do not have permission to edit school years", severity: "error" });
+      return;
+    }
+
+    if (!editID && !canCreate) {
+      setSnackbar({ open: true, message: "You do not have permission to create school years", severity: "error" });
+      return;
+    }
+
     if (!selectedYear || !selectedSemester) {
       setSnackbar({ open: true, message: "Please select both Year and Semester", severity: "warning" });
       return;
@@ -174,6 +194,11 @@ const SchoolYearPanel = () => {
   };
 
   const handleEdit = (sy) => {
+    if (!canEdit) {
+      setSnackbar({ open: true, message: "You do not have permission to edit school years", severity: "error" });
+      return;
+    }
+
     setSelectedYear(sy.year_id);
     setSelectedSemester(sy.semester_id);
     setEditID(sy.school_year_id || sy.id);
@@ -184,6 +209,10 @@ const SchoolYearPanel = () => {
 
   const handleConfirmDelete = async () => {
     if (!schoolYearToDelete) return;
+    if (!canDelete) {
+      setSnackbar({ open: true, message: "You do not have permission to delete school years", severity: "error" });
+      return;
+    }
 
     try {
       await axios.delete(

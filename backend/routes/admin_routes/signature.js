@@ -21,6 +21,7 @@ const getAuditActor = (req) => ({
     req.body?.audit_actor_id ||
     req.headers["x-audit-actor-id"] ||
     req.headers["x-employee-id"] ||
+    req.body?.employee_id ||
     "unknown",
   actorRole:
     req.body?.audit_actor_role ||
@@ -28,134 +29,333 @@ const getAuditActor = (req) => ({
     "registrar",
 });
 
-const insertSignatureAuditLog = async ({ req, action, message }) => {
+const insertSignatureAuditLog = async ({ req, action, verb, signatureName }) => {
   const { actorId, actorRole } = getAuditActor(req);
+  const roleLabel = formatAuditActorRole(actorRole);
+  const safeSignatureName = signatureName || "signature";
 
   await insertAuditLogAdmission({
     actorId,
     role: actorRole,
     action,
-    message,
     severity: "INFO",
+    message: `${roleLabel} (${actorId}) ${verb} signature ${safeSignatureName}.`,
   });
 };
 
-// Multer setup for signature uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, path.join(__dirname, "../../uploads/signature"));
   },
+
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const uniqueSuffix =
+      Date.now() + "-" + Math.round(Math.random() * 1e9);
+
     cb(null, uniqueSuffix + path.extname(file.originalname));
   },
 });
 
-
 const uploadSignature = multer({ storage });
 
-router.get("/api/signature", async (req, res) => {
-  try {
-    const [rows] = await db.query(
-      `SELECT full_name, signature_image
-       FROM signature_table
-       ORDER BY created_at DESC
-       LIMIT 1`,
-    );
-
-    if (!rows.length) {
-      return res.json({ success: false });
-    }
-
-    res.json({ success: true, data: rows[0] });
-  } catch (err) {
-    res.status(500).json({ success: false });
-  }
-});
+/*
+|--------------------------------------------------------------------------
+| CREATE SIGNATURE
+|--------------------------------------------------------------------------
+*/
 
 router.post(
   "/api/signature",
   uploadSignature.single("signature"),
   async (req, res) => {
     try {
-      const { full_name } = req.body;
+      const {
+        person_id,
+        employee_id,
+        full_name,
+        designation,
+        campus_branch_id,
+        signature_name,
+        created_by,
+      } = req.body;
 
-      if (!full_name || !req.file) {
-        return res.json({ success: false });
+      if (
+        !person_id ||
+        !full_name ||
+        !campus_branch_id ||
+        !signature_name ||
+        !req.file
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing required fields",
+        });
       }
 
       const signaturePath = `signature/${req.file.filename}`;
 
-      await db.query(
-        "INSERT INTO signature_table (full_name, signature_image) VALUES (?, ?)",
-        [full_name, signaturePath],
+      const [result] = await db.query(
+        `
+        INSERT INTO signature_table
+        (
+          person_id,
+          employee_id,
+          full_name,
+          designation,
+          campus_branch_id,
+          signature_name,
+          signature_image,
+          created_by
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `,
+        [
+          person_id,
+          employee_id,
+          full_name,
+          designation,
+          campus_branch_id,
+          signature_name,
+          signaturePath,
+          created_by,
+        ]
       );
 
-      const { actorId, actorRole } = getAuditActor(req);
-      const roleLabel = formatAuditActorRole(actorRole);
       await insertSignatureAuditLog({
         req,
-        action: "SIGNATURE_UPLOAD",
-        message: `${roleLabel} (${actorId}) uploaded signature for ${full_name}.`,
+        action: "SIGNATURE_CREATE",
+        verb: "uploaded",
+        signatureName: signature_name,
       });
 
-      //  IBALIK AGAD SA FRONTEND
       res.json({
         success: true,
         data: {
+          id: result.insertId,
           full_name,
+          designation,
+          campus_branch_id,
+          signature_name,
           signature_image: signaturePath,
         },
       });
     } catch (err) {
       console.error(err);
-      res.status(500).json({ success: false });
+
+      res.status(500).json({
+        success: false,
+        message: "Server Error",
+      });
     }
-  },
+  }
 );
 
-// ================= GET =================
-router.get("/api/signature/:fullName", async (req, res) => {
+/*
+|--------------------------------------------------------------------------
+| GET ALL SIGNATURES
+|--------------------------------------------------------------------------
+*/
+
+router.get("/api/signature", async (req, res) => {
   try {
-    const { fullName } = req.params;
+    const [rows] = await db.query(`
+      SELECT *
+      FROM signature_table
+      ORDER BY created_at DESC
+    `);
+
+    res.json({
+      success: true,
+      data: rows,
+    });
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).json({
+      success: false,
+    });
+  }
+});
+
+/*
+|--------------------------------------------------------------------------
+| GET BY CAMPUS
+|--------------------------------------------------------------------------
+*/
+
+router.get("/api/signature/campus/:campusId", async (req, res) => {
+  try {
+    const { campusId } = req.params;
 
     const [rows] = await db.query(
-      `SELECT full_name, signature_image
-       FROM signature_table
-       WHERE full_name = ?
-       ORDER BY created_at DESC
-       LIMIT 1`,
-      [fullName],
+      `
+      SELECT *
+      FROM signature_table
+      WHERE campus_branch_id = ?
+      ORDER BY created_at DESC
+    `,
+      [campusId]
     );
 
-    if (!rows.length) {
-      return res.json({ success: false });
+    res.json({
+      success: true,
+      data: rows,
+    });
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).json({
+      success: false,
+    });
+  }
+});
+
+/*
+|--------------------------------------------------------------------------
+| GET PERSON SIGNATURES
+|--------------------------------------------------------------------------
+*/
+
+router.get("/api/signature/person/:personId", async (req, res) => {
+  try {
+    const { personId } = req.params;
+
+    const [rows] = await db.query(
+      `
+      SELECT *
+      FROM signature_table
+      WHERE person_id = ?
+      ORDER BY created_at DESC
+    `,
+      [personId]
+    );
+
+    res.json({
+      success: true,
+      data: rows,
+    });
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).json({
+      success: false,
+    });
+  }
+});
+
+router.put("/api/signature/:id", uploadSignature.single("signature"), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const {
+      full_name,
+      designation,
+      campus_branch_id,
+      signature_name,
+      employee_id,
+      person_id,
+    } = req.body;
+
+    let signaturePath = null;
+
+    if (req.file) {
+      signaturePath = `signature/${req.file.filename}`;
     }
 
-    res.json({ success: true, data: rows[0] });
+    const query = `
+      UPDATE signature_table
+      SET
+        full_name = ?,
+        designation = ?,
+        campus_branch_id = ?,
+        signature_name = ?,
+        employee_id = ?,
+        person_id = ?
+        ${signaturePath ? ", signature_image = ?" : ""}
+      WHERE id = ?
+    `;
+
+    const values = signaturePath
+      ? [
+          full_name,
+          designation,
+          campus_branch_id,
+          signature_name,
+          employee_id,
+          person_id,
+          signaturePath,
+          id,
+        ]
+      : [
+          full_name,
+          designation,
+          campus_branch_id,
+          signature_name,
+          employee_id,
+          person_id,
+          id,
+        ];
+
+    await db.query(query, values);
+
+    await insertSignatureAuditLog({
+      req,
+      action: "SIGNATURE_UPDATE",
+      verb: "updated",
+      signatureName: signature_name,
+    });
+
+    res.json({ success: true });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ success: false });
   }
 });
 
-// GET LATEST SIGNATURE
-router.get("/api/signature-latest", async (req, res) => {
+/*
+|--------------------------------------------------------------------------
+| DELETE SIGNATURE
+|--------------------------------------------------------------------------
+*/
+
+router.delete("/api/signature/:id", async (req, res) => {
   try {
-    const [rows] = await db.query(`
-      SELECT full_name, signature_image
+    const { id } = req.params;
+    const [rows] = await db.query(
+      `
+      SELECT signature_name
       FROM signature_table
-      ORDER BY created_at DESC
+      WHERE id = ?
       LIMIT 1
-    `);
+    `,
+      [id]
+    );
+    const signatureName = rows?.[0]?.signature_name;
 
-    if (!rows.length) {
-      return res.json({ success: false });
-    }
+    await db.query(
+      `
+      DELETE FROM signature_table
+      WHERE id = ?
+    `,
+      [id]
+    );
 
-    res.json({ success: true, data: rows[0] });
+    await insertSignatureAuditLog({
+      req,
+      action: "SIGNATURE_DELETE",
+      verb: "deleted",
+      signatureName,
+    });
+
+    res.json({
+      success: true,
+    });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false });
+
+    res.status(500).json({
+      success: false,
+    });
   }
 });
 

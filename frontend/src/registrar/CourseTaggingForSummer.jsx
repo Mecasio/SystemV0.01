@@ -97,6 +97,9 @@ const CourseTaggingForSummer = () => {
   const [userID, setUserID] = useState("");
   const [user, setUser] = useState("");
   const [userRole, setUserRole] = useState("");
+  const [canCreate, setCanCreate] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
+  const [canDelete, setCanDelete] = useState(false);
 
   const pageId = 140;
 
@@ -141,12 +144,21 @@ const CourseTaggingForSummer = () => {
       );
       if (response.data && response.data.page_privilege === 1) {
         setHasAccess(true);
+        setCanCreate(Number(response.data?.can_create) === 1);
+        setCanEdit(Number(response.data?.can_edit) === 1);
+        setCanDelete(Number(response.data?.can_delete) === 1);
       } else {
         setHasAccess(false);
+        setCanCreate(false);
+        setCanEdit(false);
+        setCanDelete(false);
       }
     } catch (error) {
       console.error("Error checking access:", error);
       setHasAccess(false);
+      setCanCreate(false);
+      setCanEdit(false);
+      setCanDelete(false);
       if (error.response && error.response.data.message) {
         console.log(error.response.data.message);
       } else {
@@ -386,6 +398,7 @@ const CourseTaggingForSummer = () => {
   };
 
   const handleSectionChange = async (e) => {
+    if (!canEdit) { setSnack({ open: true, message: "You do not have permission to change active curriculum.", severity: "error" }); return; }
     const sectionId = e.target.value;
     setSelectedSection(sectionId);
     console.log("Selected section ID:", sectionId);
@@ -529,6 +542,7 @@ const CourseTaggingForSummer = () => {
 
 
   const addToCart = async (course) => {
+    if (!canCreate) { setSnack({ open: true, message: "You do not have permission to enroll subjects.", severity: "error" }); return; }
     if (!selectedSection) {
       setSnack({
         open: true,
@@ -600,6 +614,7 @@ const CourseTaggingForSummer = () => {
   //------------delete
   //------------delete
   const deleteFromCart = async (id) => {
+    if (!canDelete) { setSnack({ open: true, message: "You do not have permission to unenroll subjects.", severity: "error" }); return; }
     if (!id) {
       console.error("No ID provided to deleteFromCart");
       return;
@@ -643,6 +658,7 @@ const CourseTaggingForSummer = () => {
 
 
   const addAllToCart = async (yearLevelId) => {
+    if (!canCreate) { setSnack({ open: true, message: "You do not have permission to bulk enroll subjects.", severity: "error" }); return; }
     const newCourses = courses.filter(
       (c) =>
         !isEnrolledCourse(c.course_id) &&
@@ -743,6 +759,7 @@ const CourseTaggingForSummer = () => {
 
 
   const deleteAllCart = async () => {
+    if (!canDelete) { setSnack({ open: true, message: "You do not have permission to unenroll subjects.", severity: "error" }); return; }
     try {
       if (!activeSchoolYearId) {
         setSnack({

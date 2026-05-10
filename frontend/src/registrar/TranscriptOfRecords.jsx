@@ -433,7 +433,7 @@ const TOR = () => {
 
   const fetchGradeConversionDic = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/grade-conversion`);
+      const res = await axios.get(`${API_BASE_URL}/admin/grade-conversion`);
       setGradeConversions(Array.isArray(res.data) ? res.data : []);
 
       console.log("Fetch successful");

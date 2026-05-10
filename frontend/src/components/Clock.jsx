@@ -34,23 +34,29 @@ const Clock = () => {
 
   return (
     <Box sx={{ textAlign: "right" }}>
-      
       {/* DATE */}
-      <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 1 }}>
-        <CalendarTodayIcon sx={{ fontSize: 18 }} />
-        <Typography sx={{ fontSize: "16px" }}>
-          <b>Date:</b> {formattedDate}
-        </Typography>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "flex-end",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
+        <Typography sx={{ fontSize: "16px" }}>{formattedDate}</Typography>
       </Box>
 
       {/* TIME */}
-      <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 1 }}>
-        <AccessTimeIcon sx={{ fontSize: 18 }} />
-        <Typography sx={{ fontSize: "16px" }}>
-          <b>Time:</b> {formattedTime}
-        </Typography>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "flex-end",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
+        <Typography sx={{ fontSize: "16px" }}>{formattedTime}</Typography>
       </Box>
-
     </Box>
   );
 };

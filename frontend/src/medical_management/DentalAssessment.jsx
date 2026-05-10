@@ -265,6 +265,20 @@ const DentalAssessment = () => {
     const [user, setUser] = useState("");
     const [userRole, setUserRole] = useState("");
 
+    const getAuditHeaders = () => ({
+        headers: {
+            "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+            "x-page-id": pageId,
+            "x-audit-actor-id":
+                employeeID ||
+                localStorage.getItem("employee_id") ||
+                localStorage.getItem("person_id") ||
+                localStorage.getItem("email") ||
+                "unknown",
+            "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+        },
+    });
+
     const [explicitSelection, setExplicitSelection] = useState(false);
     const lastResolvedPersonIdRef = useRef("");
 
@@ -446,7 +460,7 @@ const DentalAssessment = () => {
             await axios.put(`${API_BASE_URL}/api/dental-assessment`, {
                 ...form,
                 student_number: studentNumber,
-            });
+            }, getAuditHeaders());
 
             setSnack({
                 open: true,

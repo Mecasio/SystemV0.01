@@ -70,6 +70,9 @@ const CourseTagging = () => {
   const [userID, setUserID] = useState("");
   const [user, setUser] = useState("");
   const [userRole, setUserRole] = useState("");
+  const [canCreate, setCanCreate] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
+  const [canDelete, setCanDelete] = useState(false);
   const pageId = 17;
   const [employeeID, setEmployeeID] = useState("");
   const auditConfig = {
@@ -108,12 +111,21 @@ const CourseTagging = () => {
       const response = await axios.get(`${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`);
       if (response.data && response.data.page_privilege === 1) {
         setHasAccess(true);
+        setCanCreate(Number(response.data?.can_create) === 1);
+        setCanEdit(Number(response.data?.can_edit) === 1);
+        setCanDelete(Number(response.data?.can_delete) === 1);
       } else {
         setHasAccess(false);
+        setCanCreate(false);
+        setCanEdit(false);
+        setCanDelete(false);
       }
     } catch (error) {
       console.error("Error checking access:", error);
       setHasAccess(false);
+      setCanCreate(false);
+      setCanEdit(false);
+      setCanDelete(false);
       setLoading(false);
     }
   };
@@ -217,6 +229,7 @@ const CourseTagging = () => {
   };
 
   const handleSectionChange = async (e) => {
+    if (!canEdit) { setSnack({ open: true, message: "You do not have permission to change active curriculum.", severity: "error" }); return; }
     const sectionId = e.target.value;
     setSelectedSection(sectionId);
     try {
@@ -261,6 +274,7 @@ const CourseTagging = () => {
   }, [userId, courses]);
 
   const addToCart = async (course) => {
+    if (!canCreate) { setSnack({ open: true, message: "You do not have permission to enroll subjects.", severity: "error" }); return; }
     if (!selectedSection) { setSnack({ open: true, message: "Please select a department section before enrolling.", severity: "warning" }); return; }
     if (!userId) { setSnack({ open: true, message: "Please search and select a student first.", severity: "warning" }); return; }
     if (isEnrolledCourse(course.course_id)) return;
@@ -275,6 +289,7 @@ const CourseTagging = () => {
 
   const deleteFromCart = async (id) => {
     if (!id) return;
+    if (!canDelete) { setSnack({ open: true, message: "You do not have permission to unenroll subjects.", severity: "error" }); return; }
     try {
       await axios.delete(`${API_BASE_URL}/courses/delete/${id}`, auditConfig);
       const { data } = await axios.get(`${API_BASE_URL}/enrolled_courses/${userId}/${currId}`);
@@ -284,6 +299,7 @@ const CourseTagging = () => {
   };
 
   const addAllToCart = async (yearLevelId) => {
+    if (!canCreate) { setSnack({ open: true, message: "You do not have permission to bulk enroll subjects.", severity: "error" }); return; }
     const newCourses = courses.filter((c) => !isEnrolledCourse(c.course_id) && c.year_level_id === yearLevelId && (activeSemesterId ? c.semester_id === activeSemesterId : true));
     if (!selectedSection) { setSnack({ open: true, message: "Please select a department section before adding all the courses.", severity: "warning" }); return; }
     if (!userId) { setSnack({ open: true, message: "Please search and select a student first.", severity: "warning" }); return; }
@@ -305,6 +321,7 @@ const CourseTagging = () => {
   };
 
   const deleteAllCart = async () => {
+    if (!canDelete) { setSnack({ open: true, message: "You do not have permission to unenroll subjects.", severity: "error" }); return; }
     try {
       await axios.delete(`${API_BASE_URL}/courses/user/${userId}`, auditConfig);
       const { data } = await axios.get(`${API_BASE_URL}/enrolled_courses/${userId}/${currId}`);

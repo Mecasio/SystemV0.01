@@ -33,6 +33,7 @@ import {
 import API_BASE_URL from '../apiConfig';
 import LoadingOverlay from '../components/LoadingOverlay';
 import Unauthorized from '../components/Unauthorized';
+import { postAuditEvent } from '../utils/auditEvents';
 
 const PROGRESS_STEPS = [
   { key: 'sorting', label: 'Sorting XLSX data' },
@@ -319,12 +320,9 @@ const UploadEnrolledSubject = () => {
         }
     };
 
-    const insertAuditLog = async (message, type) => {
+    const insertAuditLog = async (eventType, details = {}) => {
         try {
-            await axios.post(`${API_BASE_URL}/insert-logs/${userID}`, {
-                message,
-                type,
-            });
+            await postAuditEvent(eventType, details);
         } catch (err) {
             console.error("Error inserting audit log");
         }
@@ -487,10 +485,10 @@ const UploadEnrolledSubject = () => {
                 });
             }
 
-            await insertAuditLog(
-                `Employee ID #${userID} - ${user} successfully imported enrolled subjects from XLSX${importedCount ? ` (${importedCount} record/s)` : ""}${skippedCount ? ` with ${skippedCount} skipped row/s` : ""}`,
-                "import",
-            );
+            await insertAuditLog("enrolled_subjects_imported", {
+                imported_count: importedCount,
+                skipped_count: skippedCount,
+            });
 
             setSelectedFile(null);
             await fetchUploadedStudent();

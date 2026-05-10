@@ -8,6 +8,7 @@ import { FcPrint } from "react-icons/fc";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 import API_BASE_URL from "../apiConfig";
+import { postAuditEvent } from "../utils/auditEvents";
 
 const ProgramEvaluationForRegistrar = () => {
   const settings = useContext(SettingsContext);
@@ -28,7 +29,7 @@ const ProgramEvaluationForRegistrar = () => {
 
   useEffect(() => {
     axios
-      .get(`${API_BASE_URL}/grade-conversion`)
+      .get(`${API_BASE_URL}/admin/grade-conversion`)
       .then((res) => setGradeConversion(res.data))
       .catch((err) => {
         console.error("Failed to fetch grade conversions:", err);
@@ -348,10 +349,7 @@ const ProgramEvaluationForRegistrar = () => {
       });
 
       try {
-        await axios.post(`${API_BASE_URL}/insert-logs/${userID}`, {
-          message: `User #${userID} - ${user} successfully submitted student grades in Program Evaluation`,
-          type: "submit",
-        });
+        await postAuditEvent("program_evaluation_grade_submitted");
       } catch (err) {
         console.error("Error inserting audit log");
       }

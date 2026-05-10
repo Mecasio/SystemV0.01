@@ -42,6 +42,9 @@ const SectionPanel = () => {
   const [userRole, setUserRole] = useState("");
   const [employeeID, setEmployeeID] = useState("");
   const [hasAccess, setHasAccess] = useState(null);
+  const [canCreate, setCanCreate] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
+  const [canDelete, setCanDelete] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const pageId = 57;
@@ -63,6 +66,11 @@ const SectionPanel = () => {
 
 
   const handleEdit = (section) => {
+    if (!canEdit) {
+      setSnackbar({ open: true, message: "You do not have permission to edit sections", severity: "error" });
+      return;
+    }
+
     setEditId(section.id);
     setDescription(section.description);
     setOpenFormDialog(true);
@@ -113,10 +121,17 @@ const SectionPanel = () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`);
-      setHasAccess(response.data?.page_privilege === 1);
+      const allowed = response.data?.page_privilege === 1;
+      setHasAccess(allowed);
+      setCanCreate(allowed && Number(response.data?.can_create) === 1);
+      setCanEdit(allowed && Number(response.data?.can_edit) === 1);
+      setCanDelete(allowed && Number(response.data?.can_delete) === 1);
     } catch (err) {
       console.error("Error checking access:", err);
       setHasAccess(false);
+      setCanCreate(false);
+      setCanEdit(false);
+      setCanDelete(false);
       setSnackbar({ open: true, message: "Failed to check access", severity: "error" });
     } finally {
       setLoading(false);
@@ -139,6 +154,16 @@ const SectionPanel = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    if (editId && !canEdit) {
+      setSnackbar({ open: true, message: "You do not have permission to edit sections", severity: "error" });
+      return;
+    }
+
+    if (!editId && !canCreate) {
+      setSnackbar({ open: true, message: "You do not have permission to create sections", severity: "error" });
+      return;
+    }
 
     if (!description.trim()) {
       setSnackbar({ open: true, message: "Description required", severity: "warning" });
@@ -172,6 +197,10 @@ const SectionPanel = () => {
 
   const handleConfirmDelete = async () => {
     if (!sectionToDelete) return;
+    if (!canDelete) {
+      setSnackbar({ open: true, message: "You do not have permission to delete sections", severity: "error" });
+      return;
+    }
 
     try {
       await axios.delete(`${API_BASE_URL}/section_table/${sectionToDelete.id}`, getAuditHeaders());
@@ -203,6 +232,7 @@ const SectionPanel = () => {
 
   if (loading || hasAccess === null) return <LoadingOverlay open={loading} message="Loading..." />;
   if (!hasAccess) return <Unauthorized />;
+  const showActionColumn = canEdit || canDelete;
 
   return (
     <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", padding: 2 }}>

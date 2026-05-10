@@ -92,6 +92,9 @@ const PageCRUD = () => {
     const [userRole, setUserRole] = useState("");
 
     const [hasAccess, setHasAccess] = useState(null);
+    const [canCreate, setCanCreate] = useState(false);
+    const [canEdit, setCanEdit] = useState(false);
+    const [canDelete, setCanDelete] = useState(false);
     const [loading, setLoading] = useState(false);
 
 
@@ -127,12 +130,21 @@ const PageCRUD = () => {
             const response = await axios.get(`${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`);
             if (response.data && response.data.page_privilege === 1) {
                 setHasAccess(true);
+                setCanCreate(Number(response.data?.can_create) === 1);
+                setCanEdit(Number(response.data?.can_edit) === 1);
+                setCanDelete(Number(response.data?.can_delete) === 1);
             } else {
                 setHasAccess(false);
+                setCanCreate(false);
+                setCanEdit(false);
+                setCanDelete(false);
             }
         } catch (error) {
             console.error('Error checking access:', error);
             setHasAccess(false);
+            setCanCreate(false);
+            setCanEdit(false);
+            setCanDelete(false);
             if (error.response && error.response.data.message) {
                 console.log(error.response.data.message);
             } else {
@@ -180,6 +192,23 @@ const PageCRUD = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (currentPageId && !canEdit) {
+            setSnackbar({
+                open: true,
+                message: "You do not have permission to edit pages.",
+                type: "error",
+            });
+            return;
+        }
+
+        if (!currentPageId && !canCreate) {
+            setSnackbar({
+                open: true,
+                message: "You do not have permission to create pages.",
+                type: "error",
+            });
+            return;
+        }
 
         try {
             if (currentPageId) {

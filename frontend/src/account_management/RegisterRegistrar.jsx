@@ -86,6 +86,8 @@ const RegisterRegistrar = () => {
     const [userRole, setUserRole] = useState("");
 
     const [hasAccess, setHasAccess] = useState(null);
+    const [canCreate, setCanCreate] = useState(false);
+    const [canEdit, setCanEdit] = useState(false);
     const [canDelete, setCanDelete] = useState(false);
     const [loading, setLoading] = useState(false);
 
@@ -134,14 +136,20 @@ const RegisterRegistrar = () => {
             const response = await axios.get(`${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`);
             if (response.data && response.data.page_privilege === 1) {
                 setHasAccess(true);
+                setCanCreate(Number(response.data?.can_create) === 1);
+                setCanEdit(Number(response.data?.can_edit) === 1);
                 setCanDelete(Number(response.data?.can_delete) === 1);
             } else {
                 setHasAccess(false);
+                setCanCreate(false);
+                setCanEdit(false);
                 setCanDelete(false);
             }
         } catch (error) {
             console.error('Error checking access:', error);
             setHasAccess(false);
+            setCanCreate(false);
+            setCanEdit(false);
             setCanDelete(false);
             if (error.response && error.response.data.message) {
                 console.log(error.response.data.message);
@@ -282,6 +290,19 @@ const RegisterRegistrar = () => {
     };
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (editData && !canEdit) {
+            setSnackbarMessage("You do not have permission to edit registrars.");
+            setSnackbarSeverity("error");
+            setOpenSnackbar(true);
+            return;
+        }
+
+        if (!editData && !canCreate) {
+            setSnackbarMessage("You do not have permission to create registrars.");
+            setSnackbarSeverity("error");
+            setOpenSnackbar(true);
+            return;
+        }
 
         try {
             const fd = new FormData();
@@ -354,6 +375,13 @@ const RegisterRegistrar = () => {
     };
 
     const handleEdit = (r) => {
+        if (!canEdit) {
+            setSnackbarMessage("You do not have permission to edit registrars.");
+            setSnackbarSeverity("error");
+            setOpenSnackbar(true);
+            return;
+        }
+
         setEditData(r);
         setForm({
             employee_id: r.employee_id || "",
@@ -398,6 +426,13 @@ const RegisterRegistrar = () => {
     };
 
     const handleToggleStatus = async (id, currentStatus) => {
+        if (!canEdit) {
+            setSnackbarMessage("You do not have permission to edit registrars.");
+            setSnackbarSeverity("error");
+            setOpenSnackbar(true);
+            return;
+        }
+
         const newStatus = currentStatus === 1 ? 0 : 1;
         try {
             await axios.put(

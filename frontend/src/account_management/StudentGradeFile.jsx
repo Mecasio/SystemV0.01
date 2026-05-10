@@ -94,9 +94,25 @@ const StudentGradeFile = () => {
   const [user, setUser] = useState("");
   const [userRole, setUserRole] = useState("");
   const [hasAccess, setHasAccess] = useState(null);
+  const [canCreate, setCanCreate] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
+  const [canDelete, setCanDelete] = useState(false);
   const [loading, setLoading] = useState(false);
   const [employeeID, setEmployeeID] = useState("");
   const pageId = 126;
+
+  const auditConfig = () => ({
+    headers: {
+      "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+      "x-page-id": pageId,
+      "x-audit-actor-id":
+        employeeID ||
+        localStorage.getItem("employee_id") ||
+        localStorage.getItem("email") ||
+        "unknown",
+      "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+    },
+  });
 
   // ➕ Modals & Dialogs
   const [snackbar, setSnackbar] = useState({
@@ -188,12 +204,21 @@ const StudentGradeFile = () => {
       );
       if (response.data && response.data.page_privilege === 1) {
         setHasAccess(true);
+        setCanCreate(response.data?.can_create === 1);
+        setCanEdit(response.data?.can_edit === 1);
+        setCanDelete(response.data?.can_delete === 1);
       } else {
         setHasAccess(false);
+        setCanCreate(false);
+        setCanEdit(false);
+        setCanDelete(false);
       }
     } catch (error) {
       console.error("Error checking access:", error);
       setHasAccess(false);
+      setCanCreate(false);
+      setCanEdit(false);
+      setCanDelete(false);
       setLoading(false);
     }
   };
@@ -646,6 +671,15 @@ const StudentGradeFile = () => {
   };
 
   const handleAddSubject = async () => {
+    if (!canCreate) {
+      setSnackbar({
+        open: true,
+        message: "You do not have permission to add subjects.",
+        severity: "warning",
+      });
+      return;
+    }
+
     if (!selectedTermContext || !selectedCourse) return;
     try {
       await axios.post(`${API_BASE_URL}/insert_subject`, {
@@ -653,7 +687,7 @@ const StudentGradeFile = () => {
         student_number: studentGradeList[0].student_number,
         currId: studentGradeList[0].curriculum_id,
         active_school_year_id: selectedTermContext.active_school_year_id,
-      });
+      }, auditConfig());
       setSnackbar({
         open: true,
         message: "Subject added successfully",
@@ -673,8 +707,17 @@ const StudentGradeFile = () => {
   };
 
   const handleDelete = async () => {
+    if (!canDelete) {
+      setSnackbar({
+        open: true,
+        message: "You do not have permission to delete subjects.",
+        severity: "warning",
+      });
+      return;
+    }
+
     try {
-      await axios.delete(`${API_BASE_URL}/delete_subject/${selectedSubjectId}`);
+      await axios.delete(`${API_BASE_URL}/delete_subject/${selectedSubjectId}`, auditConfig());
       setStudentGradeList((prev) =>
         prev.filter((s) => s.id !== selectedSubjectId),
       );
@@ -696,6 +739,15 @@ const StudentGradeFile = () => {
   };
 
   const handleEditSubject = async (yearLevel, semester, schoolYearId) => {
+    if (!canEdit) {
+      setSnackbar({
+        open: true,
+        message: "You do not have permission to update grades.",
+        severity: "warning",
+      });
+      return;
+    }
+
     // Safety check
     if (
       !groupedGrades[yearLevel] ||
@@ -731,7 +783,7 @@ const StudentGradeFile = () => {
             finals: subject.finals ?? "",
             final_grade: subject.final_grade ?? "",
             en_remarks: subject.en_remarks,
-          }),
+          }, auditConfig()),
         ),
       );
       setSnackbar({
@@ -817,6 +869,15 @@ const StudentGradeFile = () => {
   };
 
   const handleChangeYearLevel = async (newYearLevelId) => {
+    if (!canEdit) {
+      setSnackbar({
+        open: true,
+        message: "You do not have permission to update year level.",
+        severity: "warning",
+      });
+      return;
+    }
+
     if (!selectedTermContext) {
       setSnackbar({
         open: true,
@@ -830,7 +891,7 @@ const StudentGradeFile = () => {
       await axios.put(`${API_BASE_URL}/update_student_year_level`, {
         id: selectedTermContext.student_status_id,
         new_year_level_id: newYearLevelId,
-      });
+      }, auditConfig());
 
       setSnackbar({
         open: true,

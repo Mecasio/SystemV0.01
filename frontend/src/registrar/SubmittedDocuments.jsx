@@ -281,11 +281,28 @@ const MedicalRequirements = () => {
   }, []);
 
   const [hasAccess, setHasAccess] = useState(null);
+  const [canCreate, setCanCreate] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
+  const [canDelete, setCanDelete] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const pageId = 106;
 
   const [employeeID, setEmployeeID] = useState("");
+
+  const getAuditConfig = (extraHeaders = {}) => ({
+    headers: {
+      ...extraHeaders,
+      "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
+      "x-page-id": pageId,
+      "x-audit-actor-id":
+        employeeID ||
+        localStorage.getItem("employee_id") ||
+        localStorage.getItem("email") ||
+        "unknown",
+      "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+    },
+  });
 
   useEffect(() => {
     const storedUser = localStorage.getItem("email");
@@ -316,12 +333,21 @@ const MedicalRequirements = () => {
       );
       if (response.data && response.data.page_privilege === 1) {
         setHasAccess(true);
+        setCanCreate(response.data?.can_create === 1);
+        setCanEdit(response.data?.can_edit === 1);
+        setCanDelete(response.data?.can_delete === 1);
       } else {
         setHasAccess(false);
+        setCanCreate(false);
+        setCanEdit(false);
+        setCanDelete(false);
       }
     } catch (error) {
       console.error("Error checking access:", error);
       setHasAccess(false);
+      setCanCreate(false);
+      setCanEdit(false);
+      setCanDelete(false);
       setLoading(false);
     }
   };
@@ -373,8 +399,22 @@ const MedicalRequirements = () => {
   const [targetDoc, setTargetDoc] = useState(null);
 
   const handleConfirmUpload = (doc) => {
+    if (!canCreate) {
+      showSnackbar("You do not have permission to upload documents.", "warning");
+      return;
+    }
     setTargetDoc(doc);
     setConfirmAction("upload");
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = (doc) => {
+    if (!canDelete) {
+      showSnackbar("You do not have permission to delete documents.", "warning");
+      return;
+    }
+    setTargetDoc(doc);
+    setConfirmAction("delete");
     setConfirmOpen(true);
   };
 
@@ -486,6 +526,11 @@ const MedicalRequirements = () => {
   };
 
   const handleStatusChange = async (uploadId, remarkValue) => {
+    if (!canEdit) {
+      showSnackbar("You do not have permission to update document status.", "warning");
+      return;
+    }
+
     const remarks = remarksMap[uploadId] || "";
 
     try {
@@ -493,7 +538,7 @@ const MedicalRequirements = () => {
         status: remarkValue,
         remarks,
         user_id: userID,
-      });
+      }, getAuditConfig());
 
       setUploads((prev) =>
         prev.map((u) =>
@@ -514,6 +559,11 @@ const MedicalRequirements = () => {
   };
 
   const handleDocumentStatus = async (event) => {
+    if (!canEdit) {
+      showSnackbar("You do not have permission to update document status.", "warning");
+      return;
+    }
+
     const newStatus = event.target.value;
     setDocumentStatus(newStatus);
 
@@ -524,6 +574,7 @@ const MedicalRequirements = () => {
           document_status: newStatus,
           user_id: localStorage.getItem("person_id"),
         },
+        getAuditConfig(),
       );
 
       // ✅ Re-fetch full person data to refresh evaluator + document_status in one call
@@ -543,6 +594,11 @@ const MedicalRequirements = () => {
   };
 
   const handleUploadSubmit = async () => {
+    if (!canCreate) {
+      showSnackbar("You do not have permission to upload documents.", "warning");
+      return;
+    }
+
     if (!selectedFiles.requirements_id || !selectedPerson?.person_id) {
       alert("Please select a document type.");
       return;
@@ -564,6 +620,7 @@ const MedicalRequirements = () => {
         headers: {
           "Content-Type": "multipart/form-data",
           "x-person-id": localStorage.getItem("person_id"),
+          ...getAuditConfig().headers,
         },
       });
 
@@ -580,10 +637,16 @@ const MedicalRequirements = () => {
   };
 
   const handleDelete = async (uploadId) => {
+    if (!canDelete) {
+      showSnackbar("You do not have permission to delete documents.", "warning");
+      return;
+    }
+
     try {
       await axios.delete(`${API_BASE_URL}/admin/uploads/${uploadId}`, {
         headers: {
           "x-person-id": localStorage.getItem("person_id"),
+          ...getAuditConfig().headers,
         },
         withCredentials: true,
       });
@@ -646,7 +709,7 @@ const MedicalRequirements = () => {
                     uploads.find((u) => u.upload_id === uploadId)?.status ||
                     "0",
                   user_id: userID,
-                });
+                }, getAuditConfig());
                 if (selectedPerson?.applicant_number) {
                   await fetchUploadsByApplicantNumber(
                     selectedPerson.applicant_number,
@@ -667,6 +730,7 @@ const MedicalRequirements = () => {
                         "0",
                       user_id: userID,
                     },
+                    getAuditConfig(),
                   );
                   if (selectedPerson?.applicant_number) {
                     await fetchUploadsByApplicantNumber(

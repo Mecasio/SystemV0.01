@@ -319,6 +319,9 @@ const SuperAdminProfessorEducation = () => {
     const [user, setUser] = useState("");
     const [userRole, setUserRole] = useState("");
     const [hasAccess, setHasAccess] = useState(null);
+    const [canCreate, setCanCreate] = useState(false);
+    const [canEdit, setCanEdit] = useState(false);
+    const [canDelete, setCanDelete] = useState(false);
     const [loading, setLoading] = useState(false);
     const [employeeID, setEmployeeID] = useState("");
 
@@ -377,9 +380,16 @@ const SuperAdminProfessorEducation = () => {
     const checkAccess = async (empID) => {
         try {
             const response = await axios.get(`${API_BASE_URL}/api/page_access/${empID}/${pageId}`);
-            setHasAccess(response.data?.page_privilege === 1);
+            const allowed = response.data?.page_privilege === 1;
+            setHasAccess(allowed);
+            setCanCreate(allowed && Number(response.data?.can_create) === 1);
+            setCanEdit(allowed && Number(response.data?.can_edit) === 1);
+            setCanDelete(allowed && Number(response.data?.can_delete) === 1);
         } catch {
             setHasAccess(false);
+            setCanCreate(false);
+            setCanEdit(false);
+            setCanDelete(false);
         }
     };
 
@@ -395,6 +405,7 @@ const SuperAdminProfessorEducation = () => {
     useEffect(() => { fetchList(); }, []);
 
     const handleAdd = async () => {
+        if (!canCreate) { showSnack("You do not have permission to create education records", "error"); return; }
         if (!personId) { showSnack("Please select a professor", "warning"); return; }
         try {
             await axios.post(`${API_BASE_URL}/person_prof`, { person_id: personId, bachelor, master, doctor }, auditConfig);
@@ -404,6 +415,7 @@ const SuperAdminProfessorEducation = () => {
     };
 
     const handleEdit = (row) => {
+        if (!canEdit) { showSnack("You do not have permission to edit education records", "error"); return; }
         setEditing(row.person_id);
         setPersonId(row.person_id);
         setBachelor(row.bachelor || "");
@@ -412,6 +424,7 @@ const SuperAdminProfessorEducation = () => {
     };
 
     const handleUpdate = async () => {
+        if (!canEdit) { showSnack("You do not have permission to edit education records", "error"); return; }
         try {
             await axios.put(`${API_BASE_URL}/person_prof/${editing}`, { bachelor, master, doctor }, auditConfig);
             showSnack("Record updated", "success");
@@ -420,6 +433,7 @@ const SuperAdminProfessorEducation = () => {
     };
 
     const handleDelete = async (id) => {
+        if (!canDelete) { showSnack("You do not have permission to delete education records", "error"); return; }
         try {
             await axios.delete(`${API_BASE_URL}/person_prof/${id}`, auditConfig);
             showSnack("Record deleted", "success");

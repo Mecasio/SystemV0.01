@@ -404,7 +404,8 @@ router.get("/api/student_grade/:id", async (req, res) => {
 
       -- ✅ MAIN CONVERSION JOIN
       LEFT JOIN grade_conversion gc_main
-        ON es.final_grade BETWEEN gc_main.min_score AND gc_main.max_score
+        ON gc_main.is_disqualified = 0
+        AND es.final_grade BETWEEN gc_main.min_score AND gc_main.max_score
 
       LEFT JOIN program_tagging_table AS ptg
         ON ptg.curriculum_id = es.curriculum_id

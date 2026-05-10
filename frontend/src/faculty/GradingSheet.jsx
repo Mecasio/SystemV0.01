@@ -33,6 +33,7 @@ import {
   convertRawToRatingDynamic,
   setRemarksFromRatingDynamic,
 } from "../utils/gradeConversion";
+import { postAuditEvent } from "../utils/auditEvents";
 
 const GradingSheet = () => {
   const settings = useContext(SettingsContext);
@@ -214,7 +215,7 @@ const GradingSheet = () => {
   useEffect(() => {
     // Dynamic grade conversion keeps faculty grading aligned with grade_conversion.
     axios
-      .get(`${API_BASE_URL}/grade-conversion`)
+      .get(`${API_BASE_URL}/admin/grade-conversion`)
       .then((res) => setGradeConversions(res.data))
       .catch((err) => {
         console.error("Failed to fetch grade conversions:", err);
@@ -712,17 +713,9 @@ const GradingSheet = () => {
       if (response.ok) {
         setLoading(false);
         try {
-          const page_name = "Grading Sheet";
-          const fullName = `${profData.lname}, ${profData.fname} ${profData.mname}`;
-          const type = "submit";
-
-          await axios.post(
-            `${API_BASE_URL}/insert-logs/faculty/${profData.prof_id}`,
-            {
-              message: `User #${profData.prof_id} - ${fullName} successfully submit the student grades in ${page_name}`,
-              type: type,
-            },
-          );
+          await postAuditEvent("faculty_grading_sheet_grade_submitted", {
+            prof_id: profData.prof_id,
+          });
         } catch (err) {
           console.error("Error inserting audit log");
         }
@@ -802,17 +795,9 @@ const GradingSheet = () => {
 
       if (res.data.success) {
         try {
-          const page_name = "Grading Sheet";
-          const fullName = `${profData.lname}, ${profData.fname} ${profData.mname}`;
-          const type = "upload";
-
-          await axios.post(
-            `${API_BASE_URL}/insert-logs/faculty/${profData.prof_id}`,
-            {
-              message: `User #${profData.prof_id} - ${fullName} successfully upload file in ${page_name}`,
-              type: type,
-            },
-          );
+          await postAuditEvent("faculty_grading_sheet_upload_succeeded", {
+            prof_id: profData.prof_id,
+          });
         } catch (err) {
           console.error("Error inserting audit log");
         }
@@ -830,17 +815,9 @@ const GradingSheet = () => {
         }
       } else {
         try {
-          const page_name = "Grading Sheet";
-          const fullName = `${profData.lname}, ${profData.fname} ${profData.mname}`;
-          const type = "upload";
-
-          await axios.post(
-            `${API_BASE_URL}/insert-logs/faculty/${profData.prof_id}`,
-            {
-              message: `User #${profData.prof_id} - ${fullName} tried to upload file in ${page_name}`,
-              type: type,
-            },
-          );
+          await postAuditEvent("faculty_grading_sheet_upload_tried", {
+            prof_id: profData.prof_id,
+          });
         } catch (err) {
           console.error("Error inserting audit log");
         }
@@ -853,17 +830,9 @@ const GradingSheet = () => {
     } catch (err) {
       console.error("Import Error");
       try {
-        const page_name = "Grading Sheet";
-        const fullName = `${profData.lname}, ${profData.fname} ${profData.mname}`;
-        const type = "upload";
-
-        await axios.post(
-          `${API_BASE_URL}/insert-logs/faculty/${profData.prof_id}`,
-          {
-            message: `User #${profData.prof_id} - ${fullName} failed to upload file in ${page_name}`,
-            type: type,
-          },
-        );
+        await postAuditEvent("faculty_grading_sheet_upload_failed", {
+          prof_id: profData.prof_id,
+        });
       } catch (err) {
         console.error("Error inserting audit log");
       }
@@ -950,17 +919,11 @@ const GradingSheet = () => {
 
       // Audit Log
       try {
-        const page_name = "Grading Sheet";
-        const fullName = `${profData.lname}, ${profData.fname} ${profData.mname}`;
-        const type = "submit";
-
-        await axios.post(
-          `${API_BASE_URL}/insert-logs/faculty/${profData.prof_id}`,
-          {
-            message: `User #${profData.prof_id} - ${fullName} executed Save All in ${page_name}. Success: ${successCount}, Failed: ${failCount}`,
-            type: type,
-          },
-        );
+        await postAuditEvent("faculty_grading_sheet_save_all", {
+          prof_id: profData.prof_id,
+          success_count: successCount,
+          fail_count: failCount,
+        });
       } catch (err) {
         console.error("Error inserting audit log");
       }

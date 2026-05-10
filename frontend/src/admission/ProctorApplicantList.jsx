@@ -32,12 +32,16 @@ import LoadingOverlay from "../components/LoadingOverlay";
 import SearchIcon from "@mui/icons-material/Search";
 import KeyIcon from "@mui/icons-material/Key";
 import API_BASE_URL from "../apiConfig";
-import CampaignIcon from '@mui/icons-material/Campaign';
+import CampaignIcon from "@mui/icons-material/Campaign";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
-import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material";
 import { Snackbar, Alert } from "@mui/material";
-
 
 const ProctorApplicantList = () => {
   const settings = useContext(SettingsContext);
@@ -45,8 +49,8 @@ const ProctorApplicantList = () => {
   const [subtitleColor, setSubtitleColor] = useState("#555555");
   const [borderColor, setBorderColor] = useState("#000000");
   const [mainButtonColor, setMainButtonColor] = useState("#1976d2");
-  const [subButtonColor, setSubButtonColor] = useState("#ffffff");   // ✅ NEW
-  const [stepperColor, setStepperColor] = useState("#000000");       // ✅ NEW
+  const [subButtonColor, setSubButtonColor] = useState("#ffffff"); // ✅ NEW
+  const [stepperColor, setStepperColor] = useState("#000000"); // ✅ NEW
 
   const [fetchedLogo, setFetchedLogo] = useState(null);
   const [companyName, setCompanyName] = useState("");
@@ -61,9 +65,10 @@ const ProctorApplicantList = () => {
     if (settings.title_color) setTitleColor(settings.title_color);
     if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
     if (settings.border_color) setBorderColor(settings.border_color);
-    if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
-    if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);   // ✅ NEW
-    if (settings.stepper_color) setStepperColor(settings.stepper_color);           // ✅ NEW
+    if (settings.main_button_color)
+      setMainButtonColor(settings.main_button_color);
+    if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color); // ✅ NEW
+    if (settings.stepper_color) setStepperColor(settings.stepper_color); // ✅ NEW
 
     // 🏫 Logo
     if (settings.logo_url) {
@@ -91,7 +96,6 @@ const ProctorApplicantList = () => {
     } else {
       setBranches([]);
     }
-
   }, [settings]);
 
   const words = companyName.trim().split(" ");
@@ -117,13 +121,7 @@ const ProctorApplicantList = () => {
 
   const location = useLocation();
 
-
   const tabs = [
-    {
-      label: "Room Registration",
-      to: "/room_registration",
-      icon: <KeyIcon fontSize="large" />,
-    },
     {
       label: "Verify Documents Room Assignment",
       to: "/verify_document_schedule",
@@ -160,8 +158,6 @@ const ProctorApplicantList = () => {
     },
   ];
 
-
-
   // Also put it at the very top
   const [userID, setUserID] = useState("");
   const [user, setUser] = useState("");
@@ -169,10 +165,7 @@ const ProctorApplicantList = () => {
   const [hasAccess, setHasAccess] = useState(null);
   const [loading, setLoading] = useState(false);
 
-
   const pageId = 33;
-
-
 
   const [employeeID, setEmployeeID] = useState("");
 
@@ -186,7 +179,6 @@ const ProctorApplicantList = () => {
   });
 
   useEffect(() => {
-
     const storedUser = localStorage.getItem("email");
     const storedRole = localStorage.getItem("role");
     const storedID = localStorage.getItem("person_id");
@@ -210,14 +202,16 @@ const ProctorApplicantList = () => {
 
   const checkAccess = async (employeeID) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`);
+      const response = await axios.get(
+        `${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`,
+      );
       if (response.data && response.data.page_privilege === 1) {
         setHasAccess(true);
       } else {
         setHasAccess(false);
       }
     } catch (error) {
-      console.error('Error checking access:', error);
+      console.error("Error checking access:", error);
       setHasAccess(false);
       if (error.response && error.response.data.message) {
         console.log(error.response.data.message);
@@ -228,14 +222,14 @@ const ProctorApplicantList = () => {
     }
   };
 
-
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [applicantToDelete, setApplicantToDelete] = useState(null);
 
   const navigate = useNavigate();
-  const [activeStep, setActiveStep] = useState(4);
-  const [clickedSteps, setClickedSteps] = useState(Array(tabs.length).fill(false));
-
+  const [activeStep, setActiveStep] = useState(3);
+  const [clickedSteps, setClickedSteps] = useState(
+    Array(tabs.length).fill(false),
+  );
 
   const handleStepClick = (index, to) => {
     setActiveStep(index);
@@ -252,8 +246,6 @@ const ProctorApplicantList = () => {
     middle_name: "",
     program: "",
     extension: "",
-
-
   });
 
   const handleSearchByProctor = async (proctorName, scheduleID) => {
@@ -261,8 +253,8 @@ const ProctorApplicantList = () => {
       const { data } = await axios.get(
         `${API_BASE_URL}/api/proctor-applicants`,
         {
-          params: { query: proctorName, schedule_id: scheduleID }
-        }
+          params: { query: proctorName, schedule_id: scheduleID },
+        },
       );
 
       setProctor(data[0]?.schedule || null);
@@ -315,7 +307,9 @@ const ProctorApplicantList = () => {
     const matchedBranch = branchList.find(
       (branch) =>
         String(branch?.branch).trim().toLowerCase() ===
-        String(proctor?.branch || "").trim().toLowerCase()
+        String(proctor?.branch || "")
+          .trim()
+          .toLowerCase(),
     );
     const address =
       matchedBranch?.address ||
@@ -400,10 +394,16 @@ const ProctorApplicantList = () => {
           </tr>
         </thead>
         <tbody>
-          ${applicants.map((a, index) => {
-      const programItem = curriculumOptions.find(item => item.curriculum_id?.toString() === a.program?.toString());
-      const program = programItem ? `(${programItem.program_code}) - ${programItem.program_description} ${programItem.major || ""}` : "N/A";
-      return `
+          ${applicants
+            .map((a, index) => {
+              const programItem = curriculumOptions.find(
+                (item) =>
+                  item.curriculum_id?.toString() === a.program?.toString(),
+              );
+              const program = programItem
+                ? `(${programItem.program_code}) - ${programItem.program_description} ${programItem.major || ""}`
+                : "N/A";
+              return `
             <tr>
               
               <td style="width:20%; text-align:center;">${a.applicant_number}</td>
@@ -411,7 +411,8 @@ const ProctorApplicantList = () => {
               <td style="width:30%; text-align:center;">${program}</td>
               <td style="width:20%; text-align:center;"></td>
             </tr>`;
-    }).join("")}
+            })
+            .join("")}
           <tr>
             <td colspan="5" style="text-align:right; font-weight:bold;">Total Applicants: ${applicants.length}</td>
           </tr>
@@ -425,7 +426,6 @@ const ProctorApplicantList = () => {
     newWin.document.write(htmlContent);
     newWin.document.close();
   };
-
 
   // 🔎 Auto-search whenever searchQuery changes (debounced)
   useEffect(() => {
@@ -454,20 +454,14 @@ const ProctorApplicantList = () => {
     });
   };
 
-
-
-
-  // Put this at the very bottom before the return 
+  // Put this at the very bottom before the return
   if (loading || hasAccess === null) {
     return <LoadingOverlay open={loading} message="Loading..." />;
   }
 
   if (!hasAccess) {
-    return (
-      <Unauthorized />
-    );
+    return <Unauthorized />;
   }
-
 
   return (
     <Box
@@ -486,23 +480,21 @@ const ProctorApplicantList = () => {
         alignItems="center"
         mb={2}
       >
-        <Typography variant="h4"
+        <Typography
+          variant="h4"
           sx={{
-            fontWeight: 'bold',
+            fontWeight: "bold",
             color: titleColor,
-            fontSize: '36px',
+            fontSize: "36px",
           }}
         >
-         PROCTOR APPLICANT LIST
-
+          PROCTOR APPLICANT LIST
         </Typography>
-
 
         <TextField
           variant="outlined"
           placeholder="Search Proctor Name / Email"
           size="small"
-
           value={searchQuery}
           onChange={(e) => {
             setSearchQuery(e.target.value);
@@ -597,31 +589,45 @@ const ProctorApplicantList = () => {
             fontSize: "16px",
           }}
         >
-          <span><b>Proctor:</b> {proctor.proctor || "N/A"} |{" "}</span>
-          <span><b>Building:</b> {proctor.building_description || "N/A"} |{" "}</span>
-          <span><b>Room:</b> {proctor.room_description || "N/A"} |{" "}</span>
-          <span><b>Schedule:</b> {formatDateLong(proctor?.day_description)} |{" "}</span>
+          <span>
+            <b>Proctor:</b> {proctor.proctor || "N/A"} |{" "}
+          </span>
+          <span>
+            <b>Building:</b> {proctor.building_description || "N/A"} |{" "}
+          </span>
+          <span>
+            <b>Room:</b> {proctor.room_description || "N/A"} |{" "}
+          </span>
+          <span>
+            <b>Schedule:</b> {formatDateLong(proctor?.day_description)} |{" "}
+          </span>
 
-          <span><b>Time: </b>
+          <span>
+            <b>Time: </b>
             {proctor.start_time
-              ? new Date(`1970-01-01T${proctor.start_time}`).toLocaleTimeString("en-US", {
-                hour: "numeric",
-                minute: "2-digit",
-                hour12: true,
-              })
+              ? new Date(`1970-01-01T${proctor.start_time}`).toLocaleTimeString(
+                  "en-US",
+                  {
+                    hour: "numeric",
+                    minute: "2-digit",
+                    hour12: true,
+                  },
+                )
               : ""}{" "}
             -{" "}
             {proctor.end_time
-              ? new Date(`1970-01-01T${proctor.end_time}`).toLocaleTimeString("en-US", {
-                hour: "numeric",
-                minute: "2-digit",
-                hour12: true,
-              })
+              ? new Date(`1970-01-01T${proctor.end_time}`).toLocaleTimeString(
+                  "en-US",
+                  {
+                    hour: "numeric",
+                    minute: "2-digit",
+                    hour12: true,
+                  },
+                )
               : ""}
           </span>
         </Box>
       )}
-
 
       {applicants.length > 0 && (
         <Button
@@ -652,7 +658,6 @@ const ProctorApplicantList = () => {
         >
           Print Applicant List
         </Button>
-
       )}
       <br />
 
@@ -676,31 +681,105 @@ const ProctorApplicantList = () => {
       {applicants.length > 0 && (
         <TableContainer component={Paper}>
           <Table>
-            <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
+            <TableHead
+              sx={{ backgroundColor: settings?.header_color || "#1976d2" }}
+            >
               <TableRow>
-                <TableCell sx={{ color: "white", textAlign: "center", border: `2px solid ${borderColor}` }}>#</TableCell>
-                <TableCell sx={{ color: "white", textAlign: "center", border: `2px solid ${borderColor}` }}>Applicant</TableCell>
-                <TableCell sx={{ color: "white", textAlign: "center", border: `2px solid ${borderColor}` }}>Name</TableCell>
-                <TableCell sx={{ color: "white", textAlign: "center", border: `2px solid ${borderColor}` }}>Program</TableCell>
-                <TableCell sx={{ color: "white", textAlign: "center", border: `2px solid ${borderColor}` }}>Building</TableCell>
-                <TableCell sx={{ color: "white", textAlign: "center", border: `2px solid ${borderColor}` }}>Room</TableCell>
-                <TableCell sx={{ color: "white", textAlign: "center", border: `2px solid ${borderColor}` }}>Action</TableCell>
-
+                <TableCell
+                  sx={{
+                    color: "white",
+                    textAlign: "center",
+                    border: `2px solid ${borderColor}`,
+                  }}
+                >
+                  #
+                </TableCell>
+                <TableCell
+                  sx={{
+                    color: "white",
+                    textAlign: "center",
+                    border: `2px solid ${borderColor}`,
+                  }}
+                >
+                  Applicant
+                </TableCell>
+                <TableCell
+                  sx={{
+                    color: "white",
+                    textAlign: "center",
+                    border: `2px solid ${borderColor}`,
+                  }}
+                >
+                  Name
+                </TableCell>
+                <TableCell
+                  sx={{
+                    color: "white",
+                    textAlign: "center",
+                    border: `2px solid ${borderColor}`,
+                  }}
+                >
+                  Program
+                </TableCell>
+                <TableCell
+                  sx={{
+                    color: "white",
+                    textAlign: "center",
+                    border: `2px solid ${borderColor}`,
+                  }}
+                >
+                  Building
+                </TableCell>
+                <TableCell
+                  sx={{
+                    color: "white",
+                    textAlign: "center",
+                    border: `2px solid ${borderColor}`,
+                  }}
+                >
+                  Room
+                </TableCell>
+                <TableCell
+                  sx={{
+                    color: "white",
+                    textAlign: "center",
+                    border: `2px solid ${borderColor}`,
+                  }}
+                >
+                  Action
+                </TableCell>
               </TableRow>
             </TableHead>
 
             <TableBody>
               {applicants.map((a, idx) => (
                 <TableRow key={idx}>
-                  <TableCell align="center" sx={{ border: `2px solid ${borderColor}` }}>{idx + 1}</TableCell>
-                  <TableCell align="left" sx={{ border: `2px solid ${borderColor}` }}>{a.applicant_number}</TableCell>
-                  <TableCell align="left" sx={{ border: `2px solid ${borderColor}` }}>
+                  <TableCell
+                    align="center"
+                    sx={{ border: `2px solid ${borderColor}` }}
+                  >
+                    {idx + 1}
+                  </TableCell>
+                  <TableCell
+                    align="left"
+                    sx={{ border: `2px solid ${borderColor}` }}
+                  >
+                    {a.applicant_number}
+                  </TableCell>
+                  <TableCell
+                    align="left"
+                    sx={{ border: `2px solid ${borderColor}` }}
+                  >
                     {`${a.last_name}, ${a.first_name} ${a.middle_name || ""}`}
                   </TableCell>
-                  <TableCell align="left" sx={{ border: `2px solid ${borderColor}` }}>
+                  <TableCell
+                    align="left"
+                    sx={{ border: `2px solid ${borderColor}` }}
+                  >
                     {(() => {
                       const item = curriculumOptions.find(
-                        (x) => x.curriculum_id?.toString() === a.program?.toString()
+                        (x) =>
+                          x.curriculum_id?.toString() === a.program?.toString(),
                       );
 
                       return item
@@ -709,13 +788,26 @@ const ProctorApplicantList = () => {
                     })()}
                   </TableCell>
 
-                  <TableCell align="left" sx={{ border: `2px solid ${borderColor}` }}>
-                    {a.building_description || proctor?.building_description || "N/A"} {/* ✅ NEW */}
+                  <TableCell
+                    align="left"
+                    sx={{ border: `2px solid ${borderColor}` }}
+                  >
+                    {a.building_description ||
+                      proctor?.building_description ||
+                      "N/A"}{" "}
+                    {/* ✅ NEW */}
                   </TableCell>
-                  <TableCell align="left" sx={{ border: `2px solid ${borderColor}` }}>
-                    {a.room_description || proctor?.room_description || "N/A"} {/* ✅ NEW */}
+                  <TableCell
+                    align="left"
+                    sx={{ border: `2px solid ${borderColor}` }}
+                  >
+                    {a.room_description || proctor?.room_description || "N/A"}{" "}
+                    {/* ✅ NEW */}
                   </TableCell>
-                  <TableCell align="center" sx={{ border: `2px solid ${borderColor}` }}>
+                  <TableCell
+                    align="center"
+                    sx={{ border: `2px solid ${borderColor}` }}
+                  >
                     <IconButton
                       color="error"
                       onClick={() => {
@@ -731,13 +823,10 @@ const ProctorApplicantList = () => {
                     >
                       <CloseIcon />
                     </IconButton>
-
                   </TableCell>
-
                 </TableRow>
               ))}
             </TableBody>
-
           </Table>
         </TableContainer>
       )}
@@ -771,7 +860,9 @@ const ProctorApplicantList = () => {
         <DialogContent>
           <Typography>
             Are you sure you want to remove applicant{" "}
-            <b>{applicantToDelete?.last_name}, {applicantToDelete?.first_name}</b>
+            <b>
+              {applicantToDelete?.last_name}, {applicantToDelete?.first_name}
+            </b>
             from the exam schedule?
           </Typography>
         </DialogContent>
@@ -780,8 +871,6 @@ const ProctorApplicantList = () => {
           <Button
             color="error"
             variant="outlined"
-
-
             onClick={() => {
               setOpenDeleteDialog(false);
               setApplicantToDelete(null);
@@ -801,8 +890,11 @@ const ProctorApplicantList = () => {
                   ...auditActor(),
                 });
 
-                setApplicants(prev =>
-                  prev.filter(a => a.applicant_number !== applicantToDelete.applicant_number)
+                setApplicants((prev) =>
+                  prev.filter(
+                    (a) =>
+                      a.applicant_number !== applicantToDelete.applicant_number,
+                  ),
                 );
 
                 setSnack({
@@ -811,7 +903,6 @@ const ProctorApplicantList = () => {
                   severity: "success",
                   key: Date.now(),
                 });
-
               } catch (error) {
                 setSnack({
                   open: true,

@@ -35,7 +35,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Cropper from "react-easy-crop";
 import SaveIcon from '@mui/icons-material/Save';
-
+import SearchIcon from "@mui/icons-material/Search";
 
 const AnnouncementPanel = () => {
     const settings = useContext(SettingsContext);
@@ -248,16 +248,27 @@ const AnnouncementPanel = () => {
     const [announcementPage, setAnnouncementPage] = useState(1);
     const announcementsPerPage = 20; // change if you want
 
+const [searchTerm, setSearchTerm] = useState("");
 
+  const filteredAnnouncements = announcements.filter((a) => {
+    const search = searchTerm.toLowerCase();
 
-    const totalAnnouncementPages = Math.ceil(
-        announcements.length / announcementsPerPage
+    return (
+        a.title?.toLowerCase().includes(search) ||
+        a.content?.toLowerCase().includes(search) ||
+        a.target_role?.toLowerCase().includes(search) ||
+        getBranchName(a.campus)?.toLowerCase().includes(search)
     );
+});
 
-    const paginatedAnnouncements = announcements.slice(
-        (announcementPage - 1) * announcementsPerPage,
-        announcementPage * announcementsPerPage
-    );
+const totalAnnouncementPages = Math.ceil(
+    filteredAnnouncements.length / announcementsPerPage
+);
+
+const paginatedAnnouncements = filteredAnnouncements.slice(
+    (announcementPage - 1) * announcementsPerPage,
+    announcementPage * announcementsPerPage
+);
 
     const paginationButtonStyle = {
         minWidth: 70,
@@ -408,20 +419,50 @@ const AnnouncementPanel = () => {
 
     return (
         <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>  {/* Header */}
-            <Typography
-                variant="h4"
+             <Box
                 sx={{
-                    fontWeight: "bold",
-                    color: titleColor,
-                    fontSize: "36px",
-                    background: "white",
-                    display: "flex",
-                    alignItems: "center",
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+
                     mb: 2,
+
                 }}
             >
-                ANNOUNCEMENT
-            </Typography>
+                <Typography
+                    variant="h4"
+                    sx={{
+                        fontWeight: 'bold',
+                        color: titleColor,
+                        fontSize: '36px',
+                    }}
+                >
+                    ANNOUNCEMENT
+                </Typography>
+
+                <TextField
+                    size="small"
+                    placeholder="Search announcements..."
+                    value={searchTerm}
+                    onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        setAnnouncementPage(1);
+                    }}
+                    sx={{
+                        width: 450,
+                        backgroundColor: "#fff",
+                        borderRadius: 1,
+                        "& .MuiOutlinedInput-root": {
+                            borderRadius: "10px",
+                        },
+                    }}
+                    InputProps={{
+                        startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
+                    }}
+                />
+            </Box>
+
 
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
 
@@ -455,7 +496,7 @@ const AnnouncementPanel = () => {
                                 >
                                     {/* LEFT SIDE */}
                                     <Typography fontSize="14px" fontWeight="bold" color="white">
-                                        Total Announcements: {announcements.length}
+                                        Total Announcements: {filteredAnnouncements.length}
                                     </Typography>
 
                                     {/* RIGHT SIDE */}
@@ -585,7 +626,7 @@ const AnnouncementPanel = () => {
 
 
 
-                {announcements.length === 0 ? (
+                {filteredAnnouncements.length === 0 ? (
                     <Box
                         sx={{
                             height: "90%",
@@ -836,7 +877,7 @@ const AnnouncementPanel = () => {
                                 >
                                     {/* LEFT SIDE */}
                                     <Typography fontSize="14px" fontWeight="bold" color="white">
-                                        Total Announcements: {announcements.length}
+                                        Total Announcements: {filteredAnnouncements.length}
                                     </Typography>
 
                                     {/* RIGHT SIDE */}

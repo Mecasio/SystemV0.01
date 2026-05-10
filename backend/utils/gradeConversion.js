@@ -24,7 +24,7 @@ const getGradeConversions = async (forceRefresh = false) => {
 
   // Dynamic grade conversion source shared by import/update APIs.
   const [rows] = await db3.query(
-    `SELECT id, min_score, max_score, equivalent_grade, descriptive_rating
+    `SELECT id, min_score, max_score, equivalent_grade, descriptive_rating, is_disqualified
      FROM grade_conversion
      ORDER BY max_score DESC, equivalent_grade ASC`,
   );
@@ -65,6 +65,7 @@ const findConversionByScore = (gradeConversions, score) => {
 
 const isPassingConversion = (conversion) => {
   if (!conversion) return false;
+  if (Number(conversion.is_disqualified) === 1) return false;
 
   const descriptiveRating = String(
     conversion.descriptive_rating || "",
@@ -78,6 +79,7 @@ const isPassingConversion = (conversion) => {
 
 const isFailingConversion = (conversion) => {
   if (!conversion) return false;
+  if (Number(conversion.is_disqualified) === 1) return true;
 
   const descriptiveRating = String(
     conversion.descriptive_rating || "",

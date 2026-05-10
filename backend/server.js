@@ -59,11 +59,11 @@ const applicantDocsDir = path.join(
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "http://192.168.1.12:5173",
+  "http://192.168.0.180:5173",
   "http://192.168.50.55:5173",
   "http://192.168.50.211:5173",
   "http://136.239.248.62:5173",
-  "http://192.168.1.12:5173",
+  "http://192.168.0.180:5173",
   "http://192.168.1.9:5173",
 ];
 
@@ -2386,6 +2386,317 @@ const formatAuditActorRole = (role) => {
     .join(" ");
 };
 
+const getBearerPayload = (req) => {
+  const authHeader = req.headers.authorization || "";
+  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+
+  if (!token) return null;
+
+  try {
+    return webtoken.verify(token, process.env.JWT_SECRET);
+  } catch {
+    return null;
+  }
+};
+
+const formatPersonFullName = (person, fallback = "Unknown person") => {
+  const fullName = [
+    person?.first_name || person?.fname,
+    person?.middle_name || person?.mname,
+    person?.last_name || person?.lname,
+    person?.extension,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  return fullName || fallback;
+};
+
+const getAuditActorFromRequest = async (req) => {
+  const tokenPayload = getBearerPayload(req) || {};
+  const actorId =
+    tokenPayload.employee_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.body?.audit_actor_id ||
+    tokenPayload.person_id ||
+    req.headers["x-employee-id"] ||
+    "unknown";
+  const actorRole =
+    tokenPayload.role ||
+    req.headers["x-audit-actor-role"] ||
+    req.body?.audit_actor_role ||
+    "registrar";
+
+  let actorName = tokenPayload.email || req.headers["x-audit-actor-name"] || actorId;
+
+  try {
+    const [rows] = await db3.query(
+      `
+      SELECT
+        ua.email,
+        ua.employee_id,
+        ua.person_id,
+        ua.role,
+        COALESCE(pt.first_name, pr.fname) AS first_name,
+        COALESCE(pt.middle_name, pr.mname) AS middle_name,
+        COALESCE(pt.last_name, pr.lname) AS last_name
+      FROM user_accounts ua
+      LEFT JOIN person_table pt ON pt.person_id = ua.person_id
+      LEFT JOIN prof_table pr ON pr.person_id = ua.person_id OR pr.employee_id = ua.employee_id
+      WHERE ua.employee_id = ? OR ua.person_id = ? OR ua.email = ?
+      LIMIT 1
+      `,
+      [actorId, tokenPayload.person_id || actorId, tokenPayload.email || actorId],
+    );
+
+    if (rows?.[0]) {
+      actorName = formatPersonFullName(rows[0], rows[0].email || actorName);
+    }
+  } catch (error) {
+    console.error("Audit actor lookup failed:", error);
+  }
+
+  return {
+    actorId,
+    actorRole,
+    actorName,
+  };
+};
+
+const auditSectionLabels = {
+  personal_information: "personal information",
+  family_information: "family information",
+  educational_attainment: "educational attainment data",
+  health_information: "health information",
+};
+
+const getAuditChangeSection = (req) => {
+  const section = String(req.headers["x-audit-change-section"] || "").trim();
+  return auditSectionLabels[section] ? section : "";
+};
+
+const insertProfileChangeAuditLog = async ({
+  req,
+  target,
+  targetType,
+  targetNumber,
+  auditLogger,
+}) => {
+  const section = getAuditChangeSection(req);
+  if (!section) return;
+
+  const { actorId, actorRole, actorName } = await getAuditActorFromRequest(req);
+  const sectionLabel = auditSectionLabels[section];
+  const targetLabel = targetType === "student" ? "student" : "applicant";
+  const targetName = formatPersonFullName(target, `Unknown ${targetLabel}`);
+  const safeNumber = targetNumber || "N/A";
+
+  await auditLogger({
+    actorId,
+    role: actorRole,
+    action: "PROFILE_UPDATE",
+    severity: "INFO",
+    message: `${actorName} (${actorId}) changed the ${sectionLabel} of the ${targetLabel} ${targetName} (${safeNumber})`,
+  });
+};
+
+const getNotificationActorFromRequest = async (req) => {
+  const tokenPayload = getBearerPayload(req) || {};
+  const lookupId =
+    req.body?.actor_person_id ||
+    tokenPayload.person_id ||
+    req.headers["x-audit-actor-person-id"] ||
+    req.headers["x-audit-actor-id"] ||
+    tokenPayload.employee_id ||
+    req.body?.actor_employee_id ||
+    "unknown";
+  const lookupEmail = tokenPayload.email || req.headers["x-audit-actor-email"] || "";
+
+  try {
+    const [rows] = await db3.query(
+      `
+      SELECT employee_id, email, first_name, middle_name, last_name
+      FROM user_accounts
+      WHERE person_id = ? OR employee_id = ? OR email = ?
+      LIMIT 1
+      `,
+      [lookupId, lookupId, lookupEmail || lookupId],
+    );
+
+    if (rows?.[0]) {
+      const actor = rows[0];
+      return {
+        id: actor.employee_id || lookupId,
+        email: actor.email || lookupEmail || "unknown",
+        name: formatPersonFullName(actor, actor.email || lookupId),
+      };
+    }
+  } catch (error) {
+    console.error("Notification audit actor lookup failed:", error);
+  }
+
+  return {
+    id: req.body?.actor_employee_id || lookupId,
+    email: lookupEmail || "unknown",
+    name: req.headers["x-audit-actor-name"] || lookupEmail || lookupId,
+  };
+};
+
+const getFacultyNotificationActor = async (profId) => {
+  try {
+    const [rows] = await db3.query(
+      "SELECT prof_id, employee_id, email, fname, mname, lname FROM prof_table WHERE prof_id = ? LIMIT 1",
+      [profId],
+    );
+
+    if (rows?.[0]) {
+      const professor = rows[0];
+      return {
+        id: professor.prof_id,
+        notificationId: professor.prof_id,
+        email: professor.email || "unknown",
+        name: `${professor.lname || ""}, ${professor.fname || ""} ${professor.mname || ""}`.trim(),
+      };
+    }
+  } catch (error) {
+    console.error("Faculty notification audit actor lookup failed:", error);
+  }
+
+  return {
+    id: profId || "unknown",
+    notificationId: profId || "unknown",
+    email: "unknown",
+    name: profId || "unknown",
+  };
+};
+
+const buildNotificationAuditMessage = async (req) => {
+  const eventType = String(req.body?.event_type || "").trim();
+  const details = req.body?.details || {};
+  const actor = eventType.startsWith("faculty_")
+    ? await getFacultyNotificationActor(details.prof_id)
+    : await getNotificationActorFromRequest(req);
+  const employeePrefix = `Employee ID #${actor.id} - ${actor.email || actor.name}`;
+  const userPrefix = `User #${actor.id} - ${actor.name}`;
+
+  const gradeEntry = `${details.min_score}-${details.max_score} = ${details.equivalent_grade}`;
+  const schedulePage = details.page_name === "College Schedule Checker"
+    ? "College Schedule Checker"
+    : "Schedule Checker";
+  const scheduleType = details.schedule_type === "honorarium" ? "honorarium" : "regular";
+
+  const events = {
+    grade_conversion_saved: {
+      type: details.is_update ? "update" : "insert",
+      message: `${employeePrefix} successfully ${details.is_update ? "updated" : "created"} grade conversion entry (${gradeEntry})`,
+    },
+    grade_conversion_deleted: {
+      type: "delete",
+      message: `${employeePrefix} successfully deleted grade conversion entry (${gradeEntry})`,
+    },
+    honors_rule_saved: {
+      type: details.is_update ? "update" : "insert",
+      message: `${employeePrefix} successfully ${details.is_update ? "updated" : "created"} honors rule (${details.title || "Untitled"})`,
+    },
+    honors_rule_deleted: {
+      type: "delete",
+      message: `${employeePrefix} successfully deleted honors rule (${details.title || "Untitled"})`,
+    },
+    grading_period_activated: {
+      type: "update",
+      message: `${employeePrefix} successfully activated grading period (${details.description || details.id || "N/A"})`,
+    },
+    enrolled_subjects_imported: {
+      type: "import",
+      message: `${employeePrefix} successfully imported enrolled subjects from XLSX${details.imported_count ? ` (${details.imported_count} record/s)` : ""}${details.skipped_count ? ` with ${details.skipped_count} skipped row/s` : ""}`,
+    },
+    payment_saved: {
+      type: "insert",
+      message: `${employeePrefix} successfully saved student #${details.student_number || "N/A"} payment to ${details.payment_target || "N/A"}`,
+    },
+    payment_transferred: {
+      type: "insert",
+      message: `${employeePrefix} successfully transferred student #${details.student_number || "N/A"} payment to ${details.payment_target || "N/A"}`,
+    },
+    schedule_inserted: {
+      type: "insert",
+      message: `${employeePrefix} successfully inserted ${scheduleType} schedule in ${schedulePage}`,
+    },
+    schedule_designation_inserted: {
+      type: "insert",
+      message: `${employeePrefix} successfully inserted designation schedule in ${schedulePage}`,
+    },
+    schedule_deleted: {
+      type: "delete",
+      message: `${employeePrefix} successfully deleted schedule in ${schedulePage}`,
+    },
+    program_evaluation_grade_submitted: {
+      type: "submit",
+      message: `${userPrefix} successfully submitted student grades in Program Evaluation`,
+    },
+    faculty_grading_sheet_grade_submitted: {
+      type: "submit",
+      message: `${userPrefix} successfully submit the student grades in Grading Sheet`,
+    },
+    faculty_grading_sheet_upload_succeeded: {
+      type: "upload",
+      message: `${userPrefix} successfully upload file in Grading Sheet`,
+    },
+    faculty_grading_sheet_upload_tried: {
+      type: "upload",
+      message: `${userPrefix} tried to upload file in Grading Sheet`,
+    },
+    faculty_grading_sheet_upload_failed: {
+      type: "upload",
+      message: `${userPrefix} failed to upload file in Grading Sheet`,
+    },
+    faculty_grading_sheet_save_all: {
+      type: "submit",
+      message: `${userPrefix} executed Save All in Grading Sheet. Success: ${Number(details.success_count || 0)}, Failed: ${Number(details.fail_count || 0)}`,
+    },
+    faculty_evaluation_printed: {
+      type: "Printing",
+      message: `${userPrefix} printed Faculty Evaluation Report`,
+    },
+  };
+
+  const event = events[eventType];
+  if (!event) return null;
+
+  return {
+    ...event,
+    actor,
+    notificationId: actor.notificationId || actor.id,
+  };
+};
+
+app.post("/api/audit/event", async (req, res) => {
+  try {
+    const auditEvent = await buildNotificationAuditMessage(req);
+    if (!auditEvent) {
+      return res.status(400).json({ message: "Unsupported audit event" });
+    }
+
+    await db.query(
+      `INSERT INTO notifications (type, message, applicant_number, actor_email, actor_name, timestamp)
+       VALUES (?, ?, ?, ?, ?, NOW())`,
+      [
+        auditEvent.type,
+        auditEvent.message,
+        auditEvent.notificationId,
+        auditEvent.actor.email,
+        auditEvent.actor.name,
+      ],
+    );
+
+    res.json({ success: true, message: "Log inserted" });
+  } catch (error) {
+    console.error("Error inserting audit event:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 const getApplicantCurriculumLabel = async (curriculumId) => {
   if (!curriculumId) return "None";
 
@@ -2600,6 +2911,27 @@ app.put("/api/person/:id", async (req, res) => {
         .json({ error: "Person not found or no changes made" });
     }
 
+    if (getAuditChangeSection(req)) {
+      const [targetRows] = await db.query(
+        `
+        SELECT pt.*, ant.applicant_number
+        FROM person_table pt
+        LEFT JOIN applicant_numbering_table ant ON ant.person_id = pt.person_id
+        WHERE pt.person_id = ?
+        LIMIT 1
+        `,
+        [id],
+      );
+
+      await insertProfileChangeAuditLog({
+        req,
+        target: targetRows?.[0],
+        targetType: "applicant",
+        targetNumber: targetRows?.[0]?.applicant_number,
+        auditLogger: insertAuditLogAdmission,
+      });
+    }
+
     if (applicantBefore && courseUpdateFields.length > 0) {
       const cleanedData = Object.fromEntries(cleanedEntries);
       const changes = [];
@@ -2622,13 +2954,11 @@ app.put("/api/person/:id", async (req, res) => {
         }
       }
 
+      const courseAuditActor = await getAuditActorFromRequest(req);
+
       await insertApplicantCourseChangeAuditLog({
-        actorId:
-          req.body.audit_actor_id ||
-          req.body.actor_id ||
-          req.body.employee_id ||
-          "unknown",
-        actorRole: req.body.audit_actor_role || req.body.role || "registrar",
+        actorId: courseAuditActor.actorId,
+        actorRole: courseAuditActor.actorRole,
         applicant: applicantBefore,
         changes,
       });
@@ -2676,6 +3006,27 @@ app.put("/api/enrollment/person/:person_id", async (req, res) => {
       return res
         .status(404)
         .json({ message: "Person not found in ENROLLMENT" });
+
+    if (getAuditChangeSection(req)) {
+      const [targetRows] = await db3.query(
+        `
+        SELECT p.*, s.student_number
+        FROM person_table p
+        LEFT JOIN student_numbering_table s ON s.person_id = p.person_id
+        WHERE p.person_id = ?
+        LIMIT 1
+        `,
+        [person_id],
+      );
+
+      await insertProfileChangeAuditLog({
+        req,
+        target: targetRows?.[0],
+        targetType: "student",
+        targetNumber: targetRows?.[0]?.student_number,
+        auditLogger: insertAuditLogEnrollment,
+      });
+    }
 
     res.json({
       success: true,
