@@ -334,7 +334,7 @@ const ExaminationProfile = ({ personId }) => {
     }, [selectedPerson]);
 
 
-   
+
     useEffect(() => {
         const fetchCurriculums = async () => {
             try {
@@ -396,6 +396,8 @@ const ExaminationProfile = ({ personId }) => {
     const permitRef = useRef();
     const changeCourseRef = useRef();
     const newFormRef = useRef();
+    const changeCourseRef1 = useRef();
+    const newFormRef1 = useRef();
 
     const printDiv = (ref) => {
         const divToPrint = ref.current;
@@ -420,7 +422,7 @@ const ExaminationProfile = ({ personId }) => {
 
                         /* 🔥 THIS IS YOUR MISSING STYLE */
                         .student-table {
-                            margin-top: 15px !important;
+                            margin-top: 35px !important;
                         }
 
                         button {
@@ -475,6 +477,25 @@ const ExaminationProfile = ({ personId }) => {
         }, 200);
     };
 
+    const handlePrintChangeCourse1 = async () => {
+        await fetchPersonData(selectedPerson.person_id);
+        setShowPrintView(true);
+
+        setTimeout(() => {
+            printDiv(changeCourseRef1);
+            setShowPrintView(false);
+        }, 200);
+    };
+
+    const handlePrintNewForm1 = async () => {
+        await fetchPersonData(selectedPerson.person_id); // make sure person data is loaded
+        setShowPrintView(true);
+
+        setTimeout(() => {
+            printDiv(newFormRef1); // <-- pass the new ref
+            setShowPrintView(false);
+        }, 200);
+    };
     // Put this at the very bottom before the return 
     if (loading || hasAccess === null) {
         return <LoadingOverlay open={loading} message="Loading..." />;
@@ -576,7 +597,7 @@ const ExaminationProfile = ({ personId }) => {
 
             </Box>
 
-     
+
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
 
             <br />
@@ -742,6 +763,57 @@ const ExaminationProfile = ({ personId }) => {
                         Print New Form
                     </span>
                 </button>
+
+
+                <button
+                    onClick={handlePrintChangeCourse1}
+                    style={{
+                        padding: "10px 20px",
+                        border: "2px solid black",
+                        backgroundColor: "#f0f0f0",
+                        color: "black",
+                        borderRadius: "5px",
+                        cursor: "pointer",
+                        fontSize: "16px",
+                        fontWeight: "bold",
+                        transition: "background-color 0.3s, transform 0.2s",
+                    }}
+                    onMouseEnter={(e) => (e.target.style.backgroundColor = "#d3d3d3")}
+                    onMouseLeave={(e) => (e.target.style.backgroundColor = "#f0f0f0")}
+                    onMouseDown={(e) => (e.target.style.transform = "scale(0.95)")}
+                    onMouseUp={(e) => (e.target.style.transform = "scale(1)")}
+                >
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <FcPrint size={20} />
+                        Print Applicant Change Course Form
+                    </span>
+                </button>
+
+
+                <button
+                    onClick={handlePrintNewForm1}
+                    style={{
+                        padding: "10px 20px",
+                        border: "2px solid black",
+                        backgroundColor: "#f0f0f0",
+                        color: "black",
+                        borderRadius: "5px",
+                        cursor: "pointer",
+                        fontSize: "16px",
+                        fontWeight: "bold",
+                        transition: "background-color 0.3s, transform 0.2s",
+                    }}
+                    onMouseEnter={(e) => (e.target.style.backgroundColor = "#d3d3d3")}
+                    onMouseLeave={(e) => (e.target.style.backgroundColor = "#f0f0f0")}
+                    onMouseDown={(e) => (e.target.style.transform = "scale(0.95)")}
+                    onMouseUp={(e) => (e.target.style.transform = "scale(1)")}
+                >
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <FcPrint size={20} />
+                        Print New Form
+                    </span>
+                </button>
+
             </div>
 
 
@@ -778,592 +850,540 @@ const ExaminationProfile = ({ personId }) => {
                     </div>
 
 
-                    <div className="section">
-                        <table
-                            className="student-table"
-                            style={{
-                                borderCollapse: "collapse",
-                                fontFamily: "Arial",
-                                width: "8in",
-                                margin: "0 auto", // Center the table inside the form
-                                textAlign: "center",
-                                tableLayout: "fixed",
+                    {/* ✅ VERIFIED / NOT VERIFIED Watermark */}
 
-                            }}
-                        >
-                            <style>{`
-          .certificate-wrapper {
-            position: relative;
-          }
+                    <div
+                        className="student-table"
+                        style={{
+                            width: "8in", // matches table width assuming 8in for 40 columns
+                            maxWidth: "100%",
+                            margin: "0 auto",
+                            marginTop: "-10px",
 
-          .certificate-watermark {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-30deg);
-            font-size: 8rem;
-            font-weight: 900;
-            color: rgba(0, 128, 0, 0.15); /* light green tint */
-            text-transform: uppercase;
-            white-space: nowrap;
-            pointer-events: none;
-            user-select: none;
-            z-index: 9999;
-            font-family: Arial;
-            letter-spacing: 0.3rem;
-          }
-
-          @media print {
-            .certificate-watermark {
-              color: rgba(0, 128, 0, 0.25); /* darker green for printing */
-            }
-            button {
-              display: none;
-            }
-          }
-        `}</style>
-
-
-
+                            boxSizing: "border-box",
+                            padding: "10px 0",
+                        }}
+                    >
+                        {/* Header */}
+                        <table width="100%" style={{ borderCollapse: "collapse", fontFamily: "Arial" }}>
                             <tbody>
-
 
                                 <tr>
 
-                                    <td colSpan={40} style={{ height: "0.5in", textAlign: "center" }}>
-                                        {/* Header */}
-                                        <table width="100%" style={{ borderCollapse: "collapse", marginTop: "15px", fontFamily: "Arial" }}>
-                                            <tbody>
-                                                <tr>
 
+                                    <td style={{ width: "20%", textAlign: "center" }}>
+                                        <img
+                                            src={fetchedLogo}
+                                            alt="School Logo"
+                                            style={{
+                                                marginLeft: "-10px",
+                                                width: "120px",
+                                                height: "120px",
+                                                marginTop: "10px",
+                                                borderRadius: "50%", // ✅ perfectly circular
+                                                objectFit: "cover",
 
-                                                    <td style={{ width: "20%", textAlign: "center" }}>
-                                                        <img
-                                                            src={fetchedLogo}
-                                                            alt="School Logo"
-                                                            style={{
-                                                                marginLeft: "-10px",
-                                                                width: "120px",
-                                                                height: "120px",
-                                                                borderRadius: "50%", // ✅ perfectly circular
-                                                                objectFit: "cover",
-
-                                                            }}
-                                                        />
-                                                    </td>
-
-                                                    {/* Center Column - School Information */}
-                                                    <td style={{
-                                                        width: "60%", textAlign: "center", lineHeight: "1",
-
-                                                    }}>
-                                                        <div style={{ fontSize: "13px", fontFamily: "Arial" }}>Republic of the Philippines</div>
-                                                        <div
-                                                            style={{
-                                                                fontWeight: "bold",
-                                                                fontFamily: "Arial",
-                                                                fontSize: "16px",
-                                                                textTransform: "Uppercase"
-                                                            }}
-                                                        >
-                                                            {firstLine}
-                                                        </div>
-
-                                                        <div
-                                                            style={{
-                                                                fontWeight: "bold",
-                                                                fontFamily: "Arial",
-                                                                fontSize: "16px",
-                                                                textTransform: "Uppercase"
-                                                            }}
-                                                        >
-                                                            {secondLine}
-                                                        </div>
-
-                                                        {campusAddress && (
-                                                            <div style={{ fontSize: "13px", fontFamily: "Arial" }}>
-                                                                {campusAddress}
-                                                            </div>
-                                                        )}
-
-                                                        {/* Add spacing here */}
-                                                        <div style={{ marginTop: "30px" }}>
-                                                            <b style={{ fontSize: "24px", letterSpacing: '1px', fontWeight: "bold" }}>
-                                                                EXAMINATION PERMIT
-                                                            </b>
-                                                        </div>
-                                                    </td>
-
-                                                    <td
-                                                        colSpan={4}
-                                                        rowSpan={6}
-                                                        style={{
-                                                            textAlign: "center",
-                                                            position: "relative",
-                                                            width: "4.5cm",
-                                                            height: "4.5cm",
-                                                        }}
-                                                    >
-                                                        <div
-                                                            style={{
-                                                                width: "4.70cm",
-                                                                height: "4.70cm",
-                                                                marginRight: "10px",
-                                                                display: "flex",
-                                                                justifyContent: "center",
-                                                                alignItems: "center",
-                                                                position: "relative",
-                                                                border: "2px solid black",
-                                                                overflow: "hidden",
-                                                                borderRadius: "4px",
-                                                            }}
-                                                        >
-                                                            {person.profile_img ? (
-                                                                <img
-                                                                    src={`${API_BASE_URL}/uploads/Applicant1by1/${person.profile_img}`}
-                                                                    alt="Profile"
-                                                                    style={{
-                                                                        width: "100%",
-                                                                        height: "100%",
-                                                                        objectFit: "cover",
-
-                                                                    }}
-                                                                />
-                                                            ) : (
-                                                                <span style={{ fontSize: "12px", color: "#888" }}>No Image</span>
-                                                            )}
-                                                        </div>
-                                                    </td>
-
-                                                </tr>
-                                            </tbody>
-                                        </table>
+                                            }}
+                                        />
                                     </td>
 
-                                </tr>
-
-
-                            </tbody>
-                        </table>
-                        <div style={{ height: "30px" }}></div>
-                        <table
-                            className="student-table"
-                            style={{
-                                borderCollapse: "collapse",
-                                fontFamily: "Arial",
-                                width: "8in",
-                                margin: "0 auto",
-
-
-                                textAlign: "center",
-                                tableLayout: "fixed",
-                            }}
-                        >
-
-                            <tbody>
-                                <tr style={{ fontFamily: "Arial", fontSize: "15px" }}>
-                                    <td colSpan={40}>
+                                    {/* Center Column - School Information */}
+                                    <td style={{ width: "60%", textAlign: "center", lineHeight: "1", }}>
+                                        <div style={{ fontFamily: "Arial", fontSize: "13px" }}>
+                                            Republic of the Philippines
+                                        </div>
                                         <div
                                             style={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "flex-end",
-                                                width: "100%",
-                                                gap: "10px",
+                                                fontWeight: "bold",
+                                                fontFamily: "Arial",
+                                                fontSize: "20px"
+
                                             }}
                                         >
-                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap" }}>
-                                                Applicant No.:
-                                            </label>
+                                            {firstLine}
+                                        </div>
+                                        {secondLine && (
                                             <div
-                                                style={{
-                                                    borderBottom: "1px solid black",
-                                                    fontFamily: "Arial",
-                                                    fontWeight: "normal",
-                                                    fontSize: "15px",
-                                                    minWidth: "278px",
-                                                    height: "1.2em",
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                }}
-                                            >
-                                                {selectedPerson?.applicant_number}
-                                            </div>
-                                        </div>
-                                    </td>
-
-
-                                </tr>
-
-                                {/* Email & Applicant ID */}
-                                <tr style={{ fontFamily: "Arial", fontSize: "15px" }}>
-                                    <td colSpan={20}>
-                                        <div
-                                            style={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "flex-start",
-                                                width: "100%",
-                                                gap: "10px",
-                                            }}
-                                        >
-                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap" }}>
-                                                Name:
-                                            </label>
-                                            <div
-                                                style={{
-                                                    borderBottom: "1px solid black",
-                                                    fontFamily: "Arial",
-                                                    fontWeight: "normal",
-                                                    fontSize: "15px",
-                                                    minWidth: "328px",
-                                                    height: "1.2em",
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                }}
-                                            >
-                                                {selectedPerson?.last_name?.toUpperCase()}, {selectedPerson?.first_name?.toUpperCase()}{" "}
-                                                {selectedPerson?.middle_name?.toUpperCase() || ""}{" "}
-                                                {selectedPerson?.extension?.toUpperCase() || ""}
-                                            </div>
-                                        </div>
-                                    </td>
-
-
-                                    <td colSpan={20}>
-                                        <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px" }}>Permit No.:</label>
-                                            <span style={{ flexGrow: 1, borderBottom: "1px solid black", height: "1.2em", textAlign: "left", fontFamily: "Arial" }}>{selectedPerson?.applicant_number}</span>
-                                        </div>
-                                    </td>
-                                </tr>
-
-                                <tr style={{ fontFamily: "Arial", fontSize: "15px" }}>
-                                    <td colSpan={20}>
-                                        <div
-                                            style={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                width: "100%",
-                                                gap: "10px",
-                                            }}
-                                        >
-                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap" }}>
-                                                Course Applied:
-                                            </label>
-                                            <div
-                                                style={{
-                                                    borderBottom: "1px solid black",
-                                                    fontFamily: "Arial",
-                                                    fontWeight: "normal",
-                                                    fontSize: "15px",
-                                                    minWidth: "265px",
-                                                    width: "100%", // make it extend to available space
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    paddingRight: "5px",
-                                                    overflowWrap: "break-word", // allows long course names to wrap
-                                                }}
-                                            >
-                                                {curriculumOptions.length > 0
-                                                    ? curriculumOptions.find(
-                                                        (item) =>
-                                                            item?.curriculum_id?.toString() === (person?.program ?? "").toString()
-                                                    )?.program_description || (person?.program ?? "")
-                                                    : "Loading..."}
-                                            </div>
-                                        </div>
-                                    </td>
-
-                                    <td colSpan={20}>
-                                        <div
-                                            style={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                width: "100%",
-                                                gap: "10px",
-                                            }}
-                                        >
-                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap" }}>Major:</label>
-                                            <div
-                                                style={{
-                                                    borderBottom: "1px solid black",
-                                                    fontFamily: "Arial",
-                                                    fontWeight: "normal",
-                                                    fontSize: "15px",
-                                                    width: "100%",
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    paddingRight: "5px",
-                                                    overflowWrap: "break-word", // allows long major names to wrap
-                                                }}
-                                            >
-                                                {curriculumOptions.length > 0
-                                                    ? curriculumOptions.find(
-                                                        (item) =>
-                                                            item?.curriculum_id?.toString() === (person?.program ?? "").toString()
-                                                    )?.major || ""
-                                                    : "Loading..."}
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-
-
-                                <tr style={{ fontFamily: "Arial", fontSize: "15px" }}>
-                                    <td colSpan={20}>
-                                        <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px" }}>Date of Exam:</label>
-                                            <span style={{ flexGrow: 1, borderBottom: "1px solid black", height: "1.2em", fontFamily: "Arial", textAlign: "left" }}>
-                                                {examSchedule?.date_of_exam}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td colSpan={20}>
-                                        <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-                                            <label
                                                 style={{
                                                     fontWeight: "bold",
-                                                    whiteSpace: "nowrap",
-                                                    marginRight: "10px",
-                                                }}
-                                            >
-                                                Time :
-                                            </label>
-                                            <span
-                                                style={{
-                                                    flexGrow: 1,
-                                                    borderBottom: "1px solid black",
-                                                    height: "1.2em",
                                                     fontFamily: "Arial",
-                                                    textAlign: "left",
+                                                    fontSize: "20px"
+
+
                                                 }}
                                             >
-                                                {examSchedule
-                                                    ? new Date(`1970-01-01T${examSchedule.start_time}`).toLocaleTimeString(
-                                                        "en-US",
-                                                        { hour: "numeric", minute: "2-digit", hour12: true }
-                                                    )
-                                                    : ""}
-                                            </span>
-                                        </div>
-                                    </td>
-
-                                </tr>
-
-                                <tr style={{ fontFamily: "Arial", fontSize: "15px" }}>
-                                    <td colSpan={20}>
-                                        <div style={{ display: "flex", alignItems: "center", width: "100%", marginTop: "-85px" }}>
-                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px" }}>
-                                                Bldg. :
-                                            </label>
-                                            <span
-                                                style={{
-                                                    flexGrow: 1,
-                                                    borderBottom: "1px solid black",
-                                                    height: "1.2em",
-                                                    fontFamily: "Arial",
-                                                    textAlign: "left",
-                                                }}
-                                            >
-                                                {examSchedule?.building_description || ""} - {getOrdinal(examSchedule?.floor)} Floor
-                                            </span>
-                                        </div>
-                                    </td>
-
-                                    {/* Room No. + QR side by side */}
-                                    <td colSpan={20}>
-                                        <div
-                                            style={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                width: "100%",
-                                                justifyContent: "space-between", // space text & QR
-                                            }}
-                                        >
-                                            <div style={{ display: "flex", alignItems: "center", marginTop: "-130px" }}>
-                                                <label style={{ fontWeight: "bold", marginRight: "10px", width: "80px" }}>
-                                                    Room No.:
-                                                </label>
-                                                <span
-                                                    style={{
-                                                        flexGrow: 1,
-                                                        borderBottom: "1px solid black",
-                                                        fontFamily: "Arial",
-                                                        width: "150px",
-                                                    }}
-                                                >
-                                                    {examSchedule?.room_description || ""}
-                                                </span>
+                                                {secondLine}
                                             </div>
+                                        )}
+                                        {campusAddress && (
+                                            <div style={{ fontFamily: "Arial", fontSize: "13px" }}>
+                                                {campusAddress}
+                                            </div>
+                                        )}
 
-                                            {selectedPerson?.applicant_number && (
-                                                <div
-                                                    style={{
-                                                        width: "4.5cm",
-                                                        height: "4.5cm",
-                                                        borderRadius: "4px",
-                                                        background: "#fff",
-                                                        display: "flex",
-                                                        justifyContent: "center",
-                                                        alignItems: "center",
-                                                        position: "relative",
-                                                        overflow: "hidden",
-                                                        marginLeft: "10px"
-                                                    }}
-                                                >
-                                                    <QRCodeSVG
-                                                        value={`${window.location.origin}/applicant_profile/${person.applicant_number}`}
-                                                        size={150}
-                                                        level="H"
-                                                    />
-
-                                                    <div
-                                                        style={{
-                                                            position: "absolute",
-                                                            fontSize: "12px",
-                                                            fontWeight: "bold",
-                                                            color: "maroon",
-                                                            background: "white",
-                                                            padding: "2px 4px",
-                                                            borderRadius: "2px",
-                                                        }}
-                                                    >
-                                                        {selectedPerson.applicant_number}
-                                                    </div>
-                                                </div>
-                                            )}
-
-
-                                        </div>
-                                    </td>
-                                </tr>
-
-
-
-                                <tr style={{ fontFamily: "Arial", fontSize: "15px" }}>
-                                    <td colSpan={20}>
-                                        <div style={{ display: "flex", alignItems: "center", width: "100%", marginTop: "-148px" }}>
-                                            <label
-                                                style={{
-                                                    fontWeight: "bold",
-                                                    whiteSpace: "nowrap",
-                                                    marginRight: "10px",
-                                                }}
-                                            >
-                                                Date:
-                                            </label>
-                                            <span
-                                                style={{
-                                                    flexGrow: 1,
-                                                    borderBottom: "1px solid black",
-                                                    height: "1.2em",
-                                                    fontFamily: "Arial",
-                                                    textAlign: "left",
-                                                }}
-                                            >
-                                                {examSchedule?.schedule_created_at
-                                                    ? new Date(examSchedule.schedule_created_at).toLocaleDateString("en-US", {
-                                                        month: "long",
-                                                        day: "numeric",
-                                                        year: "numeric",
-                                                    })
-                                                    : ""}
-                                            </span>
+                                        {/* Add spacing here */}
+                                        <div style={{ marginTop: "30px" }}>
+                                            <b style={{ fontSize: "24px", letterSpacing: '1px', fontWeight: "bold" }}>
+                                                EXAMINATION PERMIT
+                                            </b>
                                         </div>
                                     </td>
 
-                                </tr>
-
-                                <tr style={{ fontFamily: "Arial", fontSize: "15px" }}>
-                                    <td colSpan={20}>
-                                        <div style={{ display: "flex", alignItems: "center", width: "100%", marginTop: "-128px" }}>
-                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px" }}>Scheduled by:</label>
-                                            <span
-                                                style={{
-                                                    flexGrow: 1,
-                                                    borderBottom: "1px solid black",
-                                                    fontFamily: "Arial",
-                                                }}
-                                            >
-                                                {scheduledBy || "N/A"}
-                                            </span>
-
-                                        </div>
-                                    </td>
-                                </tr>
-
-                            </tbody>
-                        </table>
-
-
-
-                        <table
-                            className="student-table"
-                            style={{
-
-                                borderCollapse: "collapse",
-                                fontFamily: "Arial",
-                                width: "8in",
-                                margin: "0 auto", // Center the table inside the form
-                                textAlign: "center",
-                                tableLayout: "fixed",
-                                border: "1px solid black"
-                            }}
-                        >
-                            <tbody>
-
-
-                                <tr>
                                     <td
-                                        colSpan={40}
+                                        colSpan={4}
+                                        rowSpan={6}
                                         style={{
-                                            color: "black",
-                                            padding: "12px",
-                                            lineHeight: "1.6",
-                                            textAlign: "left",
-                                            fontSize: "14px",
-                                            fontFamily: "Arial",
+                                            textAlign: "center",
+                                            position: "relative",
+                                            width: "4.5cm",
+                                            height: "4.5cm",
                                         }}
                                     >
-                                        <strong>IMPORTANT REMINDERS FOR APPLICANTS:</strong>
+                                        <div
+                                            style={{
+                                                width: "3.80cm",
+                                                height: "3.80cm",
+                                                marginRight: "10px",
+                                                display: "flex",
+                                                justifyContent: "center",
+                                                alignItems: "center",
+                                                position: "relative",
+                                                border: `1px solid ${borderColor}`,
+                                                overflow: "hidden",
+                                                borderRadius: "4px",
+                                                marginTop: "10px",
+                                            }}
+                                        >
+                                            {person.profile_img ? (
+                                                <img
+                                                    src={`${API_BASE_URL}/uploads/Applicant1by1/${person.profile_img}`}
+                                                    alt="Profile"
+                                                    style={{
+                                                        width: "100%",
+                                                        height: "100%",
+                                                        objectFit: "cover",
 
-                                        <ul style={{ marginTop: "8px" }}>
-                                            <strong>Step 1:</strong> Check your Examination Date, Time, and Room Number indicated on your permit.
-                                            <br />
-
-
-                                            <strong>Step 2:</strong> Bring all required items on the exam day:
-                                            <ul>
-                                                <li>Official Examination Permit with VERIFIED watermark on it</li>
-                                                <li>No. 2 Pencil (any brand)</li>
-                                                <li>2 Short bond papers</li>
-                                            </ul>
-
-
-
-                                            <strong>Step 3:</strong> Wear the proper attire:
-                                            <ul>
-                                                <li>Plain white T-shirt or plain white polo shirt <strong>(no prints, no logos, no designs)</strong></li>
-                                                <li>Pants (No shorts, No ripped jeans are not Allowed)</li>
-                                                <li>Closed shoes (no crocs, sandals, slippers)</li>
-                                            </ul>
-
-
-                                            <strong>Step 4:</strong>Keep the two paper sheets attached to your exam permit. You will need them for the document check and enrollment process.
-                                            <br />
-                                            <strong>Step 5:</strong>Please Arrive at least 1 hour before your examination time. Late applicants will NOT be allowed to enter once the exam room door closes.
-                                            <br />
-                                            <br />
-                                            <div style={{ textAlign: "center", marginLeft: "-50px" }}><strong>GOODLUCK FUTURE EARISTIANS!</strong></div>
-                                        </ul>
+                                                    }}
+                                                />
+                                            ) : (
+                                                <span style={{ fontSize: "12px", color: "#888" }}>No Image</span>
+                                            )}
+                                        </div>
                                     </td>
+
                                 </tr>
 
                             </tbody>
                         </table>
+                    </div>
+
+                    <div style={{ height: "20px" }} />
+                    <div className="certificate-wrapper">
+                        {/* ✅ Watermark */}
+
 
                     </div>
+
+                    {/* ✅ Applicant Details Table */}
+                    <table
+                        className="student-table"
+                        style={{
+                            borderCollapse: "collapse",
+                            fontFamily: "Arial",
+                            fontSize: "15px",
+                            width: "8in",
+                            margin: "0 auto",
+                            tableLayout: "fixed",
+                        }}
+                    >
+                        <tbody>
+                            {/* Applicant Number */}
+                            <tr style={{ fontFamily: "Arial", fontSize: "15px" }}>
+                                <td colSpan={40}>
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "flex-end",
+                                            width: "100%",
+                                            gap: "10px",
+                                        }}
+                                    >
+                                        <label style={{ fontWeight: "bold", whiteSpace: "nowrap" }}>
+                                            Applicant No.:
+                                        </label>
+                                        <div
+                                            style={{
+                                                borderBottom: "1px solid black",
+                                                fontFamily: "Arial",
+                                                fontWeight: "normal",
+                                                fontSize: "15px",
+                                                minWidth: "278px",
+                                                height: "1.2em",
+                                                display: "flex",
+                                                alignItems: "center",
+                                            }}
+                                        >
+                                            {person?.applicant_number}
+                                        </div>
+                                    </div>
+                                </td>
+
+
+                            </tr>
+
+                            {/* Name + Permit No. */}
+                            <tr>
+                                <td colSpan={20}>
+                                    <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
+                                        <label style={{ fontWeight: "bold", marginRight: "10px" }}>
+                                            Name:
+                                        </label>
+                                        <span
+                                            style={{
+                                                flexGrow: 1,
+                                                borderBottom: "1px solid black",
+                                                fontFamily: "Arial",
+                                                minWidth: "250px",
+                                            }}
+                                        >
+                                            {person?.last_name?.toUpperCase()}, {person?.first_name?.toUpperCase()}{" "}
+                                            {person?.middle_name?.toUpperCase() || ""}{" "}
+                                            {person?.extension?.toUpperCase() || ""}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td colSpan={20}>
+                                    <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
+                                        <label style={{ fontWeight: "bold", marginRight: "10px" }}>
+                                            Permit No.:
+                                        </label>
+                                        <span
+                                            style={{
+                                                flexGrow: 1,
+                                                borderBottom: "1px solid black",
+                                                minWidth: "200px",
+                                                fontFamily: "Arial",
+                                            }}
+                                        >
+                                            {person?.applicant_number}
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            {/* Course + Major */}
+                            <tr>
+                                <td colSpan={20}>
+                                    <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
+                                        <label style={{ fontWeight: "bold", marginRight: "10px" }}>
+                                            Course Applied:
+                                        </label>
+                                        <span
+                                            style={{
+                                                flexGrow: 1,
+                                                borderBottom: "1px solid black",
+                                                minWidth: "220px",
+                                                fontFamily: "Arial",
+                                            }}
+                                        >
+                                            {curriculumOptions.find(
+                                                (c) =>
+                                                    c.curriculum_id?.toString() === (person?.program ?? "").toString()
+                                            )?.program_description || ""}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td colSpan={20}>
+                                    <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
+                                        <label style={{ fontWeight: "bold", marginRight: "10px", }}>
+                                            Major:
+                                        </label>
+                                        <span
+                                            style={{
+                                                flexGrow: 1,
+                                                borderBottom: "1px solid black",
+                                                minWidth: "200px",
+                                                fontFamily: "Arial",
+
+                                            }}
+                                        >
+                                            {curriculumOptions.find(
+                                                (c) =>
+                                                    c.curriculum_id?.toString() === (person?.program ?? "").toString()
+                                            )?.major || ""}
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            {/* Date of Exam + Time */}
+                            <tr>
+                                <td colSpan={20}>
+                                    <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
+                                        <label style={{ fontWeight: "bold", marginRight: "10px" }}>
+                                            Date of Exam:
+                                        </label>
+                                        <span
+                                            style={{
+                                                flexGrow: 1,
+                                                borderBottom: "1px solid black",
+                                                fontFamily: "Arial",
+                                            }}
+                                        >
+                                            {examSchedule?.date_of_exam}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td colSpan={20}>
+                                    <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
+                                        <label style={{ fontWeight: "bold", marginRight: "10px" }}>
+                                            Time:
+                                        </label>
+                                        <span
+                                            style={{
+                                                flexGrow: 1,
+                                                borderBottom: "1px solid black",
+                                                fontFamily: "Arial",
+                                            }}
+                                        >
+                                            {examSchedule
+                                                ? new Date(`1970-01-01T${examSchedule.start_time}`).toLocaleTimeString(
+                                                    "en-US",
+                                                    { hour: "numeric", minute: "2-digit", hour12: true }
+                                                )
+                                                : ""}
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            {/* Building + Room + QR */}
+                            <tr>
+                                <td colSpan={20}>
+                                    <div style={{ display: "flex", alignItems: "center", width: "100%", marginTop: "-83px" }}>
+                                        <label style={{ fontWeight: "bold", marginRight: "10px" }}>
+                                            Bldg.:
+                                        </label>
+                                        <span
+                                            style={{
+                                                flexGrow: 1,
+                                                borderBottom: "1px solid black",
+                                                fontFamily: "Arial",
+                                            }}
+                                        >
+                                            {examSchedule?.building_description || ""}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td colSpan={20}>
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "space-between",
+                                            width: "100%",
+                                        }}
+                                    >
+                                        <div style={{ display: "flex", alignItems: "center", marginTop: "-130px" }}>
+                                            <label style={{ fontWeight: "bold", marginRight: "10px", width: "80px" }}>
+                                                Room No.:
+                                            </label>
+                                            <span
+                                                style={{
+                                                    flexGrow: 1,
+                                                    borderBottom: "1px solid black",
+                                                    fontFamily: "Arial",
+                                                    width: "150px",
+                                                }}
+                                            >
+                                                {examSchedule?.room_description || ""}
+                                            </span>
+                                        </div>
+
+                                        {person?.applicant_number && (
+                                            <div
+                                                style={{
+                                                    width: "4.5cm", // same as profile box
+                                                    height: "4.5cm",
+
+                                                    borderRadius: "4px",
+                                                    background: "#fff",       // ✅ white background
+                                                    display: "flex",
+                                                    justifyContent: "center",
+                                                    alignItems: "center",
+                                                    position: "relative",
+                                                    overflow: "hidden",
+                                                    marginLeft: "10px" // spacing from "Room No."
+                                                }}
+                                            >
+                                                <QRCodeSVG
+                                                    value={`${window.location.origin}/applicant_profile/${person.applicant_number}`}
+                                                    size={150}
+                                                    level="H"
+                                                />
+
+                                                {/* ✅ Applicant Number Overlay in Middle */}
+                                                <div
+                                                    style={{
+                                                        position: "absolute",
+                                                        fontSize: "12px",
+                                                        fontWeight: "bold",
+                                                        color: "maroon",
+                                                        background: "white", // white backdrop so text doesn’t blend into QR
+                                                        padding: "2px 4px",
+                                                        borderRadius: "2px",
+                                                    }}
+                                                >
+                                                    {person.applicant_number}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                    </div>
+                                </td>
+
+                            </tr>
+
+
+
+
+                            {/* Date */}
+                            <tr>
+                                <td colSpan={40}>
+                                    <div style={{ display: "flex", alignItems: "center", width: "50%", marginTop: "-145px" }}>
+                                        <label style={{ fontWeight: "bold", marginRight: "10px" }}>
+                                            Date:
+                                        </label>
+                                        <span
+                                            style={{
+                                                flexGrow: 1,
+                                                borderBottom: "1px solid black",
+                                                fontFamily: "Arial",
+                                            }}
+                                        >
+                                            {examSchedule?.schedule_created_at
+                                                ? new Date(examSchedule.schedule_created_at).toLocaleDateString(
+                                                    "en-US",
+                                                    { month: "long", day: "numeric", year: "numeric" }
+                                                )
+                                                : ""}
+                                        </span>
+                                    </div>
+                                </td>
+
+
+                            </tr>
+                            {/* Scheduled By */}
+                            <tr>
+                                <td colSpan={40}>
+                                    <div style={{ display: "flex", alignItems: "center", width: "50%", marginTop: "-125px" }}>
+                                        <label style={{ fontWeight: "bold", marginRight: "10px" }}>
+                                            Scheduled by:
+                                        </label>
+                                        <span
+                                            style={{
+                                                flexGrow: 1,
+                                                borderBottom: "1px solid black",
+                                                fontFamily: "Arial",
+                                            }}
+                                        >
+                                            {scheduledBy || "N/A"}
+                                        </span>
+                                    </div>
+                                </td>
+
+                            </tr>
+
+
+
+
+
+                        </tbody>
+                    </table>
+
+                    <table
+                        className="student-table"
+                        style={{
+
+                            borderCollapse: "collapse",
+                            fontFamily: "Arial",
+                            width: "8in",
+                            margin: "0 auto", // Center the table inside the form
+                            textAlign: "center",
+                            tableLayout: "fixed",
+                            border: "1px solid black",
+                            marginTop: "10px"
+                        }}
+                    >
+                        <tbody>
+
+
+                            <tr>
+                                <td
+                                    colSpan={40}
+                                    style={{
+                                        color: "black",
+                                        padding: "12px",
+                                        lineHeight: "1.6",
+                                        textAlign: "left",
+                                        fontSize: "14px",
+                                        fontFamily: "Arial",
+                                    }}
+                                >
+                                    <strong>IMPORTANT REMINDERS FOR APPLICANTS:</strong>
+
+                                    <ul style={{ marginTop: "8px" }}>
+                                        <strong>Step 1:</strong> Check your Examination Date, Time, and Room Number indicated on your permit.
+                                        <br />
+
+
+                                        <strong>Step 2:</strong> Bring all required items on the exam day:
+                                        <ul>
+                                            <li>Official Examination Permit with VERIFIED watermark on it</li>
+                                            <li>No. 2 Pencil (any brand)</li>
+                                            <li>2 Short bond papers</li>
+                                        </ul>
+
+
+
+                                        <strong>Step 3:</strong> Wear the proper attire:
+                                        <ul>
+                                            <li>Plain white T-shirt or plain white polo shirt <strong>(no prints, no logos, no designs)</strong></li>
+                                            <li>Pants (No shorts, No ripped jeans are not Allowed)</li>
+                                            <li>Closed shoes (no crocs, sandals, slippers)</li>
+                                        </ul>
+
+
+                                        <strong>Step 4:</strong>Keep the two paper sheets attached to your exam permit. You will need them for the document check and enrollment process.
+                                        <br />
+                                        <strong>Step 5:</strong>Please Arrive at least 1 hour before your examination time. Late applicants will NOT be allowed to enter once the exam room door closes.
+                                        <br />
+                                        <br />
+                                        <div style={{ textAlign: "center", marginLeft: "-50px" }}><strong>GOODLUCK FUTURE EARISTIANS!</strong></div>
+                                    </ul>
+                                </td>
+                            </tr>
+
+
+                        </tbody>
+                    </table>
+
+                    <table
+                        style={{
+                            borderCollapse: "collapse",
+                            width: "8in",
+                            margin: "0 auto",
+                            textAlign: "center",
+                        }}
+                    >
+                        <tbody>
+                            <tr>
+
+
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             )}
 
@@ -1407,7 +1427,7 @@ const ExaminationProfile = ({ personId }) => {
                                 width: "8in", // matches table width assuming 8in for 40 columns
                                 maxWidth: "100%",
                                 margin: "0 auto",
-                                marginTop: "-10px",
+                                marginTop: "10px",
 
                                 boxSizing: "border-box",
                                 padding: "10px 0",
@@ -1443,7 +1463,7 @@ const ExaminationProfile = ({ personId }) => {
                                     style={{
                                         flexGrow: 1,
                                         textAlign: "center",
-                                        fontSize: "14px",
+                                        fontSize: "12px",
                                         fontFamily: "Arial",
                                         letterSpacing: "5",
                                         lineHeight: 1.4,
@@ -1481,16 +1501,16 @@ const ExaminationProfile = ({ personId }) => {
                                     )}
 
                                     <div
-                                        style={{ fontFamily: "Arial", letterSpacing: "1px" }}
+                                        style={{ fontFamily: "Arial", letterSpacing: "1px", fontWeight: "bold", fontSize: "13px" }}
                                     >
-                                        <b>OFFICE OF THE ADMISSION SERVICES</b>
+                                        OFFICE OF THE ADMISSION SERVICES
                                     </div>
 
                                     <br />
 
                                     <div
                                         style={{
-                                            fontSize: "21px",
+                                            fontSize: "20px",
                                             fontFamily: "Arial",
                                             fontWeight: "bold",
                                             marginBottom: "5px",
@@ -1577,10 +1597,10 @@ const ExaminationProfile = ({ personId }) => {
                                                     fontWeight: "bold",
                                                     whiteSpace: "nowrap",
                                                     marginRight: "10px",
-                                                    fontSize: "14px",
+                                                    fontSize: "12px",
                                                 }}
                                             >
-                                                Applicant Id No.:
+                                                Applicant ID No.:
                                             </label>
 
                                             <div
@@ -1590,7 +1610,7 @@ const ExaminationProfile = ({ personId }) => {
                                                     display: "flex",
                                                     justifyContent: "center", // center the content horizontally
                                                     alignItems: "center",       // center the content vertically
-                                                    fontSize: "14px",
+                                                    fontSize: "12px",
                                                     height: "1.3em",
                                                 }}
                                             >
@@ -1617,7 +1637,7 @@ const ExaminationProfile = ({ personId }) => {
                                                     fontWeight: "bold",
                                                     whiteSpace: "nowrap",
                                                     marginRight: "10px",
-                                                    fontSize: "14px"
+                                                    fontSize: "12px"
                                                 }}
                                             >
                                                 Name of Student:
@@ -1671,8 +1691,8 @@ const ExaminationProfile = ({ personId }) => {
                                 <tr style={{ fontSize: "13px" }}>
                                     <td colSpan={20}>
                                         <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px", fontSize: "14px" }}>Date Applied</label>
-                                            <span style={{ flexGrow: 1, borderBottom: "1px solid black", height: "1.3em", fontSize: "14px" }}> {(() => {
+                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px", fontSize: "12px" }}>Date Applied</label>
+                                            <span style={{ flexGrow: 1, borderBottom: "1px solid black", height: "1.3em", fontSize: "12px" }}> {(() => {
                                                 if (!person.created_at.split("T")[0]) return "";
 
                                                 const date = new Date(person.created_at.split("T")[0]);
@@ -1691,8 +1711,8 @@ const ExaminationProfile = ({ personId }) => {
                                     </td>
                                     <td colSpan={20}>
                                         <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px", fontSize: "14px" }}>Date Examination:</label>
-                                            <span style={{ flexGrow: 1, borderBottom: "1px solid black", height: "1.3em", fontSize: "14px" }}>    {examSchedule?.schedule_created_at
+                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px", fontSize: "12px" }}>Date Examination:</label>
+                                            <span style={{ flexGrow: 1, borderBottom: "1px solid black", height: "1.3em", fontSize: "12px" }}>    {examSchedule?.schedule_created_at
                                                 ? new Date(examSchedule.schedule_created_at).toLocaleDateString("en-US", {
                                                     month: "long",
                                                     day: "numeric",
@@ -1713,7 +1733,7 @@ const ExaminationProfile = ({ personId }) => {
                                                 style={{
                                                     fontWeight: "bold",
                                                     whiteSpace: "nowrap",
-                                                    fontSize: "14px",
+                                                    fontSize: "12px",
                                                     marginRight: "10px",
                                                 }}
                                             >
@@ -1741,7 +1761,7 @@ const ExaminationProfile = ({ personId }) => {
                                                         marginRight: "8px",
                                                     }}
                                                 />
-                                                <span style={{ fontSize: "14px", fontWeight: "bold" }}>Passed</span>
+                                                <span style={{ fontSize: "12px", fontWeight: "bold" }}>Passed</span>
                                             </div>
 
                                             {/* FAILED checkbox */}
@@ -1754,7 +1774,7 @@ const ExaminationProfile = ({ personId }) => {
                                                         marginRight: "8px",
                                                     }}
                                                 />
-                                                <span style={{ fontSize: "14px", fontWeight: "bold" }}>Failed</span>
+                                                <span style={{ fontSize: "12px", fontWeight: "bold" }}>Failed</span>
                                             </div>
                                         </div>
                                     </td>
@@ -1765,7 +1785,7 @@ const ExaminationProfile = ({ personId }) => {
                                     <td colSpan={19} style={{ padding: 0 }}>
                                         <span
                                             style={{
-                                                fontSize: "15px",
+                                                fontSize: "12px",
                                                 fontWeight: "bold",
                                                 display: "block",
                                                 marginBottom: "2px",
@@ -1803,7 +1823,7 @@ const ExaminationProfile = ({ personId }) => {
                                     <td colSpan={19} style={{ padding: 0 }}>
                                         <span
                                             style={{
-                                                fontSize: "15px",
+                                                fontSize: "12px",
                                                 display: "block",
                                                 textAlign: "left",
                                                 marginBottom: "2px",
@@ -1853,7 +1873,7 @@ const ExaminationProfile = ({ personId }) => {
                                                         whiteSpace: "nowrap",
 
                                                         marginRight: "6px",
-                                                        fontSize: "14px"
+                                                        fontSize: "12px"
                                                     }}
                                                 >
                                                     Reason's for Change:
@@ -1894,7 +1914,7 @@ const ExaminationProfile = ({ personId }) => {
                                                 ></div>
                                                 <div
                                                     style={{
-                                                        fontSize: "11px",
+                                                        fontSize: "12px",
                                                         whiteSpace: "nowrap",
                                                         textAlign: "center",
                                                     }}
@@ -1925,7 +1945,7 @@ const ExaminationProfile = ({ personId }) => {
 
                                                 fontWeight: "bold",
                                                 textAlign: "left",
-                                                fontSize: "14px"
+                                                fontSize: "12px"
                                             }}
                                         >
                                             College Approval from current program applied:
@@ -1986,7 +2006,7 @@ const ExaminationProfile = ({ personId }) => {
 
                                                 fontWeight: "bold",
                                                 textAlign: "left",
-                                                fontSize: "14px"
+                                                fontSize: "12px"
                                             }}
                                         >
                                             College Acceptance to new program applied:
@@ -2118,7 +2138,7 @@ const ExaminationProfile = ({ personId }) => {
                                 width: "100%",
                                 textAlign: "right", // aligns to the right side
                                 fontWeight: "normal",
-                                fontSize: "14px",
+                                fontSize: "12px",
                                 color: "black",
                                 marginBottom: "0",
                                 marginTop: "10px"
@@ -2176,7 +2196,7 @@ const ExaminationProfile = ({ personId }) => {
                                 width: "8in", // matches table width assuming 8in for 40 columns
                                 maxWidth: "100%",
                                 margin: "0 auto",
-                                marginTop: "-10px",
+                                marginTop: "10px",
 
                                 boxSizing: "border-box",
                                 padding: "10px 0",
@@ -2214,7 +2234,7 @@ const ExaminationProfile = ({ personId }) => {
                                     style={{
                                         flexGrow: 1,
                                         textAlign: "center",
-                                        fontSize: "14px",
+                                        fontSize: "12px",
                                         fontFamily: "Arial",
                                         letterSpacing: "5",
                                         lineHeight: 1.4,
@@ -2251,16 +2271,16 @@ const ExaminationProfile = ({ personId }) => {
                                         </div>
                                     )}
                                     <div
-                                        style={{ fontFamily: "Arial", letterSpacing: "1px" }}
+                                        style={{ fontFamily: "Arial", letterSpacing: "1px", fontWeight: "bold", fontSize: "13px" }}
                                     >
-                                        <b>OFFICE OF THE ADMISSION SERVICES</b>
+                                        OFFICE OF THE ADMISSION SERVICES
                                     </div>
 
                                     <br />
 
                                     <div
                                         style={{
-                                            fontSize: "21px",
+                                            fontSize: "20px",
                                             fontFamily: "Arial",
                                             fontWeight: "bold",
                                             marginBottom: "5px",
@@ -2326,7 +2346,7 @@ const ExaminationProfile = ({ personId }) => {
                                 fontFamily: "Arial",
                                 width: "8in",
                                 margin: "0 auto",
-                                marginTop: "-20px",
+                                marginTop: "-30px",
 
 
                                 textAlign: "center",
@@ -2350,10 +2370,10 @@ const ExaminationProfile = ({ personId }) => {
                                                     fontWeight: "bold",
                                                     whiteSpace: "nowrap",
                                                     marginRight: "10px",
-                                                    fontSize: "14px",
+                                                    fontSize: "12px",
                                                 }}
                                             >
-                                                Applicant Id No.:
+                                                Applicant ID No.:
                                             </label>
 
                                             <div
@@ -2363,7 +2383,7 @@ const ExaminationProfile = ({ personId }) => {
                                                     display: "flex",
                                                     justifyContent: "center", // center the content horizontally
                                                     alignItems: "center",       // center the content vertically
-                                                    fontSize: "14px",
+                                                    fontSize: "12px",
                                                     height: "1.3em",
                                                 }}
                                             >
@@ -2390,7 +2410,7 @@ const ExaminationProfile = ({ personId }) => {
                                                     fontWeight: "bold",
                                                     whiteSpace: "nowrap",
                                                     marginRight: "10px",
-                                                    fontSize: "14px"
+                                                    fontSize: "12px"
                                                 }}
                                             >
                                                 Name of Student:
@@ -2444,8 +2464,8 @@ const ExaminationProfile = ({ personId }) => {
                                 <tr style={{ fontSize: "13px" }}>
                                     <td colSpan={20}>
                                         <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px", fontSize: "14px" }}>Date Applied</label>
-                                            <span style={{ flexGrow: 1, borderBottom: "1px solid black", height: "1.3em", fontSize: "14px" }}> {(() => {
+                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px", fontSize: "12px" }}>Date Applied</label>
+                                            <span style={{ flexGrow: 1, borderBottom: "1px solid black", height: "1.3em", fontSize: "12px" }}> {(() => {
                                                 if (!person.created_at.split("T")[0]) return "";
 
                                                 const date = new Date(person.created_at.split("T")[0]);
@@ -2464,8 +2484,8 @@ const ExaminationProfile = ({ personId }) => {
                                     </td>
                                     <td colSpan={20}>
                                         <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px", fontSize: "14px" }}>Date Examination:</label>
-                                            <span style={{ flexGrow: 1, borderBottom: "1px solid black", height: "1.3em", fontSize: "14px" }}>    {examSchedule?.schedule_created_at
+                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px", fontSize: "12px" }}>Date Examination:</label>
+                                            <span style={{ flexGrow: 1, borderBottom: "1px solid black", height: "1.3em", fontSize: "12px" }}>    {examSchedule?.schedule_created_at
                                                 ? new Date(examSchedule.schedule_created_at).toLocaleDateString("en-US", {
                                                     month: "long",
                                                     day: "numeric",
@@ -2486,7 +2506,7 @@ const ExaminationProfile = ({ personId }) => {
                                                 style={{
                                                     fontWeight: "bold",
                                                     whiteSpace: "nowrap",
-                                                    fontSize: "14px",
+                                                    fontSize: "12px",
                                                     marginRight: "10px",
                                                 }}
                                             >
@@ -2514,7 +2534,7 @@ const ExaminationProfile = ({ personId }) => {
                                                         marginRight: "8px",
                                                     }}
                                                 />
-                                                <span style={{ fontSize: "14px", fontWeight: "bold" }}>Passed</span>
+                                                <span style={{ fontSize: "12px", fontWeight: "bold" }}>Passed</span>
                                             </div>
 
                                             {/* FAILED checkbox */}
@@ -2527,7 +2547,7 @@ const ExaminationProfile = ({ personId }) => {
                                                         marginRight: "8px",
                                                     }}
                                                 />
-                                                <span style={{ fontSize: "14px", fontWeight: "bold" }}>Failed</span>
+                                                <span style={{ fontSize: "12px", fontWeight: "bold" }}>Failed</span>
                                             </div>
                                         </div>
                                     </td>
@@ -2538,7 +2558,7 @@ const ExaminationProfile = ({ personId }) => {
                                     <td colSpan={19} style={{ padding: 0 }}>
                                         <span
                                             style={{
-                                                fontSize: "15px",
+                                                fontSize: "12px",
                                                 fontWeight: "bold",
                                                 display: "block",
                                                 marginBottom: "2px",
@@ -2575,7 +2595,7 @@ const ExaminationProfile = ({ personId }) => {
                                     <td colSpan={19} style={{ padding: 0 }}>
                                         <span
                                             style={{
-                                                fontSize: "15px",
+                                                fontSize: "12px",
                                                 display: "block",
                                                 textAlign: "left",
                                                 marginBottom: "2px",
@@ -2624,7 +2644,7 @@ const ExaminationProfile = ({ personId }) => {
                                                         whiteSpace: "nowrap",
                                                         marginLeft: "6px",
                                                         marginRight: "6px",
-                                                        fontSize: "14px"
+                                                        fontSize: "12px"
                                                     }}
                                                 >
                                                     Reason's for Change:
@@ -2665,7 +2685,7 @@ const ExaminationProfile = ({ personId }) => {
                                                 ></div>
                                                 <div
                                                     style={{
-                                                        fontSize: "11px",
+                                                        fontSize: "12px",
                                                         whiteSpace: "nowrap",
                                                         textAlign: "center",
                                                     }}
@@ -2696,7 +2716,7 @@ const ExaminationProfile = ({ personId }) => {
 
                                                 fontWeight: "bold",
                                                 textAlign: "left",
-                                                fontSize: "14px"
+                                                fontSize: "12px"
                                             }}
                                         >
                                             College Approval from current program applied:
@@ -2757,7 +2777,7 @@ const ExaminationProfile = ({ personId }) => {
 
                                                 fontWeight: "bold",
                                                 textAlign: "left",
-                                                fontSize: "14px"
+                                                fontSize: "12px"
                                             }}
                                         >
                                             College Acceptance to new program applied:
@@ -2889,7 +2909,7 @@ const ExaminationProfile = ({ personId }) => {
                                     width: "100%",
                                     textAlign: "right", // aligns to the right side
                                     fontWeight: "normal",
-                                    fontSize: "14px",
+                                    fontSize: "12px",
                                     color: "black",
                                     marginBottom: "0",
                                     marginTop: "10px"
@@ -2912,13 +2932,15 @@ const ExaminationProfile = ({ personId }) => {
                     <Container>
 
                         <div
+                            className="student-table"
                             style={{
                                 width: "8in",
                                 maxWidth: "100%",
                                 margin: "0 auto",
-                                marginBottom: "30px",
+                                marginTop: "10px",
                                 boxSizing: "border-box",
                                 padding: "10px 0",
+
                             }}
                         >
 
@@ -2950,7 +2972,7 @@ const ExaminationProfile = ({ personId }) => {
                                 <div
                                     style={{
                                         textAlign: "center",
-                                        fontSize: "14px",
+                                        fontSize: "12px",
                                         fontFamily: "Arial",
                                         lineHeight: 1.4,
                                     }}
@@ -2994,15 +3016,15 @@ const ExaminationProfile = ({ personId }) => {
                                         </div>
                                     )}
 
-                                    <div style={{ fontFamily: "Arial", letterSpacing: "1px" }}>
-                                        <b>OFFICE OF THE ADMISSION SERVICES</b>
+                                    <div style={{ fontFamily: "Arial", letterSpacing: "1px", fontWeight: "bold", fontSize: "13px" }}>
+                                        OFFICE OF THE ADMISSION SERVICES
                                     </div>
 
                                     <br />
 
                                     <div
                                         style={{
-                                            fontSize: "21px",
+                                            fontSize: "20px",
                                             fontFamily: "Arial",
                                             fontWeight: "bold",
                                             marginBottom: "5px",
@@ -3047,10 +3069,10 @@ const ExaminationProfile = ({ personId }) => {
                                                     fontWeight: "bold",
                                                     whiteSpace: "nowrap",
                                                     marginRight: "10px",
-                                                    fontSize: "14px",
+                                                    fontSize: "12px",
                                                 }}
                                             >
-                                                Applicant Id No.:
+                                                Applicant ID No.:
                                             </label>
 
                                             <div
@@ -3060,7 +3082,7 @@ const ExaminationProfile = ({ personId }) => {
                                                     display: "flex",
                                                     justifyContent: "center", // center the content horizontally
                                                     alignItems: "center",       // center the content vertically
-                                                    fontSize: "14px",
+                                                    fontSize: "12px",
                                                     height: "1.3em",
                                                 }}
                                             >
@@ -3087,12 +3109,12 @@ const ExaminationProfile = ({ personId }) => {
                                                     fontWeight: "bold",
                                                     whiteSpace: "nowrap",
                                                     marginRight: "10px",
-                                                    fontSize: "14px"
+                                                    fontSize: "12px"
                                                 }}
                                             >
                                                 Name of Student:
                                             </span>
-                                            <div style={{ flexGrow: 1, display: "flex", justifyContent: "space-between" }}>
+                                            <div style={{ flexGrow: 1, display: "flex", justifyContent: "space-between", height: "20px" }}>
                                                 <span style={{ width: "25%", textAlign: "center", fontSize: "14.5px", borderBottom: "1px solid black" }}>
 
                                                 </span>
@@ -3141,16 +3163,16 @@ const ExaminationProfile = ({ personId }) => {
                                 <tr style={{ fontSize: "13px" }}>
                                     <td colSpan={20}>
                                         <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px", fontSize: "14px" }}>Date Applied</label>
-                                            <span style={{ flexGrow: 1, borderBottom: "1px solid black", height: "1.3em", fontSize: "14px" }}>
+                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px", fontSize: "12px" }}>Date Applied</label>
+                                            <span style={{ flexGrow: 1, borderBottom: "1px solid black", height: "1.3em", fontSize: "12px" }}>
                                                 <div style={{ marginTop: "-3px" }} className="dataField"></div>
                                             </span>
                                         </div>
                                     </td>
                                     <td colSpan={20}>
                                         <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px", fontSize: "14px" }}>Date Examination:</label>
-                                            <span style={{ flexGrow: 1, borderBottom: "1px solid black", height: "1.3em", fontSize: "14px" }}>
+                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px", fontSize: "12px" }}>Date Examination:</label>
+                                            <span style={{ flexGrow: 1, borderBottom: "1px solid black", height: "1.3em", fontSize: "12px" }}>
                                                 <div style={{ marginTop: "-3px" }} className="dataField"></div>
                                             </span>
                                         </div>
@@ -3165,7 +3187,7 @@ const ExaminationProfile = ({ personId }) => {
                                                 style={{
                                                     fontWeight: "bold",
                                                     whiteSpace: "nowrap",
-                                                    fontSize: "14px",
+                                                    fontSize: "12px",
                                                     marginRight: "10px",
                                                 }}
                                             >
@@ -3193,7 +3215,7 @@ const ExaminationProfile = ({ personId }) => {
                                                         marginRight: "8px",
                                                     }}
                                                 />
-                                                <span style={{ fontSize: "14px", fontWeight: "bold" }}>Passed</span>
+                                                <span style={{ fontSize: "12px", fontWeight: "bold" }}>Passed</span>
                                             </div>
 
                                             {/* FAILED checkbox */}
@@ -3206,7 +3228,7 @@ const ExaminationProfile = ({ personId }) => {
                                                         marginRight: "8px",
                                                     }}
                                                 />
-                                                <span style={{ fontSize: "14px", fontWeight: "bold" }}>Failed</span>
+                                                <span style={{ fontSize: "12px", fontWeight: "bold" }}>Failed</span>
                                             </div>
                                         </div>
                                     </td>
@@ -3217,7 +3239,7 @@ const ExaminationProfile = ({ personId }) => {
                                     <td colSpan={19} style={{ padding: 0 }}>
                                         <span
                                             style={{
-                                                fontSize: "15px",
+                                                fontSize: "12px",
                                                 fontWeight: "bold",
                                                 display: "block",
                                                 marginBottom: "2px",
@@ -3248,7 +3270,7 @@ const ExaminationProfile = ({ personId }) => {
                                     <td colSpan={19} style={{ padding: 0 }}>
                                         <span
                                             style={{
-                                                fontSize: "15px",
+                                                fontSize: "12px",
                                                 display: "block",
                                                 textAlign: "left",
                                                 marginBottom: "2px",
@@ -3298,7 +3320,7 @@ const ExaminationProfile = ({ personId }) => {
                                                         whiteSpace: "nowrap",
 
                                                         marginRight: "6px",
-                                                        fontSize: "14px"
+                                                        fontSize: "12px"
                                                     }}
                                                 >
                                                     Reason's for Change:
@@ -3339,7 +3361,7 @@ const ExaminationProfile = ({ personId }) => {
                                                 ></div>
                                                 <div
                                                     style={{
-                                                        fontSize: "11px",
+                                                        fontSize: "12px",
                                                         whiteSpace: "nowrap",
                                                         textAlign: "center",
                                                     }}
@@ -3370,7 +3392,7 @@ const ExaminationProfile = ({ personId }) => {
 
                                                 fontWeight: "bold",
                                                 textAlign: "left",
-                                                fontSize: "14px"
+                                                fontSize: "12px"
                                             }}
                                         >
                                             College Approval from current program applied:
@@ -3431,7 +3453,7 @@ const ExaminationProfile = ({ personId }) => {
 
                                                 fontWeight: "bold",
                                                 textAlign: "left",
-                                                fontSize: "14px"
+                                                fontSize: "12px"
                                             }}
                                         >
                                             College Acceptance to new program applied:
@@ -3563,7 +3585,7 @@ const ExaminationProfile = ({ personId }) => {
                                 width: "100%",
                                 textAlign: "right", // aligns to the right side
                                 fontWeight: "normal",
-                                fontSize: "14px",
+                                fontSize: "12px",
                                 color: "black",
                                 marginBottom: "0",
                                 marginTop: "10px"
@@ -3592,7 +3614,7 @@ const ExaminationProfile = ({ personId }) => {
                                 width: "8in",
                                 maxWidth: "100%",
                                 margin: "0 auto",
-                                marginTop: "-10px",
+                                marginTop: "10px",
                                 boxSizing: "border-box",
                                 padding: "10px 0",
                             }}
@@ -3626,7 +3648,7 @@ const ExaminationProfile = ({ personId }) => {
                                 <div
                                     style={{
                                         textAlign: "center",
-                                        fontSize: "14px",
+                                        fontSize: "12px",
                                         fontFamily: "Arial",
                                         lineHeight: 1.4,
                                     }}
@@ -3671,15 +3693,15 @@ const ExaminationProfile = ({ personId }) => {
                                         </div>
                                     )}
 
-                                    <div style={{ fontFamily: "Arial", letterSpacing: "1px" }}>
-                                        <b>OFFICE OF THE ADMISSION SERVICES</b>
+                                    <div style={{ fontFamily: "Arial", letterSpacing: "1px", fontWeight: "bold", fontSize: "13px" }}>
+                                        OFFICE OF THE ADMISSION SERVICES
                                     </div>
 
                                     <br />
 
                                     <div
                                         style={{
-                                            fontSize: "21px",
+                                            fontSize: "20px",
                                             fontFamily: "Arial",
                                             fontWeight: "bold",
                                             marginBottom: "5px",
@@ -3701,7 +3723,7 @@ const ExaminationProfile = ({ personId }) => {
                                 fontFamily: "Arial",
                                 width: "8in",
                                 margin: "0 auto",
-                                marginTop: "-20px",
+                                marginTop: "-30px",
 
 
                                 textAlign: "center",
@@ -3725,10 +3747,11 @@ const ExaminationProfile = ({ personId }) => {
                                                     fontWeight: "bold",
                                                     whiteSpace: "nowrap",
                                                     marginRight: "10px",
-                                                    fontSize: "14px",
+                                                    fontSize: "12px",
+
                                                 }}
                                             >
-                                                Applicant Id No.:
+                                                Applicant ID No.:
                                             </label>
 
                                             <div
@@ -3738,8 +3761,9 @@ const ExaminationProfile = ({ personId }) => {
                                                     display: "flex",
                                                     justifyContent: "center", // center the content horizontally
                                                     alignItems: "center",       // center the content vertically
-                                                    fontSize: "14px",
+                                                    fontSize: "12px",
                                                     height: "1.3em",
+                                                    height: "12px"
                                                 }}
                                             >
 
@@ -3765,12 +3789,13 @@ const ExaminationProfile = ({ personId }) => {
                                                     fontWeight: "bold",
                                                     whiteSpace: "nowrap",
                                                     marginRight: "10px",
-                                                    fontSize: "14px"
+                                                    fontSize: "12px",
+
                                                 }}
                                             >
                                                 Name of Student:
                                             </span>
-                                            <div style={{ flexGrow: 1, display: "flex", justifyContent: "space-between" }}>
+                                            <div style={{ flexGrow: 1, display: "flex", justifyContent: "space-between", height: "20px" }}>
                                                 <span style={{ width: "25%", textAlign: "center", fontSize: "14.5px", borderBottom: "1px solid black" }}>
 
                                                 </span>
@@ -3819,16 +3844,16 @@ const ExaminationProfile = ({ personId }) => {
                                 <tr style={{ fontSize: "13px" }}>
                                     <td colSpan={20}>
                                         <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px", fontSize: "14px" }}>Date Applied</label>
-                                            <span style={{ flexGrow: 1, borderBottom: "1px solid black", height: "1.3em", fontSize: "14px" }}>
+                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px", fontSize: "12px" }}>Date Applied</label>
+                                            <span style={{ flexGrow: 1, borderBottom: "1px solid black", height: "1.3em", fontSize: "12px" }}>
                                                 <div style={{ marginTop: "-3px" }} className="dataField"></div>
                                             </span>
                                         </div>
                                     </td>
                                     <td colSpan={20}>
                                         <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px", fontSize: "14px" }}>Date Examination:</label>
-                                            <span style={{ flexGrow: 1, borderBottom: "1px solid black", height: "1.3em", fontSize: "14px" }}>
+                                            <label style={{ fontWeight: "bold", whiteSpace: "nowrap", marginRight: "10px", fontSize: "12px" }}>Date Examination:</label>
+                                            <span style={{ flexGrow: 1, borderBottom: "1px solid black", height: "1.3em", fontSize: "12px" }}>
                                                 <div style={{ marginTop: "-3px" }} className="dataField"></div>
                                             </span>
                                         </div>
@@ -3843,7 +3868,7 @@ const ExaminationProfile = ({ personId }) => {
                                                 style={{
                                                     fontWeight: "bold",
                                                     whiteSpace: "nowrap",
-                                                    fontSize: "14px",
+                                                    fontSize: "12px",
                                                     marginRight: "10px",
                                                 }}
                                             >
@@ -3871,7 +3896,7 @@ const ExaminationProfile = ({ personId }) => {
                                                         marginRight: "8px",
                                                     }}
                                                 />
-                                                <span style={{ fontSize: "14px", fontWeight: "bold" }}>Passed</span>
+                                                <span style={{ fontSize: "12px", fontWeight: "bold" }}>Passed</span>
                                             </div>
 
                                             {/* FAILED checkbox */}
@@ -3884,7 +3909,7 @@ const ExaminationProfile = ({ personId }) => {
                                                         marginRight: "8px",
                                                     }}
                                                 />
-                                                <span style={{ fontSize: "14px", fontWeight: "bold" }}>Failed</span>
+                                                <span style={{ fontSize: "12px", fontWeight: "bold" }}>Failed</span>
                                             </div>
                                         </div>
                                     </td>
@@ -3895,7 +3920,7 @@ const ExaminationProfile = ({ personId }) => {
                                     <td colSpan={19} style={{ padding: 0 }}>
                                         <span
                                             style={{
-                                                fontSize: "15px",
+                                                fontSize: "12px",
                                                 fontWeight: "bold",
                                                 display: "block",
                                                 marginBottom: "2px",
@@ -3925,7 +3950,7 @@ const ExaminationProfile = ({ personId }) => {
                                     <td colSpan={19} style={{ padding: 0 }}>
                                         <span
                                             style={{
-                                                fontSize: "15px",
+                                                fontSize: "12px",
                                                 display: "block",
                                                 textAlign: "left",
                                                 marginBottom: "2px",
@@ -3974,7 +3999,7 @@ const ExaminationProfile = ({ personId }) => {
                                                         whiteSpace: "nowrap",
                                                         marginLeft: "6px",
                                                         marginRight: "6px",
-                                                        fontSize: "14px"
+                                                        fontSize: "12px"
                                                     }}
                                                 >
                                                     Reason's for Change:
@@ -4015,7 +4040,7 @@ const ExaminationProfile = ({ personId }) => {
                                                 ></div>
                                                 <div
                                                     style={{
-                                                        fontSize: "11px",
+                                                        fontSize: "12px",
                                                         whiteSpace: "nowrap",
                                                         textAlign: "center",
                                                     }}
@@ -4046,7 +4071,7 @@ const ExaminationProfile = ({ personId }) => {
 
                                                 fontWeight: "bold",
                                                 textAlign: "left",
-                                                fontSize: "14px"
+                                                fontSize: "12px"
                                             }}
                                         >
                                             College Approval from current program applied:
@@ -4107,7 +4132,7 @@ const ExaminationProfile = ({ personId }) => {
 
                                                 fontWeight: "bold",
                                                 textAlign: "left",
-                                                fontSize: "14px"
+                                                fontSize: "12px"
                                             }}
                                         >
                                             College Acceptance to new program applied:
@@ -4239,7 +4264,7 @@ const ExaminationProfile = ({ personId }) => {
                                     width: "100%",
                                     textAlign: "right", // aligns to the right side
                                     fontWeight: "normal",
-                                    fontSize: "14px",
+                                    fontSize: "12px",
                                     color: "black",
                                     marginBottom: "0",
                                     marginTop: "10px"
@@ -4254,6 +4279,30 @@ const ExaminationProfile = ({ personId }) => {
 
                 </div>
             )}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         </Box>
     );
 };

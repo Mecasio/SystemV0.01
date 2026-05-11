@@ -40,21 +40,21 @@ const DepartmentSectionTagging = () => {
 
   // ── Theme ─────────────────────────────────────────────────────────────────
   const [mainButtonColor, setMainButtonColor] = useState("#1976d2");
-  const [headerColor,     setHeaderColor]     = useState("#1976d2");
-  const [borderColor,     setBorderColor]     = useState("#c8d8f0");
-  const [titleColor,      setTitleColor]      = useState("#1976d2");
+  const [headerColor, setHeaderColor] = useState("#1976d2");
+  const [borderColor, setBorderColor] = useState("#c8d8f0");
+  const [titleColor, setTitleColor] = useState("#1976d2");
 
   useEffect(() => {
     if (!settings) return;
     if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
-    if (settings.header_color)      setHeaderColor(settings.header_color);
-    if (settings.border_color)      setBorderColor(settings.border_color);
-    if (settings.title_color)       setTitleColor(settings.title_color);
+    if (settings.header_color) setHeaderColor(settings.header_color);
+    if (settings.border_color) setBorderColor(settings.border_color);
+    if (settings.title_color) setTitleColor(settings.title_color);
   }, [settings]);
 
   // ── Auth / access ─────────────────────────────────────────────────────────
-  const [hasAccess,  setHasAccess]  = useState(null);
-  const [loading,    setLoading]    = useState(false);
+  const [hasAccess, setHasAccess] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [employeeID, setEmployeeID] = useState("");
   const pageId = 146; // update to correct page id
 
@@ -68,8 +68,8 @@ const DepartmentSectionTagging = () => {
   });
 
   useEffect(() => {
-    const storedRole       = localStorage.getItem("role");
-    const storedID         = localStorage.getItem("person_id");
+    const storedRole = localStorage.getItem("role");
+    const storedID = localStorage.getItem("person_id");
     const storedEmployeeID = localStorage.getItem("employee_id");
 
     if (storedRole && storedID) {
@@ -94,18 +94,18 @@ const DepartmentSectionTagging = () => {
   };
 
   // ── Dropdown data ─────────────────────────────────────────────────────────
-  const [departments,       setDepartments]       = useState([]);
-  const [allCurriculums,    setAllCurriculums]    = useState([]); // full list, filtered client-side
+  const [departments, setDepartments] = useState([]);
+  const [allCurriculums, setAllCurriculums] = useState([]); // full list, filtered client-side
   const [filteredCurriculums, setFilteredCurriculums] = useState([]);
-  const [departmentSections,  setDepartmentSections]  = useState([]);
-  const [schoolYears,         setSchoolYears]         = useState([]);
-  const [semesters,           setSemesters]           = useState([]);
+  const [departmentSections, setDepartmentSections] = useState([]);
+  const [schoolYears, setSchoolYears] = useState([]);
+  const [semesters, setSemesters] = useState([]);
 
   // ── FILTER SELECTIONS (for search) ───────────────────────────────────────
   const [filterDepartment, setFilterDepartment] = useState("");
   const [filterCurriculum, setFilterCurriculum] = useState("");
-  const [filterYear,       setFilterYear]       = useState("");
-  const [filterSemester,   setFilterSemester]   = useState("");
+  const [filterYear, setFilterYear] = useState("");
+  const [filterSemester, setFilterSemester] = useState("");
 
   // ── INSERTION SELECTIONS (for enrollment) ────────────────────────────────
   const [insertSection, setInsertSection] = useState("");
@@ -125,9 +125,9 @@ const DepartmentSectionTagging = () => {
 
         const depts = deptRes.data || [];
         const currs = Array.isArray(currRes.data) ? currRes.data : [];
-        const secs  = secRes.data || [];
-        const yrs   = yrRes.data || [];
-        const sems  = semRes.data || [];
+        const secs = secRes.data || [];
+        const yrs = yrRes.data || [];
+        const sems = semRes.data || [];
 
         setDepartments(depts);
         setAllCurriculums(currs);
@@ -199,17 +199,17 @@ const DepartmentSectionTagging = () => {
       .then((res) => {
         if (res.data?.length > 0) setActiveSYID(res.data[0].school_year_id);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [filterYear, filterSemester]);
 
   // ── Table data ────────────────────────────────────────────────────────────
   const [allCurriculumStudents, setAllCurriculumStudents] = useState([]);
-  const [enrolledStudents,      setEnrolledStudents]      = useState([]);
-  const [enrolledNumbers,       setEnrolledNumbers]       = useState(new Set());
+  const [enrolledStudents, setEnrolledStudents] = useState([]);
+  const [enrolledNumbers, setEnrolledNumbers] = useState(new Set());
   const latestCurriculumRequestRef = useRef(0);
   const latestEnrolledRequestRef = useRef(0);
 
-  const [searched,  setSearched]  = useState(false);
+  const [searched, setSearched] = useState(false);
   const [searching, setSearching] = useState(false);
 
   // ── Fetch all students under the curriculum ───────────────────────────────
@@ -217,7 +217,7 @@ const DepartmentSectionTagging = () => {
     const requestId = ++latestCurriculumRequestRef.current;
     const res = await axios.get(`${API_BASE_URL}/get_student_per_curriculum`, {
       params: {
-        curriculum_id:        filterCurriculum,
+        curriculum_id: filterCurriculum,
         active_school_year_id: activeSYID,
       },
     });
@@ -232,7 +232,7 @@ const DepartmentSectionTagging = () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/get_student_already_tagged`, {
         params: {
-          curriculum_id:        filterCurriculum,
+          curriculum_id: filterCurriculum,
           active_school_year_id: activeSYID,
         },
       });
@@ -305,7 +305,7 @@ const DepartmentSectionTagging = () => {
   const [actionLoading, setActionLoading] = useState(false);
 
   const getEnrollMeta = () => ({
-    curriculum_id:        filterCurriculum,
+    curriculum_id: filterCurriculum,
     active_school_year_id: activeSYID,
     department_section_id: insertSection,
   });
@@ -521,32 +521,59 @@ const DepartmentSectionTagging = () => {
       sx={{
         height: "calc(100vh - 150px)",
         overflowY: "auto",
+        paddingRight: 1,
         backgroundColor: "transparent",
         mt: 1,
-        padding: "16px 20px",
+        p: 2,
       }}
     >
-      {/* ── Page Title ────────────────────────────────────────────────────── */}
-      <Typography
-        variant="h4"
-        fontWeight="bold"
-        sx={{ color: titleColor, fontSize: "28px", mb: 0.5 }}
+      {/* HEADER */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          mb: 2,
+        }}
       >
-        DEPARTMENT SECTION TAGGING
-      </Typography>
-      <Typography sx={{ fontSize: "13px", color: "#666", mb: 2 }}>
-        Enroll students into a department section by filtering by department, curriculum, section, and school year.
-      </Typography>
-      <Divider sx={{ mb: 3 }} />
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: "bold",
+            color: titleColor,
+            fontSize: "36px",
+          }}
+        >
+          DEPARTMENT SECTION TAGGING
+        </Typography>
+      </Box>
 
-      {/* ══════════════════════════════════════════════════════════════════ */}
-      {/* ── CONTAINER 1: FILTER & SEARCH ─────────────────────────────────── */}
-      {/* ══════════════════════════════════════════════════════════════════ */}
+      <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+      <br />
+      <br />
+      <TableContainer
+        component={Paper}
+        sx={{ width: "100%", border: `1px solid ${borderColor}` }}
+      >
+        <Table>
+          <TableHead
+            sx={{ backgroundColor: settings?.header_color || "#1976d2" }}
+          >
+            <TableRow>
+              <TableCell sx={{ color: "white", textAlign: "Center" }}>
+                Filter
+              </TableCell>
+            </TableRow>
+          </TableHead>
+        </Table>
+      </TableContainer>
+
       <Paper
         elevation={0}
         sx={{
           border: `1px solid ${borderColor}`,
-          borderRadius: "10px",
+
           p: 2.5,
           mb: 2,
           backgroundColor: "#fff",
@@ -666,35 +693,8 @@ const DepartmentSectionTagging = () => {
             {searching ? "Searching…" : "Search"}
           </Button>
         </Box>
-      </Paper>
 
-      {/* ══════════════════════════════════════════════════════════════════ */}
-      {/* ── CONTAINER 2: SECTION SELECTION FOR INSERTION ─────────────────── */}
-      {/* ══════════════════════════════════════════════════════════════════ */}
-      <Paper
-        elevation={0}
-        sx={{
-          border: `1px solid ${borderColor}`,
-          borderRadius: "10px",
-          p: 2.5,
-          mb: 3,
-          backgroundColor: "#fff",
-        }}
-      >
-        <Typography
-          sx={{
-            fontSize: "12px",
-            fontWeight: 600,
-            color: "#888",
-            letterSpacing: "0.08em",
-            mb: 1.5,
-            textTransform: "uppercase",
-          }}
-        >
-          Section Selection for Enrollment
-        </Typography>
-
-        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "flex-end" }}>
+          <Box sx={{ display: "flex", gap: 2, mt:3, flexWrap: "wrap", alignItems: "flex-end" }}>
 
           {/* Section — filtered by selected curriculum */}
           <FormControl size="small" sx={{ minWidth: 280, flex: "1 1 280px" }}>
@@ -738,6 +738,8 @@ const DepartmentSectionTagging = () => {
           )}
         </Box>
       </Paper>
+
+    
 
       {/* ── Enroll All / Unenroll All ─────────────────────────────────────── */}
       <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, mb: 2, flexWrap: "wrap" }}>
@@ -833,7 +835,7 @@ const DepartmentSectionTagging = () => {
 
           <Paper
             elevation={0}
-            sx={{ border: `1px solid ${borderColor}`, borderRadius: "10px", overflow: "hidden" }}
+            sx={{ border: `1px solid ${borderColor}`, overflow: "hidden" }}
           >
             <TableContainer sx={{ maxHeight: 480 }}>
               <Table size="small" stickyHeader>
@@ -955,7 +957,7 @@ const DepartmentSectionTagging = () => {
 
           <Paper
             elevation={0}
-            sx={{ border: `1px solid ${borderColor}`, borderRadius: "10px", overflow: "hidden" }}
+            sx={{ border: `1px solid ${borderColor}`, overflow: "hidden" }}
           >
             <TableContainer sx={{ maxHeight: 480 }}>
               <Table size="small" stickyHeader>

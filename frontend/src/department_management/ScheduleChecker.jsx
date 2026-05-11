@@ -32,7 +32,7 @@ import API_BASE_URL from "../apiConfig";
 import SearchIcon from "@mui/icons-material/Search";
 import { postAuditEvent } from "../utils/auditEvents";
 
-const CollegeScheduleChecker = () => {
+const ScheduleChecker = () => {
   const settings = useContext(SettingsContext);
   const [titleColor, setTitleColor] = useState("#000000");
   const [subtitleColor, setSubtitleColor] = useState("#555555");
@@ -82,7 +82,7 @@ const CollegeScheduleChecker = () => {
   const [loading, setLoading] = useState(false);
 
 
-  const pageId = 108;
+  const pageId = 53;
 
   //Put this After putting the code of the past code
   useEffect(() => {
@@ -166,26 +166,12 @@ const CollegeScheduleChecker = () => {
   const [selectedReviewEmployeeId, setSelectedReviewEmployeeId] = useState("");
   const [reviewSchedules, setReviewSchedules] = useState([]);
   const [reviewScheduleLoading, setReviewScheduleLoading] = useState(false);
-
-  const fetchPersonData = async () => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/api/admin_data/${user}`);
-      setAdminData(res.data); // { dprtmnt_id: "..." }
-    } catch (err) {
-      console.error("Error fetching admin data:", err);
-    }
-  };
-
-  useEffect(() => {
-    if (user) {
-      fetchPersonData();
-    }
-  }, [user]);
+  const { dprtmnt_id } = useParams();
 
   const fetchRoom = async () => {
     try {
       const response = await axios.get(
-        `${API_BASE_URL}/room_list/${adminData.dprtmnt_id}`
+        `${API_BASE_URL}/room_list/${dprtmnt_id}`
       );
       setRoomList(response.data);
     } catch (error) {
@@ -225,7 +211,7 @@ const CollegeScheduleChecker = () => {
   const fetchProfList = async () => {
     try {
       const res = await axios.get(
-        `${API_BASE_URL}/prof_list/${adminData.dprtmnt_id}`
+        `${API_BASE_URL}/prof_list/${dprtmnt_id}`
       );
       setProfList(res.data);
     } catch (err) {
@@ -247,7 +233,7 @@ const CollegeScheduleChecker = () => {
   const fetchSectionList = async () => {
     try {
       const response = await axios.get(
-        `${API_BASE_URL}/section_table/${adminData.dprtmnt_id}`
+        `${API_BASE_URL}/section_table/${dprtmnt_id}`
       );
 
       setSectionList(response.data);
@@ -259,7 +245,7 @@ const CollegeScheduleChecker = () => {
   const fetchProgramList = async () => {
     try {
       const response = await axios.get(
-        `${API_BASE_URL}/program_list/${adminData.dprtmnt_id}`
+        `${API_BASE_URL}/program_list/${dprtmnt_id}`
       );
 
       setProgramList(response.data);
@@ -309,20 +295,6 @@ const CollegeScheduleChecker = () => {
     }
   };
 
-  const fetchAllCollegeSchedule = async () => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/get_college_professor_schedule/${adminData.dprtmnt_id}`)
-      setSchedules(res.data);
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-        setMessage(
-          "Schedule not found. Please assign a schedule."
-        );
-      } else {
-        setMessage("Failed to fetch schedule. Please try again later.");
-      }
-    }
-  }
   const formatTimeTo12Hour = (time24) => {
     const [hours, minutes] = time24.split(":");
     const h = parseInt(hours);
@@ -331,21 +303,26 @@ const CollegeScheduleChecker = () => {
     return `${hour12}:${minutes} ${suffix}`;
   };
 
-
   useEffect(() => {
-    if (!adminData.dprtmnt_id) return;
+    if (!dprtmnt_id) return;
 
     fetchRoom();
     fetchProfList();
     fetchSectionList();
     fetchProgramList();
-    fetchAllCollegeSchedule();
-  }, [adminData.dprtmnt_id]);
+  }, [dprtmnt_id]);
 
   useEffect(() => {
     fetchCourseList();
     fetchSchoolYearList();
     fetchDayList();
+  }, []);
+
+  useEffect(() => {
+    axios
+      .get(`${API_BASE_URL}/get_college_professor_schedule/${dprtmnt_id}`)
+      .then((res) => setSchedules(res.data))
+      .catch((err) => console.error(err));
   }, []);
 
   useEffect(() => {
@@ -372,15 +349,8 @@ const CollegeScheduleChecker = () => {
         }
       })
       .catch((err) => console.error(err));
+
   }, []);
-
-  const handleSchoolYearChange = (event) => {
-    setSelectedAcademicSchoolYear(event.target.value);
-  };
-
-  const handleSchoolSemesterChange = (event) => {
-    setSelectedAcademicSchoolSemester(event.target.value);
-  };
 
   useEffect(() => {
     if (roomList.length > 0 && !selectedRoom) {
@@ -520,7 +490,7 @@ const CollegeScheduleChecker = () => {
         const scheduleType = isHonorarium ? "honorarium" : "regular";
         await insertAuditLog("schedule_inserted", {
           schedule_type: scheduleType,
-          page_name: "College Schedule Checker",
+          page_name: "Schedule Checker",
         });
       }
 
@@ -630,7 +600,7 @@ const CollegeScheduleChecker = () => {
         setMessage("Schedule inserted successfully.");
         setOpenSnackbar(true);
         await insertAuditLog("schedule_designation_inserted", {
-          page_name: "College Schedule Checker",
+          page_name: "Schedule Checker",
         });
       }
 
@@ -668,7 +638,7 @@ const CollegeScheduleChecker = () => {
 
       fetchSchedule();
       await insertAuditLog("schedule_deleted", {
-        page_name: "College Schedule Checker",
+        page_name: "Schedule Checker",
       });
     } catch (error) {
       console.error("Error deleting schedule:", error);
@@ -1092,7 +1062,7 @@ const CollegeScheduleChecker = () => {
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
-
+      <br />
       {message && (
         <Snackbar
           open={openSnackbar}
@@ -1113,16 +1083,18 @@ const CollegeScheduleChecker = () => {
           </Alert>
         </Snackbar>
       )}
+
+      <br />
       <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}` }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
             <TableRow>
-              <TableCell sx={{ color: 'white', textAlign: "Center" }}>College Schedule Plotting and Management</TableCell>
+              <TableCell sx={{ color: 'white', textAlign: "Center" }}>Existing Schedule</TableCell>
             </TableRow>
           </TableHead>
         </Table>
       </TableContainer>
-      <br />
+
       <Box sx={{ display: "flex", gap: "1rem" }}>
         <Box>
           <form
@@ -1133,7 +1105,7 @@ const CollegeScheduleChecker = () => {
               border: `1px solid ${borderColor}`,
               backgroundColor: "white",
               padding: "2rem",
-
+              marginTop: "1rem",
               boxShadow: "0px 0px 10px rgba(0,0,0,0.1)",
 
             }}
@@ -1349,7 +1321,7 @@ const CollegeScheduleChecker = () => {
             </div>
           </form>
         </Box>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+        <Box sx={{ display: "flex", flexDirection: "column", marginTop: "1rem", gap: "0.4rem" }}>
           <Box sx={{ display: "flex", gap: 1 }}>
             <Button
               className="hover:bg-[#000000] text-white px-6 py-2 rounded w-[200px]"
@@ -1377,7 +1349,6 @@ const CollegeScheduleChecker = () => {
               Review Schedule
             </Button>
           </Box>
-
           <table className="mt-[0.7rem]">
             <thead className="bg-[#c0c0c0]">
               <tr className="min-w-[6.5rem] min-h-[2.2rem] flex items-center justify-center border border-black border-b-0 text-[14px] font-semibold">
@@ -2375,17 +2346,17 @@ const CollegeScheduleChecker = () => {
                               : undefined
                           }}
                           className={`h-[1.25rem] border border-black border-t-0 border-l-0 flex items-center justify-center
-                                                        ${isTimeInSchedule("8:00 PM", "8:30 PM", day) &&
+                              ${isTimeInSchedule("8:00 PM", "8:30 PM", day) &&
                               hasAdjacentSchedule("8:00 PM", "8:30 PM", day, "top") === "same"
                               ? "border-t-0"
                               : ""
                             }
-                                                        ${isTimeInSchedule("8:00 PM", "8:30 PM", day) &&
+                              ${isTimeInSchedule("8:00 PM", "8:30 PM", day) &&
                               hasAdjacentSchedule("8:00 PM", "8:30 PM", day, "bottom") === "same"
                               ? "border-b-0"
                               : ""
                             }
-                                                        `}
+                        `}
                         >
                           {getCenterText("8:00 PM", day)}
                         </div>
@@ -2408,7 +2379,7 @@ const CollegeScheduleChecker = () => {
                               ? "border-b-0"
                               : ""
                             }
-                                                        `}
+                                             `}
                         >
                           {getCenterText("8:30 PM", day)}
                         </div>
@@ -2540,7 +2511,7 @@ const CollegeScheduleChecker = () => {
               setOpenDialogue(false);
               setSelectedScheduleId(null);
             }}
-         color="error"
+            color="error"
             variant="outlined"
 
           >
@@ -2567,10 +2538,10 @@ const CollegeScheduleChecker = () => {
           Are you sure you want to assign this schedule as Honorarium Load?
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenConfirmDialog(false)}
-       color="error"
+          <Button
+            color="error"
             variant="outlined"
-          >
+            onClick={() => setOpenConfirmDialog(false)}>
             Cancel
           </Button>
           <Button
@@ -2578,7 +2549,7 @@ const CollegeScheduleChecker = () => {
               setIsHonorarium(true);
               setOpenConfirmDialog(false);
             }}
-          variant="contained"
+            variant="contained"
           >
             Yes
           </Button>
@@ -2588,6 +2559,4 @@ const CollegeScheduleChecker = () => {
   );
 };
 
-export default CollegeScheduleChecker;
-
-
+export default ScheduleChecker;

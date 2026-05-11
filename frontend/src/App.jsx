@@ -329,7 +329,7 @@ const StudentQrInfo = lazy(() => import("./pages/StudentQrInfo"));
 const SystemDashboardPanel = lazy(() => import("./pages/SystemDashboard"));
 const ClassRoster = lazy(() => import("./registrar/ClassRoster"));
 const CollegeScheduleChecker = lazy(
-  () => import("./registrar/CollegeScheduleChecker"),
+  () => import("./department_management/CollegeScheduleChecker"),
 );
 const CORExportingModule = lazy(
   () => import("./registrar/CORExportingModule"),
@@ -357,7 +357,7 @@ const ReadmissionDashboard5 = lazy(
   () => import("./registrar/ReadmissionDashboard5"),
 );
 const ReportOfGrade = lazy(() => import("./registrar/ReportOfGrade"));
-const ScheduleChecker = lazy(() => import("./registrar/ScheduleChecker"));
+const ScheduleChecker = lazy(() => import("./department_management/ScheduleChecker"));
 const SearchCertificateOfRegistration = lazy(
   () => import("./registrar/SearchCertificateOfRegistration"),
 );

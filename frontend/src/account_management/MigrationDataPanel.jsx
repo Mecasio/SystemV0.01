@@ -259,6 +259,8 @@ const MigrationDataPanel = () => {
             </Box>
 
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+            <br />
+            <br />
 
             {/* ═══════════════════════════════════
                 MISSING STUDENTS TABLE
@@ -331,26 +333,36 @@ const MigrationDataPanel = () => {
                 </Fade>
             )}
 
-            {/* ═══════════════════════════════════
-                SECTION 1 — Student Grades Migration
-            ═══════════════════════════════════ */}
+            <TableContainer
+                component={Paper}
+                sx={{ width: "100%", border: `1px solid ${borderColor}` }}
+            >
+                <Table>
+                    <TableHead
+                        sx={{ backgroundColor: settings?.header_color || "#1976d2" }}
+                    >
+                        <TableRow>
+                            <TableCell sx={{ color: "white", textAlign: "Center" }}>
+                                Student Grades Migration
+                            </TableCell>
+                        </TableRow>
+                    </TableHead>
+                </Table>
+            </TableContainer>
             <Paper
                 elevation={0}
                 sx={{
-                    p: 3, mt: 3, mb: 3, borderRadius: 4,
+                    p: 3, mb: 3,
                     border: `1px solid ${borderColor}`,
                     backgroundColor: "#fff",
                 }}
             >
-                <Box mb={3}>
-                    <Typography variant="h6" fontWeight={700}>
-                        Student Grades Migration
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" mt={0.5}>
-                        Upload Excel files containing student grades and academic records.
-                    </Typography>
-                </Box>
 
+
+
+                <Typography variant="body1" color="black" mt={0.5} mb={2}>
+                    Upload Excel files containing student grades and academic records.
+                </Typography>
                 <input
                     type="file"
                     accept=".xlsx,.xls"
@@ -533,25 +545,33 @@ const MigrationDataPanel = () => {
                 )}
             </Paper>
 
-            {/* ═══════════════════════════════════
-                SECTION 2 — Personal Information
-            ═══════════════════════════════════ */}
+            <TableContainer
+                component={Paper}
+                sx={{ width: "100%", border: `1px solid ${borderColor}` }}
+            >
+                <Table>
+                    <TableHead
+                        sx={{ backgroundColor: settings?.header_color || "#1976d2" }}
+                    >
+                        <TableRow>
+                            <TableCell sx={{ color: "white", textAlign: "Center" }}>
+                                Personal Information
+                            </TableCell>
+                        </TableRow>
+                    </TableHead>
+                </Table>
+            </TableContainer>
             <Paper
                 elevation={0}
                 sx={{
-                    p: 3, borderRadius: 4,
+                    p: 3,
                     backgroundColor: "#fff",
                     border: `1px solid ${borderColor}`
                 }}
             >
-                <Box mb={3}>
-                    <Typography variant="h6" fontWeight={700}>
-                        Upload Personal Information
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" mt={0.5}>
-                        Import student personal records from Excel.
-                    </Typography>
-                </Box>
+                <Typography variant="body1" color="black" mt={0.5} mb={2}>
+                    Import student personal records from Excel.
+                </Typography>
 
                 <input
                     ref={excelInputRef}
@@ -563,7 +583,10 @@ const MigrationDataPanel = () => {
                 />
 
                 <Box sx={{ border: "1px dashed #cbd5e1", borderRadius: 4, p: 3, background: "linear-gradient(135deg, #f8faff 0%, #ffffff 100%)" }}>
+
                     <Box display="flex" gap={2} flexWrap="wrap" alignItems="center">
+
+
                         <Button
                             variant="outlined"
                             startIcon={<FaFileExcel />}

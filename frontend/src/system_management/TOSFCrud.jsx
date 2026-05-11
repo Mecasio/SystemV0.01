@@ -696,7 +696,7 @@ const TOSF = () => {
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
-
+      <br />
 
       {/* TITLE */}
       <TableContainer component={Paper} sx={{ width: "100%", border: `1px solid ${borderColor}` }}>
@@ -775,8 +775,8 @@ const TOSF = () => {
                   });
 
                 }}
-           color="error"
-            variant="outlined"
+                color="error"
+                variant="outlined"
                 sx={{ ml: 2 }}
               >
                 Cancel
@@ -1031,8 +1031,8 @@ const TOSF = () => {
               {editingScholarshipId && (
                 <Button
                   onClick={resetScholarshipForm}
-                 color="error"
-            variant="outlined"
+                  color="error"
+                  variant="outlined"
                   sx={{ ml: 2 }}
                 >
                   Cancel
@@ -1271,7 +1271,7 @@ const TOSF = () => {
 
         <hr style={{ border: "1px solid #ccc", width: "100%" }} />
         <br />
-
+        <br />
 
         {/* 
         <Paper sx={{ p: 3, mb: 4, border: `1px solid ${borderColor}` }}>
@@ -1560,7 +1560,7 @@ const TOSF = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDeleteCancel}
-          color="error"
+            color="error"
             variant="outlined"
           >
             Cancel
@@ -1614,7 +1614,7 @@ const TOSF = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setScholarshipUpdateDialogOpen(false)}
-          color="error"
+            color="error"
             variant="outlined"
           >
             Cancel

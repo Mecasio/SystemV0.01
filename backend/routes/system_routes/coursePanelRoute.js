@@ -95,7 +95,7 @@ router.post("/adding_course", CanCreate, async (req, res) => {
       return res.status(400).json({ message: "Course description is required" });
     }
 
-  const [rows] = await db3.query(
+ const [rows] = await db3.query(
   `SELECT course_id FROM course_table 
    WHERE course_code = ?
    AND course_description = ?
@@ -105,31 +105,17 @@ router.post("/adding_course", CanCreate, async (req, res) => {
    AND (prereq <=> ?)
    AND (corequisite <=> ?)
    AND (is_academic_achiever <=> ?)
-   AND (is_latin <=> ?)
-   AND course_id != ?`,
+   AND (is_latin <=> ?)`,
   [
-    final_course_code,
-    final_course_desc,
-
-    course_unit !== undefined && course_unit !== ""
-      ? parseFloat(course_unit)
-      : current.course_unit,
-
-    lec_unit !== undefined && lec_unit !== ""
-      ? parseFloat(lec_unit)
-      : current.lec_unit,
-
-    lab_unit !== undefined && lab_unit !== ""
-      ? parseFloat(lab_unit)
-      : current.lab_unit,
-
-    prereq ?? current.prereq,
-    corequisite ?? current.corequisite,
-
-    is_academic_achiever ?? current.is_academic_achiever,
-    is_latin ?? current.is_latin,
-
-    id
+    normalized_code,
+    normalized_desc,
+    unit,
+    lec,
+    lab,
+    prereq || null,
+    corequisite || null,
+    is_academic_achiever ?? 1,
+    is_latin ?? 1,
   ]
 );
 

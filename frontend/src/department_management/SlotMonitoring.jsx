@@ -682,7 +682,7 @@ const SectionSlotMonitoring = () => {
 
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
-
+            <br />
             <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
                 <Table>
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
@@ -754,7 +754,7 @@ const SectionSlotMonitoring = () => {
                                         </Select>
                                     </Box>
                                 </Box>
-                                
+
                                 <Box>
                                     <Box sx={{ textAlign: "Center", display: "flex", alignItems: "center", gap: "1rem" }}>
                                         <Typography sx={{ width: "100px", textAlign: "left" }}>
@@ -838,7 +838,7 @@ const SectionSlotMonitoring = () => {
                                             ))}
                                         </Select>
                                     </Box>
-                                    <Box sx={{ textAlign: "Center", display: "flex", alignItems: "center", gap: "1rem", marginTop: "1rem"}}>
+                                    <Box sx={{ textAlign: "Center", display: "flex", alignItems: "center", gap: "1rem", marginTop: "1rem" }}>
                                         <Typography sx={{ width: "100px", textAlign: "left" }}>
                                             Course:
                                         </Typography>
@@ -921,16 +921,16 @@ const SectionSlotMonitoring = () => {
                             </TableCell>
                         </TableRow>
                         <TableRow>
-                            <TableCell sx={{ display: "flex", alignItems: "center", gap: "1rem", border: "none", justifyContent: "end"}}>
+                            <TableCell sx={{ display: "flex", alignItems: "center", gap: "1rem", border: "none", justifyContent: "end" }}>
                                 <Button
                                     disabled={filteredSlotRows.length === 0}
-                                    sx={{backgroundColor: settings?.main_button_color || settings?.header_color || "#1976d2", color: "white"}}
+                                    sx={{ backgroundColor: settings?.main_button_color || settings?.header_color || "#1976d2", color: "white" }}
                                 >
                                     Actual Size
                                 </Button>
                                 <Button
                                     disabled={!selectedSectionFilter || subjectRows.length === 0}
-                                    sx={{backgroundColor: settings?.main_button_color || settings?.header_color || "#1976d2", color: "white"}}
+                                    sx={{ backgroundColor: settings?.main_button_color || settings?.header_color || "#1976d2", color: "white" }}
                                     onClick={() => setSubjectsModalOpen(true)}
                                 >
                                     List of Subjects

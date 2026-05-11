@@ -499,14 +499,37 @@ const RegisterRegistrar = () => {
     }
 
     return (
-        <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2} >
-                {/* Left: Header */}
-                <Typography variant="h4" fontWeight="bold" sx={{ color: titleColor }}>
-                    REGISTRAR ACCOUNTS
+       
+   <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
+
+
+
+
+            {/* Top header: DOCUMENTS SUBMITTED + Search + Import */}
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+
+                    mb: 2,
+
+                }}
+            >
+                <Typography
+                    variant="h4"
+                    sx={{
+                        fontWeight: "bold",
+                        color: titleColor,
+                        fontSize: "36px",
+                    }}
+                >
+              REGISTRAR ACCOUNTS
                 </Typography>
 
-                <TextField
+
+           <TextField
                     size="small"
                     placeholder="Search registrar..."
                     value={searchTerm}
@@ -529,9 +552,9 @@ const RegisterRegistrar = () => {
             </Box>
 
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
-
-
             <br />
+            <br />
+
 
             <TableContainer component={Paper} sx={{ width: '100%' }}>
                 <Table size="small">
@@ -549,7 +572,7 @@ const RegisterRegistrar = () => {
                                 <Box display="flex" justifyContent="space-between" alignItems="center">
                                     {/* Left: Registrar List Count */}
                                     <Typography fontSize="14px" fontWeight="bold" color="white">
-                                        Registrar's List: {filteredRegistrar.length} account{filteredRegistrar.length !== 1 ? 's' : ''}
+                                      Total Registrar Account's: {filteredRegistrar.length} account{filteredRegistrar.length !== 1 ? 's' : ''}
                                     </Typography>
 
                                     {/* Right: Pagination Controls */}

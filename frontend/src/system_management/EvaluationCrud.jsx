@@ -460,6 +460,7 @@ const EvaluationCRUD = () => {
             </Box>
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
+            <br />
             <TableContainer component={Paper} sx={{ width: '100%' }}>
                 <Table size="small">
                     <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", color: "white" }}>
@@ -782,7 +783,7 @@ const EvaluationCRUD = () => {
                                                     alignItems: "center",
                                                     justifyContent: "center",
                                                     gap: "5px",
-                                                    
+
                                                 }}
                                                 onClick={() => handleDeleteCategory(cat.id)}
                                             >
@@ -802,39 +803,232 @@ const EvaluationCRUD = () => {
                     </TableBody>
                 </Table>
             </TableContainer>
-            <TableContainer component={Paper} sx={{ border: `1px solid ${borderColor}`, marginTop: "2rem" }}>
+
+            <br />
+            <br />
+            <TableContainer
+                component={Paper}
+                sx={{ width: "100%", border: `1px solid ${borderColor}` }}
+            >
                 <Table>
-                    <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
+                    <TableHead
+                        sx={{ backgroundColor: settings?.header_color || "#1976d2" }}
+                    >
                         <TableRow>
-                            <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "center", border: `1px solid ${borderColor}` }} colSpan={8}>QUESTIONS</TableCell>
-                            <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "center", border: `1px solid ${borderColor}` }} rowSpan={2} colSpan={2}>Action</TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell sx={{ color: "white", width: "1rem", textAlign: "center", border: `1px solid ${borderColor}` }}>#</TableCell>
-                            <TableCell sx={{ color: "white", width: "1rem", textAlign: "center", border: `1px solid ${borderColor}` }}>Category</TableCell>
-                            <TableCell sx={{ color: "white", width: "40rem", textAlign: "center", border: `1px solid ${borderColor}` }}>Description</TableCell>
-                            <TableCell sx={{ color: "white", width: "9rem", textAlign: "center", border: `1px solid ${borderColor}` }}>Choice 1</TableCell>
-                            <TableCell sx={{ color: "white", width: "9rem", textAlign: "center", border: `1px solid ${borderColor}` }}>Choice 2</TableCell>
-                            <TableCell sx={{ color: "white", width: "9rem", textAlign: "center", border: `1px solid ${borderColor}` }}>Choice 3</TableCell>
-                            <TableCell sx={{ color: "white", width: "9rem", textAlign: "center", border: `1px solid ${borderColor}` }}>Choice 4</TableCell>
-                            <TableCell sx={{ color: "white", width: "9rem", textAlign: "center", border: `1px solid ${borderColor}` }}>Choice 5</TableCell>
+                            <TableCell sx={{ color: "white", textAlign: "Center" }}>
+                                Existing Question's:
+                            </TableCell>
                         </TableRow>
                     </TableHead>
+                </Table>
+            </TableContainer>
+            <TableContainer
+                component={Paper}
+                sx={{
+                    border: `1px solid ${borderColor}`,
+
+                }}
+            >
+                <Table>
+                    <TableHead sx={{ backgroundColor: "#F5F5F5", color: "black" }}>
+
+
+                        <TableRow>
+                            <TableCell
+                                sx={{
+                                    color: "black",
+                                    width: "1rem",
+                                    textAlign: "center",
+                                    border: `1px solid ${borderColor}`,
+                                }}
+                            >
+                                #
+                            </TableCell>
+
+                            <TableCell
+                                sx={{
+                                    color: "black",
+                                    width: "1rem",
+                                    textAlign: "center",
+                                    border: `1px solid ${borderColor}`,
+                                }}
+                            >
+                                Category
+                            </TableCell>
+
+                            <TableCell
+                                sx={{
+                                    color: "black",
+                                    width: "40rem",
+                                    textAlign: "center",
+                                    border: `1px solid ${borderColor}`,
+                                }}
+                            >
+                                Description
+                            </TableCell>
+
+                            <TableCell
+                                sx={{
+                                    color: "black",
+                                    width: "9rem",
+                                    textAlign: "center",
+                                    border: `1px solid ${borderColor}`,
+                                }}
+                            >
+                                Choice 1
+                            </TableCell>
+
+                            <TableCell
+                                sx={{
+                                    color: "black",
+                                    width: "9rem",
+                                    textAlign: "center",
+                                    border: `1px solid ${borderColor}`,
+                                }}
+                            >
+                                Choice 2
+                            </TableCell>
+
+                            <TableCell
+                                sx={{
+                                    color: "black",
+                                    width: "9rem",
+                                    textAlign: "center",
+                                    border: `1px solid ${borderColor}`,
+                                }}
+                            >
+                                Choice 3
+                            </TableCell>
+
+                            <TableCell
+                                sx={{
+                                    color: "black",
+                                    width: "9rem",
+                                    textAlign: "center",
+                                    border: `1px solid ${borderColor}`,
+                                }}
+                            >
+                                Choice 4
+                            </TableCell>
+
+                            <TableCell
+                                sx={{
+                                    color: "black",
+                                    width: "9rem",
+                                    textAlign: "center",
+                                    border: `1px solid ${borderColor}`,
+                                }}
+                            >
+                                Choice 5
+                            </TableCell>
+
+                            <TableCell
+                                sx={{
+                                    color: "black",
+                                    width: "9rem",
+                                    textAlign: "center",
+                                    border: `1px solid ${borderColor}`,
+                                }}
+                            >
+                                Action
+                            </TableCell>
+                        </TableRow>
+                    </TableHead>
+
                     <TableBody>
                         {filteredQuestion.length > 0 ? (
                             filteredQuestion.map((q, index) => (
                                 <TableRow key={q.question_id}>
-                                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{index + 1}</TableCell>
-                                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{q.category}</TableCell>
-                                    <TableCell style={{ padding: "0px 20px", border: `1px solid ${borderColor}` }}>{q.question_description}</TableCell>
-                                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{q.first_choice}</TableCell>
-                                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{q.second_choice}</TableCell>
-                                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{q.third_choice}</TableCell>
-                                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{q.fourth_choice}</TableCell>
-                                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}` }}>{q.fifth_choice}</TableCell>
-                                    <TableCell style={{ textAlign: "center", border: `1px solid ${borderColor}` }}>
-                                        <Box sx={{ display: "flex", gap: 1, justifyContent: "center", flexWrap: "wrap" }}>
-                                            <Button 
+                                    <TableCell
+                                        style={{
+                                            textAlign: "center",
+                                            border: `1px solid ${borderColor}`,
+                                        }}
+                                    >
+                                        {index + 1}
+                                    </TableCell>
+
+                                    <TableCell
+                                        style={{
+                                            textAlign: "center",
+                                            border: `1px solid ${borderColor}`,
+                                        }}
+                                    >
+                                        {q.category}
+                                    </TableCell>
+
+                                    <TableCell
+                                        style={{
+                                            padding: "0px 20px",
+                                            border: `1px solid ${borderColor}`,
+                                            backgroundColor: "#f5f5f5",
+                                            color: "black",
+                                            fontWeight: 100,
+                                        }}
+                                    >
+                                        {q.question_description}
+                                    </TableCell>
+
+                                    <TableCell
+                                        style={{
+                                            textAlign: "center",
+                                            border: `1px solid ${borderColor}`,
+                                        }}
+                                    >
+                                        {q.first_choice}
+                                    </TableCell>
+
+                                    <TableCell
+                                        style={{
+                                            textAlign: "center",
+                                            border: `1px solid ${borderColor}`,
+                                        }}
+                                    >
+                                        {q.second_choice}
+                                    </TableCell>
+
+                                    <TableCell
+                                        style={{
+                                            textAlign: "center",
+                                            border: `1px solid ${borderColor}`,
+                                        }}
+                                    >
+                                        {q.third_choice}
+                                    </TableCell>
+
+                                    <TableCell
+                                        style={{
+                                            textAlign: "center",
+                                            border: `1px solid ${borderColor}`,
+                                        }}
+                                    >
+                                        {q.fourth_choice}
+                                    </TableCell>
+
+                                    <TableCell
+                                        style={{
+                                            textAlign: "center",
+                                            border: `1px solid ${borderColor}`,
+                                        }}
+                                    >
+                                        {q.fifth_choice}
+                                    </TableCell>
+
+                                    <TableCell
+                                        style={{
+                                            textAlign: "center",
+                                            border: `1px solid ${borderColor}`,
+                                        }}
+                                    >
+                                        <Box
+                                            sx={{
+                                                display: "flex",
+                                                gap: 1,
+                                                justifyContent: "center",
+                                                flexWrap: "wrap",
+                                            }}
+                                        >
+                                            <Button
                                                 sx={{
                                                     backgroundColor: "green",
                                                     color: "white",
@@ -845,12 +1039,16 @@ const EvaluationCRUD = () => {
                                                     alignItems: "center",
                                                     justifyContent: "center",
                                                     gap: "5px",
-                                                    "&:hover": { backgroundColor: "#006400" },
-                                                }} 
+                                                    "&:hover": {
+                                                        backgroundColor: "#006400",
+                                                    },
+                                                }}
                                                 onClick={() => handleEdit(q)}
                                             >
-                                                <EditIcon fontSize="small" /> Edit
+                                                <EditIcon fontSize="small" />
+                                                Edit
                                             </Button>
+
                                             <Button
                                                 variant="contained"
                                                 sx={{
@@ -863,11 +1061,13 @@ const EvaluationCRUD = () => {
                                                     alignItems: "center",
                                                     justifyContent: "center",
                                                     gap: "5px",
-                                            
                                                 }}
-                                                onClick={() => handleDeleteQuestion(q.question_id)}
+                                                onClick={() =>
+                                                    handleDeleteQuestion(q.question_id)
+                                                }
                                             >
-                                                <DeleteIcon fontSize="small" /> Delete
+                                                <DeleteIcon fontSize="small" />
+                                                Delete
                                             </Button>
                                         </Box>
                                     </TableCell>
@@ -875,7 +1075,9 @@ const EvaluationCRUD = () => {
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={10} align="center">No questions found</TableCell>
+                                <TableCell colSpan={10} align="center">
+                                    No questions found
+                                </TableCell>
                             </TableRow>
                         )}
                     </TableBody>
@@ -954,7 +1156,7 @@ const EvaluationCRUD = () => {
                             fontWeight={700}
                             sx={{ mb: 1, mt: 1 }}
                         >
-                               Choice 2:
+                            Choice 2:
                         </Typography>
                         <TextField size="small" label="Choice 2" name="choice2" value={formData.choice2} onChange={handleChange} fullWidth />
                         <Typography
@@ -962,7 +1164,7 @@ const EvaluationCRUD = () => {
                             fontWeight={700}
                             sx={{ mb: 1, mt: 1 }}
                         >
-                              Choice 3:
+                            Choice 3:
                         </Typography>
                         <TextField size="small" label="Choice 3" name="choice3" value={formData.choice3} onChange={handleChange} fullWidth />
                         <Typography
@@ -970,7 +1172,7 @@ const EvaluationCRUD = () => {
                             fontWeight={700}
                             sx={{ mb: 1, mt: 1 }}
                         >
-                               Choice 4:
+                            Choice 4:
                         </Typography>
                         <TextField size="small" label="Choice 4" name="choice4" value={formData.choice4} onChange={handleChange} fullWidth />
                         <Typography
@@ -978,7 +1180,7 @@ const EvaluationCRUD = () => {
                             fontWeight={700}
                             sx={{ mb: 1, mt: 1 }}
                         >
-                           Choice 5:
+                            Choice 5:
                         </Typography>
                         <TextField size="small" label="Choice 5" name="choice5" value={formData.choice5} onChange={handleChange} fullWidth />
                     </Stack>
@@ -993,8 +1195,8 @@ const EvaluationCRUD = () => {
                     }}
                 >
                     <Button
-                     color="error"
-            variant="outlined"
+                        color="error"
+                        variant="outlined"
                         sx={{ textTransform: "none", fontWeight: 600 }}
                         onClick={handleCloseDialog}
                     >
@@ -1083,8 +1285,8 @@ const EvaluationCRUD = () => {
                     }}
                 >
                     <Button
-                       color="error"
-            variant="outlined"
+                        color="error"
+                        variant="outlined"
                         sx={{ textTransform: "none", fontWeight: 600 }}
                         onClick={handleCategoryDialogClose}
                     >

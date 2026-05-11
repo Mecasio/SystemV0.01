@@ -66,7 +66,7 @@ router.get("/person_prof_list", async (req, res) => {
         p.master,
         p.doctor
       FROM person_prof_table p
-      JOIN prof_table pr
+      LEFT JOIN prof_table pr
         ON pr.person_id = p.person_id
       ORDER BY pr.lname, pr.fname
     `);
@@ -77,7 +77,6 @@ router.get("/person_prof_list", async (req, res) => {
     res.status(500).json({ message: "Failed to fetch records" });
   }
 });
-
 router.post("/person_prof", async (req, res) => {
   const { person_id, bachelor, master, doctor } = req.body;
 

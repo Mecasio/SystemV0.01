@@ -258,53 +258,85 @@ const YearLevelPanel = () => {
       <br />
       <br />
 
-      <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
-        <Table>
-          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", }}>
+
+
+      <TableContainer
+        component={Paper}
+        sx={{
+          width: "100%",
+          border: `1px solid ${borderColor}`,
+
+        }}
+      >
+        <Table size="small">
+          <TableHead
+            sx={{
+              backgroundColor: settings?.header_color || "#1976d2",
+            }}
+          >
             <TableRow>
-              <Box
+              <TableCell
+                colSpan={20}
                 sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  width: "100%"
+
+                  py: 0.5,
+                  backgroundColor: settings?.header_color || "#1976d2",
+                  color: "white",
                 }}
               >
-                <TableCell sx={{ color: "white", textAlign: "center" }}>
-                  Existing Schedules
-                </TableCell>
-
-
-                {showCreateActions && (
-                <Button
-                  variant="contained"
-                  onClick={() => {
-                    setEditMode(false);
-                    setSelectedId(null);
-                    setYearLevelDescription("");
-                    setLevelType("year");
-                    setOpenYearLevelDialog(true);
-                  }}
-                  sx={{
-                    backgroundColor: "#1976d2", // ✅ Blue
-                    color: "#fff",
-                    fontWeight: "bold",
-                    borderRadius: "8px",
-                    width: "250px",
-                    textTransform: "none",
-                    px: 2,
-                    mr: "15px",
-                    '&:hover': {
-                      backgroundColor: "#1565c0" // darker blue hover
-                    }
-                  }}
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  flexWrap="wrap"
+                  sx={{ height: "50px" }}
                 >
-                  + Add Year Level
-                </Button>
-                )}
-              </Box>
+                  {/* LEFT SIDE */}
+                  <Typography
+                    fontSize="14px"
+                    fontWeight="bold"
+                    color="white"
+                  >
+                    Total Year Level: {yearLevelList.length}
+                  </Typography>
 
-
+                  {/* RIGHT SIDE */}
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    gap={1}
+                    flexWrap="wrap"
+                  >
+                    {showCreateActions && (
+                      <Button
+                        variant="contained"
+                        onClick={() => {
+                          setEditMode(false);
+                          setSelectedId(null);
+                          setYearLevelDescription("");
+                          setLevelType("year");
+                          setOpenYearLevelDialog(true);
+                        }}
+                        sx={{
+                          backgroundColor: "#1976d2", // ✅ Blue
+                          color: "#fff",
+                          fontWeight: "bold",
+                          borderRadius: "8px",
+                          width: "250px",
+                          textTransform: "none",
+                          px: 2,
+                          mr: "15px",
+                          '&:hover': {
+                            backgroundColor: "#1565c0" // darker blue hover
+                          }
+                        }}
+                      >
+                        + Add Year Level
+                      </Button>
+                    )}
+                  </Box>
+                </Box>
+              </TableCell>
             </TableRow>
           </TableHead>
         </Table>
@@ -328,62 +360,62 @@ const YearLevelPanel = () => {
                 <td style={styles.tableCell}>{level.year_level_description}</td>
                 <td style={styles.tableCell}>{level.level_type}</td>
                 {showActionColumn && (
-                <td style={styles.tableCell}>
-                  <Box sx={{
+                  <td style={styles.tableCell}>
+                    <Box sx={{
 
-                    textAlign: "center",
+                      textAlign: "center",
 
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    gap: "10px", // space between buttons
-                  }}
-                  >
-                    {canEdit && (
-                    <Button
-                      variant="contained"
-                      size="small"
-                      onClick={() => handleEdit(level)}
-                      sx={{
-                        backgroundColor: "green",
-                        color: "white",
-                        borderRadius: "5px",
-                        padding: "8px 14px",
-                        width: "100px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: "5px",
-                        cursor: "pointer",
-                      }}
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      gap: "10px", // space between buttons
+                    }}
                     >
-                      <EditIcon fontSize="small" /> Edit
-                    </Button>
-                    )}
+                      {canEdit && (
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={() => handleEdit(level)}
+                          sx={{
+                            backgroundColor: "green",
+                            color: "white",
+                            borderRadius: "5px",
+                            padding: "8px 14px",
+                            width: "100px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "5px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <EditIcon fontSize="small" /> Edit
+                        </Button>
+                      )}
 
-                    {canDelete && (
-                    <Button
-                      variant="contained"
-                      size="small"
-                      onClick={() => handleDelete(level.year_level_id)}
-                      sx={{
-                        backgroundColor: "#9E0000",
-                        color: "white",
-                        borderRadius: "5px",
-                        padding: "8px 14px",
-                        width: "100px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: "5px",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <DeleteIcon fontSize="small" /> Delete
-                    </Button>
-                    )}
-                  </Box>
-                </td>
+                      {canDelete && (
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={() => handleDelete(level.year_level_id)}
+                          sx={{
+                            backgroundColor: "#9E0000",
+                            color: "white",
+                            borderRadius: "5px",
+                            padding: "8px 14px",
+                            width: "100px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "5px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <DeleteIcon fontSize="small" /> Delete
+                        </Button>
+                      )}
+                    </Box>
+                  </td>
                 )}
               </tr>
             ))}
@@ -462,7 +494,7 @@ const YearLevelPanel = () => {
         >
           <Button
             onClick={() => setOpenYearLevelDialog(false)}
-        color="error"
+            color="error"
             variant="outlined"
             sx={{ textTransform: "none" }}
           >

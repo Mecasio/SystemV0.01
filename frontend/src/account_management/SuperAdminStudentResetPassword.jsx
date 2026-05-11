@@ -402,10 +402,17 @@ const SuperAdminStudentResetPassword = () => {
           mb: 2,
         }}
       >
-        <Typography variant="h4" fontWeight="bold" color={titleColor}>
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: "bold",
+            color: titleColor,
+            fontSize: "36px",
+          }}
+        >
           STUDENT RESET PASSWORD
         </Typography>
-
+        
         <TextField
           size="small"
           placeholder="Search Student / Email / Name"
@@ -426,8 +433,8 @@ const SuperAdminStudentResetPassword = () => {
       </Box>
 
       {searchError && <Typography color="error">{searchError}</Typography>}
-
-      <hr />
+      <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+      <br />
       <br />
       <Box
         sx={{
@@ -553,8 +560,8 @@ const SuperAdminStudentResetPassword = () => {
         </Box>
       </Paper>
 
-      <br/>
-      <br/>
+      <br />
+      <br />
       <TableContainer component={Paper}>
         <Table size="small">
           <TableHead>

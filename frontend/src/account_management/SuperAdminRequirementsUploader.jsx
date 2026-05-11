@@ -951,7 +951,7 @@ const SuperAdminRequirementsUploader = () => {
             fontSize: "36px",
           }}
         >
-          APPLICANT ONLINE REQUIREMENTS
+          SUBMITTED DOCUMENTS
         </Typography>
 
         <TextField

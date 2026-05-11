@@ -11,14 +11,19 @@ import {
   Select,
   TextField,
   Typography,
+  Table,
+  TableBody,
+  Button,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from "@mui/material";
 import API_BASE_URL from "../apiConfig";
 import { SettingsContext } from "../App";
 
 const PAGE_SIZE = 100;
-const ITEM_HEIGHT = 118;
-const VIEWPORT_HEIGHT = 620;
-const OVERSCAN = 8;
+
 
 const severityColors = {
   INFO: { bg: "#e0f2fe", color: "#075985", border: "#7dd3fc" },
@@ -54,7 +59,6 @@ const AuditLogs = () => {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [scrollTop, setScrollTop] = useState(0);
   const [severity, setSeverity] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -72,7 +76,6 @@ const AuditLogs = () => {
     setPage(1);
     setHasMore(true);
     setError("");
-    setScrollTop(0);
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
   }, []);
 
@@ -117,30 +120,20 @@ const AuditLogs = () => {
     fetchLogs(1, true);
   }, [severity, search]);
 
-  const handleScroll = (event) => {
-    const target = event.currentTarget;
-    setScrollTop(target.scrollTop);
 
-    if (
-      target.scrollHeight - target.scrollTop - target.clientHeight <
-      ITEM_HEIGHT * 8
-    ) {
-      fetchLogs();
-    }
-  };
 
-  const virtualRows = useMemo(() => {
-    const startIndex = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - OVERSCAN);
-    const visibleCount = Math.ceil(VIEWPORT_HEIGHT / ITEM_HEIGHT) + OVERSCAN * 2;
-    const endIndex = Math.min(logs.length, startIndex + visibleCount);
 
-    return {
-      startIndex,
-      rows: logs.slice(startIndex, endIndex),
-      topSpacer: startIndex * ITEM_HEIGHT,
-      bottomSpacer: Math.max(0, (logs.length - endIndex) * ITEM_HEIGHT),
-    };
-  }, [logs, scrollTop]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const logsPerPage = 100;
+
+  const totalPages = Math.ceil(logs.length / logsPerPage);
+
+  const paginatedLogs = useMemo(() => {
+    const startIndex = (currentPage - 1) * logsPerPage;
+    const endIndex = startIndex + logsPerPage;
+
+    return logs.slice(startIndex, endIndex);
+  }, [logs, currentPage]);
 
   return (
     <Box
@@ -162,8 +155,226 @@ const AuditLogs = () => {
       </Box>
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+      <br />
+      <br />
 
-      <Paper sx={{ mt: 3, p: 2, border: `1px solid ${borderColor}` }}>
+
+      <TableContainer
+        component={Paper}
+        sx={{ width: "100%", border: `1px solid ${borderColor}` }}
+      >
+        <Table size="small">
+          <TableHead
+            sx={{
+              backgroundColor: settings?.header_color || "#1976d2",
+            }}
+          >
+            <TableRow>
+              <TableCell
+                sx={{
+                  border: `1px solid ${borderColor}`,
+                  py: 0.5,
+                  backgroundColor: settings?.header_color || "#1976d2",
+                  color: "white",
+                }}
+              >
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  flexWrap="wrap"
+                  gap={1}
+                  sx={{ height: "50px" }}
+                >
+                  {/* LEFT SIDE */}
+                  <Typography
+                    fontSize="16px"
+                    fontWeight="bold"
+                    color="white"
+                  >
+                    Audit Logs
+                  </Typography>
+
+                  {/* RIGHT SIDE */}
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    gap={1}
+                    flexWrap="wrap"
+                  >
+                    <Button
+                      onClick={() => setCurrentPage(1)}
+                      disabled={currentPage === 1}
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        minWidth: 80,
+                        color: "white",
+                        borderColor: "white",
+                        backgroundColor: "transparent",
+                        "&:hover": {
+                          borderColor: "white",
+                          backgroundColor: "rgba(255,255,255,0.1)",
+                        },
+                        "&.Mui-disabled": {
+                          color: "white",
+                          borderColor: "white",
+                          backgroundColor: "transparent",
+                          opacity: 1,
+                        },
+                      }}
+                    >
+                      First
+                    </Button>
+
+                    <Button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
+                      disabled={currentPage === 1}
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        minWidth: 80,
+                        color: "white",
+                        borderColor: "white",
+                        backgroundColor: "transparent",
+                        "&:hover": {
+                          borderColor: "white",
+                          backgroundColor: "rgba(255,255,255,0.1)",
+                        },
+                        "&.Mui-disabled": {
+                          color: "white",
+                          borderColor: "white",
+                          backgroundColor: "transparent",
+                          opacity: 1,
+                        },
+                      }}
+                    >
+                      Prev
+                    </Button>
+
+                    <FormControl size="small" sx={{ minWidth: 90 }}>
+                      <Select
+                        value={currentPage}
+                        onChange={(e) =>
+                          setCurrentPage(Number(e.target.value))
+                        }
+                        sx={{
+                          fontSize: "12px",
+                          height: 36,
+                          color: "white",
+                          border: "1px solid white",
+                          backgroundColor: "transparent",
+                          ".MuiOutlinedInput-notchedOutline": {
+                            borderColor: "white",
+                          },
+                          "&:hover .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "white",
+                          },
+                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "white",
+                          },
+                          "& svg": { color: "white" },
+                        }}
+                        MenuProps={{
+                          PaperProps: {
+                            sx: {
+                              maxHeight: 200,
+                              backgroundColor: "#fff",
+                            },
+                          },
+                        }}
+                      >
+                        {Array.from(
+                          { length: totalPages || 1 },
+                          (_, i) => (
+                            <MenuItem
+                              key={i + 1}
+                              value={i + 1}
+                            >
+                              Page {i + 1}
+                            </MenuItem>
+                          )
+                        )}
+                      </Select>
+                    </FormControl>
+
+                    <Typography
+                      fontSize="11px"
+                      color="white"
+                    >
+                      of {totalPages || 1} page
+                      {totalPages > 1 ? "s" : ""}
+                    </Typography>
+
+                    <Button
+                      onClick={() =>
+                        setCurrentPage((prev) =>
+                          Math.min(prev + 1, totalPages)
+                        )
+                      }
+                      disabled={
+                        currentPage === totalPages ||
+                        totalPages === 0
+                      }
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        minWidth: 80,
+                        color: "white",
+                        borderColor: "white",
+                        backgroundColor: "transparent",
+                        "&:hover": {
+                          borderColor: "white",
+                          backgroundColor: "rgba(255,255,255,0.1)",
+                        },
+                        "&.Mui-disabled": {
+                          color: "white",
+                          borderColor: "white",
+                          backgroundColor: "transparent",
+                          opacity: 1,
+                        },
+                      }}
+                    >
+                      Next
+                    </Button>
+
+                    <Button
+                      onClick={() => setCurrentPage(totalPages)}
+                      disabled={
+                        currentPage === totalPages ||
+                        totalPages === 0
+                      }
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        minWidth: 80,
+                        color: "white",
+                        borderColor: "white",
+                        backgroundColor: "transparent",
+                        "&:hover": {
+                          borderColor: "white",
+                          backgroundColor: "rgba(255,255,255,0.1)",
+                        },
+                        "&.Mui-disabled": {
+                          color: "white",
+                          borderColor: "white",
+                          backgroundColor: "transparent",
+                          opacity: 1,
+                        },
+                      }}
+                    >
+                      Last
+                    </Button>
+                  </Box>
+                </Box>
+              </TableCell>
+            </TableRow>
+          </TableHead>
+        </Table>
+      </TableContainer>
+      <Paper sx={{ p: 2, border: `1px solid ${borderColor}` }}>
         <Box display="flex" gap={2} flexWrap="wrap" alignItems="center" mb={2}>
           <TextField
             label="Search audit trail"
@@ -198,19 +409,18 @@ const AuditLogs = () => {
         )}
 
         <Box
-          ref={scrollRef}
-          onScroll={handleScroll}
+ 
           sx={{
-            height: VIEWPORT_HEIGHT,
-            overflow: "auto",
+            
+        
             border: `1px solid ${borderColor}`,
             backgroundColor: "#f8fafc",
             p: 2,
           }}
         >
-          <Box sx={{ height: virtualRows.topSpacer }} />
+          <Box sx={{}} />
 
-          {virtualRows.rows.map((log) => {
+          {paginatedLogs.map((log) => {
             const severityValue = String(log.severity || "INFO").toUpperCase();
             const severityStyle = severityColors[severityValue] || severityColors.INFO;
 
@@ -218,7 +428,7 @@ const AuditLogs = () => {
               <Box
                 key={log.log_key}
                 sx={{
-                  minHeight: ITEM_HEIGHT - 12,
+                  minHeight: "auto",
                   mb: "12px",
                   display: "grid",
                   gridTemplateColumns: "16px 1fr",
@@ -284,7 +494,7 @@ const AuditLogs = () => {
                       fontSize: 14,
                       fontWeight: 700,
                       color: "#1f2937",
-                      overflowWrap: "anywhere",
+                 
                     }}
                   >
                     {log.email || "unknown"}
@@ -296,7 +506,7 @@ const AuditLogs = () => {
                       fontSize: 14,
                       color: "#374151",
                       lineHeight: 1.45,
-                      overflowWrap: "anywhere",
+         
                     }}
                   >
                     {log.message}
@@ -306,7 +516,7 @@ const AuditLogs = () => {
             );
           })}
 
-          <Box sx={{ height: virtualRows.bottomSpacer }} />
+          <Box sx={{  }} />
 
           {logs.length === 0 && !loading && (
             <Box sx={{ textAlign: "center", py: 8, color: "text.secondary" }}>
@@ -327,6 +537,222 @@ const AuditLogs = () => {
           )}
         </Box>
       </Paper>
+
+           <TableContainer
+        component={Paper}
+        sx={{ width: "100%", border: `1px solid ${borderColor}` }}
+      >
+        <Table size="small">
+          <TableHead
+            sx={{
+              backgroundColor: settings?.header_color || "#1976d2",
+            }}
+          >
+            <TableRow>
+              <TableCell
+                sx={{
+                  border: `1px solid ${borderColor}`,
+                  py: 0.5,
+                  backgroundColor: settings?.header_color || "#1976d2",
+                  color: "white",
+                }}
+              >
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  flexWrap="wrap"
+                  gap={1}
+                  sx={{ height: "50px" }}
+                >
+                  {/* LEFT SIDE */}
+                  <Typography
+                    fontSize="16px"
+                    fontWeight="bold"
+                    color="white"
+                  >
+                    Audit Logs
+                  </Typography>
+
+                  {/* RIGHT SIDE */}
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    gap={1}
+                    flexWrap="wrap"
+                  >
+                    <Button
+                      onClick={() => setCurrentPage(1)}
+                      disabled={currentPage === 1}
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        minWidth: 80,
+                        color: "white",
+                        borderColor: "white",
+                        backgroundColor: "transparent",
+                        "&:hover": {
+                          borderColor: "white",
+                          backgroundColor: "rgba(255,255,255,0.1)",
+                        },
+                        "&.Mui-disabled": {
+                          color: "white",
+                          borderColor: "white",
+                          backgroundColor: "transparent",
+                          opacity: 1,
+                        },
+                      }}
+                    >
+                      First
+                    </Button>
+
+                    <Button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
+                      disabled={currentPage === 1}
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        minWidth: 80,
+                        color: "white",
+                        borderColor: "white",
+                        backgroundColor: "transparent",
+                        "&:hover": {
+                          borderColor: "white",
+                          backgroundColor: "rgba(255,255,255,0.1)",
+                        },
+                        "&.Mui-disabled": {
+                          color: "white",
+                          borderColor: "white",
+                          backgroundColor: "transparent",
+                          opacity: 1,
+                        },
+                      }}
+                    >
+                      Prev
+                    </Button>
+
+                    <FormControl size="small" sx={{ minWidth: 90 }}>
+                      <Select
+                        value={currentPage}
+                        onChange={(e) =>
+                          setCurrentPage(Number(e.target.value))
+                        }
+                        sx={{
+                          fontSize: "12px",
+                          height: 36,
+                          color: "white",
+                          border: "1px solid white",
+                          backgroundColor: "transparent",
+                          ".MuiOutlinedInput-notchedOutline": {
+                            borderColor: "white",
+                          },
+                          "&:hover .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "white",
+                          },
+                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "white",
+                          },
+                          "& svg": { color: "white" },
+                        }}
+                        MenuProps={{
+                          PaperProps: {
+                            sx: {
+                              maxHeight: 200,
+                              backgroundColor: "#fff",
+                            },
+                          },
+                        }}
+                      >
+                        {Array.from(
+                          { length: totalPages || 1 },
+                          (_, i) => (
+                            <MenuItem
+                              key={i + 1}
+                              value={i + 1}
+                            >
+                              Page {i + 1}
+                            </MenuItem>
+                          )
+                        )}
+                      </Select>
+                    </FormControl>
+
+                    <Typography
+                      fontSize="11px"
+                      color="white"
+                    >
+                      of {totalPages || 1} page
+                      {totalPages > 1 ? "s" : ""}
+                    </Typography>
+
+                    <Button
+                      onClick={() =>
+                        setCurrentPage((prev) =>
+                          Math.min(prev + 1, totalPages)
+                        )
+                      }
+                      disabled={
+                        currentPage === totalPages ||
+                        totalPages === 0
+                      }
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        minWidth: 80,
+                        color: "white",
+                        borderColor: "white",
+                        backgroundColor: "transparent",
+                        "&:hover": {
+                          borderColor: "white",
+                          backgroundColor: "rgba(255,255,255,0.1)",
+                        },
+                        "&.Mui-disabled": {
+                          color: "white",
+                          borderColor: "white",
+                          backgroundColor: "transparent",
+                          opacity: 1,
+                        },
+                      }}
+                    >
+                      Next
+                    </Button>
+
+                    <Button
+                      onClick={() => setCurrentPage(totalPages)}
+                      disabled={
+                        currentPage === totalPages ||
+                        totalPages === 0
+                      }
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        minWidth: 80,
+                        color: "white",
+                        borderColor: "white",
+                        backgroundColor: "transparent",
+                        "&:hover": {
+                          borderColor: "white",
+                          backgroundColor: "rgba(255,255,255,0.1)",
+                        },
+                        "&.Mui-disabled": {
+                          color: "white",
+                          borderColor: "white",
+                          backgroundColor: "transparent",
+                          opacity: 1,
+                        },
+                      }}
+                    >
+                      Last
+                    </Button>
+                  </Box>
+                </Box>
+              </TableCell>
+            </TableRow>
+          </TableHead>
+        </Table>
+      </TableContainer>
     </Box>
   );
 };

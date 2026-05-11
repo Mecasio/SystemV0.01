@@ -104,12 +104,12 @@ const ReadmissionDashboard1 = () => {
 
 
   const stepsData = [
-  { label: "Student List", to: "/student_list", icon: <SchoolIcon fontSize="large"/> },
-        { label: "Applicant Form", to: "/readmission_dashboard1", icon: <PersonIcon fontSize="large"/> },
-        { label: "Submitted Documents", to: "/submitted_documents", icon: <AssignmentIcon fontSize="large"/> },
-        { label: "Search Certificate of Registration", to: "/search_cor", icon: <ListAltIcon fontSize="large"/> },
-        { label: "Report of Grades", to: "/report_of_grades", icon: <GradeIcon fontSize="large"/> },
-        { label: "Transcript of Records", to: "/transcript_of_records", icon: <ReceiptLongIcon fontSize="large"/> },
+    { label: "Student List", to: "/student_list", icon: <SchoolIcon fontSize="large" /> },
+    { label: "Student Profile", to: "/readmission_dashboard1", icon: <PersonIcon fontSize="large" /> },
+    { label: "Submitted Documents", to: "/submitted_documents", icon: <AssignmentIcon fontSize="large" /> },
+    { label: "Search Certificate of Registration", to: "/search_cor", icon: <ListAltIcon fontSize="large" /> },
+    { label: "Report of Grades", to: "/report_of_grades", icon: <GradeIcon fontSize="large" /> },
+    { label: "Transcript of Records", to: "/transcript_of_records", icon: <ReceiptLongIcon fontSize="large" /> },
   ];
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -1296,7 +1296,7 @@ const ReadmissionDashboard1 = () => {
             fontSize: "36px",
           }}
         >
-           PERSONAL INFORMATION
+          PERSONAL INFORMATION
         </Typography>
 
         {/* ✅ Right side: Search + Excel Import side by side */}
@@ -1327,7 +1327,7 @@ const ReadmissionDashboard1 = () => {
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
 
- 
+
       <Box
         sx={{
           display: "flex",
@@ -1390,7 +1390,7 @@ const ReadmissionDashboard1 = () => {
             {index < stepsData.length - 1 && (
               <Box
                 sx={{
-              
+
                   mx: 1, // spacing between cards
                 }}
               />
@@ -1399,7 +1399,7 @@ const ReadmissionDashboard1 = () => {
         ))}
       </Box>
       <br />
-          <br />
+      <br />
       <TableContainer component={Paper} sx={{ width: '100%', mb: 1 }}>
         <Table>
           <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `1px solid ${borderColor}`, }}>
@@ -1924,7 +1924,7 @@ const ReadmissionDashboard1 = () => {
 
 
 
-               {/* <Box display="flex" alignItems="center" gap={2} mb={1}>
+                  {/* <Box display="flex" alignItems="center" gap={2} mb={1}>
                            <label className="w-40 font-medium">Course Applied:</label>
                             <FormControl fullWidth size="small" required error={!!errors.program2}>
                                                                       <InputLabel>Course Applied</InputLabel>

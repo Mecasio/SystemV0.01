@@ -939,7 +939,7 @@ const MatriculationPaymentModule = () => {
                                     <TableCell>
                                         <Button
                                             variant="contained"
-                                        
+
                                             onClick={() => openConfirm(row)}
                                         >
                                             Transact to Matriculation
@@ -1039,13 +1039,12 @@ const MatriculationPaymentModule = () => {
                             />
                             <Box sx={{ mt: 2, width: "406px", display: "flex", alignItems: "center", justifyContent: "end" }}>
                                 <Button onClick={closeConfirm}
-                                 color="error"
-            variant="outlined"
-
+                                    color="error"
+                                    variant="outlined"
                                 >
                                     Cancel
                                 </Button>
-                                <Button onClick={handleConfirmTransfer} variant="contained"  disabled={isOverPayment}>
+                                <Button onClick={handleConfirmTransfer} variant="contained" disabled={isOverPayment}>
                                     Confirm
                                 </Button>
                             </Box>
@@ -1112,15 +1111,60 @@ const MatriculationPaymentModule = () => {
                     ) : (
                         <TableContainer component={Paper} sx={{ mt: 1, maxHeight: 500 }}>
                             <Table stickyHeader size="small">
-                                <TableHead>
+                                <TableHead
+
+                                >
                                     <TableRow>
-                                        <TableCell><strong>ID</strong></TableCell>
-                                        <TableCell><strong>Student Number</strong></TableCell>
-                                        <TableCell><strong>Payment</strong></TableCell>
-                                        <TableCell><strong>Employee ID</strong></TableCell>
-                                        <TableCell><strong>Academic School Year</strong></TableCell>
-                                        <TableCell><strong>Remark</strong></TableCell>
-                                        <TableCell><strong>Created At</strong></TableCell>
+                                        <TableCell sx={{
+                                            backgroundColor: settings?.header_color || "#1976d2",
+                                            color: "white",
+
+                                            width: "1rem",
+                                            textAlign: "center",
+                                            border: `1px solid ${borderColor}`,
+                                        }}><strong>ID</strong></TableCell>
+                                        <TableCell sx={{
+                                            backgroundColor: settings?.header_color || "#1976d2",
+                                            color: "white",
+                                            width: "1rem",
+                                            textAlign: "center",
+                                            border: `1px solid ${borderColor}`,
+                                        }}><strong>Student Number</strong></TableCell>
+                                        <TableCell sx={{
+                                            backgroundColor: settings?.header_color || "#1976d2",
+                                            color: "white",
+                                            width: "1rem",
+                                            textAlign: "center",
+                                            border: `1px solid ${borderColor}`,
+                                        }}><strong>Payment</strong></TableCell>
+                                        <TableCell sx={{
+                                            backgroundColor: settings?.header_color || "#1976d2",
+                                            color: "white",
+                                            width: "1rem",
+                                            textAlign: "center",
+                                            border: `1px solid ${borderColor}`,
+                                        }}><strong>Employee ID</strong></TableCell>
+                                        <TableCell sx={{
+                                            backgroundColor: settings?.header_color || "#1976d2",
+                                            color: "white",
+                                            width: "1rem",
+                                            textAlign: "center",
+                                            border: `1px solid ${borderColor}`,
+                                        }}><strong>Academic School Year</strong></TableCell>
+                                        <TableCell sx={{
+                                            backgroundColor: settings?.header_color || "#1976d2",
+                                            color: "white",
+                                            width: "1rem",
+                                            textAlign: "center",
+                                            border: `1px solid ${borderColor}`,
+                                        }}><strong>Remark</strong></TableCell>
+                                        <TableCell sx={{
+                                            backgroundColor: settings?.header_color || "#1976d2",
+                                            color: "white",
+                                            width: "1rem",
+                                            textAlign: "center",
+                                            border: `1px solid ${borderColor}`,
+                                        }}><strong>Created At</strong></TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -1149,7 +1193,8 @@ const MatriculationPaymentModule = () => {
                     )}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setHistoryOpen(false)}>Close</Button>
+                    <Button onClick={() => setHistoryOpen(false)} color="error"
+                        variant="outlined">Close</Button>
                 </DialogActions>
             </Dialog>
 
@@ -1317,7 +1362,8 @@ const MatriculationPaymentModule = () => {
                     </Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCloseReceipt} color="inherit">Close</Button>
+                    <Button onClick={handleCloseReceipt} color="error"
+                        variant="outlined">Close</Button>
                 </DialogActions>
             </Dialog>
 
@@ -1332,13 +1378,13 @@ const MatriculationPaymentModule = () => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCancelCloseWithoutPrint}
-                        variant="contained"
                         color="error"
-
+                        variant="outlined"
                     >
                         No
                     </Button>
-                    <Button variant="contained" color="error" onClick={handleConfirmCloseWithoutPrint}>
+                    <Button color="error"
+                        variant="outlined" onClick={handleConfirmCloseWithoutPrint}>
                         Yes, Close
                     </Button>
                 </DialogActions>

@@ -460,7 +460,8 @@ const SuperAdminApplicantResetPassword = () => {
       </Box>
 
       {searchError && <Typography color="error">{searchError}</Typography>}
-      <hr style={{ border: "2px solid #ccc", width: "100%" }} />
+      <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+      <br />
       <br />
 
       <Box

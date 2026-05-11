@@ -114,7 +114,7 @@ const StudentNumbering = () => {
       icon: <SchoolIcon fontSize="large" />,
     },
     {
-      label: "Applicant Form",
+      label: "Applicant Profile",
       to: "/registrar_dashboard1",
       icon: <PersonIcon fontSize="large" />,
     },

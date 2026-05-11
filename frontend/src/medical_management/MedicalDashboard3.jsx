@@ -72,12 +72,12 @@ const MedicalDashboard3 = () => {
   }, [settings]);
 
   const stepsData = [
-     { label: "Student List", to: "/medical_student_list", icon: <SchoolIcon fontSize="large" /> },
-            { label: "Applicant Form", to: "/medical_dashboard1", icon: <PersonIcon fontSize="large" /> },
-            { label: "Submitted Documents", to: "/medical_requirements", icon: <AssignmentIcon fontSize="large" /> }, // updated icon
-            { label: "Medical History", to: "/medical_requirements_form", icon: <HealthAndSafetyIcon fontSize="large" /> },
-            { label: "Dental Assessment", to: "/dental_assessment", icon: <DescriptionIcon fontSize="large" /> },
-            { label: "Physical and Neurological Examination", to: "/physical_neuro_exam", icon: <PsychologyIcon fontSize="large" /> },
+    { label: "Student List", to: "/medical_student_list", icon: <SchoolIcon fontSize="large" /> },
+    { label: "Student Profile", to: "/medical_dashboard1", icon: <PersonIcon fontSize="large" /> },
+    { label: "Submitted Documents", to: "/medical_requirements", icon: <AssignmentIcon fontSize="large" /> }, // updated icon
+    { label: "Medical History", to: "/medical_requirements_form", icon: <HealthAndSafetyIcon fontSize="large" /> },
+    { label: "Dental Assessment", to: "/dental_assessment", icon: <DescriptionIcon fontSize="large" /> },
+    { label: "Physical and Neurological Examination", to: "/physical_neuro_exam", icon: <PsychologyIcon fontSize="large" /> },
   ];
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -566,7 +566,7 @@ const MedicalDashboard3 = () => {
             fontSize: '36px',
           }}
         >
-           EDUCATIONAL ATTAINMENT
+          EDUCATIONAL ATTAINMENT
         </Typography>
 
 
@@ -574,7 +574,7 @@ const MedicalDashboard3 = () => {
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
-    
+
 
 
 
@@ -639,7 +639,7 @@ const MedicalDashboard3 = () => {
             {index < stepsData.length - 1 && (
               <Box
                 sx={{
-              
+
                   mx: 1, // spacing between cards
                 }}
               />
@@ -649,7 +649,7 @@ const MedicalDashboard3 = () => {
       </Box>
 
       <br />
-    <br />
+      <br />
 
       <TableContainer component={Paper} sx={{ width: '100%', mb: 1 }}>
         <Table>

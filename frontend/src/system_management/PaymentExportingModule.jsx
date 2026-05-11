@@ -484,6 +484,7 @@ const PaymentExportingModule = () => {
 
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
+               <br />
 
             <TableContainer component={Paper} sx={{ width: '100%', border: `1px solid ${borderColor}`, }}>
                 <Table>

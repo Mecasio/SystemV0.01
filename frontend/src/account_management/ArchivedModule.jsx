@@ -342,17 +342,28 @@ const ArchivedModule = () => {
 
   return (
     <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+
+
+
+
+      {/* Top header: DOCUMENTS SUBMITTED + Search + Import */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+
+          mb: 2,
+
+        }}
+      >
         <Typography
           variant="h4"
           sx={{
             fontWeight: "bold",
             color: titleColor,
             fontSize: "36px",
-            background: "white",
-            display: "flex",
-            alignItems: "center",
-            mb: 2,
           }}
         >
           ARCHIVED MODULE
@@ -386,6 +397,7 @@ const ArchivedModule = () => {
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
       <br />
+
 
 
       <TableContainer component={Paper} sx={{ width: "100" }}>

@@ -198,7 +198,7 @@ const NSTPTagging = () => {
       .then((res) => {
         if (res.data?.length > 0) setActiveSYID(res.data[0].school_year_id);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [selectedYear, selectedSemester]);
 
   // ── Fetch all students in section — left panel never filters anyone out ───
@@ -505,12 +505,28 @@ const NSTPTagging = () => {
       </Box>
       <Divider sx={{ mb: 3 }} />
 
-      {/* ── Filter Bar ───────────────────────────────────────────────────── */}
+      <TableContainer
+        component={Paper}
+        sx={{ width: "100%", border: `1px solid ${borderColor}` }}
+      >
+        <Table>
+          <TableHead
+            sx={{ backgroundColor: settings?.header_color || "#1976d2" }}
+          >
+            <TableRow>
+              <TableCell sx={{ color: "white", textAlign: "Center" }}>
+                Application Date
+              </TableCell>
+            </TableRow>
+          </TableHead>
+        </Table>
+      </TableContainer>
+
       <Paper
         elevation={0}
         sx={{
           border: `1px solid ${borderColor}`,
-          borderRadius: "10px",
+      
           p: 2.5,
           mb: 3,
           backgroundColor: "#fff",
@@ -771,7 +787,7 @@ const NSTPTagging = () => {
             elevation={0}
             sx={{
               border: `1px solid ${borderColor}`,
-              borderRadius: "10px",
+          
               overflow: "hidden",
             }}
           >
@@ -932,7 +948,7 @@ const NSTPTagging = () => {
             elevation={0}
             sx={{
               border: `1px solid ${borderColor}`,
-              borderRadius: "10px",
+      
               overflow: "hidden",
             }}
           >

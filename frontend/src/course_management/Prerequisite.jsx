@@ -301,6 +301,8 @@ const CoursePanelMap = () => {
 
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
+            <br />
+
 
             <Typography fontWeight={500}>Select Campus:</Typography>
             <FormControl sx={{ minWidth: 300, mb: 3 }}>

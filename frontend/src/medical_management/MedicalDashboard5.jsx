@@ -73,7 +73,7 @@ const MedicalDashboard5 = () => {
 
   const stepsData = [
     { label: "Student List", to: "/medical_student_list", icon: <SchoolIcon fontSize="large" /> },
-    { label: "Applicant Form", to: "/medical_dashboard1", icon: <PersonIcon fontSize="large" /> },
+    { label: "Student Profile", to: "/medical_dashboard1", icon: <PersonIcon fontSize="large" /> },
     { label: "Submitted Documents", to: "/medical_requirements", icon: <AssignmentIcon fontSize="large" /> }, // updated icon
     { label: "Medical History", to: "/medical_requirements_form", icon: <HealthAndSafetyIcon fontSize="large" /> },
     { label: "Dental Assessment", to: "/dental_assessment", icon: <DescriptionIcon fontSize="large" /> },

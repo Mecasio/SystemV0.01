@@ -648,7 +648,14 @@ const UserPageAccess = () => {
         alignItems="center"
         mb={2}
       >
-        <Typography variant="h4" fontWeight="bold" sx={{ color: titleColor }}>
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: "bold",
+            color: titleColor,
+            fontSize: "36px",
+          }}
+        >
           USER PAGE ACCESS
         </Typography>
 

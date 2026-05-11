@@ -499,6 +499,7 @@ const ReceiptCounterAssignment = () => {
 
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
             <br />
+              <br />
 
             <TableContainer component={Paper} sx={{ width: '100%', mt: 1, border: `1px solid ${borderColor}` }}>
                 <Table size="small">

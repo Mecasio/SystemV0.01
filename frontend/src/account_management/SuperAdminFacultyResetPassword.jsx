@@ -304,13 +304,16 @@ const SuperAdminFacultyResetPassword = () => {
 
         }}
       >
-        <Typography
-          variant="h4"
-          sx={{ fontWeight: "bold", color: titleColor, fontSize: "36px" }}
-        >
-          FACULTY RESET PASSWORD
-        </Typography>
-
+         <Typography
+             variant="h4"
+             sx={{
+               fontWeight: "bold",
+               color: titleColor,
+               fontSize: "36px",
+             }}
+           >
+            FACULTY RESET PASSWORD
+           </Typography>
 
         <TextField
           size="small"
@@ -331,8 +334,8 @@ const SuperAdminFacultyResetPassword = () => {
 
         />
       </Box>
-
-      <hr />
+      <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+      <br />
       <br />
       <Box
         sx={{
@@ -414,8 +417,8 @@ const SuperAdminFacultyResetPassword = () => {
         </Button>
       </Paper>
 
-      <br/>
-      <br/>
+      <br />
+      <br />
       {/* ================= FACULTY TABLE ================= */}
       <TableContainer component={Paper}>
         <Table size="small">
@@ -437,7 +440,7 @@ const SuperAdminFacultyResetPassword = () => {
 
                   {/* LEFT: TOTAL COUNT */}
                   <Typography fontSize="14px" fontWeight="bold" color="white">
-                    Total Faculty: {faculty.length}
+                    Total Facultys: {faculty.length}
                   </Typography>
 
                   {/* RIGHT: PAGINATION CONTROLS */}

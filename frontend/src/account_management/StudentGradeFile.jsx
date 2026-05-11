@@ -1056,13 +1056,14 @@ const StudentGradeFile = () => {
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
+      <br />
 
       <TableContainer
         component={Paper}
         sx={{ width: "100%", border: `1px solid ${borderColor}` }}
       >
         <Table>
-          <TableHead sx={{ backgroundColor: mainButtonColor }}>
+          <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2" }}>
             <TableRow>
               <TableCell sx={{ color: "white", textAlign: "Center" }}>
                 Student Personal Information
@@ -1225,7 +1226,7 @@ const StudentGradeFile = () => {
             {/* Term Header Info */}
             <Box
               sx={{
-                backgroundColor: mainButtonColor,
+                backgroundColor: settings?.header_color || "#1976d2",
                 borderBottom: `1px solid ${borderColor}`,
                 display: "flex",
                 alignItems: "center",

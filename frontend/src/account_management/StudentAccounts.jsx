@@ -771,7 +771,7 @@ export default function StudentAccounts() {
                                         fontWeight="bold"
                                         color="white"
                                     >
-                                        Total Students: {totalStudents}
+                                        Total Student Accounts's: {totalStudents}
                                     </Typography>
 
                                     {/* PAGINATION */}

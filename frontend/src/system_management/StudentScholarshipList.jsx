@@ -413,6 +413,8 @@ const StudentScholarshipList = () => {
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
+       <br />
+
 
       <Card sx={{  boxShadow: 3 }}>
         <TableContainer component={Paper}>

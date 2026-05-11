@@ -847,14 +847,34 @@ const RegisterProf = () => {
 
   return (
     <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent", mt: 1, padding: 2 }}>
-      <div style={{ height: "10px" }}></div>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2} >
-        {/* Left: Header */}
-        <Typography variant="h4" fontWeight="bold" style={{ color: titleColor, }}>
+
+
+
+
+      {/* Top header: DOCUMENTS SUBMITTED + Search + Import */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+
+          mb: 2,
+
+        }}
+      >
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: "bold",
+            color: titleColor,
+            fontSize: "36px",
+          }}
+        >
           PROFESSOR ACCOUNTS
         </Typography>
 
-        {/* Right: Search */}
+
         <TextField
           variant="outlined"
           placeholder="Search by name or email"
@@ -881,11 +901,12 @@ const RegisterProf = () => {
           }}
         />
 
+
+
       </Box>
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
-
-
+      <br />
       <br />
 
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", mb: 2 }}>
@@ -907,7 +928,7 @@ const RegisterProf = () => {
                   <Box display="flex" justifyContent="space-between" alignItems="center" >
                     {/* Left: Applicant List Count */}
                     <Typography fontSize="14px" fontWeight="bold" color="white">
-                      Faculty Account's: {filteredProfessors.length}
+                      Total Faculty Account's: {filteredProfessors.length}
                     </Typography>
 
                     {/* Right: Pagination Controls */}

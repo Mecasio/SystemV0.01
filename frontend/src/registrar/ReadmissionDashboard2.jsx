@@ -75,7 +75,7 @@ const ReadmissionDashboard2 = () => {
 
     const stepsData = [
         { label: "Student List", to: "/student_list", icon: <SchoolIcon fontSize="large" /> },
-        { label: "Applicant Form", to: "/readmission_dashboard1", icon: <PersonIcon fontSize="large" /> },
+        { label: "Student Profile", to: "/readmission_dashboard1", icon: <PersonIcon fontSize="large" /> },
         { label: "Submitted Documents", to: "/submitted_documents", icon: <AssignmentIcon fontSize="large" /> },
         { label: "Search Certificate of Registration", to: "/search_cor", icon: <ListAltIcon fontSize="large" /> },
         { label: "Report of Grades", to: "/report_of_grades", icon: <GradeIcon fontSize="large" /> },

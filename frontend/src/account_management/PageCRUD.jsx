@@ -370,10 +370,11 @@ const PageCRUD = () => {
                         fontSize: "36px",
                     }}
                 >
-                    PAGE MANAGEMENT
+                  PAGE MANAGEMENT
                 </Typography>
             </Box>
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+            <br />
             <br />
 
             <Button

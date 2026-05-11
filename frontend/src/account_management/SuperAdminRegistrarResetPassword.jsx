@@ -376,10 +376,15 @@ const SuperAdminRegistrarResetPassword = () => {
       >
         <Typography
           variant="h4"
-          sx={{ fontWeight: "bold", color: titleColor, fontSize: "36px" }}
+          sx={{
+            fontWeight: "bold",
+            color: titleColor,
+            fontSize: "36px",
+          }}
         >
           REGISTRAR RESET PASSWORD
         </Typography>
+
 
         <TextField
           size="small"
@@ -401,7 +406,8 @@ const SuperAdminRegistrarResetPassword = () => {
       </Box>
 
       {searchError && <Typography color="error">{searchError}</Typography>}
-      <hr />
+      <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+      <br />
       <br />
       <Box
         sx={{
@@ -458,7 +464,7 @@ const SuperAdminRegistrarResetPassword = () => {
           </Card>
         ))}
       </Box>
-     <br />
+      <br />
       <br />
 
       <TableContainer
@@ -525,8 +531,8 @@ const SuperAdminRegistrarResetPassword = () => {
         </Box>
       </Paper>
 
-      <br/>
-      <br/>
+      <br />
+      <br />
       <TableContainer component={Paper} sx={{ width: "100%" }}>
         <Table size="small">
           {/* 🔥 TOP HEADER (Pagination + Total) */}
@@ -849,7 +855,7 @@ const SuperAdminRegistrarResetPassword = () => {
         </Table>
       </TableContainer>
 
-     
+
 
       <Snackbar
         open={snackbar.open}

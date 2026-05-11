@@ -893,7 +893,7 @@ const ProgramTagging = () => {
                       fontWeight="bold"
                       color="white"
                     >
-                      Tagged Programs:
+                      Tagged Program Filter:
                     </Typography>
 
                     {/* RIGHT SIDE */}
@@ -973,7 +973,15 @@ const ProgramTagging = () => {
             setFilteredPrograms={setFilteredPrograms}
           />
 
-          <TableContainer component={Paper} sx={{ width: "100%", mt: 4 }}>
+
+        </div>
+        <br />
+
+
+
+
+        <div>
+          <TableContainer component={Paper} sx={{ width: "100%", }}>
             <Table size="small">
               <TableHead sx={{ backgroundColor: "#6D2323", color: "white" }}>
                 <TableRow>
@@ -1163,258 +1171,256 @@ const ProgramTagging = () => {
               </TableHead>
             </Table>
           </TableContainer>
+          {taggedPrograms.length > 0 ? (
+            <table style={{ mb: 4 }}>
+              <thead>
+                <tr>
+                  <th
+                    style={{
+                      ...styles.th,
+                      backgroundColor: "#f5f5f5",
+                      border: `1px solid ${borderColor}`,
+                      color: "black",
+                      textAlign: "center",
+                      fontSize: "13px",
+                    }}
+                  >
+                    #
+                  </th>
+                  <th
+                    style={{
+                      ...styles.th,
+                      backgroundColor: "#f5f5f5",
+                      border: `1px solid ${borderColor}`,
+                      color: "black",
+                      textAlign: "center",
+                      fontSize: "13px",
+                    }}
+                  >
+                    Curriculum
+                  </th>
+                  <th
+                    style={{
+                      ...styles.th,
+                      backgroundColor: "#f5f5f5",
+                      border: `1px solid ${borderColor}`,
+                      color: "black",
+                      textAlign: "center",
+                      fontSize: "13px",
+                    }}
+                  >
+                    Course
+                  </th>
+                  <th
+                    style={{
+                      ...styles.th,
+                      backgroundColor: "#f5f5f5",
+                      border: `1px solid ${borderColor}`,
+                      color: "black",
+                      textAlign: "center",
+                      fontSize: "13px",
+                    }}
+                  >
+                    Year Level
+                  </th>
+                  <th
+                    style={{
+                      ...styles.th,
+                      backgroundColor: "#f5f5f5",
+                      border: `1px solid ${borderColor}`,
+                      color: "black",
+                      textAlign: "center",
+                      fontSize: "13px",
+                    }}
+                  >
+                    Semester
+                  </th>
+                  <th
+                    style={{
+                      ...styles.th,
+                      backgroundColor: "#f5f5f5",
+                      border: `1px solid ${borderColor}`,
+                      color: "black",
+                      textAlign: "center",
+                      fontSize: "13px",
+                    }}
+                  >
+                    Lec Fee
+                  </th>
+                  <th
+                    style={{
+                      ...styles.th,
+                      backgroundColor: "#f5f5f5",
+                      border: `1px solid ${borderColor}`,
+                      color: "black",
+                      textAlign: "center",
+                      fontSize: "13px",
+                    }}
+                  >
+                    Lab Fee
+                  </th>
+                  <th
+                    style={{
+                      ...styles.th,
+                      backgroundColor: "#f5f5f5",
+                      border: `1px solid ${borderColor}`,
+                      color: "black",
+                      textAlign: "center",
+                      fontSize: "13px",
+                    }}
+                  >
+                    Computer Fee
+                  </th>
+                  <th
+                    style={{
+                      ...styles.th,
+                      backgroundColor: "#f5f5f5",
+                      border: `1px solid ${borderColor}`,
+                      color: "black",
+                      textAlign: "center",
+                      fontSize: "13px",
+                    }}
+                  >
+                    Laboratory Fee
+                  </th>
+                  <th
+                    style={{
+                      ...styles.th,
+                      backgroundColor: "#f5f5f5",
+                      border: `1px solid ${borderColor}`,
+                      color: "black",
+                      textAlign: "center",
+                      fontSize: "13px",
+                    }}
+                  >
+                    NSTP Fee
+                  </th>
+                  {showActionColumn && (
+                    <th
+                      style={{
+                        ...styles.th,
+                        backgroundColor: "#f5f5f5",
+                        border: `1px solid ${borderColor}`,
+                        color: "black",
+                        textAlign: "center",
+                        fontSize: "13px",
+                      }}
+                    >
+                      Actions
+                    </th>
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {currentPrograms.map((program, index) => (
+                  <tr key={program.program_tagging_id}>
+                    <td
+                      style={{
+                        ...styles.td,
+                        border: `1px solid ${borderColor}`,
+                        fontSize: "13px",
+                      }}
+                    >
+                      {indexOfFirstItem + index + 1}
+                    </td>
+                    <td
+                      style={{
+                        ...styles.td,
+                        border: `1px solid ${borderColor}`,
+                        fontSize: "13px",
+                      }}
+                    >
+                      {formatSchoolYear(program.year_description)} (
+                      {program.program_code}) –{" "}
+                      {program.curriculum_description}
+                      {program.major ? ` (${program.major})` : ""}
+                    </td>
 
-          <div>
-            {taggedPrograms.length > 0 ? (
-              <table style={{ ...styles.table, mt: "-15px", mb: 4 }}>
-                <thead>
-                  <tr>
-                    <th
+                    <td
                       style={{
-                        ...styles.th,
-                        backgroundColor: "#f5f5f5",
+                        ...styles.td,
                         border: `1px solid ${borderColor}`,
-                        color: "black",
+                        fontSize: "13px",
+                      }}
+                    >
+                      ({program.course_code}) - {program.course_description} -
+                      ({program.prereq})
+                    </td>
+                    <td
+                      style={{
+                        ...styles.td,
+                        border: `1px solid ${borderColor}`,
                         textAlign: "center",
                         fontSize: "13px",
                       }}
                     >
-                      #
-                    </th>
-                    <th
+                      {program.year_level_description}
+                    </td>
+                    <td
                       style={{
-                        ...styles.th,
-                        backgroundColor: "#f5f5f5",
+                        ...styles.td,
                         border: `1px solid ${borderColor}`,
-                        color: "black",
                         textAlign: "center",
                         fontSize: "13px",
                       }}
                     >
-                      Curriculum
-                    </th>
-                    <th
+                      {program.semester_description}
+                    </td>
+                    <td
                       style={{
-                        ...styles.th,
-                        backgroundColor: "#f5f5f5",
+                        ...styles.td,
                         border: `1px solid ${borderColor}`,
-                        color: "black",
                         textAlign: "center",
                         fontSize: "13px",
                       }}
                     >
-                      Course
-                    </th>
-                    <th
+                      {program.lec_fee ?? "—"}
+                    </td>
+                    <td
                       style={{
-                        ...styles.th,
-                        backgroundColor: "#f5f5f5",
+                        ...styles.td,
                         border: `1px solid ${borderColor}`,
-                        color: "black",
                         textAlign: "center",
                         fontSize: "13px",
                       }}
                     >
-                      Year Level
-                    </th>
-                    <th
-                      style={{
-                        ...styles.th,
-                        backgroundColor: "#f5f5f5",
-                        border: `1px solid ${borderColor}`,
-                        color: "black",
-                        textAlign: "center",
-                        fontSize: "13px",
-                      }}
-                    >
-                      Semester
-                    </th>
-                    <th
-                      style={{
-                        ...styles.th,
-                        backgroundColor: "#f5f5f5",
-                        border: `1px solid ${borderColor}`,
-                        color: "black",
-                        textAlign: "center",
-                        fontSize: "13px",
-                      }}
-                    >
-                      Lec Fee
-                    </th>
-                    <th
-                      style={{
-                        ...styles.th,
-                        backgroundColor: "#f5f5f5",
-                        border: `1px solid ${borderColor}`,
-                        color: "black",
-                        textAlign: "center",
-                        fontSize: "13px",
-                      }}
-                    >
-                      Lab Fee
-                    </th>
-                    <th
-                      style={{
-                        ...styles.th,
-                        backgroundColor: "#f5f5f5",
-                        border: `1px solid ${borderColor}`,
-                        color: "black",
-                        textAlign: "center",
-                        fontSize: "13px",
-                      }}
-                    >
-                      Computer Fee
-                    </th>
-                    <th
-                      style={{
-                        ...styles.th,
-                        backgroundColor: "#f5f5f5",
-                        border: `1px solid ${borderColor}`,
-                        color: "black",
-                        textAlign: "center",
-                        fontSize: "13px",
-                      }}
-                    >
-                      Laboratory Fee
-                    </th>
-                    <th
-                      style={{
-                        ...styles.th,
-                        backgroundColor: "#f5f5f5",
-                        border: `1px solid ${borderColor}`,
-                        color: "black",
-                        textAlign: "center",
-                        fontSize: "13px",
-                      }}
-                    >
-                      NSTP Fee
-                    </th>
-                    {showActionColumn && (
-                      <th
-                        style={{
-                          ...styles.th,
-                          backgroundColor: "#f5f5f5",
-                          border: `1px solid ${borderColor}`,
-                          color: "black",
-                          textAlign: "center",
-                          fontSize: "13px",
-                        }}
-                      >
-                        Actions
-                      </th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentPrograms.map((program, index) => (
-                    <tr key={program.program_tagging_id}>
-                      <td
-                        style={{
-                          ...styles.td,
-                          border: `1px solid ${borderColor}`,
-                          fontSize: "13px",
-                        }}
-                      >
-                        {indexOfFirstItem + index + 1}
-                      </td>
-                      <td
-                        style={{
-                          ...styles.td,
-                          border: `1px solid ${borderColor}`,
-                          fontSize: "13px",
-                        }}
-                      >
-                        {formatSchoolYear(program.year_description)} (
-                        {program.program_code}) –{" "}
-                        {program.curriculum_description}
-                        {program.major ? ` (${program.major})` : ""}
-                      </td>
+                      {program.lab_fee ?? "—"}
+                    </td>
 
-                      <td
-                        style={{
-                          ...styles.td,
-                          border: `1px solid ${borderColor}`,
-                          fontSize: "13px",
-                        }}
-                      >
-                        ({program.course_code}) - {program.course_description} -
-                        ({program.prereq})
-                      </td>
-                      <td
-                        style={{
-                          ...styles.td,
-                          border: `1px solid ${borderColor}`,
-                          textAlign: "center",
-                          fontSize: "13px",
-                        }}
-                      >
-                        {program.year_level_description}
-                      </td>
-                      <td
-                        style={{
-                          ...styles.td,
-                          border: `1px solid ${borderColor}`,
-                          textAlign: "center",
-                          fontSize: "13px",
-                        }}
-                      >
-                        {program.semester_description}
-                      </td>
-                      <td
-                        style={{
-                          ...styles.td,
-                          border: `1px solid ${borderColor}`,
-                          textAlign: "center",
-                          fontSize: "13px",
-                        }}
-                      >
-                        {program.lec_fee ?? "—"}
-                      </td>
-                      <td
-                        style={{
-                          ...styles.td,
-                          border: `1px solid ${borderColor}`,
-                          textAlign: "center",
-                          fontSize: "13px",
-                        }}
-                      >
-                        {program.lab_fee ?? "—"}
-                      </td>
+                    <td
+                      style={{
+                        ...styles.td,
+                        border: `1px solid ${borderColor}`,
+                        textAlign: "center",
+                        fontSize: "13px",
+                      }}
+                    >
+                      {Number(program.iscomputer_lab) === 1 ? "Yes" : "No"}
+                    </td>
 
-                      <td
-                        style={{
-                          ...styles.td,
-                          border: `1px solid ${borderColor}`,
-                          textAlign: "center",
-                          fontSize: "13px",
-                        }}
-                      >
-                        {Number(program.iscomputer_lab) === 1 ? "Yes" : "No"}
-                      </td>
+                    <td
+                      style={{
+                        ...styles.td,
+                        border: `1px solid ${borderColor}`,
+                        textAlign: "center",
+                        fontSize: "13px",
+                      }}
+                    >
+                      {Number(program.islaboratory_fee) === 1 ? "Yes" : "No"}
+                    </td>
 
-                      <td
-                        style={{
-                          ...styles.td,
-                          border: `1px solid ${borderColor}`,
-                          textAlign: "center",
-                          fontSize: "13px",
-                        }}
-                      >
-                        {Number(program.islaboratory_fee) === 1 ? "Yes" : "No"}
-                      </td>
+                    <td
+                      style={{
+                        ...styles.td,
+                        border: `1px solid ${borderColor}`,
+                        textAlign: "center",
+                        fontSize: "13px",
+                      }}
+                    >
+                      {Number(program.is_nstp) === 1 ? "Yes" : "No"}
+                    </td>
 
-                      <td
-                        style={{
-                          ...styles.td,
-                          border: `1px solid ${borderColor}`,
-                          textAlign: "center",
-                          fontSize: "13px",
-                        }}
-                      >
-                        {Number(program.is_nstp) === 1 ? "Yes" : "No"}
-                      </td>
-
-                      {/* <td
+                    {/* <td
                         style={{
                           ...styles.td,
                           border: `1px solid ${borderColor}`,
@@ -1426,277 +1432,278 @@ const ProgramTagging = () => {
                         ₱ {Number(program.amount || 0).toLocaleString()}
                       </td> */}
 
-                      {showActionColumn && (
-                        <td
+                    {showActionColumn && (
+                      <td
+                        style={{
+                          ...styles.td,
+                          whiteSpace: "nowrap",
+                          border: `1px solid ${borderColor}`,
+                        }}
+                      >
+                        <div
                           style={{
-                            ...styles.td,
-                            whiteSpace: "nowrap",
-                            border: `1px solid ${borderColor}`,
+                            display: "flex",
+                            gap: "6px",
+                            justifyContent: "center",
+                            alignItems: "center",
                           }}
                         >
-                          <div
-                            style={{
-                              display: "flex",
-                              gap: "6px",
-                              justifyContent: "center",
-                              alignItems: "center",
-                            }}
-                          >
-                            {canEdit && (
-                              <button
-                                onClick={() => {
-                                  handleEdit(program);
-                                  setOpenFormDialog(true);
-                                }}
-                                style={{
-                                  backgroundColor: "green",
-                                  color: "white",
-                                  border: "none",
-                                  borderRadius: "5px",
-                                  cursor: "pointer",
-                                  width: "100px",
-                                  height: "40px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  gap: "5px",
-                                }}
-                              >
-                                <EditIcon fontSize="small" /> Edit
-                              </button>
-                            )}
-
-                            {canDelete && (
-                              <button
-                                onClick={() => {
-                                  setDeleteId(program.program_tagging_id);
-                                  setProgramToDelete(program);
-                                  setOpenDeleteDialog(true);
-                                }}
-                                style={{
-                                  backgroundColor: "#9E0000",
-                                  color: "white",
-                                  border: "none",
-                                  borderRadius: "5px",
-                                  height: "40px",
-                                  cursor: "pointer",
-                                  width: "100px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  gap: "5px",
-                                }}
-                              >
-                                <DeleteIcon fontSize="small" /> Delete
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <p>No tagged programs available.</p>
-            )}
-
-            <TableContainer component={Paper} sx={{ width: "100%", mb: 4 }}>
-              <Table size="small">
-                <TableHead sx={{ backgroundColor: "#6D2323", color: "white" }}>
-                  <TableRow>
-                    <TableCell
-                      colSpan={10}
-                      sx={{
-                        border: `1px solid ${borderColor}`,
-                        py: 0.5,
-                        backgroundColor: settings?.header_color || "#1976d2",
-                        color: "white",
-                      }}
-                    >
-                      <Box
-                        display="flex"
-                        justifyContent="space-between" // Left & right sides
-                        alignItems="center"
-                        flexWrap="wrap"
-                        gap={1}
-                      >
-                        {/* Left side: Total Tagged Programs */}
-                        <Typography
-                          fontSize="14px"
-                          fontWeight="bold"
-                          color="white"
-                        >
-                          Total Tagged Programs: {filteredPrograms.length}
-                        </Typography>
-
-                        {/* Right side: Pagination / Filtering Controls */}
-                        <Box
-                          display="flex"
-                          alignItems="center"
-                          gap={1}
-                          flexWrap="wrap"
-                        >
-                          <Button
-                            onClick={() => setCurrentPage(1)}
-                            disabled={currentPage === 1}
-                            variant="outlined"
-                            size="small"
-                            sx={{
-                              minWidth: 80,
-                              color: "white",
-                              borderColor: "white",
-                              backgroundColor: "transparent",
-                              "&:hover": {
-                                borderColor: "white",
-                                backgroundColor: "rgba(255,255,255,0.1)",
-                              },
-                              "&.Mui-disabled": {
-                                color: "white",
-                                borderColor: "white",
-                                backgroundColor: "transparent",
-                                opacity: 1,
-                              },
-                            }}
-                          >
-                            First
-                          </Button>
-
-                          <Button
-                            onClick={() =>
-                              setCurrentPage((prev) => Math.max(prev - 1, 1))
-                            }
-                            disabled={currentPage === 1}
-                            variant="outlined"
-                            size="small"
-                            sx={{
-                              minWidth: 80,
-                              color: "white",
-                              borderColor: "white",
-                              backgroundColor: "transparent",
-                              "&:hover": {
-                                borderColor: "white",
-                                backgroundColor: "rgba(255,255,255,0.1)",
-                              },
-                              "&.Mui-disabled": {
-                                color: "white",
-                                borderColor: "white",
-                                backgroundColor: "transparent",
-                                opacity: 1,
-                              },
-                            }}
-                          >
-                            Prev
-                          </Button>
-
-                          {/* Page Dropdown */}
-                          <FormControl size="small" sx={{ minWidth: 80 }}>
-                            <Select
-                              value={currentPage}
-                              onChange={(e) =>
-                                setCurrentPage(Number(e.target.value))
-                              }
-                              displayEmpty
-                              sx={{
-                                fontSize: "12px",
-                                height: 36,
-                                color: "white",
-                                border: "1px solid white",
-                                backgroundColor: "transparent",
-                                ".MuiOutlinedInput-notchedOutline": {
-                                  borderColor: "white",
-                                },
-                                "&:hover .MuiOutlinedInput-notchedOutline": {
-                                  borderColor: "white",
-                                },
-                                "&.Mui-focused .MuiOutlinedInput-notchedOutline":
-                                  { borderColor: "white" },
-                                "& svg": { color: "white" },
+                          {canEdit && (
+                            <button
+                              onClick={() => {
+                                handleEdit(program);
+                                setOpenFormDialog(true);
                               }}
-                              MenuProps={{
-                                PaperProps: {
-                                  sx: {
-                                    maxHeight: 200,
-                                    backgroundColor: "#fff",
-                                  },
-                                },
+                              style={{
+                                backgroundColor: "green",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "5px",
+                                cursor: "pointer",
+                                width: "100px",
+                                height: "40px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: "5px",
                               }}
                             >
-                              {Array.from({ length: totalPages }, (_, i) => (
-                                <MenuItem key={i + 1} value={i + 1}>
-                                  Page {i + 1}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
+                              <EditIcon fontSize="small" /> Edit
+                            </button>
+                          )}
 
-                          <Typography fontSize="11px" color="white">
-                            of {totalPages} page{totalPages > 1 ? "s" : ""}
-                          </Typography>
+                          {canDelete && (
+                            <button
+                              onClick={() => {
+                                setDeleteId(program.program_tagging_id);
+                                setProgramToDelete(program);
+                                setOpenDeleteDialog(true);
+                              }}
+                              style={{
+                                backgroundColor: "#9E0000",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "5px",
+                                height: "40px",
+                                cursor: "pointer",
+                                width: "100px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: "5px",
+                              }}
+                            >
+                              <DeleteIcon fontSize="small" /> Delete
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p>No tagged programs available.</p>
+          )}
 
-                          <Button
-                            onClick={() =>
-                              setCurrentPage((prev) =>
-                                Math.min(prev + 1, totalPages),
-                              )
+          <TableContainer component={Paper} sx={{ width: "100%", }}>
+            <Table size="small">
+              <TableHead sx={{ backgroundColor: "#6D2323", color: "white" }}>
+                <TableRow>
+                  <TableCell
+                    colSpan={10}
+                    sx={{
+                      border: `1px solid ${borderColor}`,
+                      py: 0.5,
+                      backgroundColor: settings?.header_color || "#1976d2",
+                      color: "white",
+                    }}
+                  >
+                    <Box
+                      display="flex"
+                      justifyContent="space-between" // Left & right sides
+                      alignItems="center"
+                      flexWrap="wrap"
+                      gap={1}
+                    >
+                      {/* Left side: Total Tagged Programs */}
+                      <Typography
+                        fontSize="14px"
+                        fontWeight="bold"
+                        color="white"
+                      >
+                        Total Tagged Programs: {filteredPrograms.length}
+                      </Typography>
+
+                      {/* Right side: Pagination / Filtering Controls */}
+                      <Box
+                        display="flex"
+                        alignItems="center"
+                        gap={1}
+                        flexWrap="wrap"
+                      >
+                        <Button
+                          onClick={() => setCurrentPage(1)}
+                          disabled={currentPage === 1}
+                          variant="outlined"
+                          size="small"
+                          sx={{
+                            minWidth: 80,
+                            color: "white",
+                            borderColor: "white",
+                            backgroundColor: "transparent",
+                            "&:hover": {
+                              borderColor: "white",
+                              backgroundColor: "rgba(255,255,255,0.1)",
+                            },
+                            "&.Mui-disabled": {
+                              color: "white",
+                              borderColor: "white",
+                              backgroundColor: "transparent",
+                              opacity: 1,
+                            },
+                          }}
+                        >
+                          First
+                        </Button>
+
+                        <Button
+                          onClick={() =>
+                            setCurrentPage((prev) => Math.max(prev - 1, 1))
+                          }
+                          disabled={currentPage === 1}
+                          variant="outlined"
+                          size="small"
+                          sx={{
+                            minWidth: 80,
+                            color: "white",
+                            borderColor: "white",
+                            backgroundColor: "transparent",
+                            "&:hover": {
+                              borderColor: "white",
+                              backgroundColor: "rgba(255,255,255,0.1)",
+                            },
+                            "&.Mui-disabled": {
+                              color: "white",
+                              borderColor: "white",
+                              backgroundColor: "transparent",
+                              opacity: 1,
+                            },
+                          }}
+                        >
+                          Prev
+                        </Button>
+
+                        {/* Page Dropdown */}
+                        <FormControl size="small" sx={{ minWidth: 80 }}>
+                          <Select
+                            value={currentPage}
+                            onChange={(e) =>
+                              setCurrentPage(Number(e.target.value))
                             }
-                            disabled={currentPage === totalPages}
-                            variant="outlined"
-                            size="small"
+                            displayEmpty
                             sx={{
-                              minWidth: 80,
+                              fontSize: "12px",
+                              height: 36,
                               color: "white",
-                              borderColor: "white",
+                              border: "1px solid white",
                               backgroundColor: "transparent",
-                              "&:hover": {
+                              ".MuiOutlinedInput-notchedOutline": {
                                 borderColor: "white",
-                                backgroundColor: "rgba(255,255,255,0.1)",
                               },
-                              "&.Mui-disabled": {
-                                color: "white",
+                              "&:hover .MuiOutlinedInput-notchedOutline": {
                                 borderColor: "white",
-                                backgroundColor: "transparent",
-                                opacity: 1,
+                              },
+                              "&.Mui-focused .MuiOutlinedInput-notchedOutline":
+                                { borderColor: "white" },
+                              "& svg": { color: "white" },
+                            }}
+                            MenuProps={{
+                              PaperProps: {
+                                sx: {
+                                  maxHeight: 200,
+                                  backgroundColor: "#fff",
+                                },
                               },
                             }}
                           >
-                            Next
-                          </Button>
+                            {Array.from({ length: totalPages }, (_, i) => (
+                              <MenuItem key={i + 1} value={i + 1}>
+                                Page {i + 1}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
 
-                          <Button
-                            onClick={() => setCurrentPage(totalPages)}
-                            disabled={currentPage === totalPages}
-                            variant="outlined"
-                            size="small"
-                            sx={{
-                              minWidth: 80,
+                        <Typography fontSize="11px" color="white">
+                          of {totalPages} page{totalPages > 1 ? "s" : ""}
+                        </Typography>
+
+                        <Button
+                          onClick={() =>
+                            setCurrentPage((prev) =>
+                              Math.min(prev + 1, totalPages),
+                            )
+                          }
+                          disabled={currentPage === totalPages}
+                          variant="outlined"
+                          size="small"
+                          sx={{
+                            minWidth: 80,
+                            color: "white",
+                            borderColor: "white",
+                            backgroundColor: "transparent",
+                            "&:hover": {
+                              borderColor: "white",
+                              backgroundColor: "rgba(255,255,255,0.1)",
+                            },
+                            "&.Mui-disabled": {
                               color: "white",
                               borderColor: "white",
                               backgroundColor: "transparent",
-                              "&:hover": {
-                                borderColor: "white",
-                                backgroundColor: "rgba(255,255,255,0.1)",
-                              },
-                              "&.Mui-disabled": {
-                                color: "white",
-                                borderColor: "white",
-                                backgroundColor: "transparent",
-                                opacity: 1,
-                              },
-                            }}
-                          >
-                            Last
-                          </Button>
-                        </Box>
+                              opacity: 1,
+                            },
+                          }}
+                        >
+                          Next
+                        </Button>
+
+                        <Button
+                          onClick={() => setCurrentPage(totalPages)}
+                          disabled={currentPage === totalPages}
+                          variant="outlined"
+                          size="small"
+                          sx={{
+                            minWidth: 80,
+                            color: "white",
+                            borderColor: "white",
+                            backgroundColor: "transparent",
+                            "&:hover": {
+                              borderColor: "white",
+                              backgroundColor: "rgba(255,255,255,0.1)",
+                            },
+                            "&.Mui-disabled": {
+                              color: "white",
+                              borderColor: "white",
+                              backgroundColor: "transparent",
+                              opacity: 1,
+                            },
+                          }}
+                        >
+                          Last
+                        </Button>
                       </Box>
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-              </Table>
-            </TableContainer>
-          </div>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+            </Table>
+          </TableContainer>
         </div>
       </div>
+
+
 
       <Dialog
         open={openFormDialog}
@@ -2173,9 +2180,7 @@ const styles = {
     boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
     overflowY: "auto",
   },
-  formGroup: {
-    marginBottom: "20px",
-  },
+
   label: {
     fontWeight: "bold",
     display: "block",

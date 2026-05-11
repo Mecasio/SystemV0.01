@@ -1,5 +1,5 @@
 const express = require("express");
-const { db } = require("../database/database");
+const { db3 } = require("../database/database");
 const multer = require("multer");
 const path = require("path");
 const { insertAuditLogAdmission } = require("../../utils/auditLogger");
@@ -94,7 +94,7 @@ router.post(
 
       const signaturePath = `signature/${req.file.filename}`;
 
-      const [result] = await db.query(
+      const [result] = await db3.query(
         `
         INSERT INTO signature_table
         (
@@ -158,7 +158,7 @@ router.post(
 
 router.get("/api/signature", async (req, res) => {
   try {
-    const [rows] = await db.query(`
+    const [rows] = await db3.query(`
       SELECT *
       FROM signature_table
       ORDER BY created_at DESC
@@ -187,7 +187,7 @@ router.get("/api/signature/campus/:campusId", async (req, res) => {
   try {
     const { campusId } = req.params;
 
-    const [rows] = await db.query(
+    const [rows] = await db3.query(
       `
       SELECT *
       FROM signature_table
@@ -220,7 +220,7 @@ router.get("/api/signature/person/:personId", async (req, res) => {
   try {
     const { personId } = req.params;
 
-    const [rows] = await db.query(
+    const [rows] = await db3.query(
       `
       SELECT *
       FROM signature_table
@@ -296,7 +296,7 @@ router.put("/api/signature/:id", uploadSignature.single("signature"), async (req
           id,
         ];
 
-    await db.query(query, values);
+    await db3.query(query, values);
 
     await insertSignatureAuditLog({
       req,
@@ -321,7 +321,7 @@ router.put("/api/signature/:id", uploadSignature.single("signature"), async (req
 router.delete("/api/signature/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const [rows] = await db.query(
+    const [rows] = await db3.query(
       `
       SELECT signature_name
       FROM signature_table
@@ -332,7 +332,7 @@ router.delete("/api/signature/:id", async (req, res) => {
     );
     const signatureName = rows?.[0]?.signature_name;
 
-    await db.query(
+    await db3.query(
       `
       DELETE FROM signature_table
       WHERE id = ?
