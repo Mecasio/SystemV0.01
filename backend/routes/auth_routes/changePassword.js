@@ -235,17 +235,17 @@ router.post("/student-change-password", async (req, res) => {
 
 // Faculty Change Password
 router.post("/faculty-change-password", async (req, res) => {
-  const { person_id, currentPassword, newPassword } = req.body;
+  const { employee_id, currentPassword, newPassword } = req.body;
 
-  if (!person_id || !currentPassword || !newPassword) {
+  if (!employee_id || !currentPassword || !newPassword) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
   try {
-    // Get user by person_id
+    // Get faculty account by employee_id
     const [rows] = await db3.query(
-      "SELECT * FROM prof_table WHERE person_id = ?",
-      [person_id],
+      "SELECT * FROM prof_table WHERE employee_id = ?",
+      [employee_id],
     );
 
     if (rows.length === 0) {
@@ -278,18 +278,18 @@ router.post("/faculty-change-password", async (req, res) => {
     const hashed = await bcrypt.hash(newPassword, 10);
 
     // Debug log (optional)
-    console.log("Updating password for person_id:", person_id);
+    console.log("Updating password for employee_id:", employee_id);
     console.log("New password hash:", hashed);
 
     // Update password in DB
-    await db3.query("UPDATE prof_table SET password = ? WHERE person_id = ?", [
+    await db3.query("UPDATE prof_table SET password = ? WHERE employee_id = ?", [
       hashed,
-      person_id,
+      employee_id,
     ]);
 
     await insertOwnPasswordAuditLog({
       auditDb: "db3",
-      actorId: user.employee_id || user.email || person_id,
+      actorId: user.employee_id || user.email || employee_id,
       role: user.role || "faculty",
       action: "FACULTY_OWN_PASSWORD_RESET",
     });

@@ -1008,6 +1008,7 @@ WHERE (ua.email = ? OR ua.employee_id = ?)
         email: user.email,
         role: user.role,
         department: user.dprtmnt_id,
+        prof_id: user.source === "prof" ? user.account_id : null,
         accessList,
       },
       process.env.JWT_SECRET,
@@ -1074,6 +1075,7 @@ WHERE (ua.email = ? OR ua.employee_id = ?)
         email: user.email,
         role: user.role,
         person_id: user.person_id,
+        prof_id: user.source === "prof" ? user.account_id : null,
         employee_id: user.employee_id,
         department: user.dprtmnt_id,
         accessList,
@@ -1098,6 +1100,7 @@ WHERE (ua.email = ? OR ua.employee_id = ?)
       email: user.email,
       role: user.role,
       person_id: user.person_id,
+      prof_id: user.source === "prof" ? user.account_id : null,
       employee_id: user.employee_id,
       department: user.dprtmnt_id,
       accessList,
@@ -1524,8 +1527,9 @@ router.get("/get-otp-setting/:type/:person_id", async (req, res) => {
   else return res.status(400).json({ message: "Invalid type" });
 
   try {
+    const idColumn = type === "prof" ? "employee_id" : "person_id";
     const [rows] = await db3.query(
-      `SELECT require_otp FROM ${table} WHERE person_id = ? LIMIT 1`,
+      `SELECT require_otp FROM ${table} WHERE ${idColumn} = ? LIMIT 1`,
       [person_id],
     );
 
@@ -1540,11 +1544,12 @@ router.get("/get-otp-setting/:type/:person_id", async (req, res) => {
 
 // POST TOGGLE ON/OFF OTP
 router.post("/update-otp-setting", async (req, res) => {
-  const { type, person_id, require_otp } = req.body;
+  const { type, person_id, employee_id, require_otp } = req.body;
+  const accountId = type === "prof" ? employee_id || person_id : person_id;
 
   console.log("Role Types: ", type);
 
-  if (!person_id || !type)
+  if (!accountId || !type)
     return res.status(400).json({ message: "Missing parameters" });
 
   let table;
@@ -1553,9 +1558,10 @@ router.post("/update-otp-setting", async (req, res) => {
   else return res.status(400).json({ message: "Invalid type" });
 
   try {
+    const idColumn = type === "prof" ? "employee_id" : "person_id";
     const [result] = await db3.query(
-      `UPDATE ${table} SET require_otp = ? WHERE person_id = ?`,
-      [require_otp, person_id],
+      `UPDATE ${table} SET require_otp = ? WHERE ${idColumn} = ?`,
+      [require_otp, accountId],
     );
 
     if (result.affectedRows === 0)

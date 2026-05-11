@@ -27,8 +27,8 @@ const http = require("http").createServer(app);
 const { initSocket } = require("./utils/socket");
 const registerSocketHandlers = require("./utils/registerSocketHandlers");
 
-app.use(express.json());
-app.use(bodyparser.json());
+app.use(express.json({ limit: "50mb" }));
+app.use(bodyparser.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -59,11 +59,11 @@ const applicantDocsDir = path.join(
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "http://192.168.50.53:5173",
+  "http://192.168.50.51:5173",
   "http://192.168.50.55:5173",
   "http://192.168.50.211:5173",
   "http://136.239.248.62:5173",
-  "http://192.168.50.53:5173",
+  "http://192.168.50.51:5173",
   "http://192.168.1.9:5173",
 ];
 
@@ -2553,7 +2553,7 @@ const getFacultyNotificationActor = async (profId) => {
     if (rows?.[0]) {
       const professor = rows[0];
       return {
-        id: professor.prof_id,
+        id: professor.employee_id || professor.prof_id,
         notificationId: professor.prof_id,
         email: professor.email || "unknown",
         name: `${professor.lname || ""}, ${professor.fname || ""} ${professor.mname || ""}`.trim(),
@@ -2581,6 +2581,26 @@ const buildNotificationAuditMessage = async (req) => {
   const userPrefix = `User #${actor.id} - ${actor.name}`;
 
   const gradeEntry = `${details.min_score}-${details.max_score} = ${details.equivalent_grade}`;
+  const gradingSheetProfessor = details.professor_name || `Prof. ${actor.name || "Unknown Faculty"}`;
+  const gradingSheetEmployeeId = details.employee_id || actor.id || "N/A";
+  const gradingSheetStudent = details.student_name || "Unknown Student";
+  const gradingSheetStudentNumber = details.student_number || "N/A";
+  const gradingSheetSubject = details.subject_name || details.course_description || "N/A";
+  const gradingSheetSubjectCode = details.subject_code ? ` (${details.subject_code})` : "";
+  const gradingSheetSection = details.section_name
+    ? ` - ${details.program_code ? `${details.program_code}-` : ""}${details.section_name}`
+    : "";
+  const gradingSheetFile = details.file_name || "N/A";
+  const gradingSheetStudentCount = details.student_count
+    ? ` (${details.student_count} student/s)`
+    : "";
+  const gradingSheetImportCount = details.imported_count
+    ? ` Imported: ${details.imported_count}.`
+    : "";
+  const gradingSheetError = details.error_message ? ` Reason: ${details.error_message}` : "";
+  const gradingSheetMidterm = details.midterm_equivalent_grade || details.midterm_grade || "N/A";
+  const gradingSheetFinalterm = details.finalterm_equivalent_grade || details.finalterm_grade || "N/A";
+  const gradingSheetFinalGrade = details.final_equivalent_grade || details.final_grade || "N/A";
   const schedulePage = details.page_name === "College Schedule Checker"
     ? "College Schedule Checker"
     : "Schedule Checker";
@@ -2637,19 +2657,23 @@ const buildNotificationAuditMessage = async (req) => {
     },
     faculty_grading_sheet_grade_submitted: {
       type: "submit",
-      message: `${userPrefix} successfully submit the student grades in Grading Sheet`,
+      message: `${gradingSheetProfessor} (${gradingSheetEmployeeId}) graded the student ${gradingSheetStudent} (${gradingSheetStudentNumber}) in ${gradingSheetSubject}${gradingSheetSubjectCode}.\nMidterm Grade: ${gradingSheetMidterm}\nFinalterm Grade: ${gradingSheetFinalterm}\nFinal Grade: ${gradingSheetFinalGrade}`,
+    },
+    faculty_grading_sheet_exported: {
+      type: "export",
+      message: `${gradingSheetProfessor} (${gradingSheetEmployeeId}) exported the Grading Sheet for ${gradingSheetSubject}${gradingSheetSubjectCode}${gradingSheetSection}${gradingSheetStudentCount}. File: ${gradingSheetFile}`,
     },
     faculty_grading_sheet_upload_succeeded: {
       type: "upload",
-      message: `${userPrefix} successfully upload file in Grading Sheet`,
+      message: `${gradingSheetProfessor} (${gradingSheetEmployeeId}) successfully imported grades in Grading Sheet for ${gradingSheetSubject}${gradingSheetSubjectCode}${gradingSheetSection}. File: ${gradingSheetFile}.${gradingSheetImportCount}`,
     },
     faculty_grading_sheet_upload_tried: {
       type: "upload",
-      message: `${userPrefix} tried to upload file in Grading Sheet`,
+      message: `${gradingSheetProfessor} (${gradingSheetEmployeeId}) tried to import grades in Grading Sheet for ${gradingSheetSubject}${gradingSheetSubjectCode}${gradingSheetSection}. File: ${gradingSheetFile}.${gradingSheetError}`,
     },
     faculty_grading_sheet_upload_failed: {
       type: "upload",
-      message: `${userPrefix} failed to upload file in Grading Sheet`,
+      message: `${gradingSheetProfessor} (${gradingSheetEmployeeId}) failed to import grades in Grading Sheet for ${gradingSheetSubject}${gradingSheetSubjectCode}${gradingSheetSection}. File: ${gradingSheetFile}.${gradingSheetError}`,
     },
     faculty_grading_sheet_save_all: {
       type: "submit",
@@ -2666,6 +2690,7 @@ const buildNotificationAuditMessage = async (req) => {
 
   return {
     ...event,
+    eventType,
     actor,
     notificationId: actor.notificationId || actor.id,
   };
@@ -2689,6 +2714,14 @@ app.post("/api/audit/event", async (req, res) => {
         auditEvent.actor.name,
       ],
     );
+
+    await insertAuditLogEnrollment({
+      actorId: auditEvent.actor.id,
+      role: req.headers["x-audit-actor-role"] || req.body?.audit_actor_role || "faculty",
+      action: auditEvent.eventType,
+      severity: "INFO",
+      message: auditEvent.message,
+    });
 
     res.json({ success: true, message: "Log inserted" });
   } catch (error) {

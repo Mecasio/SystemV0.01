@@ -66,24 +66,23 @@ const insertFacultyAuditLog = async ({ req, action, message, severity = "INFO" }
 };
 
 router.post("/update_faculty", upload.single("profile_picture"), async (req, res) => {
-  const { person_id } = req.body;
+  const { employee_id } = req.body;
 
-  if (!person_id || !req.file) {
-    return res.status(400).send("Missing person_id or file.");
+  if (!employee_id || !req.file) {
+    return res.status(400).send("Missing employee_id or file.");
   }
 
   try {
     // ✅ Get student_number from person_id
     const [rows] = await db3.query(
-      "SELECT employee_id FROM prof_table WHERE person_id = ?",
-      [person_id]
+      "SELECT employee_id FROM prof_table WHERE employee_id = ?",
+      [employee_id]
     );
 
     if (!rows.length) {
-      return res.status(404).json({ message: "employee id not found for person_id " + person_id });
+      return res.status(404).json({ message: "Faculty not found for employee_id " + employee_id });
     }
 
-    const employee_id = rows[0].employee_id;
     const ext = path.extname(req.file.originalname).toLowerCase();
     const year = new Date().getFullYear();
     const filename = `${employee_id}_1by1_${year}${ext}`;
@@ -99,7 +98,7 @@ router.post("/update_faculty", upload.single("profile_picture"), async (req, res
 
     await fs.promises.writeFile(finalPath, req.file.buffer);
 
-    await db3.query("UPDATE prof_table SET profile_image = ? WHERE person_id = ?", [filename, person_id]);
+    await db3.query("UPDATE prof_table SET profile_image = ? WHERE employee_id = ?", [filename, employee_id]);
 
     res.status(200).json({ message: "Uploaded successfully", filename });
   } catch (err) {

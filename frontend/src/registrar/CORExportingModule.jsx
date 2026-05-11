@@ -56,6 +56,8 @@ const CORExportingModule = () => {
   const [exportList, setExportList] = useState([]);
   const [exportTotal, setExportTotal] = useState(0);
   const [exportCurrent, setExportCurrent] = useState(0);
+  const [exportProgress, setExportProgress] = useState(0);
+  const [exportStatus, setExportStatus] = useState("");
 
   const [campusFilter, setCampusFilter] = useState("");
   const [branches, setBranches] = useState([]);
@@ -468,6 +470,101 @@ const CORExportingModule = () => {
     el.style.overflow = orig.overflow || "";
   };
 
+  const downloadBlob = (blob, fileName) => {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const runServerCorExport = async (listToExport) => {
+    const selectedDept =
+      department.find((d) => d.dprtmnt_id == selectedDepartmentFilter) || {};
+    const deptCode =
+      selectedDept.dprtmnt_code || selectedDept.dprtmnt_name || "dept";
+    const yearLevel =
+      yearLevels.find((y) => y.year_level_id == selectedYearLevel) || {};
+    const yearLevelDesc =
+      yearLevel.year_level_description || yearLevel.year_level_id || "year";
+    const zipFileName = `certificate_of_registration(${deptCode}, ${yearLevelDesc})`;
+
+    setExportStatus("Loading COR data for server export...");
+    setExportProgress(0);
+    const preloadedByNumber = await loadBatchStudentTagging(listToExport);
+
+    setExportStatus("Starting server export...");
+
+    const startRes = await axios.post(
+      `${API_BASE_URL}/api/cor-export/jobs`,
+      {
+        students: listToExport.map((student) => ({
+          student_number: student.student_number,
+          person_id: student.person_id,
+          preload:
+            preloadedByNumber?.[student.student_number] ||
+            batchByStudentNumber?.[student.student_number] ||
+            null,
+        })),
+        file_name: zipFileName,
+        frontend_origin: window.location.origin,
+      },
+      { headers: getAuditHeaders() },
+    );
+
+    const jobId = startRes.data?.job_id;
+    if (!jobId) throw new Error("Server did not return an export job id.");
+
+    let job = null;
+    while (true) {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const statusRes = await axios.get(
+        `${API_BASE_URL}/api/cor-export/jobs/${jobId}`,
+      );
+      job = statusRes.data;
+      setExportCurrent(Number(job.current || 0));
+      setExportTotal(Number(job.total || listToExport.length));
+      setExportProgress(Number(job.progress || 0));
+      setExportStatus(job.message || "Processing server export...");
+
+      if (job.status === "done") break;
+      if (job.status === "error") {
+        throw new Error(job.error || "Server export failed.");
+      }
+    }
+
+    setExportStatus("Downloading server ZIP...");
+    const downloadRes = await axios.get(
+      `${API_BASE_URL}/api/cor-export/jobs/${jobId}/download`,
+      { responseType: "blob" },
+    );
+    downloadBlob(downloadRes.data, job?.file_name || `${zipFileName}.zip`);
+
+    try {
+      const selectedProgramInfo =
+        programs.find((p) => p.program_id == selectedProgram) || {};
+      await axios.post(
+        `${API_BASE_URL}/api/cor-export/audit`,
+        {
+          exported_count: Number(job?.total || listToExport.length),
+          department_label:
+            selectedDept.dprtmnt_code || selectedDept.dprtmnt_name || "",
+          program_label:
+            selectedProgramInfo.program_code ||
+            selectedProgramInfo.program_description ||
+            "",
+          year_level_label: yearLevelDesc,
+        },
+        { headers: getAuditHeaders() },
+      );
+    } catch (auditError) {
+      console.error("Failed to insert COR export audit log:", auditError);
+    }
+  };
+
   const handleExportPdfAll = async () => {
     if (exporting) return;
     const listToExport = filteredData.length ? filteredData : visibleData;
@@ -476,9 +573,29 @@ const CORExportingModule = () => {
     setExporting(true);
     setExportTotal(listToExport.length);
     setExportCurrent(0);
+    setExportProgress(0);
+    setExportStatus("Preparing export...");
     const originalPage = currentPage;
 
+    const updateExportProgress = (index, stageRatio, status) => {
+      const progress =
+        ((index + Math.max(0, Math.min(stageRatio, 1))) / listToExport.length) *
+        100;
+      setExportProgress(Math.min(99, Math.round(progress)));
+      setExportStatus(status);
+    };
+
     try {
+      try {
+        await runServerCorExport(listToExport);
+        return;
+      } catch (serverExportError) {
+        console.error("Server COR export failed; falling back to browser export:", serverExportError);
+        setExportStatus("Server export failed. Trying browser export...");
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+
+      setExportStatus("Loading student COR data...");
       await loadBatchStudentTagging(listToExport);
 
       if (!visibleData.length) {
@@ -510,7 +627,7 @@ const CORExportingModule = () => {
         const rootId = `export-cor-${studentNumber}`;
         const targetId = `${rootId}-pdf`;
 
-        // Render only this COR to avoid overlap
+        updateExportProgress(i, 0.05, `Preparing ${studentNumber}...`);
         readyRef.current[studentNumber] = false;
         setReadyByStudentNumber((prev) => ({
           ...prev,
@@ -518,8 +635,8 @@ const CORExportingModule = () => {
         }));
         setExportList([student]);
         await new Promise((r) => requestAnimationFrame(r));
-        await new Promise((r) => setTimeout(r, 200)); // Extra delay for render
 
+        updateExportProgress(i, 0.15, `Rendering COR for ${studentNumber}...`);
         const isReady = await waitForReady(studentNumber, 45000, "export-cor");
         if (!isReady) {
           console.warn(`COR not ready for student ${studentNumber}`);
@@ -556,8 +673,8 @@ const CORExportingModule = () => {
           return true; // Proceed anyway
         };
         
+        updateExportProgress(i, 0.3, `Checking COR content for ${studentNumber}...`);
         await waitForContent();
-        await new Promise((r) => setTimeout(r, 500)); // Additional safety delay
         if (!element) {
           console.warn(`COR element not found for student ${studentNumber}`);
           continue;
@@ -566,22 +683,19 @@ const CORExportingModule = () => {
         const orig = ensureCaptureStyles(element);
         let canvas;
         try {
-          // Force layout recalculation
+          updateExportProgress(i, 0.45, `Capturing COR image for ${studentNumber}...`);
           element.offsetHeight;
           
-          // Log what we're about to capture
           const studentInputs = element.querySelectorAll('input[value]');
           const filledCount = Array.from(studentInputs).filter(inp => inp.value && inp.value.trim()).length;
           console.log('Capturing student:', studentNumber, 'Filled inputs:', filledCount);
-          
-          await new Promise((r) => setTimeout(r, 800)); // Wait even longer for full render
 
           const rect = element.getBoundingClientRect();
           const elementWidth = element.scrollWidth || rect.width || 794; // 210mm in px
           const elementHeight = element.scrollHeight || rect.height || 1123; // 297mm in px
           
           canvas = await html2canvas(element, {
-            scale: 2,
+            scale: 1.5,
             useCORS: true,
             allowTaint: true,
             backgroundColor: "#ffffff",
@@ -595,7 +709,7 @@ const CORExportingModule = () => {
             y: 0,
             imageTimeout: 30000,
             logging: false,
-            ignoreElements: (element) => {
+            ignoreElements: () => {
               return false;
             },
             onclone: (clonedDoc) => {
@@ -737,7 +851,8 @@ const CORExportingModule = () => {
           continue;
         }
 
-        const imgData = canvas.toDataURL("image/png", 1.0); // Max quality
+        updateExportProgress(i, 0.7, `Creating PDF for ${studentNumber}...`);
+        const imgData = canvas.toDataURL("image/jpeg", 0.92);
         const pdfDoc = new jsPDF({
           orientation: "portrait",
           unit: "pt",
@@ -764,16 +879,15 @@ const CORExportingModule = () => {
         const imgX = (pageWidth - pdfWidth) / 2; // Center horizontally
         const imgY = 0;
         
-        pdfDoc.addImage(imgData, "PNG", imgX, imgY, pdfWidth, pdfHeight, undefined, "FAST");
+        pdfDoc.addImage(imgData, "JPEG", imgX, imgY, pdfWidth, pdfHeight, undefined, "FAST");
         const pdfBlob = pdfDoc.output("blob");
-        const url = URL.createObjectURL(pdfBlob);
-        if (previewWindow) previewWindow.location = url;
 
-        setTimeout(() => URL.revokeObjectURL(url), 30000);
+        updateExportProgress(i, 0.9, `Adding ${studentNumber} to ZIP...`);
         zip.file(`${studentNumber}_Certificate_Of_Registration.pdf`, pdfBlob);
         filesAdded += 1;
         setExportCurrent(i + 1);
-        await new Promise((r) => setTimeout(r, 300));
+        updateExportProgress(i + 1, 0, `Finished ${studentNumber}`);
+        await new Promise((r) => requestAnimationFrame(r));
       }
 
       if (filesAdded === 0) {
@@ -783,7 +897,11 @@ const CORExportingModule = () => {
         return;
       }
 
+      setExportStatus("Generating ZIP file...");
+      setExportProgress(99);
       const zipBlob = await zip.generateAsync({ type: "blob" });
+      setExportStatus("Downloading ZIP file...");
+      setExportProgress(100);
       saveAs(zipBlob, zipFileName);
       try {
         const selectedProgramInfo =
@@ -810,6 +928,8 @@ const CORExportingModule = () => {
       setExporting(false);
       setExportTotal(0);
       setExportCurrent(0);
+      setExportProgress(0);
+      setExportStatus("");
       setExportList([]);
     }
   };
@@ -839,18 +959,15 @@ const CORExportingModule = () => {
           <Typography variant="body2" sx={{ mb: 1 }}>
             {exportTotal > 0 ? `${exportCurrent}/${exportTotal}` : "0/0"}
           </Typography>
+          <Typography variant="caption" sx={{ mb: 1, display: "block" }}>
+            {exportStatus || "Preparing export..."}
+          </Typography>
           <LinearProgress
             variant="determinate"
-            value={
-              exportTotal > 0
-                ? Math.round((exportCurrent / exportTotal) * 100)
-                : 0
-            }
+            value={exportProgress}
           />
           <Typography variant="caption" sx={{ mt: 1, display: "block" }}>
-            {exportTotal > 0
-              ? `${Math.round((exportCurrent / exportTotal) * 100)}%`
-              : "0%"}
+            {exportProgress}%
           </Typography>
         </DialogContent>
       </Dialog>

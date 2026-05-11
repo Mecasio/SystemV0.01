@@ -502,6 +502,30 @@ const ApplicationProcessAdmin = () => {
   const [semesters, setSchoolSemester] = useState([]);
   const [selectedSchoolYear, setSelectedSchoolYear] = useState("");
   const [selectedSchoolSemester, setSelectedSchoolSemester] = useState("");
+  const selectedSchoolYearValue = schoolYears.some(
+    (sy) => String(sy.year_id) === String(selectedSchoolYear),
+  )
+    ? selectedSchoolYear
+    : "";
+  const selectedSchoolSemesterValue = semesters.some(
+    (sem) => String(sem.semester_id) === String(selectedSchoolSemester),
+  )
+    ? selectedSchoolSemester
+    : "";
+  const selectedDepartmentFilterValue =
+    selectedDepartmentFilter === "" ||
+    filteredDepartments.some(
+      (dep) => String(dep.dprtmnt_id) === String(selectedDepartmentFilter),
+    )
+      ? selectedDepartmentFilter
+      : "";
+  const selectedProgramFilterValue =
+    selectedProgramFilter === "" ||
+    filteredCurriculumOptions.some(
+      (prog) => String(prog.curriculum_id) === String(selectedProgramFilter),
+    )
+      ? selectedProgramFilter
+      : "";
 
   useEffect(() => {
     axios
@@ -682,7 +706,10 @@ const ApplicationProcessAdmin = () => {
 
   const [itemsPerPage, setItemsPerPage] = useState(100);
 
-  const totalPages = Math.ceil(filteredPersons.length / itemsPerPage);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredPersons.length / itemsPerPage),
+  );
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentPersons = filteredPersons.slice(
@@ -1636,7 +1663,7 @@ const ApplicationProcessAdmin = () => {
                 <InputLabel id="school-year-label">School Years</InputLabel>
                 <Select
                   labelId="school-year-label"
-                  value={selectedSchoolYear}
+                  value={selectedSchoolYearValue}
                   onChange={handleSchoolYearChange}
                   displayEmpty
                 >
@@ -1647,7 +1674,9 @@ const ApplicationProcessAdmin = () => {
                       </MenuItem>
                     ))
                   ) : (
-                    <MenuItem disabled>School Year is not found</MenuItem>
+                    <MenuItem value="" disabled>
+                      School Year is not found
+                    </MenuItem>
                   )}
                 </Select>
               </FormControl>
@@ -1661,7 +1690,7 @@ const ApplicationProcessAdmin = () => {
                 <InputLabel>School Semester</InputLabel>
                 <Select
                   label="School Semester"
-                  value={selectedSchoolSemester}
+                  value={selectedSchoolSemesterValue}
                   onChange={handleSchoolSemesterChange}
                   displayEmpty
                 >
@@ -1672,7 +1701,9 @@ const ApplicationProcessAdmin = () => {
                       </MenuItem>
                     ))
                   ) : (
-                    <MenuItem disabled>School Semester is not found</MenuItem>
+                    <MenuItem value="" disabled>
+                      School Semester is not found
+                    </MenuItem>
                   )}
                 </Select>
               </FormControl>
@@ -1687,7 +1718,7 @@ const ApplicationProcessAdmin = () => {
               </Typography>
               <FormControl size="small" sx={{ width: "400px" }}>
                 <Select
-                  value={selectedDepartmentFilter}
+                  value={selectedDepartmentFilterValue}
                   onChange={(e) => handleDepartmentChange(e.target.value)}
                   displayEmpty
                 >
@@ -1710,7 +1741,7 @@ const ApplicationProcessAdmin = () => {
               </Typography>
               <FormControl size="small" sx={{ width: "350px" }}>
                 <Select
-                  value={selectedProgramFilter}
+                  value={selectedProgramFilterValue}
                   onChange={(e) => handleProgramFilterChange(e.target.value)}
                   displayEmpty
                 >

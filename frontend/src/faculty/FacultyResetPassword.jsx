@@ -107,9 +107,9 @@ const FacultyResetPassword = () => {
   useEffect(() => {
     const fetchOtpSetting = async () => {
       try {
-        const person_id = localStorage.getItem("person_id");
+        const employee_id = localStorage.getItem("employee_id");
         const res = await axios.get(
-          `${API_BASE_URL}/auth/get-otp-setting/prof/${person_id}`,
+          `${API_BASE_URL}/auth/get-otp-setting/prof/${employee_id}`,
         );
         setOtpRequired(res.data.require_otp === 1);
       } catch (err) {
@@ -125,10 +125,10 @@ const FacultyResetPassword = () => {
     setOtpRequired(newValue);
 
     try {
-      const person_id = localStorage.getItem("person_id");
+      const employee_id = localStorage.getItem("employee_id");
       const res = await axios.post(`${API_BASE_URL}/auth/update-otp-setting`, {
         type: "prof",
-        person_id,
+        employee_id,
         require_otp: newValue ? 1 : 0,
       });
 
@@ -150,7 +150,7 @@ const FacultyResetPassword = () => {
   useEffect(() => {
     const storedUser = localStorage.getItem("email");
     const storedRole = localStorage.getItem("role");
-    const storedID = localStorage.getItem("person_id");
+    const storedID = localStorage.getItem("employee_id");
 
     if (!(storedUser && storedRole && storedID && storedRole === "faculty")) {
       window.location.href = "/login";
@@ -169,11 +169,11 @@ const FacultyResetPassword = () => {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      const person_id = localStorage.getItem("person_id");
+      const employee_id = localStorage.getItem("employee_id");
       const response = await axios.post(
         `${API_BASE_URL}/faculty-change-password`,
         {
-          person_id,
+          employee_id,
           currentPassword,
           newPassword,
         },

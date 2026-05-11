@@ -210,6 +210,8 @@ const LoginEnrollment = ({ setIsAuthenticated }) => {
         localStorage.setItem("role", res.data.role);
         localStorage.setItem("person_id", res.data.person_id);
         localStorage.setItem("applyingAs", res.data.applyingAs);
+        localStorage.setItem("prof_id", "");
+        localStorage.setItem("employee_id", "");
 
         setIsAuthenticated(true);
         navigate("/applicant_dashboard");
@@ -223,6 +225,7 @@ const LoginEnrollment = ({ setIsAuthenticated }) => {
         localStorage.setItem("email", res.data.email);
         localStorage.setItem("role", res.data.role);
         localStorage.setItem("person_id", res.data.person_id);
+        localStorage.setItem("prof_id", res.data.prof_id || "");
         localStorage.setItem("department", res.data.department || "");
         localStorage.setItem("employee_id", res.data.employee_id);
 
@@ -288,6 +291,7 @@ const LoginEnrollment = ({ setIsAuthenticated }) => {
       localStorage.setItem("email", tempLoginData.email);
       localStorage.setItem("role", tempLoginData.role);
       localStorage.setItem("person_id", tempLoginData.person_id);
+      localStorage.setItem("prof_id", tempLoginData.prof_id || "");
       localStorage.setItem("department", tempLoginData.department || "");
       localStorage.setItem("employee_id", tempLoginData.employee_id);
 

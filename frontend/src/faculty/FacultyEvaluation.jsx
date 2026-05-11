@@ -96,6 +96,7 @@ const FacultyEvaluation = () => {
   const [selectedActiveSchoolYear, setSelectedActiveSchoolYear] = useState("");
   const [profData, setPerson] = useState({
     prof_id: "",
+    employee_id: "",
     fname: "",
     mname: "",
     lname: "",
@@ -109,7 +110,9 @@ const FacultyEvaluation = () => {
   useEffect(() => {
     const storedUser = localStorage.getItem("email");
     const storedRole = localStorage.getItem("role");
-    const storedID = localStorage.getItem("person_id");
+    const storedProfID = localStorage.getItem("prof_id");
+    const storedEmployeeID = localStorage.getItem("employee_id");
+    const storedID = storedProfID || storedEmployeeID;
 
     if (storedUser && storedRole && storedID) {
       setUser(storedUser);
@@ -128,10 +131,20 @@ const FacultyEvaluation = () => {
 
   const fetchPersonData = async (id) => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/get_prof_data/${id}`);
+      const storedProfID = localStorage.getItem("prof_id");
+      const storedEmployeeID = localStorage.getItem("employee_id");
+      const endpoint = storedProfID
+        ? `/get_prof_data_by_prof/${storedProfID}`
+        : storedEmployeeID
+          ? `/get_prof_data_by_employee/${storedEmployeeID}`
+          : `/get_prof_data/${id}`;
+      const res = await axios.get(`${API_BASE_URL}${endpoint}`);
       const first = res.data[0];
+      localStorage.setItem("prof_id", first.prof_id || "");
+      localStorage.setItem("employee_id", first.employee_id || "");
       const profInfo = {
         prof_id: first.prof_id,
+        employee_id: first.employee_id,
         fname: first.fname,
         mname: first.mname,
         lname: first.lname,
@@ -185,10 +198,10 @@ const FacultyEvaluation = () => {
   }, [selectedSchoolYear, selectedSchoolSemester]);
 
   useEffect(() => {
-    if (selectedSchoolYear && selectedSchoolSemester) {
+    if (profData.prof_id && selectedSchoolYear && selectedSchoolSemester) {
       fetchFacultyData();
     }
-  }, [selectedSchoolYear, selectedSchoolSemester]);
+  }, [profData.prof_id, selectedSchoolYear, selectedSchoolSemester]);
 
   const fetchFacultyData = async () => {
     try {

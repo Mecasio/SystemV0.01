@@ -389,15 +389,17 @@ const SideBar = ({
   useEffect(() => {
     const token = localStorage.getItem("token");
     const savedRole = localStorage.getItem("role");
-    const storedID = localStorage.getItem("person_id");
+    const storedID = savedRole === "faculty"
+      ? localStorage.getItem("prof_id") || localStorage.getItem("employee_id")
+      : localStorage.getItem("person_id");
     if (token && savedRole && storedID) {
       try {
         const decoded = JSON.parse(atob(token.split(".")[1]));
         if (decoded.exp < Date.now() / 1000) {
-          ["token", "role", "person_id"].forEach(k => localStorage.removeItem(k));
+          ["token", "role", "person_id", "prof_id", "employee_id"].forEach(k => localStorage.removeItem(k));
           setIsAuthenticated(false); navigate("/");
         } else { setRole(savedRole); fetchPersonData(storedID, savedRole); setIsAuthenticated(true); }
-      } catch { ["token", "role"].forEach(k => localStorage.removeItem(k)); setIsAuthenticated(false); navigate("/"); }
+      } catch { ["token", "role", "prof_id", "employee_id"].forEach(k => localStorage.removeItem(k)); setIsAuthenticated(false); navigate("/"); }
     } else { setIsAuthenticated(false); navigate("/"); }
   }, []);
 
@@ -405,11 +407,18 @@ const SideBar = ({
   useEffect(() => {
     const email = localStorage.getItem("email");
     const r = localStorage.getItem("role");
-    const id = localStorage.getItem("person_id");
+    const id = r === "faculty"
+      ? localStorage.getItem("prof_id") || localStorage.getItem("employee_id")
+      : localStorage.getItem("person_id");
     const empID = localStorage.getItem("employee_id");
     if (!email || !r || !id) { window.location.href = "/login"; return; }
     setUserRole(r);
     if (r === "applicant") { setIsAuthenticated(true); return; }
+    if (r === "faculty") {
+      if (empID) setEmployeeID(empID);
+      setIsAuthenticated(true);
+      return;
+    }
     if (!empID) { window.location.href = "/login"; return; }
     setEmployeeID(empID);
     fetchUserAccessList(empID);
@@ -427,18 +436,37 @@ const SideBar = ({
   }, []);
 
   useEffect(() => {
+    if (userRole === "faculty") return;
     if (!employeeID) return;
     axios.get(`${API_BASE_URL}/api/access_level/${employeeID}`)
       .then(r => setAccessDescription(r.data?.access_description || "")).catch(() => { });
-  }, [employeeID]);
+  }, [employeeID, userRole]);
 
   useEffect(() => {
     const map = { applicant: "Applicant1by1", student: "Student1by1", faculty: "Faculty1by1" };
     setDir(map[userRole] || "Admin1by1");
   }, [userRole]);
 
-  const fetchPersonData = async (person_id, r) => {
-    try { const res = await axios.get(`${API_BASE_URL}/api/person_data/${person_id}/${r}`); setPersonData(res.data); } catch { }
+  const fetchPersonData = async (id, r) => {
+    try {
+      if (r === "faculty") {
+        const profID = localStorage.getItem("prof_id");
+        const employeeID = localStorage.getItem("employee_id");
+        const endpoint = profID
+          ? `/get_prof_data_by_prof/${profID}`
+          : `/get_prof_data_by_employee/${employeeID || id}`;
+        const res = await axios.get(`${API_BASE_URL}${endpoint}`);
+        const faculty = res.data[0] || {};
+        localStorage.setItem("prof_id", faculty.prof_id || "");
+        localStorage.setItem("employee_id", faculty.employee_id || employeeID || "");
+        if (faculty.employee_id || employeeID) setEmployeeID(faculty.employee_id || employeeID);
+        setPersonData(faculty);
+        return;
+      }
+
+      const res = await axios.get(`${API_BASE_URL}/api/person_data/${id}/${r}`);
+      setPersonData(res.data);
+    } catch { }
   };
   const fetchUserAccessList = async (eid) => {
     try {
@@ -448,7 +476,7 @@ const SideBar = ({
   };
 
   const Logout = () => {
-    ["token", "email", "role", "person_id"].forEach(k => localStorage.removeItem(k));
+    ["token", "email", "role", "person_id", "prof_id", "employee_id"].forEach(k => localStorage.removeItem(k));
     setIsAuthenticated(false); navigate("/");
   };
 
@@ -457,13 +485,19 @@ const SideBar = ({
     if (role === "applicant") setProfileImage(URL.createObjectURL(file));
     try {
       const pid = localStorage.getItem("person_id");
+      const employeeID = localStorage.getItem("employee_id");
       const r = localStorage.getItem("role");
       const fd = new FormData();
-      fd.append("profile_picture", file); fd.append("person_id", pid);
+      fd.append("profile_picture", file);
+      if (r === "faculty") fd.append("employee_id", employeeID);
+      else fd.append("person_id", pid);
       await axios.post(`${API_BASE_URL}${endpoint}`, fd);
-      const upd = await axios.get(`${API_BASE_URL}/api/person_data/${pid}/${r}`);
-      setPersonData(upd.data);
-      setProfileImage(`${API_BASE_URL}/uploads/${uploadDir}/${upd.data.profile_image}?t=${Date.now()}`);
+      const upd = r === "faculty"
+        ? await axios.get(`${API_BASE_URL}/get_prof_data_by_employee/${employeeID}`)
+        : await axios.get(`${API_BASE_URL}/api/person_data/${pid}/${r}`);
+      const updatedData = r === "faculty" ? upd.data[0] : upd.data;
+      setPersonData(updatedData);
+      setProfileImage(`${API_BASE_URL}/uploads/${uploadDir}/${updatedData.profile_image}?t=${Date.now()}`);
     } catch { }
   };
   const uploadHandlers = {

@@ -3470,7 +3470,7 @@ WHERE proctor LIKE ?
       INNER JOIN program_table AS ptbl ON ct.program_id = ptbl.program_id
       INNER JOIN active_school_year_table AS sy ON tt.school_year_id = sy.id
       INNER JOIN year_table AS yt ON sy.year_id = yt.year_id
-    WHERE pt.person_id = ? AND tt.course_id = ? AND sy.id = ? GROUP BY tt.department_section_id
+    WHERE tt.professor_id = ? AND tt.course_id = ? AND sy.id = ? GROUP BY tt.department_section_id
     ORDER BY section_description
     `;
         const [result] = await db3.query(sql, [
@@ -3498,7 +3498,7 @@ WHERE proctor LIKE ?
       INNER JOIN active_school_year_table AS sy ON tt.school_year_id = sy.id
       INNER JOIN year_table AS yt ON sy.year_id = yt.year_id
       INNER JOIN semester_table AS st ON sy.semester_id = st.semester_id
-    WHERE pt.person_id = ? AND ct.office_duty = 0 AND sy.astatus = 1
+    WHERE tt.professor_id = ? AND ct.office_duty = 0 AND sy.astatus = 1
     `;
       const [result] = await db3.query(sql, [userID]);
       res.json(result);
@@ -3522,7 +3522,7 @@ WHERE proctor LIKE ?
       INNER JOIN active_school_year_table AS sy ON tt.school_year_id = sy.id
       INNER JOIN year_table AS yt ON sy.year_id = yt.year_id
       INNER JOIN semester_table AS st ON sy.semester_id = st.semester_id
-    WHERE pt.person_id = ? AND ct.office_duty = 0 AND sy.year_id = ? AND sy.semester_id = ?
+    WHERE tt.professor_id = ? AND ct.office_duty = 0 AND sy.year_id = ? AND sy.semester_id = ?
     `;
         const [result] = await db3.query(sql, [
           userID,
@@ -3619,7 +3619,7 @@ WHERE proctor LIKE ?
         INNER JOIN course_table AS cst ON  es.course_id = cst.course_id
         INNER JOIN dprtmnt_curriculum_table AS dct ON ct.curriculum_id = dct.curriculum_id
         INNER JOIN dprtmnt_table AS dt ON dct.dprtmnt_id = dt.dprtmnt_id
-      WHERE pt.person_id = ? AND es.course_id = ? AND es.department_section_id = ? AND es.active_school_year_id = ?
+      WHERE tt.professor_id = ? AND es.course_id = ? AND es.department_section_id = ? AND es.active_school_year_id = ?
     `;
 
         const [result] = await db3.query(sql, [
@@ -5002,7 +5002,7 @@ WHERE proctor LIKE ?
       INNER JOIN curriculum_table AS cct ON dst.curriculum_id = cct.curriculum_id
       INNER JOIN program_table AS pgt ON cct.program_id = pgt.program_id
       INNER JOIN prof_table AS pft ON t.professor_id = pft.prof_id
-      WHERE pft.person_id = ? AND t.school_year_id = ?
+      WHERE t.professor_id = ? AND t.school_year_id = ?
     `,
           [userID, selectedActiveSchoolYear],
         );
@@ -5038,7 +5038,7 @@ WHERE proctor LIKE ?
       INNER JOIN curriculum_table cct ON dst.curriculum_id = cct.curriculum_id
       INNER JOIN program_table pgt ON cct.program_id = pgt.program_id
       INNER JOIN prof_table pft ON t.professor_id = pft.prof_id
-      WHERE pft.person_id = ?
+      WHERE t.professor_id = ?
       AND t.course_id = ?
       AND asy.year_id = ?
       AND asy.semester_id = ?
@@ -6382,6 +6382,40 @@ WHERE proctor LIKE ?
     try {
       const [rows] = await db3.query(query, [id]);
       console.log(rows);
+      res.json(rows);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/get_prof_data_by_prof/:prof_id", async (req, res) => {
+    const { prof_id } = req.params;
+
+    const query = `
+    SELECT pt.prof_id, pt.person_id, pt.profile_image, pt.email, pt.fname, pt.mname, pt.lname, pt.employee_id FROM prof_table AS pt
+    WHERE pt.prof_id = ?
+  `;
+
+    try {
+      const [rows] = await db3.query(query, [prof_id]);
+      res.json(rows);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/get_prof_data_by_employee/:employee_id", async (req, res) => {
+    const { employee_id } = req.params;
+
+    const query = `
+    SELECT pt.prof_id, pt.person_id, pt.profile_image, pt.email, pt.fname, pt.mname, pt.lname, pt.employee_id FROM prof_table AS pt
+    WHERE pt.employee_id = ?
+  `;
+
+    try {
+      const [rows] = await db3.query(query, [employee_id]);
       res.json(rows);
     } catch (error) {
       console.error(error);

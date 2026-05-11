@@ -53,6 +53,7 @@ const FacultyWorkload = () => {
   const [schedule, setSchedule] = useState([]);
   const [profData, setPerson] = useState({
     prof_id: "",
+    employee_id: "",
     fname: "",
     mname: "",
     lname: "",
@@ -62,7 +63,9 @@ const FacultyWorkload = () => {
   useEffect(() => {
     const storedUser = localStorage.getItem("email");
     const storedRole = localStorage.getItem("role");
-    const storedID = localStorage.getItem("person_id");
+    const storedProfID = localStorage.getItem("prof_id");
+    const storedEmployeeID = localStorage.getItem("employee_id");
+    const storedID = storedProfID || storedEmployeeID;
 
     if (storedUser && storedRole && storedID) {
       setUser(storedUser);
@@ -81,11 +84,21 @@ const FacultyWorkload = () => {
 
   const fetchPersonData = async (id) => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/get_prof_data/${id}`);
+      const storedProfID = localStorage.getItem("prof_id");
+      const storedEmployeeID = localStorage.getItem("employee_id");
+      const endpoint = storedProfID
+        ? `/get_prof_data_by_prof/${storedProfID}`
+        : storedEmployeeID
+          ? `/get_prof_data_by_employee/${storedEmployeeID}`
+          : `/get_prof_data/${id}`;
+      const res = await axios.get(`${API_BASE_URL}${endpoint}`);
       const first = res.data[0];
+      localStorage.setItem("prof_id", first.prof_id || "");
+      localStorage.setItem("employee_id", first.employee_id || "");
 
       const profInfo = {
         prof_id: first.prof_id,
+        employee_id: first.employee_id,
         fname: first.fname,
         mname: first.mname,
         lname: first.lname,

@@ -75,7 +75,7 @@ const FacultyDashboard = ({ profileImage, setProfileImage }) => {
   const [message, setMessage] = useState("");
   const [personData, setPerson] = useState({
     prof_id: "",
-    person_id: "",
+    employee_id: "",
     lname: "",
     fname: "",
     mname: "",
@@ -87,7 +87,9 @@ const FacultyDashboard = ({ profileImage, setProfileImage }) => {
   useEffect(() => {
     const storedUser = localStorage.getItem("email");
     const storedRole = localStorage.getItem("role");
-    const storedID = localStorage.getItem("person_id");
+    const storedProfID = localStorage.getItem("prof_id");
+    const storedEmployeeID = localStorage.getItem("employee_id");
+    const storedID = storedProfID || storedEmployeeID;
 
     if (storedUser && storedRole && storedID) {
       setUser(storedUser);
@@ -106,11 +108,19 @@ const FacultyDashboard = ({ profileImage, setProfileImage }) => {
 
   const fetchPersonData = async (id) => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/get_prof_data/${id}`);
+      const storedProfID = localStorage.getItem("prof_id");
+      const storedEmployeeID = localStorage.getItem("employee_id");
+      const endpoint = storedProfID
+        ? `/get_prof_data_by_prof/${storedProfID}`
+        : storedEmployeeID
+          ? `/get_prof_data_by_employee/${storedEmployeeID}`
+          : `/get_prof_data/${id}`;
+      const res = await axios.get(`${API_BASE_URL}${endpoint}`);
       const first = res.data[0];
+      localStorage.setItem("prof_id", first.prof_id || "");
+      localStorage.setItem("employee_id", first.employee_id || "");
       const profInfo = {
         prof_id: first.prof_id,
-        person_id: first.person_id,
         employee_id: first.employee_id,
         fname: first.fname,
         mname: first.mname,
@@ -310,24 +320,24 @@ const FacultyDashboard = ({ profileImage, setProfileImage }) => {
     if (!file) return;
 
     try {
-      const person_id = localStorage.getItem("person_id");
-      const role = localStorage.getItem("role");
+      const employee_id = localStorage.getItem("employee_id") || personData.employee_id;
 
       const formData = new FormData();
 
       formData.append("profile_picture", file);
-      formData.append("person_id", person_id);
+      formData.append("employee_id", employee_id);
 
       // ✅ Upload image using same backend API
       await axios.post(`${API_BASE_URL}/faculty/update_faculty`, formData);
 
       // ✅ Refresh profile info to display the new image
       const updated = await axios.get(
-        `${API_BASE_URL}/api/person_data/${person_id}/${role}`,
+        `${API_BASE_URL}/get_prof_data_by_employee/${employee_id}`,
       );
 
-      setPerson(updated.data);
-      const baseUrl = `${API_BASE_URL}/uploads/Faculty1by1/${updated.data.profile_image}`;
+      const updatedFaculty = updated.data[0];
+      setPerson(updatedFaculty);
+      const baseUrl = `${API_BASE_URL}/uploads/Faculty1by1/${updatedFaculty.profile_image}`;
       setProfileImage(`${baseUrl}?t=${Date.now()}`);
     } catch (error) {
       console.error("❌ Upload failed:", error);

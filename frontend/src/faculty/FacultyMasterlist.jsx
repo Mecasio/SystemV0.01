@@ -76,6 +76,7 @@ const FacultyMasterList = () => {
   const [message, setMessage] = useState("");
   const [profData, setPerson] = useState({
     prof_id: "",
+    employee_id: "",
     fname: "",
     mname: "",
     lname: "",
@@ -101,7 +102,9 @@ const FacultyMasterList = () => {
   useEffect(() => {
     const storedUser = localStorage.getItem("email");
     const storedRole = localStorage.getItem("role");
-    const storedID = localStorage.getItem("person_id");
+    const storedProfID = localStorage.getItem("prof_id");
+    const storedEmployeeID = localStorage.getItem("employee_id");
+    const storedID = storedProfID || storedEmployeeID;
 
     if (storedUser && storedRole && storedID) {
       setUser(storedUser);
@@ -120,11 +123,21 @@ const FacultyMasterList = () => {
 
   const fetchPersonData = async (id) => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/get_prof_data/${id}`);
+      const storedProfID = localStorage.getItem("prof_id");
+      const storedEmployeeID = localStorage.getItem("employee_id");
+      const endpoint = storedProfID
+        ? `/get_prof_data_by_prof/${storedProfID}`
+        : storedEmployeeID
+          ? `/get_prof_data_by_employee/${storedEmployeeID}`
+          : `/get_prof_data/${id}`;
+      const res = await axios.get(`${API_BASE_URL}${endpoint}`);
       const first = res.data[0];
+      localStorage.setItem("prof_id", first.prof_id || "");
+      localStorage.setItem("employee_id", first.employee_id || "");
 
       const profInfo = {
         prof_id: first.prof_id,
+        employee_id: first.employee_id,
         fname: first.fname,
         mname: first.mname,
         lname: first.lname,
@@ -138,9 +151,9 @@ const FacultyMasterList = () => {
   };
 
   useEffect(() => {
-    if (userID) {
+    if (profData.prof_id) {
       axios
-        .get(`${API_BASE_URL}/course_assigned_to/${userID}`)
+        .get(`${API_BASE_URL}/course_assigned_to/${profData.prof_id}`)
         .then((res) => {
           setCoursesAssignedTo(res.data);
           if (!course_id && res.data.length > 0) {
@@ -149,7 +162,7 @@ const FacultyMasterList = () => {
         })
         .catch((err) => console.error(err));
     }
-  }, [userID]);
+  }, [profData.prof_id]);
 
   const filteredCourses = courseAssignedTo.filter((course) => {
     if (!selectedSchoolYear && !selectedSchoolSemester) return true;
@@ -173,7 +186,7 @@ const FacultyMasterList = () => {
 
   useEffect(() => {
     if (
-      !userID ||
+      !profData.prof_id ||
       !selectedCourse ||
       !selectedSchoolYear ||
       !selectedSchoolSemester
@@ -181,20 +194,19 @@ const FacultyMasterList = () => {
       return;
     axios
       .get(
-        `${API_BASE_URL}/api/section_assigned_to/${userID}/${selectedCourse}/${selectedSchoolYear}/${selectedSchoolSemester}`,
+        `${API_BASE_URL}/api/section_assigned_to/${profData.prof_id}/${selectedCourse}/${selectedSchoolYear}/${selectedSchoolSemester}`,
       )
       .then((res) => {
         setSectionAssignedTo(res.data);
 
         if (res.data.length > 0) {
           setSelectedSection(res.data[0].department_section_id);
-          handleFetchStudents(res.data[0].department_section_id);
         } else {
           setSelectedSection("");
         }
       })
       .catch((err) => console.error(err));
-  }, [userID, selectedCourse, selectedSchoolYear, selectedSchoolSemester]);
+  }, [profData.prof_id, selectedCourse, selectedSchoolYear, selectedSchoolSemester]);
 
   useEffect(() => {
     axios
@@ -245,13 +257,13 @@ const FacultyMasterList = () => {
   }, [selectedSchoolYear, selectedSchoolSemester]);
 
   useEffect(() => {
-    if (userID) {
+    if (profData.prof_id) {
       axios
-        .get(`${API_BASE_URL}/get_class_details/${userID}`)
+        .get(`${API_BASE_URL}/get_class_details/${profData.prof_id}`)
         .then((res) => setClassListAndDetails(res.data))
         .catch((err) => console.error(err));
     }
-  }, [userID]);
+  }, [profData.prof_id]);
 
   const handleSchoolYearChange = (event) => {
     setSelectedSchoolYear(event.target.value);
@@ -272,74 +284,75 @@ const FacultyMasterList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const findPastClass = async () => {
     try {
-      if (!userID || !selectedSchoolYear || !selectedSchoolSemester) {
-        setSnack({
-          open: true,
-          message: "Please select School Year and Semester first!",
-          severity: "warning",
-        });
+      if (!profData.prof_id || !selectedSchoolYear || !selectedSchoolSemester) {
+        setMessage("Please select School Year and Semester first.");
         return;
       }
 
       // 1️⃣ Fetch courses assigned to the professor
       const courseRes = await axios.get(
-        `${API_BASE_URL}/course_assigned_to/${userID}/${selectedSchoolYear}/${selectedSchoolSemester}`,
+        `${API_BASE_URL}/course_assigned_to/${profData.prof_id}/${selectedSchoolYear}/${selectedSchoolSemester}`,
       );
       const courses = courseRes.data;
       setCoursesAssignedTo(courses);
 
       if (courses.length === 0) {
-        setSectionsHandle([]);
-        setStudents([]);
-        setSnack({
-          open: true,
-          message: "No courses found for this period.",
-          severity: "info",
-        });
+        setSectionAssignedTo([]);
+        setSelectedCourse("");
+        setSelectedSection("");
+        setMessage("No courses found for this period.");
         return;
       }
 
       // 2️⃣ Choose first course if none selected
-      const courseId = selectedCourse || courses[0].course_id;
+      const selectedCourseExists = courses.some(
+        (course) => String(course.course_id) === String(selectedCourse),
+      );
+      const courseId = selectedCourseExists ? selectedCourse : courses[0].course_id;
       setSelectedCourse(courseId);
 
       // 3️⃣ Fetch sections for the selected course
       const sectionRes = await axios.get(
-        `${API_BASE_URL}/handle_section_of/${userID}/${courseId}/${selectedActiveSchoolYear}`,
+        `${API_BASE_URL}/handle_section_of/${profData.prof_id}/${courseId}/${selectedActiveSchoolYear}`,
       );
 
       const sections = sectionRes.data;
+      setSectionAssignedTo(sections);
       if (sections.length > 0) {
+        const selectedSectionExists = sections.some(
+          (section) =>
+            String(section.department_section_id) === String(selectedSection),
+        );
         setSelectedSection(
-          selectedSection || sections[0].department_section_id,
+          selectedSectionExists
+            ? selectedSection
+            : sections[0].department_section_id,
         );
       } else {
         setSelectedSection("");
       }
 
       if (sections.length === 0) {
-        setStudents([]);
-        setSnack({
-          open: true,
-          message: "No sections found for this course.",
-          severity: "info",
-        });
+        setSectionAssignedTo([]);
+        setSelectedSection("");
+        setMessage("No sections found for this course.");
         return;
       }
 
       // 4️⃣ Choose first section if none selected
-      const sectionId = selectedSection || sections[0].department_section_id;
+      const sectionId = sections.some(
+        (section) =>
+          String(section.department_section_id) === String(selectedSection),
+      )
+        ? selectedSection
+        : sections[0].department_section_id;
       setSelectedSection(sectionId);
 
       // 5️⃣ Fetch students for this section
-      handleFetchStudents(sectionId);
+      setMessage("");
     } catch (err) {
       console.error("Error fetching past class data:", err);
-      setSnack({
-        open: true,
-        message: "Failed to fetch data.",
-        severity: "error",
-      });
+      setMessage("Failed to fetch data.");
     }
   };
 
@@ -416,8 +429,29 @@ const FacultyMasterList = () => {
     return acc;
   }, {});
 
-  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(filteredStudents.length / itemsPerPage));
   const groupedList = Object.values(groupedStudents);
+  const selectedSchoolYearValue = schoolYears.some(
+    (yearObj) => String(yearObj.year_id) === String(selectedSchoolYear),
+  )
+    ? selectedSchoolYear
+    : "";
+  const selectedSchoolSemesterValue = schoolSemester.some(
+    (sem) => String(sem.semester_id) === String(selectedSchoolSemester),
+  )
+    ? selectedSchoolSemester
+    : "";
+  const selectedCourseValue = filteredCourses.some(
+    (course) => String(course.course_id) === String(selectedCourse),
+  )
+    ? selectedCourse
+    : "";
+  const selectedSectionValue = sectionAssignedTo.some(
+    (section) =>
+      String(section.department_section_id) === String(selectedSection),
+  )
+    ? selectedSection
+    : "";
 
   const paginatedStudents = filteredStudents.slice(
     (currentPage - 1) * itemsPerPage,
@@ -674,7 +708,7 @@ const FacultyMasterList = () => {
                     {/* Page Dropdown */}
                     <FormControl size="small" sx={{ minWidth: 80 }}>
                       <Select
-                        value={currentPage}
+                        value={currentPage <= totalPages ? currentPage : 1}
                         onChange={(e) => setCurrentPage(Number(e.target.value))}
                         displayEmpty
                         sx={{
@@ -793,7 +827,7 @@ const FacultyMasterList = () => {
 
                     <FormControl size="small" sx={{ minWidth: 140 }}>
                       <Select
-                        value={selectedSchoolYear}
+                        value={selectedSchoolYearValue}
                         onChange={(e) => setSelectedSchoolYear(e.target.value)}
                         displayEmpty
                         sx={{
@@ -841,7 +875,7 @@ const FacultyMasterList = () => {
 
                     <FormControl size="small" sx={{ minWidth: 140 }}>
                       <Select
-                        value={selectedSchoolSemester}
+                        value={selectedSchoolSemesterValue}
                         onChange={(e) =>
                           setSelectedSchoolSemester(e.target.value)
                         }
@@ -941,7 +975,7 @@ const FacultyMasterList = () => {
                 <Select
                   labelId="demo-simple-select-label"
                   id="demo-simple-select"
-                  value={selectedCourse}
+                  value={selectedCourseValue}
                   style={{ width: "620px" }}
                   label="Course"
                   onChange={handleSelectCourseChange}
@@ -980,10 +1014,9 @@ const FacultyMasterList = () => {
                     labelId="section-select-label"
                     id="section-select"
                     label="Section"
-                    value={selectedSection}
+                    value={selectedSectionValue}
                     onChange={(e) => {
                       setSelectedSection(e.target.value);
-                      handleFetchStudents(e.target.value);
                     }}
                   >
                     {!selectedCourse ? (

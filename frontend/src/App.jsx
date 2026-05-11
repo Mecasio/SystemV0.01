@@ -334,6 +334,9 @@ const CollegeScheduleChecker = lazy(
 const CORExportingModule = lazy(
   () => import("./registrar/CORExportingModule"),
 );
+const CORExportRender = lazy(
+  () => import("./registrar/CORExportRender"),
+);
 const CourseTagging = lazy(() => import("./registrar/CourseTagging"));
 const CourseTaggingForSummer = lazy(
   () => import("./registrar/CourseTaggingForSummer"),
@@ -471,7 +474,7 @@ function App() {
   );
   const [profileImage, setProfileImage] = useState(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [logoVersion, setLogoVersion] = useState(Date.now());
+  const [, setLogoVersion] = useState(Date.now());
 
   const fetchSettings = async () => {
     try {
@@ -601,6 +604,7 @@ function App() {
   });
 
   const keys = JSON.parse(localStorage.getItem("dashboardKeys") || "{}");
+  const isCorExportRenderRoute = window.location.pathname === "/cor_export_render";
 
   if (!settingsReady) {
     return (
@@ -637,7 +641,7 @@ function App() {
               {/* ✅ Top section (Sidebar + AppBar + Content) */}
               <div className="flex flex-1">
                 {/* Sidebar */}
-                {isAuthenticated && (
+                {isAuthenticated && !isCorExportRenderRoute && (
                   <>
                     <aside
                       className="shrink-0"
@@ -660,6 +664,7 @@ function App() {
                 {/* Main area */}
                 <div className="flex-1 flex flex-col">
                   {/* Navbar */}
+                  {!isCorExportRenderRoute && (
                   <AppBar
                     position="fixed"
                     sx={{
@@ -708,9 +713,16 @@ function App() {
 
                     </Toolbar>
                   </AppBar>
+                  )}
 
                   {/* ✅ Main content area */}
-                  <main className="flex-1 w-full mt-[64px] pb-[40px]">
+                  <main
+                    className={
+                      isCorExportRenderRoute
+                        ? "flex-1 w-full"
+                        : "flex-1 w-full mt-[64px] pb-[40px]"
+                    }
+                  >
                     {/* Add your routes here later */}
 
                     <Routes>
@@ -1945,6 +1957,10 @@ function App() {
                           </ProtectedRoute>
                         }
                       />
+                      <Route
+                        path="/cor_export_render"
+                        element={<CORExportRender />}
+                      />
 
                       <Route
                         path="/applicant_dashboard"
@@ -2443,24 +2459,26 @@ function App() {
               </div>
 
               {/* Footer */}
-              <Box
-                component="footer"
-                sx={{
-                  width: "100%",
-                  position: "fixed",
-                  bottom: 0,
-                  left: 0,
-                  zIndex: (theme) => theme.zIndex.drawer + 1,
-                  bgcolor: settings?.footer_color || "#ffffff",
-                  color: "white",
-                  textAlign: "center",
-                  padding: "10px 5px",
-                }}
-              >
-                <Typography style={{ fontSize: "18px" }}>
-                  {settings?.footer_text || "EARIST MANILA"}
-                </Typography>
-              </Box>
+              {!isCorExportRenderRoute && (
+                <Box
+                  component="footer"
+                  sx={{
+                    width: "100%",
+                    position: "fixed",
+                    bottom: 0,
+                    left: 0,
+                    zIndex: (theme) => theme.zIndex.drawer + 1,
+                    bgcolor: settings?.footer_color || "#ffffff",
+                    color: "white",
+                    textAlign: "center",
+                    padding: "10px 5px",
+                  }}
+                >
+                  <Typography style={{ fontSize: "18px" }}>
+                    {settings?.footer_text || "EARIST MANILA"}
+                  </Typography>
+                </Box>
+              )}
             </div>
           </Router>
         </Suspense>

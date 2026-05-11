@@ -131,10 +131,7 @@ const AdminApplicantList = () => {
           category: r.category ?? "Regular",
           is_optional: Number(r.is_optional) === 1,
           label: r.label || r.description,
-          key:
-            r.short_label ||
-            r.label ||
-            r.description?.replace(/\s+/g, ""),
+          key: r.short_label || r.label || r.description?.replace(/\s+/g, ""),
         }));
         setDocumentOptions(formatted);
       } catch (err) {
@@ -194,7 +191,6 @@ const AdminApplicantList = () => {
       to: "/registrar_examination_profile",
       icon: <PersonSearchIcon fontSize="large" />,
     },
-
 
     {
       label: "Entrance Examination Score",
@@ -331,10 +327,7 @@ const AdminApplicantList = () => {
     const totalRequiredDocs = Number(personData.total_required_docs ?? 0);
     const requiredDocsVerified = Number(personData.required_docs_verified ?? 0);
 
-    if (
-      totalRequiredDocs > 0 &&
-      requiredDocsVerified >= totalRequiredDocs
-    ) {
+    if (totalRequiredDocs > 0 && requiredDocsVerified >= totalRequiredDocs) {
       return "Documents Verified & ECAT";
     }
 
@@ -461,12 +454,12 @@ const AdminApplicantList = () => {
         prev.map((p) =>
           p.person_id === person_id
             ? {
-              ...p,
-              registrar_status: status,
-              submitted_documents: status, // sync with checkbox
-              remarks: status ? 1 : 0,
-              missing_documents: status ? [] : null,
-            }
+                ...p,
+                registrar_status: status,
+                submitted_documents: status, // sync with checkbox
+                remarks: status ? 1 : 0,
+                missing_documents: status ? [] : null,
+              }
             : p,
         ),
       );
@@ -582,13 +575,7 @@ const AdminApplicantList = () => {
     return new Date(y, m - 1, d);
   };
   const [showSubmittedOnly, setShowSubmittedOnly] = useState(false);
-
-  useEffect(() => {
-    if (persons.length > 0) {
-      console.log("FIRST APPLICANT OBJECT:", persons[0]);
-    }
-  }, [persons]);
-
+  
   const filteredPersons = persons
     .filter((personData) => {
       /* 🔎 SEARCH */
@@ -728,7 +715,10 @@ const AdminApplicantList = () => {
 
   const [itemsPerPage, setItemsPerPage] = useState(100);
 
-  const totalPages = Math.ceil(filteredPersons.length / itemsPerPage);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredPersons.length / itemsPerPage),
+  );
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentPersons = filteredPersons.slice(
@@ -868,7 +858,9 @@ const AdminApplicantList = () => {
         applicantType === "0" ||
         applicantType.toLowerCase() === "all";
 
-      return matchesApplicantType && doc.category === "Main" && !doc.is_optional;
+      return (
+        matchesApplicantType && doc.category === "Main" && !doc.is_optional
+      );
     });
   };
 
@@ -935,8 +927,7 @@ const AdminApplicantList = () => {
   const divToPrintRef = useRef();
 
   const printDiv = () => {
-    const resolvedCampusAddress =
-      campusAddress || "No address set in Settings";
+    const resolvedCampusAddress = campusAddress || "No address set in Settings";
 
     // ✅ Dynamic logo and company name
     const logoSrc = fetchedLogo || EaristLogo;
@@ -1050,20 +1041,22 @@ const AdminApplicantList = () => {
                  <div style="font-size: 13px; font-family: Arial">Republic of the Philippines</div>
    
                  <!-- ✅ Dynamic company name -->
-                 ${name
-        ? `
+                 ${
+                   name
+                     ? `
                        <b style="letter-spacing: 1px; font-size: 20px; font-family: Arial, sans-serif;">
                          ${firstLine}
                        </b>
-                       ${secondLine
-          ? `<div style="letter-spacing: 1px; font-size: 20px; font-family: Arial, sans-serif;">
+                       ${
+                         secondLine
+                           ? `<div style="letter-spacing: 1px; font-size: 20px; font-family: Arial, sans-serif;">
                                <b>${secondLine}</b>
                              </div>`
-          : ""
-        }
+                           : ""
+                       }
                      `
-        : ""
-      }
+                     : ""
+                 }
    
                  <!-- ✅ Dynamic campus address -->
                  <div style="font-size: 13px; font-family: Arial">${resolvedCampusAddress}</div>
@@ -1090,27 +1083,31 @@ const AdminApplicantList = () => {
                </thead>
                <tbody>
                  ${filteredPersons
-        .map(
-          (person) => `
+                   .map(
+                     (person) => `
                        <tr>
                          <td style="width:10%">${person.applicant_number || ""}</td>
                          <td style="width:40%">${person.last_name}, ${person.first_name} ${person.middle_name || ""} ${person.extension || ""}</td>
-                         <td style="width:15%">${allCurriculums.find(
-            (item) => item.curriculum_id?.toString() === person.program?.toString()
-          )?.program_code ?? "N/A"}</td>                 
+                         <td style="width:15%">${
+                           allCurriculums.find(
+                             (item) =>
+                               item.curriculum_id?.toString() ===
+                               person.program?.toString(),
+                           )?.program_code ?? "N/A"
+                         }</td>                 
                          <td style="width:10%">${person.generalAverage1 || ""}</td>
                          <td style="width:10%">${new Date(
-            person.created_at.split("T")[0],
-          ).toLocaleDateString("en-PH", {
-            year: "numeric",
-            month: "short",
-            day: "2-digit",
-          })}</td>
+                           person.created_at.split("T")[0],
+                         ).toLocaleDateString("en-PH", {
+                           year: "numeric",
+                           month: "short",
+                           day: "2-digit",
+                         })}</td>
                          <td style="width:15%">${getApplicantStatus(person)}</td>
                        </tr>
                      `,
-        )
-        .join("")}
+                   )
+                   .join("")}
                </tbody>
              </table>
            </div>
@@ -1119,7 +1116,6 @@ const AdminApplicantList = () => {
      `);
     newWin.document.close();
   };
-
 
   // Put this at the very bottom before the return
   if (loading || hasAccess === null) {
@@ -1147,16 +1143,16 @@ const AdminApplicantList = () => {
         alignItems="center"
         mb={2}
       >
-        <Typography variant="h4"
+        <Typography
+          variant="h4"
           sx={{
-            fontWeight: 'bold',
+            fontWeight: "bold",
             color: titleColor,
-            fontSize: '36px',
+            fontSize: "36px",
           }}
         >
           APPLICANT LIST
         </Typography>
-
 
         <Box>
           <TextField
@@ -1934,35 +1930,6 @@ const AdminApplicantList = () => {
                             </TableCell> */}
             </TableRow>
           </TableHead>
-          {/* --- Confirmation Dialog --- */}
-          <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
-            <DialogTitle>Confirm Action</DialogTitle>
-            <DialogContent>
-              {confirmMessage ||
-                "Are you sure you want to update this applicant’s status?"}
-            </DialogContent>
-            <DialogActions>
-              <Button
-                color="error"
-                variant="outlined"
-
-
-                onClick={() => setConfirmOpen(false)}>
-                Cancel
-              </Button>
-              <Button
-                onClick={async () => {
-                  if (confirmAction) await confirmAction();
-                  setConfirmOpen(false);
-                  fetchApplicants();
-                }}
-                color="success"
-                variant="contained"
-              >
-                Yes, Confirm
-              </Button>
-            </DialogActions>
-          </Dialog>
 
           <TableBody>
             {currentPersons.map((person, index) => (
@@ -1986,12 +1953,11 @@ const AdminApplicantList = () => {
 
                   fontWeight:
                     Number(person.submitted_documents) === 1 ||
-                      isDuplicateApplicant(person)
+                    isDuplicateApplicant(person)
                       ? "bold"
                       : "normal",
                 }}
               >
-
                 {/* # */}
                 <TableCell
                   sx={{
@@ -2120,7 +2086,9 @@ const AdminApplicantList = () => {
                   }}
                 >
                   {allCurriculums.find(
-                    (item) => item.curriculum_id?.toString() === person.program?.toString()
+                    (item) =>
+                      item.curriculum_id?.toString() ===
+                      person.program?.toString(),
                   )?.program_code ?? "N/A"}
                 </TableCell>
                 <TableCell
@@ -2217,20 +2185,20 @@ const AdminApplicantList = () => {
                         width: "160px",
                         backgroundColor:
                           person.submitted_documents === 1 &&
-                            person.registrar_status === 1 &&
-                            Array.isArray(person.missing_documents) &&
-                            person.missing_documents.length === 0
+                          person.registrar_status === 1 &&
+                          Array.isArray(person.missing_documents) &&
+                          person.missing_documents.length === 0
                             ? "#4CAF50"
                             : Array.isArray(person.missing_documents) &&
-                              person.missing_documents.length > 0
+                                person.missing_documents.length > 0
                               ? "#FFD580"
                               : "#D6F0FF",
                         border: `1px solid ${borderColor}`,
                         color:
                           person.submitted_documents === 1 &&
-                            person.registrar_status === 1 &&
-                            Array.isArray(person.missing_documents) &&
-                            person.missing_documents.length === 0
+                          person.registrar_status === 1 &&
+                          Array.isArray(person.missing_documents) &&
+                          person.missing_documents.length === 0
                             ? "white"
                             : "black",
                         fontWeight: "bold",
@@ -2239,21 +2207,21 @@ const AdminApplicantList = () => {
                         "&:hover": {
                           backgroundColor:
                             person.submitted_documents === 1 &&
-                              person.registrar_status === 1 &&
-                              Array.isArray(person.missing_documents) &&
-                              person.missing_documents.length === 0
+                            person.registrar_status === 1 &&
+                            Array.isArray(person.missing_documents) &&
+                            person.missing_documents.length === 0
                               ? "#45A049"
                               : Array.isArray(person.missing_documents) &&
-                                person.missing_documents.length > 0
+                                  person.missing_documents.length > 0
                                 ? "#FFC04D"
                                 : "#B9E3FF",
                         },
                       }}
                     >
                       {person.submitted_documents === 1 &&
-                        person.registrar_status === 1 &&
-                        Array.isArray(person.missing_documents) &&
-                        person.missing_documents.length === 0
+                      person.registrar_status === 1 &&
+                      Array.isArray(person.missing_documents) &&
+                      person.missing_documents.length === 0
                         ? "✅ Completed"
                         : "📋 Missing Docs"}
                     </Button>
@@ -2323,147 +2291,22 @@ const AdminApplicantList = () => {
                                                                */}
               </TableRow>
             ))}
-          </TableBody>
-
-          <Dialog
-            open={openDialog}
-            onClose={handleCloseDialog}
-            fullWidth
-            maxWidth="sm"
-          >
-            <DialogTitle
-              sx={{
-                fontWeight: "bold",
-                textAlign: "center",
-                color:
-                  Array.isArray(activePerson?.missing_documents) &&
-                    activePerson.missing_documents.length === 0 &&
-                    activePerson?.submitted_documents === 1 &&
-                    activePerson?.registrar_status === 1
-                    ? "#4CAF50"
-                    : "maroon",
-              }}
-            >
-              {Array.isArray(activePerson?.missing_documents) &&
-                activePerson.missing_documents.length === 0 &&
-                activePerson?.submitted_documents === 1 &&
-                activePerson?.registrar_status === 1
-                ? "✅ Completed All Documents"
-                : "Mark Missing Documents"}
-            </DialogTitle>
-
-            <DialogContent
-              sx={{
-                maxHeight: 400,
-                overflowY: "auto",
-                p: 3,
-                marginLeft: 2,
-              }}
-            >
-              {activeDocumentOptions.length === 0 ? (
-                <Typography sx={{ textAlign: "center", color: "gray", mt: 2 }}>
-                  No requirements found in database.
-                </Typography>
-              ) : (
-                <Box
+            {currentPersons.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={12}
                   sx={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-                    gap: 1.5,
-                    alignItems: "center",
+                    textAlign: "center",
+                    border: `1px solid ${borderColor}`,
+                    color: "#777",
+                    py: 3,
                   }}
                 >
-                  {activeDocumentOptions.map((doc) => {
-                    const selectedArray = Array.isArray(
-                      activePerson?.missing_documents,
-                    )
-                      ? activePerson.missing_documents
-                      : [];
-
-                    const isCompleted =
-                      selectedArray.length === 0 &&
-                      activePerson?.submitted_documents === 1 &&
-                      activePerson?.registrar_status === 1;
-
-                    return (
-                      <FormControlLabel
-                        disabled
-                        key={doc.key}
-                        control={
-                          <Checkbox
-                            checked={
-                              isCompleted
-                                ? true
-                                : selectedArray.includes(doc.key)
-                            }
-                            disabled={isCompleted}
-                            onChange={(e) => {
-                              if (isCompleted) return;
-                              const updated = e.target.checked
-                                ? [...selectedArray, doc.key]
-                                : selectedArray.filter((x) => x !== doc.key);
-
-                              setActivePerson((prev) =>
-                                prev
-                                  ? { ...prev, missing_documents: updated }
-                                  : prev,
-                              );
-                            }}
-                          />
-                        }
-                        label={doc.label}
-                        sx={{
-                          backgroundColor: "#fdfdfd",
-                          borderRadius: "8px",
-                          px: 1,
-                          py: 0.5,
-                          border: "1px solid #ddd",
-                        }}
-                      />
-                    );
-                  })}
-                </Box>
-              )}
-            </DialogContent>
-
-            <DialogActions>
-              <Button
-                color="error"
-                variant="outlined"
-
-                onClick={handleCloseDialog}>Cancel</Button>
-              {!(
-                Array.isArray(activePerson?.missing_documents) &&
-                activePerson.missing_documents.length === 0 &&
-                activePerson?.submitted_documents === 1 &&
-                activePerson?.registrar_status === 1
-              ) && (
-                  <Button
-                    onClick={handleSaveMissingDocs}
-                    variant="contained"
-                    color="primary"
-                  >
-                    Save
-                  </Button>
-                )}
-            </DialogActions>
-          </Dialog>
-
-          {currentPersons.length === 0 && (
-            <TableRow>
-              <TableCell
-                colSpan={12}
-                sx={{
-                  textAlign: "center",
-                  border: `1px solid ${borderColor}`,
-                  color: "#777",
-                  py: 3,
-                }}
-              >
-                There's no applicant in the record.
-              </TableCell>
-            </TableRow>
-          )}
+                  There's no applicant in the record.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
         </Table>
       </TableContainer>
 
@@ -2650,6 +2493,155 @@ const AdminApplicantList = () => {
           </TableHead>
         </Table>
       </TableContainer>
+
+      {/* --- Confirmation Dialog --- */}
+      <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
+        <DialogTitle>Confirm Action</DialogTitle>
+        <DialogContent>
+          {confirmMessage ||
+            "Are you sure you want to update this applicant’s status?"}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            color="error"
+            variant="outlined"
+            onClick={() => setConfirmOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={async () => {
+              if (confirmAction) await confirmAction();
+              setConfirmOpen(false);
+              fetchApplicants();
+            }}
+            color="success"
+            variant="contained"
+          >
+            Yes, Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: "bold",
+            textAlign: "center",
+            color:
+              Array.isArray(activePerson?.missing_documents) &&
+              activePerson.missing_documents.length === 0 &&
+              activePerson?.submitted_documents === 1 &&
+              activePerson?.registrar_status === 1
+                ? "#4CAF50"
+                : "maroon",
+          }}
+        >
+          {Array.isArray(activePerson?.missing_documents) &&
+          activePerson.missing_documents.length === 0 &&
+          activePerson?.submitted_documents === 1 &&
+          activePerson?.registrar_status === 1
+            ? "✅ Completed All Documents"
+            : "Mark Missing Documents"}
+        </DialogTitle>
+
+        <DialogContent
+          sx={{
+            maxHeight: 400,
+            overflowY: "auto",
+            p: 3,
+            marginLeft: 2,
+          }}
+        >
+          {activeDocumentOptions.length === 0 ? (
+            <Typography sx={{ textAlign: "center", color: "gray", mt: 2 }}>
+              No requirements found in database.
+            </Typography>
+          ) : (
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+                gap: 1.5,
+                alignItems: "center",
+              }}
+            >
+              {activeDocumentOptions.map((doc) => {
+                const selectedArray = Array.isArray(
+                  activePerson?.missing_documents,
+                )
+                  ? activePerson.missing_documents
+                  : [];
+
+                const isCompleted =
+                  selectedArray.length === 0 &&
+                  activePerson?.submitted_documents === 1 &&
+                  activePerson?.registrar_status === 1;
+
+                return (
+                  <FormControlLabel
+                    disabled
+                    key={doc.key}
+                    control={
+                      <Checkbox
+                        checked={
+                          isCompleted ? true : selectedArray.includes(doc.key)
+                        }
+                        disabled={isCompleted}
+                        onChange={(e) => {
+                          if (isCompleted) return;
+                          const updated = e.target.checked
+                            ? [...selectedArray, doc.key]
+                            : selectedArray.filter((x) => x !== doc.key);
+
+                          setActivePerson((prev) =>
+                            prev
+                              ? { ...prev, missing_documents: updated }
+                              : prev,
+                          );
+                        }}
+                      />
+                    }
+                    label={doc.label}
+                    sx={{
+                      backgroundColor: "#fdfdfd",
+                      borderRadius: "8px",
+                      px: 1,
+                      py: 0.5,
+                      border: "1px solid #ddd",
+                    }}
+                  />
+                );
+              })}
+            </Box>
+          )}
+        </DialogContent>
+
+        <DialogActions>
+          <Button color="error" variant="outlined" onClick={handleCloseDialog}>
+            Cancel
+          </Button>
+          {!(
+            Array.isArray(activePerson?.missing_documents) &&
+            activePerson.missing_documents.length === 0 &&
+            activePerson?.submitted_documents === 1 &&
+            activePerson?.registrar_status === 1
+          ) && (
+            <Button
+              onClick={handleSaveMissingDocs}
+              variant="contained"
+              color="primary"
+            >
+              Save
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
 
       <Snackbar
         open={snack.open}

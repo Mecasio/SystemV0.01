@@ -506,6 +506,7 @@ const AuditLogs = () => {
                       fontSize: 14,
                       color: "#374151",
                       lineHeight: 1.45,
+                      whiteSpace: "pre-line",
          
                     }}
                   >

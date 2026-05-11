@@ -43,8 +43,8 @@ const GradingSheet = () => {
   const [subtitleColor, setSubtitleColor] = useState("#555555");
   const [borderColor, setBorderColor] = useState("#000000");
   const [mainButtonColor, setMainButtonColor] = useState("#1976d2");
-  const [subButtonColor, setSubButtonColor] = useState("#ffffff"); // ✅ NEW
-  const [stepperColor, setStepperColor] = useState("#000000"); // ✅ NEW
+  const [subButtonColor, setSubButtonColor] = useState("#ffffff");
+  const [stepperColor, setStepperColor] = useState("#000000");
   const [fetchedLogo, setFetchedLogo] = useState(null);
   const [companyName, setCompanyName] = useState("");
   const [shortTerm, setShortTerm] = useState("");
@@ -53,23 +53,20 @@ const GradingSheet = () => {
   useEffect(() => {
     if (!settings) return;
 
-    // 🎨 Colors
     if (settings.title_color) setTitleColor(settings.title_color);
     if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
     if (settings.border_color) setBorderColor(settings.border_color);
     if (settings.main_button_color)
       setMainButtonColor(settings.main_button_color);
-    if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color); // ✅ NEW
-    if (settings.stepper_color) setStepperColor(settings.stepper_color); // ✅ NEW
+    if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);
+    if (settings.stepper_color) setStepperColor(settings.stepper_color);
 
-    // 🏫 Logo
     if (settings.logo_url) {
       setFetchedLogo(`${API_BASE_URL}${settings.logo_url}`);
     } else {
       setFetchedLogo(EaristLogo);
     }
 
-    // 🏷️ School Information
     if (settings.company_name) setCompanyName(settings.company_name);
     if (settings.short_term) setShortTerm(settings.short_term);
     if (settings.campus_address) setCampusAddress(settings.campus_address);
@@ -84,6 +81,7 @@ const GradingSheet = () => {
   const [activeButton, setActiveButton] = useState(null);
   const [profData, setPerson] = useState({
     prof_id: "",
+    employee_id: "",
     fname: "",
     mname: "",
     lname: "",
@@ -111,20 +109,31 @@ const GradingSheet = () => {
   useEffect(() => {
     if (course_id) setSelectedCourse(course_id);
     if (section_id) setSelectedSectionID(section_id);
-    if (section_id) handleFetchStudents(section_id);
     if (school_year_id) setSelectedActiveSchoolYear(school_year_id);
   }, [course_id, section_id, school_year_id]);
 
   useEffect(() => {
-    if (selectedCourse && selectedSectionID && selectedActiveSchoolYear) {
+    if (
+      profData.prof_id &&
+      selectedCourse &&
+      selectedSectionID &&
+      selectedActiveSchoolYear
+    ) {
       handleFetchStudents(selectedSectionID);
     }
-  }, [selectedCourse, selectedSectionID, selectedActiveSchoolYear]);
+  }, [
+    profData.prof_id,
+    selectedCourse,
+    selectedSectionID,
+    selectedActiveSchoolYear,
+  ]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("email");
     const storedRole = localStorage.getItem("role");
-    const storedID = localStorage.getItem("person_id");
+    const storedProfID = localStorage.getItem("prof_id");
+    const storedEmployeeID = localStorage.getItem("employee_id");
+    const storedID = storedProfID || storedEmployeeID;
 
     if (storedUser && storedRole && storedID) {
       setUser(storedUser);
@@ -142,14 +151,24 @@ const GradingSheet = () => {
 
   const fetchPersonData = async (id) => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/get_prof_data/${id}`);
+      const storedProfID = localStorage.getItem("prof_id");
+      const storedEmployeeID = localStorage.getItem("employee_id");
+      const endpoint = storedProfID
+        ? `/get_prof_data_by_prof/${storedProfID}`
+        : storedEmployeeID
+          ? `/get_prof_data_by_employee/${storedEmployeeID}`
+          : `/get_prof_data/${id}`;
+      const res = await axios.get(`${API_BASE_URL}${endpoint}`);
       const first = res.data[0];
+      localStorage.setItem("prof_id", first.prof_id || "");
+      localStorage.setItem("employee_id", first.employee_id || "");
 
       const profInfo = {
         prof_id: first.prof_id,
-        fname: first.fname,
-        mname: first.mname,
-        lname: first.lname,
+        employee_id: first.employee_id,
+        fname: first.fname || "",
+        mname: first.mname || "",
+        lname: first.lname || "",
       };
 
       setPerson(profInfo);
@@ -160,24 +179,40 @@ const GradingSheet = () => {
   };
 
   useEffect(() => {
-    if (userID) {
+    if (profData.prof_id) {
       axios
-        .get(`${API_BASE_URL}/course_assigned_to/${userID}`)
+        .get(`${API_BASE_URL}/course_assigned_to/${profData.prof_id}`)
         .then((res) => setCoursesAssignedTo(res.data))
         .catch((err) => console.error(err));
     }
-  }, [userID]);
+  }, [profData.prof_id]);
 
   useEffect(() => {
-    if (userID && selectedCourse && selectedActiveSchoolYear) {
+    if (profData.prof_id && selectedCourse && selectedActiveSchoolYear) {
       axios
         .get(
-          `${API_BASE_URL}/handle_section_of/${userID}/${selectedCourse}/${selectedActiveSchoolYear}`,
+          `${API_BASE_URL}/handle_section_of/${profData.prof_id}/${selectedCourse}/${selectedActiveSchoolYear}`,
         )
-        .then((res) => setSectionsHandle(res.data))
+        .then((res) => {
+          setSectionsHandle(res.data);
+          const selectedSectionExists = res.data.some(
+            (section) =>
+              String(section.department_section_id) ===
+              String(selectedSectionID),
+          );
+          if (selectedSectionID && !selectedSectionExists) {
+            setSelectedSectionID("");
+            setStudents([]);
+          }
+        })
         .catch((err) => console.error(err));
     }
-  }, [userID, selectedCourse, selectedActiveSchoolYear]);
+  }, [
+    profData.prof_id,
+    selectedCourse,
+    selectedActiveSchoolYear,
+    selectedSectionID,
+  ]);
 
   useEffect(() => {
     axios
@@ -213,7 +248,6 @@ const GradingSheet = () => {
   }, []);
 
   useEffect(() => {
-    // Dynamic grade conversion keeps faculty grading aligned with grade_conversion.
     axios
       .get(`${API_BASE_URL}/admin/grade-conversion`)
       .then((res) => setGradeConversions(res.data))
@@ -239,11 +273,12 @@ const GradingSheet = () => {
   }, [selectedSchoolYear, selectedSchoolSemester]);
 
   const handleFetchStudents = async (department_section_id) => {
+    if (!profData.prof_id) return;
     if (!selectedActiveSchoolYear) return;
 
     try {
       const response = await fetch(
-        `${API_BASE_URL}/enrolled_student_list/${userID}/${selectedCourse}/${department_section_id}/${selectedActiveSchoolYear}`,
+        `${API_BASE_URL}/enrolled_student_list/${profData.prof_id}/${selectedCourse}/${department_section_id}/${selectedActiveSchoolYear}`,
       );
       const data = await response.json();
 
@@ -264,7 +299,6 @@ const GradingSheet = () => {
           setMessage("");
         }
       } else {
-        // 🚨 Use backend error message if available
         setStudents([]);
         setMessage(data.message || "Failed to fetch students.");
       }
@@ -310,7 +344,7 @@ const GradingSheet = () => {
 
   const findPastClass = async () => {
     try {
-      if (!userID || !selectedSchoolYear || !selectedSchoolSemester) {
+      if (!profData.prof_id || !selectedSchoolYear || !selectedSchoolSemester) {
         setSnack({
           open: true,
           message: "Please select School Year and Semester first!",
@@ -319,9 +353,8 @@ const GradingSheet = () => {
         return;
       }
 
-      // 1️⃣ Fetch courses assigned to the professor
       const courseRes = await axios.get(
-        `${API_BASE_URL}/course_assigned_to/${userID}/${selectedSchoolYear}/${selectedSchoolSemester}`,
+        `${API_BASE_URL}/course_assigned_to/${profData.prof_id}/${selectedSchoolYear}/${selectedSchoolSemester}`,
       );
       const courses = courseRes.data;
       setCoursesAssignedTo(courses);
@@ -337,13 +370,14 @@ const GradingSheet = () => {
         return;
       }
 
-      // 2️⃣ Choose first course if none selected
-      const courseId = selectedCourse || courses[0].course_id;
+      const selectedCourseExists = courses.some(
+        (course) => String(course.course_id) === String(selectedCourse),
+      );
+      const courseId = selectedCourseExists ? selectedCourse : courses[0].course_id;
       setSelectedCourse(courseId);
 
-      // 3️⃣ Fetch sections for the selected course
       const sectionRes = await axios.get(
-        `${API_BASE_URL}/handle_section_of/${userID}/${courseId}/${selectedActiveSchoolYear}`,
+        `${API_BASE_URL}/handle_section_of/${profData.prof_id}/${courseId}/${selectedActiveSchoolYear}`,
       );
       const sections = sectionRes.data;
       setSectionsHandle(sections);
@@ -358,11 +392,15 @@ const GradingSheet = () => {
         return;
       }
 
-      // 4️⃣ Choose first section if none selected
-      const sectionId = selectedSectionID || sections[0].department_section_id;
+      const selectedSectionExists = sections.some(
+        (section) =>
+          String(section.department_section_id) === String(selectedSectionID),
+      );
+      const sectionId = selectedSectionExists
+        ? selectedSectionID
+        : sections[0].department_section_id;
       setSelectedSectionID(sectionId);
 
-      // 5️⃣ Fetch students for this section
       handleFetchStudents(sectionId);
     } catch (err) {
       console.error("Error fetching past class data:", err);
@@ -401,7 +439,7 @@ const GradingSheet = () => {
   );
 
   const gradeOptions = [
-    ...Array.from({ length: 41 }, (_, i) => (100 - i).toString()), // "100" -> "60"
+    ...Array.from({ length: 41 }, (_, i) => (100 - i).toString()),
     "INC",
     "DRP",
   ];
@@ -413,7 +451,7 @@ const GradingSheet = () => {
     return !isNaN(mid) && mid !== 0 && !isNaN(fin) && fin !== 0;
   });
 
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
     if (!students || students.length === 0) {
       setSnack({
         open: true,
@@ -423,29 +461,23 @@ const GradingSheet = () => {
       return;
     }
 
-    // 1. Prepare Dynamic Data
-    // We grab the course info from the first student record to build the Title
     const firstRecord = students[0];
-    const program = firstRecord.program_code || "PROGRAM"; // e.g., BSINFOTECH
-    const section = firstRecord.section_description || "SECTION"; // e.g., 1A
+    const program = firstRecord.program_code || "PROGRAM";
+    const section = firstRecord.section_description || "SECTION";
     const sheetTitle = `${program} - ${section} GRADING SHEET`;
 
-    // 2. Create Workbook and Worksheet
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet([]);
 
-    // ---------------------------------------------------------
-    // DEFINE STYLES
-    // ---------------------------------------------------------
     const styles = {
       title: {
         font: { bold: true, sz: 14, color: { rgb: "FFFFFF" } },
-        fill: { fgColor: { rgb: "333333" } }, // Dark Grey Background
+        fill: { fgColor: { rgb: "333333" } },
         alignment: { horizontal: "center", vertical: "center" },
       },
       header: {
         font: { bold: true, sz: 11 },
-        fill: { fgColor: { rgb: "F2F2F2" } }, // Light Beige/Grey
+        fill: { fgColor: { rgb: "F2F2F2" } },
         alignment: { horizontal: "center", vertical: "center" },
         border: {
           top: { style: "thin" },
@@ -474,92 +506,76 @@ const GradingSheet = () => {
       },
     };
 
-    // ---------------------------------------------------------
-    // BUILD ROWS
-    // ---------------------------------------------------------
-
-    // Row 1: Main Title
     XLSX.utils.sheet_add_aoa(ws, [[sheetTitle]], { origin: "A1" });
 
-    // Row 2: (Empty - handled by merge below to make title taller)
-
-    // Row 3: Headers
     const headers = [
       ["#", "Student Number", "Student Name", "Midterm", "Finals"],
     ];
     XLSX.utils.sheet_add_aoa(ws, headers, { origin: "A3" });
 
-    // Row 4+: Student Data
-    // Map your SQL data to the Excel structure
     const dataRows = students.map((s, index) => [
-      index + 1, // #
-      s.student_number, // Student Number
-      `${s.last_name}, ${s.first_name} ${s.middle_name || ""}`.trim(), // Name
-      s.midterm || "", // Midterm
-      s.finals || "", // Finals
+      index + 1,
+      s.student_number,
+      `${s.last_name}, ${s.first_name} ${s.middle_name || ""}`.trim(),
+      s.midterm || "",
+      s.finals || "",
     ]);
 
     XLSX.utils.sheet_add_aoa(ws, dataRows, { origin: "A4" });
 
-    // ---------------------------------------------------------
-    // MERGES & COLUMNS
-    // ---------------------------------------------------------
-
-    // Merge A1:E2 for the big Title Bar
     ws["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 1, c: 4 } }];
 
-    // Set Column Widths
     ws["!cols"] = [
-      { wch: 5 }, // A: #
-      { wch: 15 }, // B: Student Number
-      { wch: 40 }, // C: Name (Wide)
-      { wch: 10 }, // D: Midterm
-      { wch: 10 }, // E: Finals
+      { wch: 5 },
+      { wch: 15 },
+      { wch: 40 },
+      { wch: 10 },
+      { wch: 10 },
     ];
 
-    // ---------------------------------------------------------
-    // APPLY STYLES TO CELLS
-    // ---------------------------------------------------------
-
-    // 1. Apply Title Style (A1:E2)
     for (let r = 0; r <= 1; r++) {
       for (let c = 0; c <= 4; c++) {
         const ref = XLSX.utils.encode_cell({ r, c });
-        if (!ws[ref]) ws[ref] = { t: "s", v: "" }; // Ensure cell exists
+        if (!ws[ref]) ws[ref] = { t: "s", v: "" };
         ws[ref].s = styles.title;
       }
     }
 
-    // 2. Apply Header Style (Row 3, A3:E3)
-    const headerRowIndex = 2; // 0-based index for Row 3
+    const headerRowIndex = 2;
     for (let c = 0; c <= 4; c++) {
       const ref = XLSX.utils.encode_cell({ r: headerRowIndex, c });
       ws[ref].s = styles.header;
     }
 
-    // 3. Apply Data Style (Row 4 onwards)
-    const startDataRow = 3; // 0-based index for Row 4
+    const startDataRow = 3;
     const endDataRow = startDataRow + dataRows.length;
 
     for (let r = startDataRow; r < endDataRow; r++) {
       for (let c = 0; c <= 4; c++) {
         const ref = XLSX.utils.encode_cell({ r, c });
         if (!ws[ref]) continue;
-
-        // Apply Left align for Name (Column C / index 2), Center for others
         ws[ref].s = c === 2 ? styles.cellLeft : styles.cellCenter;
       }
     }
 
-    // ---------------------------------------------------------
-    // EXPORT
-    // ---------------------------------------------------------
     XLSX.utils.book_append_sheet(wb, ws, "Grading Sheet");
     const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
     saveAs(
       new Blob([wbout], { type: "application/octet-stream" }),
       "GradingSheet.xlsx",
     );
+
+    try {
+      await postAuditEvent(
+        "faculty_grading_sheet_exported",
+        buildClassAuditDetails(firstRecord, {
+          file_name: "GradingSheet.xlsx",
+          student_count: students.length,
+        }),
+      );
+    } catch (err) {
+      console.error("Error inserting audit log");
+    }
   };
 
   function validateGradeInput(rawValue) {
@@ -567,37 +583,29 @@ const GradingSheet = () => {
 
     let value = String(rawValue).trim().toUpperCase();
 
-    // Auto-correct variations of INC
     if (/^INC/.test(value)) return "INC";
-
-    // Auto-correct variations of DROP
     if (/^DRP/.test(value)) return "DRP";
 
-    // If the user typed letters (gibberish)
     if (/^[A-Z]+$/.test(value)) {
-      return "60"; // fallback to minimum passing grade
+      return "60";
     }
 
-    // Only digits allowed
     if (!/^\d{1,3}$/.test(value)) {
-      return "60"; // fallback instead of resetting
+      return "60";
     }
 
     let num = Number(value);
     if (isNaN(num)) return "60";
 
-    // clamp 60–100
     if (num > 100) num = 100;
     if (num < 60) num = 60;
 
     return String(num);
   }
 
-  // Dynamic helpers replace hardcoded grade ranges with grade_conversion records.
   const setRemarksFromRating = (rating) =>
     setRemarksFromRatingDynamic(rating, gradeConversions);
 
-  // ----------------- GradeSelect component -----------------
   const GradeSelect = ({ value, onChange, placeholder = "" }) => {
     const [inputValue, setInputValue] = React.useState(value ?? "");
 
@@ -637,10 +645,10 @@ const GradingSheet = () => {
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
-                e.preventDefault(); // prevent form submission
+                e.preventDefault();
                 const validated = validateGradeInput(inputValue);
                 setInputValue(validated);
-                onChange(validated); // ← this triggers selection
+                onChange(validated);
               }
             }}
             sx={{ textAlign: "center", width: "80px" }}
@@ -660,24 +668,16 @@ const GradingSheet = () => {
     const updatedStudents = [...students];
     updatedStudents[index][field] = value?.toUpperCase();
 
-    // ----------------------------
-    // AUTO-SYNC DRP BETWEEN MID/FIN
-    // ----------------------------
     if (value?.toUpperCase() === "DRP") {
       if (field === "midterm") {
-        updatedStudents[index].finals = "DRP"; // autofill finals
+        updatedStudents[index].finals = "DRP";
       } else if (field === "finals") {
-        updatedStudents[index].midterm = "DRP"; // autofill midterm
+        updatedStudents[index].midterm = "DRP";
       }
     }
 
-    // After auto-sync, re-read the values
     const midterm = updatedStudents[index].midterm;
     const finals = updatedStudents[index].finals;
-
-    // ---------------------------------------
-    // Your grading and remarks logic (unchanged)
-    // ---------------------------------------
 
     updatedStudents[index].final_grade = finals;
 
@@ -714,7 +714,7 @@ const GradingSheet = () => {
         setLoading(false);
         try {
           await postAuditEvent("faculty_grading_sheet_grade_submitted", {
-            prof_id: profData.prof_id,
+            ...buildGradeAuditDetails(student),
           });
         } catch (err) {
           console.error("Error inserting audit log");
@@ -758,10 +758,80 @@ const GradingSheet = () => {
     return convertRawToRatingDynamic(value, gradeConversions);
   }
 
+  const getProfessorDisplayName = () => {
+    const middleInitial = profData.mname ? ` ${profData.mname[0]}.` : "";
+    return `Prof. ${profData.fname || ""}${middleInitial} ${profData.lname || ""}`
+      .replace(/\s+/g, " ")
+      .trim();
+  };
+
+  const getStudentDisplayName = (student) =>
+    `${student.first_name || ""} ${student.middle_name || ""} ${student.last_name || ""}`
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const getSelectedCourseRecord = () =>
+    courseAssignedTo.find(
+      (course) => String(course.course_id) === String(selectedCourse),
+    );
+
+  const getSubjectAuditDetails = (student = {}) => {
+    const selectedCourseRecord = getSelectedCourseRecord();
+
+    return {
+      subject_name:
+        student.course_description ||
+        selectedCourseRecord?.course_description ||
+        "N/A",
+      subject_code:
+        student.course_code ||
+        student.course_code2 ||
+        selectedCourseRecord?.course_code ||
+        "",
+    };
+  };
+
+  const buildClassAuditDetails = (student = {}, extraDetails = {}) => ({
+    prof_id: profData.prof_id,
+    employee_id: profData.employee_id,
+    professor_name: getProfessorDisplayName(),
+    course_id: selectedCourse,
+    ...getSubjectAuditDetails(student),
+    section_id: student.department_section_id || selectedSectionID,
+    section_name:
+      student.section_description ||
+      sectionsHandle.find(
+        (section) =>
+          String(section.department_section_id) === String(selectedSectionID),
+      )?.section_description ||
+      "",
+    program_code: student.program_code || "",
+    school_year_id: selectedActiveSchoolYear,
+    ...extraDetails,
+  });
+
+  const buildGradeAuditDetails = (student) => ({
+    prof_id: profData.prof_id,
+    employee_id: profData.employee_id,
+    professor_name: getProfessorDisplayName(),
+    student_name: getStudentDisplayName(student),
+    student_number: student.student_number,
+    course_id: selectedCourse,
+    ...getSubjectAuditDetails(student),
+    section_id: student.department_section_id || selectedSectionID,
+    school_year_id: selectedActiveSchoolYear,
+    midterm_grade: student.midterm,
+    midterm_equivalent_grade: convertRawToRating(student.midterm),
+    finalterm_grade: student.finals,
+    finalterm_equivalent_grade: convertRawToRating(student.finals),
+    final_grade: student.final_grade,
+    final_equivalent_grade: convertRawToRating(student.final_grade),
+    remarks: remarkConversion(student),
+  });
+
   const handleSelectCourseChange = (event) => {
     setSelectedCourse(event.target.value);
   };
-
 
   const handleSnackClose = (_, reason) => {
     if (reason === "clickaway") return;
@@ -796,7 +866,15 @@ const GradingSheet = () => {
       if (res.data.success) {
         try {
           await postAuditEvent("faculty_grading_sheet_upload_succeeded", {
-            prof_id: profData.prof_id,
+            ...buildClassAuditDetails(students[0], {
+              file_name: selectedFile.name,
+              imported_count:
+                res.data.imported_count ||
+                res.data.updated_count ||
+                res.data.count ||
+                "",
+              student_count: students.length,
+            }),
           });
         } catch (err) {
           console.error("Error inserting audit log");
@@ -809,14 +887,16 @@ const GradingSheet = () => {
         });
         setSelectedFile(null);
 
-        // ✅ refresh enrolled student list
         if (sectionsHandle.length > 0) {
           handleFetchStudents(sectionsHandle[0].department_section_id);
         }
       } else {
         try {
           await postAuditEvent("faculty_grading_sheet_upload_tried", {
-            prof_id: profData.prof_id,
+            ...buildClassAuditDetails(students[0], {
+              file_name: selectedFile.name,
+              error_message: res.data.error || "Failed to import",
+            }),
           });
         } catch (err) {
           console.error("Error inserting audit log");
@@ -831,7 +911,10 @@ const GradingSheet = () => {
       console.error("Import Error");
       try {
         await postAuditEvent("faculty_grading_sheet_upload_failed", {
-          prof_id: profData.prof_id,
+          ...buildClassAuditDetails(students[0], {
+            file_name: selectedFile?.name || "N/A",
+            error_message: err.response?.data?.error || err.message,
+          }),
         });
       } catch (err) {
         console.error("Error inserting audit log");
@@ -850,7 +933,26 @@ const GradingSheet = () => {
     }
   };
 
-  const totalPages = Math.ceil(students.length / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(students.length / itemsPerPage));
+  const selectedSchoolYearValue = schoolYears.some(
+    (yearObj) => String(yearObj.year_id) === String(selectedSchoolYear),
+  )
+    ? selectedSchoolYear
+    : "";
+  const selectedSchoolSemesterValue = schoolSemester.some(
+    (sem) => String(sem.semester_id) === String(selectedSchoolSemester),
+  )
+    ? selectedSchoolSemester
+    : "";
+  const selectedCourseValue = courseAssignedTo.some(
+    (course) => String(course.course_id) === String(selectedCourse),
+  )
+    ? selectedCourse
+    : "";
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
 
   const paginatedStudents = students.slice(
     (currentPage - 1) * itemsPerPage,
@@ -886,10 +988,9 @@ const GradingSheet = () => {
     setLoading(true);
     let successCount = 0;
     let failCount = 0;
+    const successfulStudents = [];
 
     try {
-      // Use Promise.all to send requests in parallel
-      // We use 'students' to ensure ALL grades in the section are saved, not just filtered ones
       const promises = students.map(async (student) => {
         try {
           const response = await fetch(`${API_BASE_URL}/add_grades`, {
@@ -907,6 +1008,7 @@ const GradingSheet = () => {
 
           if (response.ok) {
             successCount++;
+            successfulStudents.push(student);
           } else {
             failCount++;
           }
@@ -917,13 +1019,15 @@ const GradingSheet = () => {
 
       await Promise.all(promises);
 
-      // Audit Log
       try {
-        await postAuditEvent("faculty_grading_sheet_save_all", {
-          prof_id: profData.prof_id,
-          success_count: successCount,
-          fail_count: failCount,
-        });
+        await Promise.all(
+          successfulStudents.map((student) =>
+            postAuditEvent(
+              "faculty_grading_sheet_grade_submitted",
+              buildGradeAuditDetails(student),
+            ),
+          ),
+        );
       } catch (err) {
         console.error("Error inserting audit log");
       }
@@ -979,7 +1083,7 @@ const GradingSheet = () => {
             <style>
               body {
                 font-family: Arial;
-                margin: 0.5in; /* 0.5 inch margins */
+                margin: 0.5in;
               }
               table {
                 width: 100%;
@@ -1026,13 +1130,13 @@ const GradingSheet = () => {
   // 🔒 Block DevTools shortcuts + Ctrl+P silently
   document.addEventListener("keydown", (e) => {
     const isBlockedKey =
-      e.key === "F12" || // DevTools
-      e.key === "F11" || // Fullscreen
+      e.key === "F12" ||
+      e.key === "F11" ||
       (e.ctrlKey &&
         e.shiftKey &&
-        (e.key.toLowerCase() === "i" || e.key.toLowerCase() === "j")) || // Ctrl+Shift+I/J
-      (e.ctrlKey && e.key.toLowerCase() === "u") || // Ctrl+U (View Source)
-      (e.ctrlKey && e.key.toLowerCase() === "p"); // Ctrl+P (Print)
+        (e.key.toLowerCase() === "i" || e.key.toLowerCase() === "j")) ||
+      (e.ctrlKey && e.key.toLowerCase() === "u") ||
+      (e.ctrlKey && e.key.toLowerCase() === "p");
 
     if (isBlockedKey) {
       e.preventDefault();
@@ -1151,7 +1255,6 @@ const GradingSheet = () => {
 
                   {/* Right: Pagination Controls */}
                   <Box display="flex" alignItems="center" gap={1}>
-                    {/* First & Prev */}
                     <Button
                       onClick={() => setCurrentPage(1)}
                       disabled={currentPage === 1}
@@ -1207,7 +1310,7 @@ const GradingSheet = () => {
                     {totalPages > 0 && (
                       <FormControl size="small" sx={{ minWidth: 80 }}>
                         <Select
-                          value={currentPage}
+                          value={currentPage <= totalPages ? currentPage : 1}
                           onChange={(e) =>
                             setCurrentPage(Number(e.target.value))
                           }
@@ -1228,14 +1331,14 @@ const GradingSheet = () => {
                               borderColor: "white",
                             },
                             "& svg": {
-                              color: "white", // dropdown arrow icon color
+                              color: "white",
                             },
                           }}
                           MenuProps={{
                             PaperProps: {
                               sx: {
                                 maxHeight: 200,
-                                backgroundColor: "#fff", // dropdown background
+                                backgroundColor: "#fff",
                               },
                             },
                           }}
@@ -1324,7 +1427,7 @@ const GradingSheet = () => {
 
                     <FormControl size="small" sx={{ minWidth: 140 }}>
                       <Select
-                        value={selectedSchoolYear}
+                        value={selectedSchoolYearValue}
                         onChange={(e) => setSelectedSchoolYear(e.target.value)}
                         displayEmpty
                         sx={{
@@ -1353,12 +1456,10 @@ const GradingSheet = () => {
                           },
                         }}
                       >
-                        {/* Placeholder */}
                         <MenuItem value="" disabled>
                           Select School Year
                         </MenuItem>
 
-                        {/* Loop through school years */}
                         {schoolYears.map((yearObj) => (
                           <MenuItem
                             key={yearObj.year_id}
@@ -1372,7 +1473,7 @@ const GradingSheet = () => {
 
                     <FormControl size="small" sx={{ minWidth: 140 }}>
                       <Select
-                        value={selectedSchoolSemester}
+                        value={selectedSchoolSemesterValue}
                         onChange={(e) =>
                           setSelectedSchoolSemester(e.target.value)
                         }
@@ -1403,12 +1504,10 @@ const GradingSheet = () => {
                           },
                         }}
                       >
-                        {/* Placeholder */}
                         <MenuItem value="" disabled>
                           Select Semester
                         </MenuItem>
 
-                        {/* Loop through semester list */}
                         {schoolSemester.map((sem) => (
                           <MenuItem
                             key={sem.semester_id}
@@ -1478,7 +1577,7 @@ const GradingSheet = () => {
                 <Select
                   labelId="demo-simple-select-label"
                   id="demo-simple-select"
-                  value={selectedCourse}
+                  value={selectedCourseValue}
                   label="Course"
                   onChange={handleSelectCourseChange}
                 >
@@ -1489,7 +1588,9 @@ const GradingSheet = () => {
                       </MenuItem>
                     ))
                   ) : (
-                    <MenuItem disabled>No courses assigned</MenuItem>
+                    <MenuItem value="" disabled>
+                      No courses assigned
+                    </MenuItem>
                   )}
                 </Select>
               </FormControl>
@@ -1920,7 +2021,7 @@ const GradingSheet = () => {
                     <Button
                       sx={{
                         height: "40px",
-                        width: "100px", // ✅ matches Print
+                        width: "100px",
                         backgroundColor: mainButtonColor,
                         "&:hover": { backgroundColor: "" },
                         color: "white",
@@ -1988,7 +2089,7 @@ const GradingSheet = () => {
                 marginRight: "10px",
               }}
             >
-              <span style={{ margin: 0, fontFamily: "Arial", fontSize: "13px"}}>
+              <span style={{ margin: 0, fontFamily: "Arial", fontSize: "13px" }}>
                 Republic of the Philippines
               </span>
               <h2
@@ -2068,7 +2169,7 @@ const GradingSheet = () => {
                   }}
                 >
                   <div style={{ display: "flex", justifyContent: "end" }}>
-                    Ac. Year & Term:
+                    Ac. Year &amp; Term:
                   </div>
                 </td>
 
@@ -2212,6 +2313,7 @@ const GradingSheet = () => {
                   Credit Units:
                 </td>
 
+                {/* ✅ FIX: Safely compute credit units to avoid NaN */}
                 <td
                   colSpan={1}
                   style={{
@@ -2222,8 +2324,8 @@ const GradingSheet = () => {
                     paddingTop: "6px",
                   }}
                 >
-                  {filteredStudents[0]?.lab_unit +
-                    filteredStudents[0]?.course_unit}
+                  {((Number(filteredStudents[0]?.lab_unit) || 0) +
+                    (Number(filteredStudents[0]?.course_unit) || 0)) || ""}
                 </td>
 
                 <td
@@ -2262,19 +2364,6 @@ const GradingSheet = () => {
                     width: "60px",
                   }}
                 >
-                  {/* {filteredStudents.length > 0 ? (
-                    filteredStudents.map((student, index) => (
-                      <div key={index}>
-                        {student.schedules.map((sch, i) => (
-                          <div key={i}>
-                            {sch.day} {sch.start} - {sch.end}
-                          </div>
-                        ))}
-                      </div>
-                    ))
-                  ) : (
-                    <div>TBA</div>
-                  )} */}
                 </td>
               </tr>
               {/* Faculty */}
@@ -2610,8 +2699,11 @@ const GradingSheet = () => {
                 }}
               >
                 <div style={{ textAlign: "center", width: "45%" }}>
+                  {/* ✅ FIX: Guard against null/empty mname before accessing index [0] */}
                   <div style={{ fontSize: "12px" }}>
-                    {profData.fname} {profData.mname[0] || ""}. {profData.lname}
+                    {profData.fname}{" "}
+                    {profData.mname ? `${profData.mname[0]}.` : ""}{" "}
+                    {profData.lname}
                   </div>
                   <div
                     style={{ borderTop: "solid 1px black", fontSize: "12px" }}
@@ -2642,7 +2734,7 @@ const GradingSheet = () => {
                   <div
                     style={{ borderTop: "solid 1px black", fontSize: "12px" }}
                   >
-                    Dean, {filteredStudents[0]?.dprtmnt_name}
+                    Dean, {filteredStudents[0]?.dprtmnt_name || ""}
                   </div>
                 </div>
 
