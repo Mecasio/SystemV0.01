@@ -14,7 +14,8 @@ import {
   Paper,
   MenuItem,
   Select,
-  FormControl
+  FormControl,
+  Switch
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import Unauthorized from "../components/Unauthorized";
@@ -28,10 +29,8 @@ const SchoolYearPanel = () => {
   const settings = useContext(SettingsContext);
 
   const [titleColor, setTitleColor] = useState("#000000");
-  const [subtitleColor, setSubtitleColor] = useState("#555555");
   const [borderColor, setBorderColor] = useState("#000000");
 
-  const [userID, setUserID] = useState("");
   const [userRole, setUserRole] = useState("");
   const [employeeID, setEmployeeID] = useState("");
   const [hasAccess, setHasAccess] = useState(null);
@@ -64,7 +63,6 @@ const SchoolYearPanel = () => {
   useEffect(() => {
     if (!settings) return;
     if (settings.title_color) setTitleColor(settings.title_color);
-    if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
     if (settings.border_color) setBorderColor(settings.border_color);
   }, [settings]);
 
@@ -75,7 +73,6 @@ const SchoolYearPanel = () => {
     const storedEmployeeID = localStorage.getItem("employee_id");
 
     if (storedUser && storedRole && storedID) {
-      setUserID(storedID);
       setUserRole(storedRole);
       setEmployeeID(storedEmployeeID);
 
@@ -239,6 +236,52 @@ const SchoolYearPanel = () => {
 
 
   // 🔍 Filtered list for search
+  const handleToggleActivator = async (sy) => {
+    if (!canEdit) {
+      setSnackbar({ open: true, message: "You do not have permission to edit school years", severity: "error" });
+      return;
+    }
+
+    const schoolYearId = sy.school_year_id || sy.id;
+    const currentStatus = Number(sy.astatus) === 1 ? 1 : 0;
+    const updatedStatus = currentStatus === 1 ? 0 : 1;
+    const previousSchoolYears = schoolYears;
+
+    setSchoolYears((prev) =>
+      prev.map((item) => {
+        const itemId = item.school_year_id || item.id;
+        if (updatedStatus === 1) {
+          return { ...item, astatus: itemId === schoolYearId ? 1 : 0 };
+        }
+        return itemId === schoolYearId ? { ...item, astatus: 0 } : item;
+      })
+    );
+
+    setSnackbar({
+      open: true,
+      message: `School year is now ${updatedStatus === 1 ? "Active" : "Inactive"}`,
+      severity: "info",
+    });
+
+    try {
+      await axios.put(
+        `${API_BASE_URL}/school_years/${schoolYearId}`,
+        { activator: updatedStatus },
+        getAuditHeaders()
+      );
+
+      setSnackbar({
+        open: true,
+        message: updatedStatus === 1 ? "School year activated!" : "School year deactivated!",
+        severity: "success",
+      });
+      fetchSchoolYears();
+    } catch {
+      setSchoolYears(previousSchoolYears);
+      setSnackbar({ open: true, message: "Failed to update school year", severity: "error" });
+    }
+  };
+
   const filteredSchoolYears = schoolYears.filter(sy =>
     String(sy.year_description).includes(searchQuery) ||
     sy.semester_description.toLowerCase().includes(searchQuery.toLowerCase())
@@ -253,6 +296,8 @@ const SchoolYearPanel = () => {
   const endIndex = startIndex + rowsPerPage;
 
   const paginatedSchoolYears = filteredSchoolYears.slice(startIndex, endIndex);
+  const showCreateActions = canCreate;
+  const showActionColumn = canEdit || canDelete;
 
   if (loading || hasAccess === null) return <LoadingOverlay open={loading} message="Loading..." />;
   if (!hasAccess) return <Unauthorized />;
@@ -329,7 +374,6 @@ const SchoolYearPanel = () => {
                     >
                       First
                     </Button>
-
                     <Button
                       onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1}
@@ -454,6 +498,7 @@ const SchoolYearPanel = () => {
                       Last
                     </Button>
 
+                    {showCreateActions && (
                     <Button
                       variant="contained"
                       onClick={() => {
@@ -478,6 +523,7 @@ const SchoolYearPanel = () => {
                     >
                       + Add School Year
                     </Button>
+                    )}
                   </Box>
                 </Box>
               </TableCell>
@@ -494,8 +540,10 @@ const SchoolYearPanel = () => {
               <th className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>ID</th>
               <th className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>Year Level</th>
               <th className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>Semester</th>
-              <th className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>Status</th>
-              <th className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>Actions</th>
+              <th className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>Active</th>
+              {showActionColumn && (
+                <th className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>Actions</th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -504,7 +552,15 @@ const SchoolYearPanel = () => {
                 <td className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>{startIndex + index + 1}</td>
                 <td className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>{`${sy.year_description}-${parseInt(sy.year_description) + 1}`}</td>
                 <td className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>{sy.semester_description}</td>
-                <td className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>{sy.astatus === 1 ? "Active" : "Inactive"}</td>
+                <td className="p-2 text-center" style={{ border: `1px solid ${borderColor}` }}>
+                  <Switch
+                    checked={Number(sy.astatus) === 1}
+                    onChange={() => handleToggleActivator(sy)}
+                    disabled={!canEdit}
+                    color="success"
+                  />
+                </td>
+                {showActionColumn && (
                 <td
                   className="p-2 text-center"
                   style={{ border: `1px solid ${borderColor}` }}
@@ -517,6 +573,7 @@ const SchoolYearPanel = () => {
                       gap: "10px", // space between buttons
                     }}
                   >
+                    {canEdit && (
                     <Button
                       size="small"
                       sx={{
@@ -538,7 +595,9 @@ const SchoolYearPanel = () => {
                     >
                       <EditIcon fontSize="small" /> Edit
                     </Button>
+                    )}
 
+                    {canDelete && (
                     <Button
                       size="small"
                       sx={{
@@ -560,11 +619,13 @@ const SchoolYearPanel = () => {
                     >
                       <DeleteIcon fontSize="small" /> Delete
                     </Button>
+                    )}
                   </div>
                 </td>
+                )}
               </tr>
             )) : (
-              <tr><td colSpan="4" style={{ padding: 15, color: "#777" }}>No school years found.</td></tr>
+              <tr><td colSpan={showActionColumn ? 5 : 4} style={{ padding: 15, color: "#777" }}>No school years found.</td></tr>
             )}
           </tbody>
         </table>

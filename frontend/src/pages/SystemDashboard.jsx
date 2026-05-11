@@ -11,7 +11,6 @@ import {
   Timeline,          // Semester
   ChangeCircle,      // Change Grade Period
   Update,            // Year Update
-  EventAvailable,    // School Year Activator
   Layers,            // Year Level
   CalendarToday,     // Year Panel
   DateRange,         // School Year Panel
@@ -206,7 +205,6 @@ const SystemDashboardPanel = () => {
       items: [
         { title: "YEAR LEVEL PANEL FORM", link: "/year_level_panel", icon: Layers, page_id: 63 },
         { title: "YEAR PANEL FORM", link: "/year_panel", icon: CalendarToday, page_id: 64 },
-        { title: "SCHOOL YEAR ACTIVATOR PANEL", link: "/school_year_activator_panel", icon: EventAvailable, page_id: 54 },
         { title: "SCHOOL YEAR PANEL", link: "/school_year_panel", icon: DateRange, page_id: 55 },
       ],
     },

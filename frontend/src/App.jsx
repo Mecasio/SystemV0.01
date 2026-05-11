@@ -433,9 +433,6 @@ const ReceiptCounterAssignment = lazy(
   () => import("./system_management/ReceiptCounterAssignment"),
 );
 const RequirementsForm = lazy(() => import("./system_management/RequirementsForm"));
-const SchoolYearActivatorPanel = lazy(
-  () => import("./system_management/SchoolYearActivatorPanel"),
-);
 const SchoolYearPanel = lazy(() => import("./system_management/SchoolYearPanel"));
 const SectionPanel = lazy(() => import("./system_management/SectionPanel"));
 const SemesterPanel = lazy(() => import("./system_management/SemesterPanel"));
@@ -1020,14 +1017,6 @@ function App() {
                         element={
                           <ProtectedRoute>
                             <SchoolYearPanel />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/school_year_activator_panel"
-                        element={
-                          <ProtectedRoute>
-                            <SchoolYearActivatorPanel />
                           </ProtectedRoute>
                         }
                       />

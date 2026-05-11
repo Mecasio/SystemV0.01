@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   AccountCircle, AdminPanelSettings, Assessment, Assignment, Badge,
   CalendarToday, Campaign, ChangeCircle, Class, CollectionsBookmark,
-  DateRange, EditCalendar, EditNote, Email, EventAvailable, EventNote,
+  DateRange, EditCalendar, EditNote, Email, EventNote,
   FactCheck, FolderCopy, FormatListNumbered, HealthAndSafety, HelpOutline,
   HistoryEdu, Info, Layers, ListAlt, ListAltOutlined, MedicalServices,
   MeetingRoom, MenuBook, Numbers, PersonAdd, Psychology, School, Score,
@@ -646,7 +646,6 @@ const SideBar = ({
       key: "yearSchool", label: "Year & School", icon: CalendarToday, items: [
         { title: "Year Level Panel Form", link: "/year_level_panel", icon: Layers, page_id: 63 },
         { title: "Year Panel Form", link: "/year_panel", icon: CalendarToday, page_id: 64 },
-        { title: "School Year Activator", link: "/school_year_activator_panel", icon: EventAvailable, page_id: 54 },
         { title: "School Year Panel", link: "/school_year_panel", icon: DateRange, page_id: 55 },
       ]
     },
