@@ -788,7 +788,7 @@ const ExamPermit = ({ personId }) => {
                                 <strong>Step 5:</strong>Please Arrive at least 1 hour before your examination time. Late applicants will NOT be allowed to enter once the exam room door closes.
                                 <br />
                                 <br />
-                                <div style={{ textAlign: "center", marginLeft: "-50px" }}><strong>GOODLUCK FUTURE EARISTIANS!</strong></div>
+                                <div style={{ textAlign: "center", marginLeft: "-50px" }}><strong>GOOD LUCK TO ALL ASPIRING APPLICANTS!</strong></div>
                             </ul>
                         </td>
                     </tr>
