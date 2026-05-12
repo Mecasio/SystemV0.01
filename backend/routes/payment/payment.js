@@ -76,6 +76,12 @@ router.post("/save_to_unifast", async (req, res) => {
   } = req.body;
   
   try {
+    if (!student_number || !String(student_number).trim()) {
+      return res.status(400).json({
+        message: "Student number is required before saving to UNIFAST.",
+      });
+    }
+
     const statusValue = Number.isFinite(Number(status)) ? Number(status) : 1;
     const [unifastScholarships] = await db3.query(
       `SELECT id
@@ -192,6 +198,12 @@ router.post("/save_to_matriculation", async (req, res) => {
   } = req.body;
 
   try {
+    if (!student_number || !String(student_number).trim()) {
+      return res.status(400).json({
+        message: "Student number is required before saving to MATRICULATION.",
+      });
+    }
+
     const statusValue = Number.isFinite(Number(status)) ? Number(status) : 1;
     const query = `
       INSERT INTO matriculation (

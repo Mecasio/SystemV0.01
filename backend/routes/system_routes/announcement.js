@@ -52,6 +52,29 @@ const getAuditActor = (req) => ({
 const announcementLabel = (announcement) =>
   announcement?.title ? `"${announcement.title}"` : `Announcement ${announcement?.id || "unknown"}`;
 
+const getCampusLabel = async (campus) => {
+  if (!campus) return "All";
+
+  try {
+    const [[settings]] = await db.query(
+      "SELECT branches FROM company_settings WHERE id = 1 LIMIT 1"
+    );
+    const branches = settings?.branches ? JSON.parse(settings.branches) : [];
+    const branch = branches.find((item) => String(item?.id) === String(campus));
+
+    return (
+      branch?.name ||
+      branch?.branch_name ||
+      branch?.campus ||
+      branch?.address ||
+      campus
+    );
+  } catch (err) {
+    console.error("Failed to resolve announcement campus label:", err);
+    return campus || "All";
+  }
+};
+
 const insertAnnouncementAuditLog = async ({ req, action, message }) => {
   const { actorId, actorRole } = getAuditActor(req);
 
@@ -157,10 +180,11 @@ const [result] = await db.execute(
 
     const { actorId, actorRole } = getAuditActor(req);
     const roleLabel = formatAuditActorRole(actorRole);
+    const campusLabel = await getCampusLabel(campus);
     await insertAnnouncementAuditLog({
       req,
       action: "ANNOUNCEMENT_CREATE",
-      message: `${roleLabel} (${actorId}) created announcement ${announcementLabel({ id: announcementId, title })}. Target: ${target_role}. Campus: ${campus || "All"}.`,
+      message: `${roleLabel} (${actorId}) created announcement ${announcementLabel({ id: announcementId, title })}. Target: ${target_role}. Campus: ${campusLabel}.`,
     });
 
     res.json({
@@ -251,10 +275,11 @@ router.put("/announcements/:id", CanEdit, announcementUpload.single("image"), as
 
     const { actorId, actorRole } = getAuditActor(req);
     const roleLabel = formatAuditActorRole(actorRole);
+    const campusLabel = await getCampusLabel(campus);
     await insertAnnouncementAuditLog({
       req,
       action: "ANNOUNCEMENT_UPDATE",
-      message: `${roleLabel} (${actorId}) updated announcement ${announcementLabel(announcementBefore)} to ${announcementLabel({ id, title })}. Target: ${target_role}. Campus: ${campus || "All"}.`,
+      message: `${roleLabel} (${actorId}) updated announcement ${announcementLabel(announcementBefore)} to ${announcementLabel({ id, title })}. Target: ${target_role}. Campus: ${campusLabel}.`,
     });
 
     res.json({ message: "Announcement updated successfully" });

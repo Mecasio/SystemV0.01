@@ -80,6 +80,39 @@ router.get("/api/student-assessment/:person_id", async (req, res) => {
         const rows = await Promise.all(
             statusRows.map(async (s) => {
                 const semesterId = s.semester_id || 1;
+                const [unifastRows] = await db3.query(
+                    `SELECT id, total_tosf, scholarship_id, remark, active_school_year_id
+                     FROM unifast
+                     WHERE student_number = ?
+                       AND active_school_year_id = ?
+                       AND status = 1
+                     ORDER BY id DESC
+                     LIMIT 1`,
+                    [student.student_number, s.active_school_year_id]
+                );
+
+                const [matriculationRows] = await db3.query(
+                    `SELECT
+                        m.id,
+                        m.total_tosf,
+                        m.payment,
+                        m.balance,
+                        m.scholarship_id,
+                        m.matriculation_remark,
+                        m.remark,
+                        st.scholarship_name
+                     FROM matriculation m
+                     LEFT JOIN scholarship_type st ON st.id = m.scholarship_id
+                     WHERE m.student_number = ?
+                       AND m.active_school_year_id = ?
+                       AND m.status = 1
+                     ORDER BY m.id DESC
+                     LIMIT 1`,
+                    [student.student_number, s.active_school_year_id]
+                );
+
+                const unifastPayment = unifastRows[0] || null;
+                const matriculationPayment = unifastPayment ? null : (matriculationRows[0] || null);
 
                 const [subjects] = await db3.query(`
                     SELECT
@@ -167,6 +200,23 @@ router.get("/api/student-assessment/:person_id", async (req, res) => {
                 //////////////////////////////////////////////////////////
                 const totalTuition = tuitionFee + nstpFee;
                 const grandTotal   = totalTuition + miscellaneousFee;
+                const storedAssessment = Number(
+                    matriculationPayment?.total_tosf ??
+                    unifastPayment?.total_tosf ??
+                    grandTotal
+                );
+                const storedPayment = unifastPayment
+                    ? storedAssessment
+                    : Number(matriculationPayment?.payment || 0);
+                const discountAmount = Math.max(grandTotal - storedAssessment, 0);
+                const storedBalance = unifastPayment
+                    ? 0
+                    : Math.max(storedAssessment - storedPayment, 0);
+                const paymentType = unifastPayment
+                    ? "UNIFAST"
+                    : matriculationPayment
+                        ? "Matriculation"
+                        : "";
 
                 console.log("Tuition Fee:", tuitionFee);
                 console.log("NSTP Fee:", nstpFee);
@@ -183,6 +233,22 @@ router.get("/api/student-assessment/:person_id", async (req, res) => {
                     school_year : s.year_description        || "",
                     semester    : s.semester_description    || "First Semester",
                     year_level  : s.year_level_description  || "",
+                    payment_type: paymentType,
+                    payment_status: unifastPayment
+                        ? "Fully Paid"
+                        : storedBalance > 0
+                            ? "With Balance"
+                            : matriculationPayment
+                                ? "Fully Paid"
+                                : "No Payment Record",
+                    scholarship: unifastPayment
+                        ? "UNIFAST"
+                        : matriculationPayment?.scholarship_name ||
+                          matriculationPayment?.matriculation_remark ||
+                          "",
+                    payment: storedPayment,
+                    balance: storedBalance,
+                    assessment: storedAssessment,
                     subjects,
                     fees: {
                         tuitionFee,
@@ -192,7 +258,9 @@ router.get("/api/student-assessment/:person_id", async (req, res) => {
                         miscellaneousFee,
                         miscellaneousBreakdown,
                         totalTuition,
-                        grandTotal,
+                        originalGrandTotal: grandTotal,
+                        discountAmount,
+                        grandTotal: storedAssessment,
                     },
                 };
             })

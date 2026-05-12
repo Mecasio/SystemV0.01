@@ -68,6 +68,34 @@ const RECEIPT_MISC_BREAKDOWN_CONFIG = [
     { key: "school_id_fees", label: "School ID Fee" },
 ];
 
+const RECEIPT_STATUS = {
+    PAID_NOT_PRINTED: "PAID_NOT_PRINTED",
+    PRINTED: "PRINTED",
+    VOID: "VOID",
+    REPRINTED: "REPRINTED",
+    CANCELLED_PRINT: "CANCELLED_PRINT",
+};
+
+const VOID_REASON_OPTIONS = [
+    "Duplicate transaction",
+    "Wrong amount entered",
+    "Wrong payment method selected",
+    "Wrong customer/student selected",
+    "Incorrect item/service encoded",
+    "Customer cancelled transaction",
+    "Printer error / misprint",
+    "System error",
+    "Accidental transaction",
+    "Incomplete payment",
+    "Incorrect discount applied",
+    "Receipt printed twice",
+    "Change in transaction details",
+    "Failed transaction",
+    "Payment not received",
+    "Wrong cashier/operator",
+    "Others",
+];
+
 const toAmount = (value) => {
     const normalizedValue =
         typeof value === "string" ? value.replace(/,/g, "").trim() : value;
@@ -214,6 +242,9 @@ const MatriculationPaymentModule = () => {
     const [historyLoading, setHistoryLoading] = useState(false);
     const [transactionData, setTransactionData] = useState([]);
     const [voidingReceipt, setVoidingReceipt] = useState(false);
+    const [voidConfirmOpen, setVoidConfirmOpen] = useState(false);
+    const [voidReason, setVoidReason] = useState("");
+    const [voidExplanation, setVoidExplanation] = useState("");
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: "",
@@ -357,6 +388,7 @@ const MatriculationPaymentModule = () => {
                 employee_id: employeeId,
                 active_school_year_id: saveRes?.data?.active_school_year_id || row?.active_school_year_id || "",
                 remark: "Matriculation payment",
+                receipt_status: saveRes?.data?.receipt_status || RECEIPT_STATUS.PAID_NOT_PRINTED,
                 created_at: new Date().toLocaleString(),
             });
             receiptPrintedRef.current = false;
@@ -424,9 +456,27 @@ const MatriculationPaymentModule = () => {
         }
     };
 
+    const markReceiptPrinted = async () => {
+        const transactionId = receiptData?.transaction_id;
+        if (!transactionId) return null;
+
+        const res = await axios.put(
+            `${API_BASE_URL}/api/payment_matriculation/print/${transactionId}`,
+            null,
+            auditConfig
+        );
+
+        const nextStatus = res?.data?.receipt_status || RECEIPT_STATUS.PRINTED;
+        setReceiptData((prev) => ({
+            ...prev,
+            remark: nextStatus === RECEIPT_STATUS.REPRINTED ? "Reprinted" : "Printed",
+            receipt_status: nextStatus,
+        }));
+        return nextStatus;
+    };
+
     const handlePrintA5 = async () => {
         if (!a5PrintRef.current) return;
-        receiptPrintedRef.current = true;
 
         let canvas;
         try {
@@ -444,6 +494,19 @@ const MatriculationPaymentModule = () => {
         const imageData = canvas.toDataURL("image/png", 1.0);
         const printWindow = window.open("", "_blank", "width=900,height=700");
         if (!printWindow) return;
+
+        try {
+            await markReceiptPrinted();
+            receiptPrintedRef.current = true;
+        } catch (error) {
+            console.error(error);
+            showSnackbar(
+                error?.response?.data?.message || "Failed to update receipt print status.",
+                "error"
+            );
+            printWindow.close();
+            return;
+        }
 
         printWindow.document.write(`
             <!doctype html>
@@ -486,27 +549,41 @@ const MatriculationPaymentModule = () => {
         };
     };
 
-    const markNotPrintedIfUnprinted = async () => {
+    const markCancelledPrintIfUnprinted = async () => {
         if (receiptPrintedRef.current) return;
         const transactionId = receiptData?.transaction_id;
-        if (!transactionId || receiptData?.remark === "Not Printed") return;
+        if (
+            !transactionId ||
+            receiptData?.receipt_status === RECEIPT_STATUS.CANCELLED_PRINT ||
+            receiptData?.receipt_status === RECEIPT_STATUS.VOID
+        ) return;
 
         try {
-            await axios.put(`${API_BASE_URL}/api/payment_matriculation/remark/${transactionId}`, {
-                remark: "Not Printed",
-            }, auditConfig);
+            const res = await axios.put(`${API_BASE_URL}/api/payment_matriculation/cancel-print/${transactionId}`, null, auditConfig);
             setReceiptData((prev) => ({
                 ...prev,
-                remark: "Not Printed",
+                remark: "Cancelled Print",
+                receipt_status: res?.data?.receipt_status || RECEIPT_STATUS.CANCELLED_PRINT,
             }));
-            showSnackbar("Receipt not printed. Transaction marked as Not Printed.", "warning");
+            showSnackbar("Receipt printing cancelled.", "warning");
         } catch (error) {
             console.error(error);
             showSnackbar(
-                error?.response?.data?.message || "Failed to mark unprinted receipt.",
+                error?.response?.data?.message || "Failed to mark cancelled print.",
                 "error"
             );
         }
+    };
+
+    const openVoidConfirm = () => {
+        setVoidReason("");
+        setVoidExplanation("");
+        setVoidConfirmOpen(true);
+    };
+
+    const closeVoidConfirm = () => {
+        if (voidingReceipt) return;
+        setVoidConfirmOpen(false);
     };
 
     const handleVoidReceipt = async () => {
@@ -516,13 +593,32 @@ const MatriculationPaymentModule = () => {
             return;
         }
 
+        const trimmedExplanation = voidExplanation.trim();
+        if (!voidReason) {
+            showSnackbar("Please select a void reason.", "warning");
+            return;
+        }
+
+        if (voidReason === "Others" && !trimmedExplanation) {
+            showSnackbar("Please enter an explanation for Others.", "warning");
+            return;
+        }
+
         try {
             setVoidingReceipt(true);
-            await axios.put(`${API_BASE_URL}/api/payment_matriculation/void/${transactionId}`, null, auditConfig);
+            await axios.put(`${API_BASE_URL}/api/payment_matriculation/void/${transactionId}`, {
+                void_reason: voidReason,
+                void_explanation: trimmedExplanation,
+            }, auditConfig);
+            const voidRemark = trimmedExplanation
+                ? `Void - ${voidReason}: ${trimmedExplanation}`
+                : `Void - ${voidReason}`;
             setReceiptData((prev) => ({
                 ...prev,
-                remark: "Void",
+                remark: voidRemark,
+                receipt_status: RECEIPT_STATUS.VOID,
             }));
+            setVoidConfirmOpen(false);
             showSnackbar("Receipt marked as void.", "success");
         } catch (error) {
             console.error(error);
@@ -537,7 +633,7 @@ const MatriculationPaymentModule = () => {
 
     const handleViewReceiptNo = async () => {
         setViewReceiptPromptOpen(false);
-        await markNotPrintedIfUnprinted();
+        await markCancelledPrintIfUnprinted();
         receiptPrintedRef.current = false;
         setKeepVisiblePaidMatriculationId(null);
         await fetchStudentData();
@@ -555,7 +651,7 @@ const MatriculationPaymentModule = () => {
             return;
         }
 
-        await markNotPrintedIfUnprinted();
+        await markCancelledPrintIfUnprinted();
         setReceiptOpen(false);
         receiptPrintedRef.current = false;
         setKeepVisiblePaidMatriculationId(null);
@@ -564,7 +660,7 @@ const MatriculationPaymentModule = () => {
 
     const handleConfirmCloseWithoutPrint = async () => {
         setCloseWithoutPrintConfirmOpen(false);
-        await markNotPrintedIfUnprinted();
+        await markCancelledPrintIfUnprinted();
         setReceiptOpen(false);
         receiptPrintedRef.current = false;
         setKeepVisiblePaidMatriculationId(null);
@@ -631,9 +727,21 @@ const MatriculationPaymentModule = () => {
     const isOverPayment = Boolean(
         confirmPaymentSummary && confirmPaymentSummary.totalPayment > confirmPaymentSummary.totalTosf
     );
-    const receiptMiscBreakdownItems = RECEIPT_MISC_BREAKDOWN_CONFIG.filter(
-        (item) => toAmount(receiptData?.[item.key]) > 0
+    const receiptPaidBreakdown = Array.isArray(receiptData?.payment_breakdown)
+        ? receiptData.payment_breakdown
+        : [];
+    const getReceiptPaidAmount = (key) =>
+        toAmount(receiptPaidBreakdown.find((item) => item.key === key)?.paid_amount);
+    const receiptTuitionPaid = getReceiptPaidAmount("tuition_fees");
+    const receiptNstpPaid = getReceiptPaidAmount("nstp_fees");
+    const receiptMiscPaid = RECEIPT_MISC_BREAKDOWN_CONFIG.reduce(
+        (sum, item) => sum + getReceiptPaidAmount(item.key),
+        0,
     );
+    const receiptMiscBreakdownItems = RECEIPT_MISC_BREAKDOWN_CONFIG.filter(
+        (item) => getReceiptPaidAmount(item.key) > 0,
+    );
+    const formatReceiptAmount = (value) => toAmount(value).toLocaleString();
 
 
 
@@ -1164,13 +1272,27 @@ const MatriculationPaymentModule = () => {
                                             width: "1rem",
                                             textAlign: "center",
                                             border: `1px solid ${borderColor}`,
+                                        }}><strong>Receipt Status</strong></TableCell>
+                                        <TableCell sx={{
+                                            backgroundColor: settings?.header_color || "#1976d2",
+                                            color: "white",
+                                            width: "1rem",
+                                            textAlign: "center",
+                                            border: `1px solid ${borderColor}`,
+                                        }}><strong>Print Count</strong></TableCell>
+                                        <TableCell sx={{
+                                            backgroundColor: settings?.header_color || "#1976d2",
+                                            color: "white",
+                                            width: "1rem",
+                                            textAlign: "center",
+                                            border: `1px solid ${borderColor}`,
                                         }}><strong>Created At</strong></TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {transactionData.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={7} align="center">
+                                            <TableCell colSpan={9} align="center">
                                                 No transactions found.
                                             </TableCell>
                                         </TableRow>
@@ -1183,6 +1305,8 @@ const MatriculationPaymentModule = () => {
                                                 <TableCell>{tx.employee_id}</TableCell>
                                                 <TableCell>{formatAcademicSchoolYear(tx)}</TableCell>
                                                 <TableCell>{tx.remark}</TableCell>
+                                                <TableCell>{tx.receipt_status || "-"}</TableCell>
+                                                <TableCell>{tx.print_count ?? 0}</TableCell>
                                                 <TableCell>{formatTransactionDateTime(tx.created_at)}</TableCell>
                                             </TableRow>
                                         ))
@@ -1239,7 +1363,7 @@ const MatriculationPaymentModule = () => {
                         <Button
                             variant="outlined"
                             color="error"
-                            onClick={handleVoidReceipt}
+                            onClick={openVoidConfirm}
                             disabled={voidingReceipt}
                         >
                             {voidingReceipt ? "Voiding..." : "Void"}
@@ -1260,8 +1384,9 @@ const MatriculationPaymentModule = () => {
                             p: 2,
                             border: "1px solid #d9d9d9",
                             borderRadius: 1,
-                            overflow: "auto",
+                            overflow: "hidden",
                             boxSizing: "border-box",
+                            position: "relative",
                         }}
                     >
                         <Box>
@@ -1289,7 +1414,7 @@ const MatriculationPaymentModule = () => {
                                     TUITION FEE
                                 </Typography>
                                 <Typography variant="body2" sx={{ mt: '1.3cm', ml: '1cm', textAlign: 'right' }}>
-                                    {receiptData?.tuition_fees ?? 0}
+                                    {formatReceiptAmount(receiptTuitionPaid)}
                                 </Typography>
                             </Box>
 
@@ -1298,7 +1423,7 @@ const MatriculationPaymentModule = () => {
                                     MISCELLANEOUS FEE
                                 </Typography>
                                 <Typography variant="body2" sx={{ mt: '0.1cm', ml: '1cm', textAlign: 'right' }}>
-                                    {receiptData?.total_misc ?? 0}
+                                    {formatReceiptAmount(receiptMiscPaid)}
                                 </Typography>
                             </Box>
 
@@ -1308,19 +1433,19 @@ const MatriculationPaymentModule = () => {
                                         {item.label}
                                     </Typography>
                                     <Typography variant="body2" sx={{ mt: '0.1cm', ml: '1cm', textAlign: 'right' }}>
-                                        {toAmount(receiptData?.[item.key]).toLocaleString()}
+                                        {formatReceiptAmount(getReceiptPaidAmount(item.key))}
                                     </Typography>
                                 </Box>
                             ))}
 
                             <Box sx={{ display: "flex", alignItems: "center", mt: '0.1cm', }}>
-                                {Number(receiptData?.nstp_fees) > 0 ? (
+                                {receiptNstpPaid > 0 ? (
                                     <>
                                         <Typography variant="body2" sx={{ marginLeft: "1.7cm", width: "7cm" }}>
                                             NSTP FEE
                                         </Typography>
                                         <Typography variant="body2" sx={{ ml: "1cm", textAlign: "right" }}>
-                                            {receiptData?.nstp_fees ?? 0}
+                                            {formatReceiptAmount(receiptNstpPaid)}
                                         </Typography>
                                     </>
                                 ) : (
@@ -1335,24 +1460,24 @@ const MatriculationPaymentModule = () => {
                                 )}
                             </Box>
 
-                            <Box sx={{ display: "flex", alignItems: "center" }}>
-                                <Typography variant="body2" sx={{ mt: '1.5cm', marginLeft: '1.7cm', width: '7cm' }}>
+                            <Box sx={{ display: "flex", alignItems: "center", position: "absolute", left: 0, right: 0, bottom: "5.2cm" }}>
+                                <Typography variant="body2" sx={{ marginLeft: '1.7cm', width: '7cm' }}>
 
                                 </Typography>
-                                <Typography variant="body2" sx={{ mt: '1.5cm', ml: '1cm' }}>
-                                    {receiptData?.total_tosf || 0}
+                                <Typography variant="body2" sx={{ ml: '1cm' }}>
+                                    {formatReceiptAmount(receiptData?.payment_entered)}
                                 </Typography>
                             </Box>
 
-                            <Box sx={{ display: "flex", alignItems: "center" }}>
-                                <Typography variant="body2" sx={{ mt: '0.7cm', ml: '1.8cm' }}>
-                                    {numberToWords(receiptData?.total_tosf || 0)}
+                            <Box sx={{ display: "flex", alignItems: "center", position: "absolute", left: 0, right: 0, bottom: "4.35cm" }}>
+                                <Typography variant="body2" sx={{ ml: '1.8cm' }}>
+                                    {numberToWords(receiptData?.payment_entered || 0)}
                                 </Typography>
                             </Box>
-                            <Box sx={{ display: "flex", alignItems: "center" }}>
-                                <Typography variant="body2" sx={{ mt: '2cm', ml: '3.75cm' }}>
+                            <Box sx={{ display: "flex", alignItems: "center", position: "absolute", left: 0, right: 0, bottom: "2cm" }}>
+                                <Typography variant="body2" sx={{ ml: '3.75cm' }}>
                                 </Typography>
-                                <Typography variant="body2" sx={{ mt: '2cm', width: '6cm', textAlign: 'center' }}>
+                                <Typography variant="body2" sx={{ width: '6cm', textAlign: 'center' }}>
                                     {personData
                                         ? `${personData.lname.toUpperCase()}, ${personData.fname.toUpperCase()}`
                                         : ""}
@@ -1364,6 +1489,65 @@ const MatriculationPaymentModule = () => {
                 <DialogActions>
                     <Button onClick={handleCloseReceipt} color="error"
                         variant="outlined">Close</Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog
+                open={voidConfirmOpen}
+                onClose={closeVoidConfirm}
+                fullWidth
+                maxWidth="sm"
+            >
+                <DialogTitle>Void Receipt</DialogTitle>
+                <DialogContent>
+                    <DialogContentText sx={{ mb: 2 }}>
+                        Select the reason for voiding receipt {receiptData?.transaction_id || ""}.
+                    </DialogContentText>
+                    <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                        <Select
+                            displayEmpty
+                            value={voidReason}
+                            onChange={(event) => setVoidReason(event.target.value)}
+                        >
+                            <MenuItem value="">
+                                Select void reason
+                            </MenuItem>
+                            {VOID_REASON_OPTIONS.map((reason) => (
+                                <MenuItem key={reason} value={reason}>
+                                    {reason}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    {voidReason === "Others" && (
+                        <TextField
+                            fullWidth
+                            required
+                            multiline
+                            minRows={3}
+                            size="small"
+                            label="Explanation"
+                            value={voidExplanation}
+                            onChange={(event) => setVoidExplanation(event.target.value)}
+                        />
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        onClick={closeVoidConfirm}
+                        color="inherit"
+                        disabled={voidingReceipt}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="error"
+                        onClick={handleVoidReceipt}
+                        disabled={voidingReceipt || !voidReason || (voidReason === "Others" && !voidExplanation.trim())}
+                    >
+                        {voidingReceipt ? "Voiding..." : "Void Receipt"}
+                    </Button>
                 </DialogActions>
             </Dialog>
 

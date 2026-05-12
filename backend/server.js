@@ -798,14 +798,27 @@ app.put("/api/document_status/:applicant_number", async (req, res) => {
       return res.status(404).json({ message: "Applicant not found" });
     }
 
+    let statusSyncSql = "";
+    const updateParams = [document_status, user_id];
+
+    if (document_status === "Documents Verified & ECAT") {
+      statusSyncSql = ", ru.status = ?";
+      updateParams.push(1);
+    } else if (document_status === "Disapproved / Program Closed") {
+      statusSyncSql = ", ru.status = ?";
+      updateParams.push(2);
+    }
+
+    updateParams.push(applicant_number);
+
     const [result] = await db.query(
       `
       UPDATE requirement_uploads ru
       INNER JOIN applicant_numbering_table ant ON ant.person_id = ru.person_id
-      SET ru.document_status = ?, ru.last_updated_by = ?
+      SET ru.document_status = ?, ru.last_updated_by = ?${statusSyncSql}
       WHERE ant.applicant_number = ?
       `,
-      [document_status, user_id, applicant_number],
+      updateParams,
     );
 
     if (result.affectedRows === 0) {
@@ -2516,9 +2529,16 @@ const getNotificationActorFromRequest = async (req) => {
   try {
     const [rows] = await db3.query(
       `
-      SELECT employee_id, email, first_name, middle_name, last_name
-      FROM user_accounts
-      WHERE person_id = ? OR employee_id = ? OR email = ?
+      SELECT
+        ua.employee_id,
+        ua.email,
+        ua.first_name,
+        ua.middle_name,
+        ua.last_name,
+        at.access_description
+      FROM user_accounts ua
+      LEFT JOIN access_table at ON at.access_id = ua.access_level
+      WHERE ua.person_id = ? OR ua.employee_id = ? OR ua.email = ?
       LIMIT 1
       `,
       [lookupId, lookupId, lookupEmail || lookupId],
@@ -2530,6 +2550,7 @@ const getNotificationActorFromRequest = async (req) => {
         id: actor.employee_id || lookupId,
         email: actor.email || lookupEmail || "unknown",
         name: formatPersonFullName(actor, actor.email || lookupId),
+        accessDescription: actor.access_description || "",
       };
     }
   } catch (error) {
@@ -2540,6 +2561,7 @@ const getNotificationActorFromRequest = async (req) => {
     id: req.body?.actor_employee_id || lookupId,
     email: lookupEmail || "unknown",
     name: req.headers["x-audit-actor-name"] || lookupEmail || lookupId,
+    accessDescription: req.headers["x-audit-actor-role"] || "",
   };
 };
 
@@ -2577,7 +2599,7 @@ const buildNotificationAuditMessage = async (req) => {
   const actor = eventType.startsWith("faculty_")
     ? await getFacultyNotificationActor(details.prof_id)
     : await getNotificationActorFromRequest(req);
-  const employeePrefix = `Employee ID #${actor.id} - ${actor.email || actor.name}`;
+  const employeePrefix = `${actor.accessDescription || "Employee ID"} #${actor.id} - ${actor.email || actor.name}`;
   const userPrefix = `User #${actor.id} - ${actor.name}`;
 
   const gradeEntry = `${details.min_score}-${details.max_score} = ${details.equivalent_grade}`;

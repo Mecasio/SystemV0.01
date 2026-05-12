@@ -321,9 +321,22 @@ router.post("/api/exam/save", verifyToken, async (req, res) => {
     );
 
     let examResultId;
+    let previousScoreMap = {};
 
     if (existingRows.length) {
       examResultId = existingRows[0].id;
+
+      const [previousScoreRows] = await db.query(
+        `SELECT subject_id, score
+         FROM exam_result_details
+         WHERE exam_result_id = ?`,
+        [examResultId]
+      );
+
+      previousScoreMap = previousScoreRows.reduce((acc, row) => {
+        acc[row.subject_id] = Number(row.score || 0);
+        return acc;
+      }, {});
 
       await db.query(`
         UPDATE exam_results
@@ -373,6 +386,18 @@ router.post("/api/exam/save", verifyToken, async (req, res) => {
     //--------------------------------------
     // INSERT SUBJECT SCORES
     //--------------------------------------
+    const scoreSubjectIds = scores.map((item) => item.subject_id).filter(Boolean);
+    const [subjectRows] = scoreSubjectIds.length
+      ? await db.query(
+        `SELECT id, name, max_score FROM subjects WHERE id IN (?)`,
+        [scoreSubjectIds]
+      )
+      : [[]];
+    const subjectMap = subjectRows.reduce((acc, subject) => {
+      acc[subject.id] = subject;
+      return acc;
+    }, {});
+
     for (const item of scores) {
       await db.query(`
         INSERT INTO exam_result_details
@@ -401,6 +426,26 @@ router.post("/api/exam/save", verifyToken, async (req, res) => {
       message: `${roleLabel} (${actor.actorId}) saved entrance examination result for Applicant (${applicant_number}${applicantName ? ` - ${applicantName}` : ""}). Total score: ${totalScore}. Status: ${status || "N/A"}.`,
       severity: "INFO"
     });
+
+    for (const item of scores) {
+      const previousScore = previousScoreMap[item.subject_id] ?? 0;
+      const nextScore = Number(item.score || 0);
+
+      if (Number(previousScore) === Number(nextScore)) continue;
+
+      const subject = subjectMap[item.subject_id];
+      const subjectLabel = subject
+        ? `${subject.name}${subject.max_score ? ` (max ${subject.max_score})` : ""}`
+        : `Subject ${item.subject_id}`;
+
+      await insertAuditLogAdmission({
+        actorId: actor.actorId,
+        role: actor.role,
+        action: "SAVE_EXAM_SUBJECT_SCORE",
+        message: `${roleLabel} (${actor.actorId}) changed ECAT score of Applicant (${applicant_number}${applicantName ? ` - ${applicantName}` : ""}) for ${subjectLabel}: ${previousScore} -> ${nextScore}.`,
+        severity: "INFO"
+      });
+    }
 
     res.json({
       success: true,

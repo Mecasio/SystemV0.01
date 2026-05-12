@@ -139,6 +139,10 @@ const StudentGradingPage = () => {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [gradingActive, setGradingActive] = useState(false);
+  const [matriculationBalanceInfo, setMatriculationBalanceInfo] = useState({
+    hasBalance: false,
+    balance: 0,
+  });
 
   useEffect(() => {
     const storedUser = localStorage.getItem("email");
@@ -159,11 +163,52 @@ const StudentGradingPage = () => {
     }
   }, []);
 
+  const fetchMatriculationBalance = async (studentNumber) => {
+    if (!studentNumber) {
+      return { hasBalance: false, balance: 0 };
+    }
+
+    try {
+      const { data } = await axios.post(
+        `${API_BASE_URL}/api/check-student-balance`,
+        { student_number: studentNumber },
+      );
+      const balance = Number(data?.balance || 0);
+
+      return {
+        hasBalance: Boolean(data?.hasBalance) && balance > 0,
+        balance: Number.isFinite(balance) ? balance : 0,
+      };
+    } catch (error) {
+      console.error("Failed to check matriculation balance:", error);
+      return { hasBalance: false, balance: 0 };
+    }
+  };
+
+  const hideGradeFields = (subject) => ({
+    ...subject,
+    final_grade: null,
+    numeric_grade: null,
+    descriptive_grade: null,
+    en_remarks: null,
+    gwa: null,
+  });
+
   const fetchStudentGrade = async (id) => {
     setLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/api/student_grade/${id}`);
       const data = res.data;
+      const balanceInfo = await fetchMatriculationBalance(
+        data[0]?.student_number,
+      );
+
+      setMatriculationBalanceInfo(balanceInfo);
+
+      if (balanceInfo.hasBalance) {
+        setStudentGrade(data.map(hideGradeFields));
+        return;
+      }
 
       const groupedByTerm = {};
       data.forEach((subj) => {
@@ -198,12 +243,18 @@ const StudentGradingPage = () => {
     } catch (error) {
       console.error(error);
       setStudentGrade([]);
+      setMatriculationBalanceInfo({ hasBalance: false, balance: 0 });
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    if (matriculationBalanceInfo.hasBalance) {
+      setMessage("");
+      return;
+    }
+
     if (!gradingActive || studentGrade.length === 0) return;
     const pending = studentGrade.filter(
       (subj) => subj.fe_status === 0 && !subj.is_migrated,
@@ -215,7 +266,7 @@ const StudentGradingPage = () => {
     } else {
       setMessage("");
     }
-  }, [gradingActive, studentGrade]);
+  }, [gradingActive, matriculationBalanceInfo.hasBalance, studentGrade]);
 
   const fetchGradingStatus = async () => {
     try {
@@ -260,6 +311,11 @@ const StudentGradingPage = () => {
   const sortedTerms = sortTerms(rawTerms);
   const headerBg = settings?.header_color || "#1976d2";
   const programInfo = studentGrade[0] || null;
+  const formattedMatriculationBalance =
+    matriculationBalanceInfo.balance.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
 
   // ── Shared cell styles ─────────────────────────────────────────
   const headCell = {
@@ -424,6 +480,24 @@ const StudentGradingPage = () => {
       <br />
 
       {/* ── Grade Tables per Term ── */}
+      {matriculationBalanceInfo.hasBalance && (
+        <Alert
+          severity="warning"
+          sx={{
+            borderRadius: "12px",
+            mb: 3,
+            alignItems: "center",
+          }}
+        >
+          <AlertTitle sx={{ fontWeight: 700 }}>
+            Grades Hidden Due to Matriculation Balance
+          </AlertTitle>
+          Your grades are hidden because you still have a remaining
+          matriculation balance of <b>{formattedMatriculationBalance}</b>.
+          Please settle your balance to view your grades.
+        </Alert>
+      )}
+
       {loading ? (
         <Box sx={{ textAlign: "center", py: 8 }}>
           <Typography sx={{ color: subtitleColor, fontSize: 14 }}>

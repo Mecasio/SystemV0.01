@@ -273,6 +273,26 @@ const StudentBalanceInfo = () => {
                     {money(fees.miscellaneousFee)}
                   </TableCell>
                 </TableRow>
+                {Number(fees.discountAmount || 0) > 0 && (
+                  <>
+                    <TableRow>
+                      <TableCell colSpan={6} align="right" sx={{ border: `1px solid ${borderColor}`, fontWeight: 700 }}>
+                        Gross Assessment
+                      </TableCell>
+                      <TableCell align="right" sx={{ border: `1px solid ${borderColor}`, fontWeight: 700 }}>
+                        {money(fees.originalGrandTotal)}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell colSpan={6} align="right" sx={{ border: `1px solid ${borderColor}`, fontWeight: 700 }}>
+                        Discount / Scholarship
+                      </TableCell>
+                      <TableCell align="right" sx={{ border: `1px solid ${borderColor}`, fontWeight: 700, color: "red" }}>
+                        -{money(fees.discountAmount)}
+                      </TableCell>
+                    </TableRow>
+                  </>
+                )}
                 <TableRow sx={{ backgroundColor: "#fff1f1" }}>
                   <TableCell colSpan={6} align="right" sx={{ border: `1px solid ${borderColor}`, fontWeight: 800, fontSize: 16 }}>
                     Total Assessment

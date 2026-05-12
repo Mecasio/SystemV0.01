@@ -29,6 +29,74 @@ const getAuditActor = (req) => ({
     "registrar",
 });
 
+const getApplicantAuditRows = async (applicantNumbers) => {
+  const numbers = Array.isArray(applicantNumbers)
+    ? applicantNumbers.filter(Boolean)
+    : [applicantNumbers].filter(Boolean);
+
+  if (!numbers.length) return [];
+
+  const [rows] = await db.query(
+    `SELECT
+        ant.applicant_number,
+        pt.first_name,
+        pt.middle_name,
+        pt.last_name,
+        pt.emailAddress
+     FROM applicant_numbering_table ant
+     LEFT JOIN person_table pt ON pt.person_id = ant.person_id
+     WHERE ant.applicant_number IN (?)`,
+    [numbers],
+  );
+
+  return rows;
+};
+
+const formatApplicantAuditList = (rows, fallbackNumbers = []) => {
+  const rowMap = rows.reduce((acc, row) => {
+    acc[row.applicant_number] = row;
+    return acc;
+  }, {});
+
+  const numbers = Array.isArray(fallbackNumbers)
+    ? fallbackNumbers
+    : [fallbackNumbers];
+
+  return numbers
+    .filter(Boolean)
+    .map((number) => {
+      const row = rowMap[number] || { applicant_number: number };
+      const name = [row.first_name, row.middle_name, row.last_name]
+        .filter(Boolean)
+        .join(" ");
+      const email = row.emailAddress ? `, Email: ${row.emailAddress}` : "";
+      return `Applicant #${row.applicant_number}${name ? ` - ${name}` : ""}${email}`;
+    })
+    .join("; ");
+};
+
+const insertInterviewStatusAuditLog = async ({
+  req,
+  action,
+  applicantNumbers,
+  newStatus,
+  affectedRows,
+}) => {
+  const { actorId, actorRole } = getAuditActor(req);
+  const roleLabel = formatAuditActorRole(actorRole);
+  const mode = req.body?.assignment_mode || "manual";
+  const rows = await getApplicantAuditRows(applicantNumbers);
+  const applicants = formatApplicantAuditList(rows, applicantNumbers);
+
+  await insertAuditLogAdmission({
+    actorId,
+    role: actorRole,
+    action,
+    severity: "INFO",
+    message: `${roleLabel} (${actorId}) set ${affectedRows} qualifying/interview applicant(s) to ${newStatus}. Mode: ${mode}. Applicant(s): ${applicants}.`,
+  });
+};
+
 const formatInterviewScheduleLabel = (schedule) => {
   if (!schedule) return "Unknown schedule";
 
@@ -508,6 +576,14 @@ router.put("/api/interview_applicants/assign", async (req, res) => {
       [applicant_numbers],
     );
 
+    await insertInterviewStatusAuditLog({
+      req,
+      action: "QUALIFYING_INTERVIEW_ASSIGN",
+      applicantNumbers: applicant_numbers,
+      newStatus: "Accepted",
+      affectedRows: result.affectedRows,
+    });
+
     res.json({
       message: `Updated ${result.affectedRows} applicants to Accepted.`,
       updated: applicant_numbers,
@@ -534,6 +610,14 @@ router.put(
        WHERE applicant_id = ?`,
         [applicant_number],
       );
+
+      await insertInterviewStatusAuditLog({
+        req,
+        action: "QUALIFYING_INTERVIEW_ASSIGN",
+        applicantNumbers: [applicant_number],
+        newStatus: "Accepted",
+        affectedRows: result.affectedRows,
+      });
 
       res.json({
         message: `Applicant ${applicant_number} updated to Accepted.`,
@@ -563,8 +647,16 @@ router.put(
         [applicant_number],
       );
 
+      await insertInterviewStatusAuditLog({
+        req,
+        action: "QUALIFYING_INTERVIEW_UNASSIGN",
+        applicantNumbers: [applicant_number],
+        newStatus: "Waiting List",
+        affectedRows: result.affectedRows,
+      });
+
       res.json({
-        message: `Applicant ${applicant_number} updated to Accepted.`,
+        message: `Applicant ${applicant_number} updated to Waiting List.`,
         affectedRows: result.affectedRows,
       });
     } catch (err) {
@@ -590,8 +682,16 @@ router.put("/api/interview_applicants/unassign-all", async (req, res) => {
       [applicant_numbers],
     );
 
+    await insertInterviewStatusAuditLog({
+      req,
+      action: "QUALIFYING_INTERVIEW_UNASSIGN",
+      applicantNumbers: applicant_numbers,
+      newStatus: "Waiting List",
+      affectedRows: result.affectedRows,
+    });
+
     res.json({
-      message: `Updated ${result.affectedRows} applicants to Accepted.`,
+      message: `Updated ${result.affectedRows} applicants to Waiting List.`,
       updated: applicant_numbers,
     });
   } catch (err) {

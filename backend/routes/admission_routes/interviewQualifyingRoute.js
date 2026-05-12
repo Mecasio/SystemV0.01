@@ -94,6 +94,90 @@ const isDifferent = (oldVal, newVal) => {
   return (oldVal ?? null) != (newVal ?? null);
 };
 
+const formatAuditActorRole = (role) => {
+  const safeRole = String(role || "registrar").trim();
+  if (!safeRole) return "Registrar";
+
+  return safeRole
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const resolveAuditActor = async (req, fallbackActor = {}) => {
+  const lookupId =
+    req.body?.audit_actor_id ||
+    req.headers["x-audit-actor-id"] ||
+    req.headers["x-employee-id"] ||
+    req.user?.employee_id ||
+    req.user?.person_id ||
+    fallbackActor.employee_id ||
+    fallbackActor.email ||
+    "unknown";
+  const lookupEmail =
+    req.body?.audit_actor_email ||
+    req.headers["x-audit-actor-email"] ||
+    req.user?.email ||
+    fallbackActor.email ||
+    "";
+
+  try {
+    const [rows] = await db3.query(
+      `SELECT
+          ua.employee_id,
+          ua.email,
+          at.access_description
+       FROM user_accounts ua
+       LEFT JOIN access_table at ON at.access_id = ua.access_level
+       WHERE ua.person_id = ? OR ua.employee_id = ? OR ua.email = ?
+       LIMIT 1`,
+      [lookupId, lookupId, lookupEmail || lookupId],
+    );
+
+    if (rows.length) {
+      return {
+        actorId: rows[0].employee_id || lookupId,
+        role:
+          req.body?.audit_actor_role ||
+          req.headers["x-audit-actor-role"] ||
+          rows[0].access_description ||
+          fallbackActor.role ||
+          "registrar",
+        email: rows[0].email || lookupEmail || fallbackActor.email || "",
+      };
+    }
+  } catch (err) {
+    console.error("Failed to resolve qualifying/interview audit actor:", err);
+  }
+
+  return {
+    actorId: lookupId,
+    role:
+      req.body?.audit_actor_role ||
+      req.headers["x-audit-actor-role"] ||
+      fallbackActor.role ||
+      "registrar",
+    email: lookupEmail || fallbackActor.email || "",
+  };
+};
+
+const getApplicantAuditDetails = async (applicantNumber) => {
+  const [rows] = await db.query(
+    `SELECT
+        ant.applicant_number,
+        pt.first_name,
+        pt.middle_name,
+        pt.last_name,
+        pt.emailAddress
+     FROM applicant_numbering_table ant
+     LEFT JOIN person_table pt ON pt.person_id = ant.person_id
+     WHERE ant.applicant_number = ?
+     LIMIT 1`,
+    [applicantNumber],
+  );
+
+  return rows[0] || null;
+};
 
 router.get("/api/applicants-with-number", async (req, res) => {
   try {
@@ -348,6 +432,8 @@ router.post(
         }
       }
 
+      actor = await resolveAuditActor(req, actor);
+
       // -------------------------------------------------
       // GET person_id
       // -------------------------------------------------
@@ -370,6 +456,15 @@ router.post(
 
       const personId =
         rows[0].person_id;
+      const applicantDetails = await getApplicantAuditDetails(applicant_number);
+      const applicantName = [
+        applicantDetails?.first_name,
+        applicantDetails?.middle_name,
+        applicantDetails?.last_name,
+      ]
+        .filter(Boolean)
+        .join(" ");
+      const applicantEmail = applicantDetails?.emailAddress || "No email";
 
       // -------------------------------------------------
       // GET OLD DATA
@@ -450,7 +545,7 @@ router.post(
           `Qualifying Exam: ${
             oldData.qualifying_result ??
             "NONE"
-          } → ${
+          } -> ${
             qExam ?? "NONE"
           }`
         );
@@ -466,7 +561,7 @@ router.post(
           `Interview Score: ${
             oldData.interview_result ??
             "NONE"
-          } → ${
+          } -> ${
             qInterview ?? "NONE"
           }`
         );
@@ -482,7 +577,7 @@ router.post(
           `Final Average: ${
             oldData.exam_result ??
             "NONE"
-          } → ${
+          } -> ${
             finalAve ?? "NONE"
           }`
         );
@@ -497,7 +592,7 @@ router.post(
         changes.push(
           `Status: ${
             oldStatus ?? "NONE"
-          } → ${
+          } -> ${
             newStatus ?? "NONE"
           }`
         );
@@ -586,13 +681,14 @@ router.post(
       // INSERT AUDIT LOG (ONCE)
       // -------------------------------------------------
 
+      const roleLabel = formatAuditActorRole(actor.role);
       const message =
-        `Applicant #${applicant_number} updated:\n` +
+        `${roleLabel} (${actor.actorId}) - ${actor.email || "No email"} updated Applicant #${applicant_number}${applicantName ? ` - ${applicantName}` : ""} (${applicantEmail}):\n` +
         changes.join("\n");
 
       await insertAuditLog({
         actorId:
-          actor.email,
+          actor.actorId,
         role:
           actor.role,
         action:

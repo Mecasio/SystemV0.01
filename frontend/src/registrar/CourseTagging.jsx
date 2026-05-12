@@ -258,6 +258,22 @@ const CourseTagging = () => {
     } catch (err) { return { allowed: false, reason: "ERROR", status: "REQUEST_ERROR", message: "Error calling prerequisite API." }; }
   };
 
+  const checkStudentBalance = async (student_number) => {
+    try {
+      const { data } = await axios.post(`${API_BASE_URL}/api/check-student-balance`, { student_number });
+      const balance = Number(data?.balance || 0);
+      return { hasBalance: Boolean(data?.hasBalance) && balance > 0, balance: Number.isFinite(balance) ? balance : 0 };
+    } catch (err) {
+      console.error("Error checking student balance:", err);
+      return { hasBalance: false, balance: 0 };
+    }
+  };
+
+  const getBalanceWarningMessage = (balanceInfo) => {
+    if (!balanceInfo?.hasBalance) return "";
+    return `This student still has a remaining balance of ${balanceInfo.balance.toLocaleString()}.\n\nAre you sure you want to continue the subject enrollment?`;
+  };
+
   useEffect(() => {
     const computePrereqStatus = async () => {
       if (!userId || courses.length === 0) { setPrereqMap({}); return; }
@@ -376,11 +392,15 @@ const CourseTagging = () => {
     if (!selectedSection) { setSnack({ open: true, message: "Please select a department section before enrolling.", severity: "warning" }); return; }
     if (!userId) { setSnack({ open: true, message: "Please search and select a student first.", severity: "warning" }); return; }
     if (isEnrolledCourse(course.course_id)) return;
+    const balanceWarning = getBalanceWarningMessage(await checkStudentBalance(userId));
     const status = prereqMap[course.course_id];
     if (status && status.hasPrereq) {
       let msg = `The subject ${course.course_code} has prerequisite subject(s).\n\n`;
       msg += status.allowed ? "The student meets the prerequisite qualification.\n\nDo you want to continue enrolling this subject?" : "The student does NOT meet the prerequisite qualification (failed or not yet passed).\n\nDo you still want to attempt to enroll this subject?";
+      if (balanceWarning) msg = `${balanceWarning}\n\n${msg}`;
       setPendingAction({ type: "single", course }); setConfirmDialogMessage(msg); setConfirmDialogOpen(true);
+    } else if (balanceWarning) {
+      setPendingAction({ type: "single", course }); setConfirmDialogMessage(balanceWarning); setConfirmDialogOpen(true);
     } else { await addToCart(course); }
   };
 
@@ -390,10 +410,19 @@ const CourseTagging = () => {
     if (!userId) { setSnack({ open: true, message: "Please search and select a student first.", severity: "warning" }); return; }
     const newCourses = courses.filter((c) => !isEnrolledCourse(c.course_id) && c.year_level_id === yearLevelId && (activeSemesterId ? c.semester_id === activeSemesterId : true));
     if (newCourses.length === 0) return;
+    const balanceWarning = getBalanceWarningMessage(await checkStudentBalance(userId));
     const coursesWithPrereq = newCourses.filter((c) => hasCoursePrereq(c));
-    if (coursesWithPrereq.length === 0) { await addAllToCart(yearLevelId); return; }
+    if (coursesWithPrereq.length === 0) {
+      if (balanceWarning) {
+        setPendingAction({ type: "bulk", yearLevelId }); setConfirmDialogMessage(balanceWarning); setConfirmDialogOpen(true);
+      } else {
+        await addAllToCart(yearLevelId);
+      }
+      return;
+    }
     const listText = coursesWithPrereq.map((c) => { const status = prereqMap[c.course_id]; let tag = status ? (status.allowed ? " (qualified)" : " (NOT qualified)") : ""; return `• ${c.course_code}${tag}`; }).join("\n");
-    const msg = `${yearLevelId} - ${semesterLabel || "Semester"}, You are trying to enroll multiple subjects that have prerequisites:\n\n${listText}\n\nGreen-highlighted rows mean the student meets the prerequisite qualification.\nOrange-highlighted rows mean the student does NOT meet the prerequisite qualification.\n\nDo you want to continue with bulk enrollment?`;
+    let msg = `${yearLevelId} - ${semesterLabel || "Semester"}, You are trying to enroll multiple subjects that have prerequisites:\n\n${listText}\n\nGreen-highlighted rows mean the student meets the prerequisite qualification.\nOrange-highlighted rows mean the student does NOT meet the prerequisite qualification.\n\nDo you want to continue with bulk enrollment?`;
+    if (balanceWarning) msg = `${balanceWarning}\n\n${msg}`;
     setPendingAction({ type: "bulk", yearLevelId }); setConfirmDialogMessage(msg); setConfirmDialogOpen(true);
   };
 
@@ -675,7 +704,7 @@ const CourseTagging = () => {
             variant="outlined"
 
             onClick={handleConfirmDialogClose}>Cancel</Button>
-          <Button onClick={handleConfirmDialogProceed} variant="contained">Continue</Button>
+          <Button onClick={handleConfirmDialogProceed} variant="contained">Yes, Continue</Button>
         </DialogActions>
       </Dialog>
 

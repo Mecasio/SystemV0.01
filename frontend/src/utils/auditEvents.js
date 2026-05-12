@@ -1,6 +1,24 @@
 import axios from "axios";
 import API_BASE_URL from "../apiConfig";
 
+const accessDescriptionExcludedRoles = new Set([
+  "student",
+  "applicant",
+  "faculty",
+  "professor",
+]);
+
+const getAuditActorRole = () => {
+  const role = localStorage.getItem("role") || "";
+  const normalizedRole = role.trim().toLowerCase().replace(/[\s_-]+/g, "_");
+
+  if (accessDescriptionExcludedRoles.has(normalizedRole)) {
+    return role;
+  }
+
+  return localStorage.getItem("access_description") || role || "";
+};
+
 const getAuditHeaders = () => {
   const token = localStorage.getItem("token") || "";
 
@@ -13,7 +31,7 @@ const getAuditHeaders = () => {
       "unknown",
     "x-audit-actor-person-id": localStorage.getItem("person_id") || "",
     "x-audit-actor-email": localStorage.getItem("email") || "",
-    "x-audit-actor-role": localStorage.getItem("role") || "",
+    "x-audit-actor-role": getAuditActorRole(),
   };
 };
 

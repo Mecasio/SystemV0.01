@@ -70,9 +70,12 @@ const ProgramPayment = () => {
                         school_year: row.school_year || "",
                         semester: row.semester || "",
                         year_level: row.year_level || "",
-                        assessment: Number(row.fees?.grandTotal || 0),
-                        payment: 0,
-                        balance: Number(row.fees?.grandTotal || 0),
+                        scholarship: row.scholarship || "",
+                        payment_type: row.payment_type || "",
+                        payment_status: row.payment_status || "",
+                        assessment: Number(row.assessment ?? row.fees?.grandTotal ?? 0),
+                        payment: Number(row.payment ?? 0),
+                        balance: Number(row.balance ?? row.fees?.grandTotal ?? 0),
                     }))
                 );
 
@@ -247,7 +250,9 @@ const ProgramPayment = () => {
                                             {row.scholarship || ""}
                                         </TableCell>
                                         <TableCell sx={{ border: `1px solid ${borderColor}` }}>
-                                            TOTAL AMOUNT DUE
+                                            {row.payment_type
+                                                ? `${row.payment_type} - ${row.payment_status}`
+                                                : "TOTAL AMOUNT DUE"}
                                         </TableCell>
                                         <TableCell sx={{ border: `1px solid ${borderColor}` }}>
                                             {row.or_date || ""}

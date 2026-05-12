@@ -321,9 +321,16 @@ router.get("/api/page_access/:userId/:pageId", async (req, res) => {
   const { userId, pageId } = req.params;
   try {
     const [rows] = await db3.query(
-      `SELECT page_privilege, can_create, can_edit, can_delete
-       FROM page_access
-       WHERE user_id = ? AND page_id = ?`,
+      `SELECT
+          pa.page_privilege,
+          pa.can_create,
+          pa.can_edit,
+          pa.can_delete,
+          at.access_description
+       FROM page_access pa
+       LEFT JOIN user_accounts ua ON ua.employee_id = pa.user_id
+       LEFT JOIN access_table at ON at.access_id = ua.access_level
+       WHERE pa.user_id = ? AND pa.page_id = ?`,
       [userId, pageId],
     );
 

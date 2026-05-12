@@ -751,7 +751,7 @@ const CertificateOfRegistration = forwardRef(
     const isFirstYearFirstSem = isFirstYear && isFirstSemester;
 
     useEffect(() => {
-      if (!data[0] || !tosf[0] || !enrolled || !totalLabFees || !totalLecFees || !activeSchoolYear[0])
+      if (!data[0] || !tosf[0] || !Array.isArray(enrolled) || !activeSchoolYear[0])
         return;
 
       const totalCourseUnits = enrolled.reduce(
@@ -795,9 +795,12 @@ const CertificateOfRegistration = forwardRef(
         (isHaveComputerFees !== 0 ? Number(tosf[0]?.computer_fees || 0) : 0) +
         (isHaveLaboratory !== 0 ? Number(tosf[0]?.laboratory_fees || 0) : 0);
 
+      const resolvedStudentNumber =
+        data[0]?.student_number || userId || student_number || "";
+
       setRequestedData({
         campus_name: campusName,
-        student_number: data[0]?.student_number,
+        student_number: resolvedStudentNumber,
         learner_reference_number: data[0]?.lrnNumber,
         last_name: data[0]?.last_name,
         given_name: data[0]?.first_name,
@@ -828,7 +831,19 @@ const CertificateOfRegistration = forwardRef(
         remark: "",
         active_school_year_id: activeSchoolYear[0]?.id || null,
       });
-    }, [data, tosf, enrolled, totalLabFees, totalLecFees]);
+    }, [
+      data,
+      tosf,
+      enrolled,
+      totalLabFees,
+      totalLecFees,
+      activeSchoolYear,
+      isFirstYearFirstSem,
+      isHaveNSTP,
+      isHaveComputerFees,
+      isHaveLaboratory,
+      year_Level_Description,
+    ]);
 
     const toNumber = (value) => {
       if (typeof value === "string") {
@@ -944,8 +959,16 @@ const CertificateOfRegistration = forwardRef(
 
     const handleSaveToUnifast = async () => {
       try {
+        const resolvedStudentNumber =
+          requestedData.student_number || userId || student_number || "";
+        if (!resolvedStudentNumber) {
+          showSnackbar("Student number is missing. Please reload the COR and try again.", "error");
+          return;
+        }
+
         const res = await axios.post(`${API_BASE_URL}/save_to_unifast`, {
           ...requestedData,
+          student_number: resolvedStudentNumber,
           status: 1,
         });
         if (res.data.success) {
@@ -969,6 +992,13 @@ const CertificateOfRegistration = forwardRef(
 
     const handleSaveToMatriculation = async () => {
       try {
+        const resolvedStudentNumber =
+          requestedData.student_number || userId || student_number || "";
+        if (!resolvedStudentNumber) {
+          showSnackbar("Student number is missing. Please reload the COR and try again.", "error");
+          return;
+        }
+
         const selectedScholarship = scholarshipTypes.find(
           (item) => Number(item.id) === Number(selectedScholarshipId),
         );
@@ -979,7 +1009,7 @@ const CertificateOfRegistration = forwardRef(
         }
 
         const { payload } = applyScholarshipToMatriculationFees(
-          { ...requestedData },
+          { ...requestedData, student_number: resolvedStudentNumber },
           selectedScholarship,
         );
 
@@ -1045,7 +1075,6 @@ const CertificateOfRegistration = forwardRef(
       }
     };
 
-    const isAnySaved = savedUnifast || savedMatriculation;
     const unifastLabel = savedUnifast ? "Saved To Unifast" : "Save to Unifast";
     const matriculationLabel = savedMatriculation
       ? "Saved To Matriculation"
@@ -1086,7 +1115,7 @@ const CertificateOfRegistration = forwardRef(
         <Box sx={{ position: "relative", marginRight: "6rem" }}>
           <button
             onClick={() => openConfirm("unifast")}
-            disabled={isAnySaved}
+            disabled={savedUnifast}
             style={{
               marginBottom: "2rem",
               padding: "10px 20px",
@@ -1095,14 +1124,14 @@ const CertificateOfRegistration = forwardRef(
               color: "black",
               borderRadius: "5px",
               marginTop: "20px",
-              cursor: isAnySaved ? "not-allowed" : "pointer",
+              cursor: savedUnifast ? "not-allowed" : "pointer",
               fontSize: "16px",
               fontWeight: "bold",
               position: "absolute",
               zIndex: 1000,
               right: "15%",
               top: "-3rem",
-              opacity: isAnySaved ? 0.6 : 1,
+              opacity: savedUnifast ? 0.6 : 1,
               transition: "background-color 0.3s, transform 0.2s",
             }}
             onMouseEnter={(e) => (e.target.style.backgroundColor = "#d3d3d3")}
@@ -1119,7 +1148,7 @@ const CertificateOfRegistration = forwardRef(
           {/* SAVE TO MATRICULATION BUTTON */}
           <button
             onClick={openScholarshipModal}
-            disabled={isAnySaved}
+            disabled={savedMatriculation}
             style={{
               marginBottom: "1rem",
               padding: "10px 20px",
@@ -1128,14 +1157,14 @@ const CertificateOfRegistration = forwardRef(
               color: "black",
               borderRadius: "5px",
               marginTop: "20px",
-              cursor: isAnySaved ? "not-allowed" : "pointer",
+              cursor: savedMatriculation ? "not-allowed" : "pointer",
               zIndex: 1000,
               position: "absolute",
               right: "-10%",
               top: "-3rem",
               fontSize: "16px",
               fontWeight: "bold",
-              opacity: isAnySaved ? 0.6 : 1,
+              opacity: savedMatriculation ? 0.6 : 1,
               transition: "background-color 0.3s, transform 0.2s",
             }}
             onMouseEnter={(e) => (e.target.style.backgroundColor = "#d3d3d3")}

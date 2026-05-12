@@ -1,6 +1,12 @@
 const { db, db3 } = require("../routes/database/database");
 
 const DEFAULT_ACTION = "AUTH";
+const ACCESS_DESCRIPTION_EXCLUDED_ROLES = new Set([
+  "student",
+  "applicant",
+  "faculty",
+  "professor",
+]);
 
 const formatAuditTimestamp = (date = new Date()) => {
   const month = date.toLocaleString("en-US", {
@@ -33,6 +39,58 @@ const formatRole = (role) => {
     .split(/[\s_-]+/)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
     .join(" ");
+};
+
+const getAccessDescriptionForActor = async (actorId) => {
+  const safeActorId = String(actorId || "").trim();
+  if (!safeActorId || safeActorId === "unknown") return "";
+
+  try {
+    const [rows] = await db3.query(
+      `SELECT at.access_description
+       FROM user_accounts ua
+       LEFT JOIN access_table at ON at.access_id = ua.access_level
+       WHERE ua.employee_id = ?
+          OR ua.person_id = ?
+          OR ua.email = ?
+       LIMIT 1`,
+      [safeActorId, safeActorId, safeActorId],
+    );
+
+    return String(rows?.[0]?.access_description || "").trim();
+  } catch (err) {
+    console.error("Audit access description lookup failed:", err);
+    return "";
+  }
+};
+
+const shouldUseAccessDescription = (role) => {
+  const normalizedRole = String(role || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, "_");
+
+  return !ACCESS_DESCRIPTION_EXCLUDED_ROLES.has(normalizedRole);
+};
+
+const replaceActorMessagePrefix = ({ message, actorId, originalRole, finalRole }) => {
+  if (!message || !actorId || !finalRole) return message;
+
+  const formattedOriginalRole = formatRole(originalRole);
+  const possiblePrefixes = [
+    `${formattedOriginalRole} (${actorId})`,
+    `${originalRole || ""} (${actorId})`,
+    `Registrar (${actorId})`,
+  ].filter((value, index, arr) => value.trim() && arr.indexOf(value) === index);
+
+  const nextPrefix = `${finalRole} (${actorId})`;
+  const matchingPrefix = possiblePrefixes.find((prefix) =>
+    message.startsWith(prefix),
+  );
+
+  if (!matchingPrefix || matchingPrefix === nextPrefix) return message;
+
+  return `${nextPrefix}${message.slice(matchingPrefix.length)}`;
 };
 
 const getAuthSeverity = ({ outcome }) => {
@@ -78,24 +136,35 @@ const insertAuditLog = async ({
   severity,
 }) => {
   try {
+    const safeActorId = actorId || "unknown";
+    const accessDescription = shouldUseAccessDescription(role)
+      ? await getAccessDescriptionForActor(safeActorId)
+      : "";
+    const finalRole = accessDescription || role || "unknown";
     const finalMessage =
       message ||
       buildAuthAuditMessage({
-        actorId,
-        role,
+        actorId: safeActorId,
+        role: finalRole,
         outcome,
         reason,
       });
+    const normalizedMessage = replaceActorMessagePrefix({
+      message: finalMessage,
+      actorId: safeActorId,
+      originalRole: role,
+      finalRole,
+    });
 
     await auditDb.query(
       `INSERT INTO audit_logs
         (actor_id, role, action, message, severity)
        VALUES (?, ?, ?, ?, ?)`,
       [
-        actorId || "unknown",
-        role || "unknown",
+        safeActorId,
+        finalRole,
         action,
-        finalMessage,
+        normalizedMessage,
         severity || getAuthSeverity({ outcome }),
       ],
     );

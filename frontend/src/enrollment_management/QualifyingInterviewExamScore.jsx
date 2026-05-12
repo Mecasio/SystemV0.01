@@ -205,8 +205,34 @@ const QualifyingExamScore = () => {
       status: edits.status ?? person.status ?? "",
 
       user_person_id: userID,
+      audit_actor_id:
+        employeeID ||
+        localStorage.getItem("employee_id") ||
+        localStorage.getItem("email") ||
+        "unknown",
+      audit_actor_role:
+        localStorage.getItem("access_description") ||
+        userRole ||
+        localStorage.getItem("role") ||
+        "registrar",
+      audit_actor_email: localStorage.getItem("email") || "",
     };
   };
+
+  const auditPayload = (extra = {}) => ({
+    ...extra,
+    audit_actor_id:
+      employeeID ||
+      localStorage.getItem("employee_id") ||
+      localStorage.getItem("email") ||
+      "unknown",
+    audit_actor_role:
+      localStorage.getItem("access_description") ||
+      userRole ||
+      localStorage.getItem("role") ||
+      "registrar",
+    audit_actor_email: localStorage.getItem("email") || "",
+  });
 
   const saveSingleRow = async (person) => {
     try {
@@ -1238,6 +1264,7 @@ const QualifyingExamScore = () => {
     axios
       .put(
         `${API_BASE_URL}/api/interview_applicants/assign/${applicant_number}`,
+        auditPayload({ assignment_mode: "single" }),
       )
       .then((res) => {
         console.log("Assign response:", res.data);
@@ -1334,6 +1361,7 @@ const QualifyingExamScore = () => {
     axios
       .put(`${API_BASE_URL}/api/interview_applicants/assign`, {
         applicant_numbers: toAssign.map((a) => a.applicant_number),
+        ...auditPayload({ assignment_mode: "max", selected_department: selectedDepartmentFilter }),
       })
       .then((res) => {
         console.log("Updated statuses:", res.data);
@@ -1455,6 +1483,7 @@ const QualifyingExamScore = () => {
     axios
       .put(`${API_BASE_URL}/api/interview_applicants/assign`, {
         applicant_numbers: toAssign.map((a) => a.applicant_number),
+        ...auditPayload({ assignment_mode: "custom", selected_department: selectedDepartmentFilter }),
       })
       .then((res) => {
         console.log("Updated statuses:", res.data);
@@ -1474,6 +1503,7 @@ const QualifyingExamScore = () => {
     axios
       .put(
         `${API_BASE_URL}/api/interview_applicants/unassign/${applicant_number}`,
+        auditPayload({ assignment_mode: "single" }),
       )
       .then((res) => {
         console.log("Unassign response:", res.data);
@@ -1511,6 +1541,7 @@ const QualifyingExamScore = () => {
     axios
       .put(`${API_BASE_URL}/api/interview_applicants/unassign-all`, {
         applicant_numbers: persons.map((a) => a.applicant_number),
+        ...auditPayload({ assignment_mode: "all" }),
       })
       .then((res) => {
         console.log("Updated statuses:", res.data);
@@ -2122,6 +2153,7 @@ Thank you, best regards
       axios
         .put(`${API_BASE_URL}/api/interview_applicants/assign`, {
           applicant_numbers: toAssign.map((a) => a.applicant_number),
+          ...auditPayload({ assignment_mode: "top", selected_department: selectedDepartmentFilter }),
         })
         .then((res) => {
           console.log("Updated statuses:", res.data);

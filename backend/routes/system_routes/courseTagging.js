@@ -1437,6 +1437,89 @@ router.get("/api/admin_data/:email", async (req, res) => {
 });
 
 // CHECK PREREQUISITE BEFORE ENROLLMENT
+router.post("/api/check-student-balance", async (req, res) => {
+  try {
+    const { student_number, active_school_year_id } = req.body;
+
+    if (!student_number) {
+      return res.status(400).json({
+        hasBalance: false,
+        balance: 0,
+        message: "student_number is required.",
+      });
+    }
+
+    let activeSchoolYearId = active_school_year_id;
+
+    if (!activeSchoolYearId) {
+      const [activeYearRows] = await db3.query(
+        "SELECT id FROM active_school_year_table WHERE astatus = 1 LIMIT 1"
+      );
+
+      activeSchoolYearId = activeYearRows[0]?.id || null;
+    }
+
+    const [unifastRows] = await db3.query(
+      `SELECT id
+       FROM unifast
+       WHERE student_number = ?
+         AND status = 1
+         AND (? IS NULL OR active_school_year_id = ?)
+       ORDER BY active_school_year_id DESC, id DESC
+       LIMIT 1`,
+      [student_number, activeSchoolYearId, activeSchoolYearId]
+    );
+
+    if (unifastRows.length > 0) {
+      return res.json({
+        hasBalance: false,
+        balance: 0,
+        payment_type: "unifast",
+        unifast_id: unifastRows[0].id,
+        active_school_year_id: activeSchoolYearId,
+        message: "Student is under UNIFAST. Matriculation balance rule does not apply.",
+      });
+    }
+
+    const [rows] = await db3.query(
+      `SELECT
+          id,
+          student_number,
+          COALESCE(NULLIF(balance, ''), '0') AS balance,
+          COALESCE(NULLIF(total_tosf, ''), '0') AS total_tosf,
+          COALESCE(NULLIF(payment, ''), '0') AS payment
+       FROM matriculation
+       WHERE student_number = ?
+         AND (? IS NULL OR active_school_year_id = ?)
+       ORDER BY active_school_year_id DESC, id DESC
+       LIMIT 1`,
+      [student_number, activeSchoolYearId, activeSchoolYearId]
+    );
+
+    const matriculation = rows[0] || null;
+    const balance = Number(String(matriculation?.balance ?? "0").replace(/,/g, ""));
+    const safeBalance = Number.isFinite(balance) && balance > 0 ? balance : 0;
+
+    return res.json({
+      hasBalance: safeBalance > 0,
+      balance: safeBalance,
+      payment_type: matriculation ? "matriculation" : null,
+      matriculation_id: matriculation?.id || null,
+      active_school_year_id: activeSchoolYearId,
+      message: safeBalance > 0
+        ? "Student still has a remaining matriculation balance."
+        : "Student has no remaining matriculation balance.",
+    });
+  } catch (err) {
+    console.error("Error in /api/check-student-balance:", err);
+    return res.status(500).json({
+      hasBalance: false,
+      balance: 0,
+      message: "Error checking student balance.",
+    });
+  }
+});
+
 router.post("/api/check-prerequisite", async (req, res) => {
   try {
     const { student_number, course_id, semester_id, curriculum_id } = req.body;

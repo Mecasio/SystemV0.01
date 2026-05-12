@@ -108,13 +108,19 @@ const StudentScholarshipList = () => {
   const pageId = 129;
 
   const [employeeID, setEmployeeID] = useState("");
+  const [accessDescription, setAccessDescription] = useState("");
 
   const getAuditHeaders = () => ({
     "Content-Type": "application/json",
     "x-employee-id": employeeID || localStorage.getItem("employee_id") || "",
     "x-page-id": pageId,
     "x-audit-actor-id": employeeID || localStorage.getItem("employee_id") || "",
-    "x-audit-actor-role": userRole || localStorage.getItem("role") || "registrar",
+    "x-audit-actor-role":
+      accessDescription ||
+      localStorage.getItem("access_description") ||
+      userRole ||
+      localStorage.getItem("role") ||
+      "registrar",
   });
   useEffect(() => {
     const storedUser = localStorage.getItem("email");
@@ -142,6 +148,11 @@ const StudentScholarshipList = () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/page_access/${employeeID}/${pageId}`);
       if (response.data && response.data.page_privilege === 1) {
+        const userAccessDescription = response.data.access_description || "";
+        setAccessDescription(userAccessDescription);
+        if (userAccessDescription) {
+          localStorage.setItem("access_description", userAccessDescription);
+        }
         setHasAccess(true);
       } else {
         setHasAccess(false);
@@ -185,6 +196,12 @@ const StudentScholarshipList = () => {
   const [selectedCorStudentNumber, setSelectedCorStudentNumber] = useState("");
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("info");
+  const showSnackbar = (message, severity = "info") => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setOpenSnackbar(true);
+  };
   const handleCloseSnackbar = (_, reason) => {
     if (reason === "clickaway") return;
     setOpenSnackbar(false);
@@ -217,21 +234,18 @@ const StudentScholarshipList = () => {
             setStudentDetails(detailsData);
           } else {
             setStudentDetails([]);
-            setSnackbarMessage("No enrolled subjects found for this student.");
-            setOpenSnackbar(true);
+            showSnackbar("No enrolled subjects found for this student.");
           }
         } else {
           setSelectedStudent(null);
           setStudentData([]);
           setStudentDetails([]);
-          setSnackbarMessage("No student data found.");
-          setOpenSnackbar(true);
+          showSnackbar("No student data found.");
         }
       } catch (err) {
         console.error("Error fetching student", err);
-        setSnackbarMessage("Server error. Please try again.");
         localStorage.removeItem("admin_edit_person_id");
-        setOpenSnackbar(true);
+        showSnackbar("Server error. Please try again.", "error");
       }
     };
 
@@ -336,8 +350,7 @@ const StudentScholarshipList = () => {
         setNotAssignedStudents(Array.isArray(response.data) ? response.data : []);
       } catch (error) {
         console.error("Failed to fetch not assigned students:", error);
-        setSnackbarMessage("Failed to load not assigned students.");
-        setOpenSnackbar(true);
+        showSnackbar("Failed to load not assigned students.", "error");
       } finally {
         setNotAssignedLoading(false);
       }
@@ -430,9 +443,15 @@ const StudentScholarshipList = () => {
     setSelectedCorStudentNumber("");
   };
 
-  const handleCorSaved = () => {
+  const handleCorSaved = (savedInfo = {}) => {
     setRefreshNotAssignedKey((prev) => prev + 1);
     handleCloseCorModal();
+    const paymentType =
+      savedInfo.type === "unifast" ? "UNIFAST" : "Matriculation";
+    showSnackbar(
+      `Student payment was saved successfully to ${paymentType}.`,
+      "success",
+    );
   };
 
   // Put this at the very bottom before the return 
@@ -779,7 +798,11 @@ const StudentScholarshipList = () => {
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Alert onClose={handleCloseSnackbar} severity="info" variant="filled">
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbarSeverity}
+          variant="filled"
+        >
           {snackbarMessage}
         </Alert>
       </Snackbar>

@@ -38,12 +38,73 @@ const insertReceiptCounterAuditLog = async ({ req, action, message }) => {
     });
 };
 
+let receiptCounterColumnsReady = false;
+
+const ensureReceiptCounterAuditColumns = async () => {
+    if (receiptCounterColumnsReady) return;
+
+    await db3.query(`
+        ALTER TABLE receipt_counter
+            ADD COLUMN IF NOT EXISTS last_issued_transaction_id int(11) DEFAULT NULL AFTER counter,
+            ADD COLUMN IF NOT EXISTS updated_at timestamp NULL DEFAULT NULL ON UPDATE current_timestamp() AFTER created_at
+    `);
+
+    receiptCounterColumnsReady = true;
+};
+
 const normalizeCounter = (value) => String(value ?? "").trim();
 const isDigitsOnly = (value) => /^\d+$/.test(value);
 const getFirstFour = (value) => value.slice(0, 4);
 
+const formatEmployeeName = (row = {}) => {
+    const lastName = row.last_name || row.lname || "";
+    const firstName = row.first_name || row.fname || "";
+    const middleName = row.middle_name || row.mname || "";
+    const fullName = [firstName, middleName, lastName].filter(Boolean).join(" ").trim();
+    return fullName || "Unknown Employee";
+};
+
+const formatSchoolYear = (row = {}) => {
+    if (row.current_year && row.next_year && row.semester_description) {
+        return `${row.current_year}-${row.next_year}, ${row.semester_description}`;
+    }
+
+    return row.active_school_year_id || "N/A";
+};
+
+const getEmployeeAuditDetails = async (employeeId) => {
+    const [[employee]] = await db3.query(
+        `SELECT employee_id, first_name, middle_name, last_name
+         FROM user_accounts
+         WHERE employee_id = ?
+         LIMIT 1`,
+        [employeeId]
+    );
+
+    return employee || { employee_id: employeeId };
+};
+
+const getActiveSchoolYearAuditDetails = async (activeSchoolYearId) => {
+    const [[row]] = await db3.query(
+        `SELECT
+            asyt.id AS active_school_year_id,
+            yt.year_description AS current_year,
+            yt.year_description + 1 AS next_year,
+            st.semester_description
+         FROM active_school_year_table AS asyt
+         LEFT JOIN year_table AS yt ON asyt.year_id = yt.year_id
+         LEFT JOIN semester_table AS st ON asyt.semester_id = st.semester_id
+         WHERE asyt.id = ?
+         LIMIT 1`,
+        [activeSchoolYearId]
+    );
+
+    return row || { active_school_year_id: activeSchoolYearId };
+};
+
 router.get('/api/receipt-counter/active/:active_school_year_id', async (req, res) => {
     try {
+        await ensureReceiptCounterAuditColumns();
         const { active_school_year_id } = req.params;
 
         if (!active_school_year_id) {
@@ -66,6 +127,7 @@ router.get('/api/receipt-counter/active/:active_school_year_id', async (req, res
 
 router.post('/api/receipt-counter/assign', async (req, res) => {
     try {
+        await ensureReceiptCounterAuditColumns();
         const { counter, employee_id, year_id, semester_id } = req.body;
         const normalizedCounter = normalizeCounter(counter);
 
@@ -80,9 +142,15 @@ router.post('/api/receipt-counter/assign', async (req, res) => {
         }
 
         const [activeSchoolYearRows] = await db3.query(
-            `SELECT id
-             FROM active_school_year_table
-             WHERE year_id = ? AND semester_id = ?
+            `SELECT
+                asyt.id,
+                yt.year_description AS current_year,
+                yt.year_description + 1 AS next_year,
+                st.semester_description
+             FROM active_school_year_table AS asyt
+             LEFT JOIN year_table AS yt ON asyt.year_id = yt.year_id
+             LEFT JOIN semester_table AS st ON asyt.semester_id = st.semester_id
+             WHERE asyt.year_id = ? AND asyt.semester_id = ?
              LIMIT 1`,
             [year_id, semester_id]
         );
@@ -136,10 +204,11 @@ router.post('/api/receipt-counter/assign', async (req, res) => {
 
         const { actorId, actorRole } = getAuditActor(req);
         const roleLabel = formatAuditActorRole(actorRole);
+        const employeeDetails = await getEmployeeAuditDetails(employee_id);
         await insertReceiptCounterAuditLog({
             req,
             action: "RECEIPT_COUNTER_ASSIGN",
-            message: `${roleLabel} (${actorId}) assigned receipt counter ${normalizedCounter} to Employee (${employee_id}). Assignment ID: ${insertResult.insertId}.`,
+            message: `${roleLabel} (${actorId}) assigned receipt counter ${normalizedCounter} to ${formatEmployeeName(employeeDetails)} (${employee_id}) for ${formatSchoolYear(activeSchoolYearRows[0])}. Assignment ID: ${insertResult.insertId}.`,
         });
 
         return res.status(201).json({ message: "Receipt counter assigned successfully." });
@@ -151,6 +220,7 @@ router.post('/api/receipt-counter/assign', async (req, res) => {
 
 router.put('/api/receipt-counter/:id', async (req, res) => {
     try {
+        await ensureReceiptCounterAuditColumns();
         const { id } = req.params;
         const { counter } = req.body;
         const normalizedCounter = normalizeCounter(counter);
@@ -166,7 +236,7 @@ router.put('/api/receipt-counter/:id', async (req, res) => {
         }
 
         const [assignmentRows] = await db3.query(
-            `SELECT active_school_year_id, employee_id, counter
+            `SELECT active_school_year_id, employee_id, counter, last_issued_transaction_id
              FROM receipt_counter
              WHERE id = ?
              LIMIT 1`,
@@ -217,10 +287,12 @@ router.put('/api/receipt-counter/:id', async (req, res) => {
 
         const { actorId, actorRole } = getAuditActor(req);
         const roleLabel = formatAuditActorRole(actorRole);
+        const employeeDetails = await getEmployeeAuditDetails(assignmentRows[0].employee_id);
+        const schoolYearDetails = await getActiveSchoolYearAuditDetails(activeSchoolYearId);
         await insertReceiptCounterAuditLog({
             req,
             action: "RECEIPT_COUNTER_UPDATE",
-            message: `${roleLabel} (${actorId}) updated receipt counter assignment ${id} for Employee (${assignmentRows[0].employee_id}) from ${assignmentRows[0].counter} to ${normalizedCounter}.`,
+            message: `${roleLabel} (${actorId}) updated receipt counter assignment ${id} for ${formatEmployeeName(employeeDetails)} (${assignmentRows[0].employee_id}) in ${formatSchoolYear(schoolYearDetails)} from ${assignmentRows[0].counter} to ${normalizedCounter}. Last issued receipt: ${assignmentRows[0].last_issued_transaction_id || "None"}.`,
         });
 
         return res.json({ message: "Receipt counter updated successfully." });
@@ -232,6 +304,7 @@ router.put('/api/receipt-counter/:id', async (req, res) => {
 
 router.delete('/api/receipt-counter/:id', async (req, res) => {
     try {
+        await ensureReceiptCounterAuditColumns();
         const { id } = req.params;
 
         if (!id) {
@@ -239,7 +312,7 @@ router.delete('/api/receipt-counter/:id', async (req, res) => {
         }
 
         const [[assignmentBefore]] = await db3.query(
-            `SELECT id, counter, employee_id, active_school_year_id
+            `SELECT id, counter, employee_id, active_school_year_id, last_issued_transaction_id
              FROM receipt_counter
              WHERE id = ?
              LIMIT 1`,
@@ -258,10 +331,16 @@ router.delete('/api/receipt-counter/:id', async (req, res) => {
 
         const { actorId, actorRole } = getAuditActor(req);
         const roleLabel = formatAuditActorRole(actorRole);
+        const employeeDetails = assignmentBefore?.employee_id
+            ? await getEmployeeAuditDetails(assignmentBefore.employee_id)
+            : {};
+        const schoolYearDetails = assignmentBefore?.active_school_year_id
+            ? await getActiveSchoolYearAuditDetails(assignmentBefore.active_school_year_id)
+            : {};
         await insertReceiptCounterAuditLog({
             req,
             action: "RECEIPT_COUNTER_DEASSIGN",
-            message: `${roleLabel} (${actorId}) deassigned receipt counter ${assignmentBefore?.counter || "N/A"} from Employee (${assignmentBefore?.employee_id || "unknown"}).`,
+            message: `${roleLabel} (${actorId}) deassigned receipt counter ${assignmentBefore?.counter || "N/A"} from ${formatEmployeeName(employeeDetails)} (${assignmentBefore?.employee_id || "unknown"}) for ${formatSchoolYear(schoolYearDetails)}. Last issued receipt: ${assignmentBefore?.last_issued_transaction_id || "None"}.`,
         });
 
         return res.json({ message: "Receipt counter deassigned successfully." });
