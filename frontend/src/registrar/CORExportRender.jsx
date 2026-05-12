@@ -83,12 +83,20 @@ const CORExportRender = () => {
       content.style.height = `${naturalHeight}px`;
       await nextFrame();
 
-      const fittedRect = content.getBoundingClientRect();
       const pageRectAfterFit = page.getBoundingClientRect();
+      const fittedRects = Array.from(content.querySelectorAll("*")).map(
+        (child) => child.getBoundingClientRect(),
+      );
+      const fittedMinLeft = Math.min(...fittedRects.map((rect) => rect.left));
+      const fittedMaxRight = Math.max(...fittedRects.map((rect) => rect.right));
+      const fittedMinTop = Math.min(...fittedRects.map((rect) => rect.top));
+      const fittedMaxBottom = Math.max(...fittedRects.map((rect) => rect.bottom));
+      const fittedVisualWidth = fittedMaxRight - fittedMinLeft;
+      const fittedVisualHeight = fittedMaxBottom - fittedMinTop;
       const overflowAdjustment = Math.min(
         1,
-        (pageRectAfterFit.width - 4) / Math.max(fittedRect.width, 1),
-        (pageRectAfterFit.height - 4) / Math.max(fittedRect.height, 1),
+        (pageRectAfterFit.width - 4) / Math.max(fittedVisualWidth, 1),
+        (pageRectAfterFit.height - 4) / Math.max(fittedVisualHeight, 1),
       );
 
       if (overflowAdjustment < 1) {
@@ -96,6 +104,19 @@ const CORExportRender = () => {
         content.style.transform = `scale(${scale})`;
         await nextFrame();
       }
+
+      const finalRects = Array.from(content.querySelectorAll("*")).map((child) =>
+        child.getBoundingClientRect(),
+      );
+      const finalMinLeft = Math.min(...finalRects.map((rect) => rect.left));
+      const finalMaxRight = Math.max(...finalRects.map((rect) => rect.right));
+      const finalMinTop = Math.min(...finalRects.map((rect) => rect.top));
+      const finalMaxBottom = Math.max(...finalRects.map((rect) => rect.bottom));
+      const finalVisualWidth = finalMaxRight - finalMinLeft;
+      const finalVisualHeight = finalMaxBottom - finalMinTop;
+
+      content.style.left = `${pageRect.left + (pageRect.width - finalVisualWidth) / 2 - finalMinLeft}px`;
+      content.style.top = `${pageRect.top + (pageRect.height - finalVisualHeight) / 2 - finalMinTop}px`;
 
       window.__COR_SCALE = scale;
       window.__COR_FITS_A4 = true;

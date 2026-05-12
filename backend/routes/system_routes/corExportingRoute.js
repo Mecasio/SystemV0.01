@@ -215,16 +215,12 @@ const runCorExportJob = async (job) => {
         const allRects = Array.from(content.querySelectorAll("*")).map((node) =>
           node.getBoundingClientRect(),
         );
-        const maxRight = Math.max(
-          content.getBoundingClientRect().right,
-          ...allRects.map((rect) => rect.right),
-        );
-        const maxBottom = Math.max(
-          content.getBoundingClientRect().bottom,
-          ...allRects.map((rect) => rect.bottom),
-        );
-        const overflowX = Math.max(1, maxRight - pageRect.left);
-        const overflowY = Math.max(1, maxBottom - pageRect.top);
+        const minLeft = Math.min(...allRects.map((rect) => rect.left));
+        const maxRight = Math.max(...allRects.map((rect) => rect.right));
+        const minTop = Math.min(...allRects.map((rect) => rect.top));
+        const maxBottom = Math.max(...allRects.map((rect) => rect.bottom));
+        const overflowX = Math.max(1, maxRight - minLeft);
+        const overflowY = Math.max(1, maxBottom - minTop);
         const currentScale = getScale();
         const correction = Math.min(
           1,
@@ -237,6 +233,21 @@ const runCorExportJob = async (job) => {
           content.style.transform = `scale(${nextScale})`;
           window.__COR_SCALE = nextScale;
         }
+
+        const finalRects = Array.from(content.querySelectorAll("*")).map((node) =>
+          node.getBoundingClientRect(),
+        );
+        const finalMinLeft = Math.min(...finalRects.map((rect) => rect.left));
+        const finalMaxRight = Math.max(...finalRects.map((rect) => rect.right));
+        const finalMinTop = Math.min(...finalRects.map((rect) => rect.top));
+        const finalMaxBottom = Math.max(...finalRects.map((rect) => rect.bottom));
+        const visualWidth = finalMaxRight - finalMinLeft;
+        const visualHeight = finalMaxBottom - finalMinTop;
+        const currentLeft = Number.parseFloat(content.style.left || "0") || 0;
+        const currentTop = Number.parseFloat(content.style.top || "0") || 0;
+
+        content.style.left = `${currentLeft + (pageRect.left + (pageRect.width - visualWidth) / 2 - finalMinLeft)}px`;
+        content.style.top = `${currentTop + (pageRect.top + (pageRect.height - visualHeight) / 2 - finalMinTop)}px`;
       });
       await page.waitForFunction(
         () => {
@@ -250,10 +261,7 @@ const runCorExportJob = async (job) => {
           const allRects = Array.from(content.querySelectorAll("*")).map((node) =>
             node.getBoundingClientRect(),
           );
-          const maxBottom = Math.max(
-            content.getBoundingClientRect().bottom,
-            ...allRects.map((rect) => rect.bottom),
-          );
+          const maxBottom = Math.max(...allRects.map((rect) => rect.bottom));
 
           return maxBottom <= pageRect.bottom - 2;
         },
@@ -409,7 +417,19 @@ router.get("/api/cor-export/jobs/:jobId/download", (req, res) => {
     return res.status(409).json({ message: "Export job is not ready" });
   }
 
-  res.download(job.file_path, job.file_name);
+  res.download(job.file_path, job.file_name, (error) => {
+    if (error) {
+      console.error("COR export download failed:", error);
+      return;
+    }
+
+    exportJobs.delete(job.id);
+    fs.unlink(job.file_path, (unlinkError) => {
+      if (unlinkError && unlinkError.code !== "ENOENT") {
+        console.error("Failed to delete COR export ZIP:", unlinkError);
+      }
+    });
+  });
 });
 
 module.exports = router;

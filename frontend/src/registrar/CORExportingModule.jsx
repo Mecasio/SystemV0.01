@@ -542,27 +542,31 @@ const CORExportingModule = () => {
       { responseType: "blob" },
     );
     downloadBlob(downloadRes.data, job?.file_name || `${zipFileName}.zip`);
+    setExportProgress(100);
+    setExportStatus("Download complete.");
 
-    try {
+    Promise.resolve().then(async () => {
       const selectedProgramInfo =
         programs.find((p) => p.program_id == selectedProgram) || {};
-      await axios.post(
-        `${API_BASE_URL}/api/cor-export/audit`,
-        {
-          exported_count: Number(job?.total || listToExport.length),
-          department_label:
-            selectedDept.dprtmnt_code || selectedDept.dprtmnt_name || "",
-          program_label:
-            selectedProgramInfo.program_code ||
-            selectedProgramInfo.program_description ||
-            "",
-          year_level_label: yearLevelDesc,
-        },
-        { headers: getAuditHeaders() },
-      );
-    } catch (auditError) {
-      console.error("Failed to insert COR export audit log:", auditError);
-    }
+      try {
+        await axios.post(
+          `${API_BASE_URL}/api/cor-export/audit`,
+          {
+            exported_count: Number(job?.total || listToExport.length),
+            department_label:
+              selectedDept.dprtmnt_code || selectedDept.dprtmnt_name || "",
+            program_label:
+              selectedProgramInfo.program_code ||
+              selectedProgramInfo.program_description ||
+              "",
+            year_level_label: yearLevelDesc,
+          },
+          { headers: getAuditHeaders() },
+        );
+      } catch (auditError) {
+        console.error("Failed to insert COR export audit log:", auditError);
+      }
+    });
   };
 
   const handleExportPdfAll = async () => {
@@ -588,6 +592,12 @@ const CORExportingModule = () => {
     try {
       try {
         await runServerCorExport(listToExport);
+        setExporting(false);
+        setExportTotal(0);
+        setExportCurrent(0);
+        setExportProgress(0);
+        setExportStatus("");
+        setExportList([]);
         return;
       } catch (serverExportError) {
         console.error("Server COR export failed; falling back to browser export:", serverExportError);

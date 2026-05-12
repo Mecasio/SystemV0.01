@@ -166,6 +166,7 @@ const CertificateOfRegistration = forwardRef(
     const [approvedBy, setApprovedBy] = useState(null);
     const [approvedBySignatureMissing, setApprovedBySignatureMissing] =
       useState(false);
+    const [qrCodeMissing, setQrCodeMissing] = useState(false);
     const approvedBySignature =
       typeof approvedBy?.signature_image === "string"
         ? approvedBy.signature_image.trim()
@@ -180,6 +181,10 @@ const CertificateOfRegistration = forwardRef(
     useEffect(() => {
       setApprovedBySignatureMissing(false);
     }, [approvedBySignatureUrl]);
+
+    useEffect(() => {
+      setQrCodeMissing(false);
+    }, [student_number]);
 
     useEffect(() => {
       const fetchApprovedBy = async () => {
@@ -3752,12 +3757,13 @@ const CertificateOfRegistration = forwardRef(
                           justifyContent: "flex-end",
                         }}
                       >
-                        {hasStudentData && (
+                        {hasStudentData && !qrCodeMissing && (
                           <img
                             className="qr-code-img"
-                            style={{ width: "150px", height: "150px", }}
+                            style={{ width: "150px", height: "150px" }}
                             src={`${API_BASE_URL}/uploads/QrCodeGenerated/${student_number}_qrcode.png`}
-                            alt="QR Code"
+                            alt=""
+                            onError={() => setQrCodeMissing(true)}
                           />
                         )}
                       </td>

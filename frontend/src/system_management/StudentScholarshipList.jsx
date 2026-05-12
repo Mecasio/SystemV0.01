@@ -19,6 +19,12 @@ import {
   DialogTitle,
   DialogContent,
   Button,
+  FormControl,
+  Select,
+  MenuItem,
+  List,
+  ListItemButton,
+  ListItemText,
 } from "@mui/material";
 import '../styles/Print.css'
 import CertificateOfRegistration from '../components/CORForScholarship';
@@ -253,10 +259,11 @@ const StudentScholarshipList = () => {
     }
   }, []);
 
-  const [studentNumber, setStudentNumber] = useState(() => {
-    return localStorage.getItem("studentNumberForCOR") || localStorage.getItem("admin_edit_person_id") || "";
-  });
+  const [studentNumber, setStudentNumber] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
   const [debouncedStudentNumber, setDebouncedStudentNumber] = useState("");
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 20;
 
   const divToPrintRef = useRef();
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -339,10 +346,83 @@ const StudentScholarshipList = () => {
     fetchNotAssignedStudents();
   }, [refreshNotAssignedKey]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [notAssignedStudents.length, studentNumber]);
+
+  const normalizedSearch = studentNumber.trim().toLowerCase();
+  const filteredNotAssignedStudents = normalizedSearch
+    ? notAssignedStudents.filter((student) => {
+        const searchableText = [
+          student.student_number,
+          student.last_name,
+          student.first_name,
+          student.middle_name,
+          student.extension,
+          student.program_code,
+          student.program_description,
+          student.major,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+
+        return searchableText.includes(normalizedSearch);
+      })
+    : notAssignedStudents;
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredNotAssignedStudents.length / rowsPerPage),
+  );
+
+  const paginatedNotAssignedStudents = filteredNotAssignedStudents.slice(
+    (page - 1) * rowsPerPage,
+    page * rowsPerPage,
+  );
+  const searchSuggestions = normalizedSearch
+    ? filteredNotAssignedStudents.slice(0, 8)
+    : [];
+  const showSearchSuggestions = searchFocused && normalizedSearch && searchSuggestions.length > 0;
+
+  const paginationButtonStyles = {
+    minWidth: 70,
+    color: "white",
+    borderColor: "white",
+    backgroundColor: "transparent",
+    "&:hover": {
+      borderColor: "white",
+      backgroundColor: "rgba(255,255,255,0.1)",
+    },
+    "&.Mui-disabled": {
+      color: "white",
+      borderColor: "white",
+      backgroundColor: "transparent",
+      opacity: 1,
+    },
+  };
+
+  const paginationSelectStyles = {
+    fontSize: "12px",
+    height: 36,
+    color: "white",
+    border: "1px solid white",
+    backgroundColor: "transparent",
+    ".MuiOutlinedInput-notchedOutline": { borderColor: "white" },
+    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
+    "& svg": { color: "white" },
+  };
+
   const handleOpenCorModal = (studentNumberValue) => {
     setSelectedCorStudentNumber(studentNumberValue);
-    setStudentNumber(studentNumberValue);
     setOpenCorModal(true);
+  };
+
+  const handleSelectSuggestion = (student) => {
+    setStudentNumber(student.student_number || "");
+    setSearchFocused(false);
+    handleOpenCorModal(student.student_number);
   };
 
   const handleCloseCorModal = () => {
@@ -390,13 +470,15 @@ const StudentScholarshipList = () => {
           ASSIGN STUDENT SCHOLARSHIP
         </Typography>
 
-        <TextField
-          variant="outlined"
-          placeholder="Enter Student Number"
-          size="small"
-          value={studentNumber}
-
-          onChange={(e) => setStudentNumber(e.target.value)}
+        <Box sx={{ position: "relative", width: 450, maxWidth: "100%" }}>
+          <TextField
+            variant="outlined"
+            placeholder="Enter Student Number"
+            size="small"
+            value={studentNumber}
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setTimeout(() => setSearchFocused(false), 150)}
+            onChange={(e) => setStudentNumber(e.target.value)}
           sx={{
             width: 450,
             backgroundColor: "#fff",
@@ -408,7 +490,67 @@ const StudentScholarshipList = () => {
           InputProps={{
             startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
           }}
-        />
+          />
+          {showSearchSuggestions && (
+            <Paper
+              elevation={6}
+              onMouseDown={(event) => event.preventDefault()}
+              sx={{
+                position: "absolute",
+                top: "calc(100% + 6px)",
+                left: 0,
+                right: 0,
+                zIndex: 20,
+                borderRadius: "10px",
+                overflow: "hidden",
+                maxHeight: 360,
+              }}
+            >
+              <List dense disablePadding>
+                {searchSuggestions.map((student) => {
+                  const fullName = [
+                    student.first_name,
+                    student.middle_name,
+                    student.last_name,
+                    student.extension,
+                  ]
+                    .filter(Boolean)
+                    .join(" ");
+
+                  return (
+                    <ListItemButton
+                      key={student.student_number}
+                      onClick={() => handleSelectSuggestion(student)}
+                      sx={{
+                        py: 1,
+                        px: 1.5,
+                        "&:hover": { backgroundColor: "#f0f2f5" },
+                      }}
+                    >
+                      <ListItemText
+                        primary={
+                          fullName || student.student_number || "Unnamed Student"
+                        }
+                        secondary={`${student.student_number || "No student number"}${
+                          student.program_code ? ` - ${student.program_code}` : ""
+                        }${student.major ? ` - ${student.major}` : ""}`}
+                        primaryTypographyProps={{
+                          fontSize: 14,
+                          fontWeight: 700,
+                          color: "#1c1e21",
+                        }}
+                        secondaryTypographyProps={{
+                          fontSize: 12,
+                          color: "#65676b",
+                        }}
+                      />
+                    </ListItemButton>
+                  );
+                })}
+              </List>
+            </Paper>
+          )}
+        </Box>
       </Box>
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
@@ -420,6 +562,98 @@ const StudentScholarshipList = () => {
         <TableContainer component={Paper}>
           <Table size="small">
             <TableHead >
+              <TableRow>
+                <TableCell
+                  colSpan={8}
+                  sx={{
+                    border: `1px solid ${borderColor}`,
+                    py: 0.5,
+                    backgroundColor: settings?.header_color || "#1976d2",
+                    color: "white",
+                    height: "60px",
+                  }}
+                >
+                  <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    flexWrap="wrap"
+                    sx={{ px: 1 }}
+                  >
+                    <Typography fontSize="14px" fontWeight="bold" color="white">
+                      Total Students: {filteredNotAssignedStudents.length}
+                    </Typography>
+
+                    <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
+                      <Button
+                        onClick={() => setPage(1)}
+                        disabled={page === 1}
+                        variant="outlined"
+                        size="small"
+                        sx={paginationButtonStyles}
+                      >
+                        First
+                      </Button>
+
+                      <Button
+                        onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                        disabled={page === 1}
+                        variant="outlined"
+                        size="small"
+                        sx={paginationButtonStyles}
+                      >
+                        Prev
+                      </Button>
+
+                      <FormControl size="small" sx={{ minWidth: 80 }}>
+                        <Select
+                          value={page}
+                          onChange={(e) => setPage(Number(e.target.value))}
+                          displayEmpty
+                          sx={paginationSelectStyles}
+                          MenuProps={{
+                            PaperProps: {
+                              sx: { maxHeight: 200, backgroundColor: "#fff" },
+                            },
+                          }}
+                        >
+                          {Array.from({ length: totalPages }, (_, i) => (
+                            <MenuItem key={i + 1} value={i + 1}>
+                              Page {i + 1}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+
+                      <Typography fontSize="11px" color="white">
+                        of {totalPages} page{totalPages > 1 ? "s" : ""}
+                      </Typography>
+
+                      <Button
+                        onClick={() =>
+                          setPage((prev) => Math.min(prev + 1, totalPages))
+                        }
+                        disabled={page === totalPages}
+                        variant="outlined"
+                        size="small"
+                        sx={paginationButtonStyles}
+                      >
+                        Next
+                      </Button>
+
+                      <Button
+                        onClick={() => setPage(totalPages)}
+                        disabled={page === totalPages}
+                        variant="outlined"
+                        size="small"
+                        sx={paginationButtonStyles}
+                      >
+                        Last
+                      </Button>
+                    </Box>
+                  </Box>
+                </TableCell>
+              </TableRow>
               <TableRow >
                 <TableCell sx={{
                   border: `1px solid ${borderColor}`,
@@ -480,15 +714,17 @@ const StudentScholarshipList = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {!notAssignedLoading && notAssignedStudents.length === 0 && (
+              {!notAssignedLoading && filteredNotAssignedStudents.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={8} align="center">
-                    No not-assigned students found.
+                    {studentNumber
+                      ? "No students match your search."
+                      : "No not-assigned students found."}
                   </TableCell>
                 </TableRow>
               )}
 
-              {notAssignedStudents.map((student) => (
+              {paginatedNotAssignedStudents.map((student) => (
                 <TableRow key={student.student_number} hover>
                   <TableCell sx={{  border: `1px solid ${borderColor}`}}>
                     <Button
