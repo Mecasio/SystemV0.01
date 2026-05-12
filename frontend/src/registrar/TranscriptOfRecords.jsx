@@ -221,11 +221,11 @@ const TOR = () => {
 
   const tabs = [
     { label: "Student List", to: "/student_list", icon: <SchoolIcon fontSize="large" /> },
-       { label: "Student Profile", to: "/readmission_dashboard1", icon: <PersonIcon fontSize="large" /> },
-       { label: "Submitted Documents", to: "/submitted_documents", icon: <AssignmentIcon fontSize="large" /> },
-       { label: "Search Certificate of Registration", to: "/search_cor", icon: <ListAltIcon fontSize="large" /> },
-       { label: "Report of Grades", to: "/report_of_grades", icon: <GradeIcon fontSize="large" /> },
-       { label: "Transcript of Records", to: "/transcript_of_records", icon: <ReceiptLongIcon fontSize="large" /> },
+    { label: "Student Profile", to: "/readmission_dashboard1", icon: <PersonIcon fontSize="large" /> },
+    { label: "Submitted Documents", to: "/submitted_documents", icon: <AssignmentIcon fontSize="large" /> },
+    { label: "Search Certificate of Registration", to: "/search_cor", icon: <ListAltIcon fontSize="large" /> },
+    { label: "Report of Grades", to: "/report_of_grades", icon: <GradeIcon fontSize="large" /> },
+    { label: "Transcript of Records", to: "/transcript_of_records", icon: <ReceiptLongIcon fontSize="large" /> },
   ];
 
   useEffect(() => {
@@ -407,8 +407,8 @@ const TOR = () => {
             const accessTablePages = parsePageIds(user.access_page);
             const assignedPageIds = Array.isArray(user.assigned_page_ids)
               ? user.assigned_page_ids
-                  .map((id) => Number(id))
-                  .filter((id) => Number.isInteger(id))
+                .map((id) => Number(id))
+                .filter((id) => Number.isInteger(id))
               : [];
 
             return (
@@ -812,7 +812,7 @@ const TOR = () => {
         ))}
       </Box>
       <br />
-         <br />
+      <br />
       <style>
         {`  
             @media print {
@@ -946,6 +946,7 @@ const TOR = () => {
         </Table>
       </TableContainer>
       <br />
+       <br />
 
       <Box
         sx={{
@@ -960,169 +961,325 @@ const TOR = () => {
           sx={{
             background: "white",
             width: "100%",
-            maxWidth: 1100,
+
           }}
         >
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 1,
+              px: 2,
+              py: 1.5,
+              backgroundColor: settings?.header_color || "#1976d2",
+              color: "white",
+              borderTop: `1px solid ${borderColor}`,
+            }}
+          >
+            <Typography fontSize="14px" fontWeight="bold" color="white">
+              Total Registrar Users: {registrars.length}
+            </Typography>
+
+            <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
+              <Button
+                onClick={() => setRegistrarPage(0)}
+                disabled={registrarPage === 0}
+                variant="outlined"
+                size="small"
+                sx={{
+                  minWidth: 80,
+                  color: "white",
+                  borderColor: "white",
+                  backgroundColor: "transparent",
+                  "&:hover": {
+                    borderColor: "white",
+                    backgroundColor: "rgba(255,255,255,0.1)",
+                  },
+                  "&.Mui-disabled": {
+                    color: "white",
+                    borderColor: "white",
+                    backgroundColor: "transparent",
+                    opacity: 1,
+                  },
+                }}
+              >
+                First
+              </Button>
+
+              <Button
+                onClick={() =>
+                  setRegistrarPage((prev) => Math.max(prev - 1, 0))
+                }
+                disabled={registrarPage === 0}
+                variant="outlined"
+                size="small"
+                sx={{
+                  minWidth: 80,
+                  color: "white",
+                  borderColor: "white",
+                  backgroundColor: "transparent",
+                  "&:hover": {
+                    borderColor: "white",
+                    backgroundColor: "rgba(255,255,255,0.1)",
+                  },
+                  "&.Mui-disabled": {
+                    color: "white",
+                    borderColor: "white",
+                    backgroundColor: "transparent",
+                    opacity: 1,
+                  },
+                }}
+              >
+                Prev
+              </Button>
+
+              <FormControl size="small" sx={{ minWidth: 90 }}>
+                <Select
+                  value={registrarPage + 1}
+                  onChange={(e) => setRegistrarPage(Number(e.target.value) - 1)}
+                  displayEmpty
+                  sx={{
+                    fontSize: "12px",
+                    height: 36,
+                    color: "white",
+                    border: "1px solid white",
+                    backgroundColor: "transparent",
+                    ".MuiOutlinedInput-notchedOutline": {
+                      borderColor: "white",
+                    },
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "white",
+                    },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "white",
+                    },
+                    "& svg": {
+                      color: "white",
+                    },
+                  }}
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        maxHeight: 200,
+                        backgroundColor: "#fff",
+                      },
+                    },
+                  }}
+                >
+                  {Array.from({ length: totalRegistrarPages }, (_, i) => (
+                    <MenuItem key={i + 1} value={i + 1}>
+                      Page {i + 1}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <Typography fontSize="11px" color="white">
+                of {totalRegistrarPages} page
+                {totalRegistrarPages > 1 ? "s" : ""}
+              </Typography>
+
+              <Button
+                onClick={() =>
+                  setRegistrarPage((prev) =>
+                    Math.min(prev + 1, totalRegistrarPages - 1),
+                  )
+                }
+                disabled={registrarPage >= totalRegistrarPages - 1}
+                variant="outlined"
+                size="small"
+                sx={{
+                  minWidth: 80,
+                  color: "white",
+                  borderColor: "white",
+                  backgroundColor: "transparent",
+                  "&:hover": {
+                    borderColor: "white",
+                    backgroundColor: "rgba(255,255,255,0.1)",
+                  },
+                  "&.Mui-disabled": {
+                    color: "white",
+                    borderColor: "white",
+                    backgroundColor: "transparent",
+                    opacity: 1,
+                  },
+                }}
+              >
+                Next
+              </Button>
+
+              <Button
+                onClick={() => setRegistrarPage(totalRegistrarPages - 1)}
+                disabled={registrarPage >= totalRegistrarPages - 1}
+                variant="outlined"
+                size="small"
+                sx={{
+                  minWidth: 80,
+                  color: "white",
+                  borderColor: "white",
+                  backgroundColor: "transparent",
+                  "&:hover": {
+                    borderColor: "white",
+                    backgroundColor: "rgba(255,255,255,0.1)",
+                  },
+                  "&.Mui-disabled": {
+                    color: "white",
+                    borderColor: "white",
+                    backgroundColor: "transparent",
+                    opacity: 1,
+                  },
+                }}
+              >
+                Last
+              </Button>
+            </Box>
+          </Box>
           <TableContainer
             component={Paper}
-            elevation={3}
-            sx={{ overflowX: "auto" }}
+            elevation={2}
+            sx={{
+              overflowX: "auto",
+              width: "100%",
+              margin: "0 auto",
+            }}
           >
-            <Table>
+            <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    align="center"
-                    style={{
-                      fontSize: "15px",
-                      color: "white",
-                      background: mainButtonColor,
-                      border: `1px solid ${borderColor}`,
-                    }}
-                  >
-                    <strong>REGISTRAR USERS</strong>
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell
-                    style={{
-                      border: `1px solid ${borderColor}`,
-                      fontWeight: "600",
-                      color: titleColor,
-                    }}
-                  >
-                    #
-                  </TableCell>
-                  <TableCell
-                    style={{
-                      border: `1px solid ${borderColor}`,
-                      fontWeight: "600",
-                      color: titleColor,
-                    }}
-                  >
-                    Employee ID
-                  </TableCell>
-                  <TableCell
-                    style={{
-                      border: `1px solid ${borderColor}`,
-                      fontWeight: "600",
-                      color: titleColor,
-                    }}
-                    align="center"
-                  >
-                    Fullname
-                  </TableCell>
-                  <TableCell
-                    style={{
-                      border: `1px solid ${borderColor}`,
-                      fontWeight: "600",
-                      color: titleColor,
-                    }}
-                    align="center"
-                  >
-                    Role
-                  </TableCell>
-                  <TableCell
-                    style={{
-                      border: `1px solid ${borderColor}`,
-                      fontWeight: "600",
-                      color: titleColor,
-                    }}
-                    align="center"
-                  >
-                    Action
-                  </TableCell>
+                  {["#", "Employee ID", "Fullname", "Role", "Action"].map((header) => (
+                    <TableCell
+                      key={header}
+                      sx={{
+                        border: `1px solid ${borderColor}`,
+                        fontWeight: 600,
+                        color: titleColor,
+                        textAlign: "center",
+                        fontSize: "13px",
+                        padding: "6px 10px", // smaller height
+                      }}
+                    >
+                      {header}
+                    </TableCell>
+                  ))}
                 </TableRow>
               </TableHead>
+
               <TableBody>
                 {paginatedRegistrars.map((user, index) => (
                   <TableRow key={user.employee_id}>
                     <TableCell
-                      style={{
+                      sx={{
                         border: `1px solid ${borderColor}`,
                         textAlign: "center",
-                        fontSize: "14px",
+                        fontSize: "12px",
                         color: titleColor,
+                        padding: "4px 8px",
                       }}
                     >
                       {registrarPage * REGISTRARS_PER_PAGE + index + 1}
                     </TableCell>
+
                     <TableCell
-                      style={{
+                      sx={{
                         border: `1px solid ${borderColor}`,
                         textAlign: "center",
-                        fontSize: "14px",
+                        fontSize: "12px",
                         color: titleColor,
+                        padding: "4px 8px",
                       }}
                     >
                       {user.employee_id}
                     </TableCell>
+
                     <TableCell
-                      style={{
+                      sx={{
                         border: `1px solid ${borderColor}`,
                         color: titleColor,
+                        fontSize: "12px",
+                        padding: "4px 8px",
                       }}
-                    >{`${user.first_name} ${user.middle_name || ""} ${user.last_name}`}</TableCell>
+                    >
+                      {`${user.first_name} ${user.middle_name || ""} ${user.last_name}`}
+                    </TableCell>
+
                     <TableCell
-                      style={{
+                      sx={{
                         border: `1px solid ${borderColor}`,
                         textAlign: "center",
                         color: titleColor,
+                        fontSize: "12px",
+                        padding: "4px 8px",
                       }}
                     >
                       {user.role}
                     </TableCell>
-                    <TableCell
-                      style={{
-                        border: `1px solid ${borderColor}`,
-                        textAlign: "center",
-                        color: titleColor,
-                      }}
-                    >
-                      <Box display="flex" alignItems="center">
-                        <Box display="flex" alignItems="center" mb={0.5}>
-                          <Checkbox
-                            color="primary"
-                            checked={
-                              selectedPreparedBy?.employee_id ===
-                              user.employee_id
-                            }
-                            onChange={() => handlePreparedByChange(user)}
-                            disabled={
-                              selectedCheckedBy?.employee_id ===
-                              user.employee_id
-                            }
-                          />{" "}
-                          Prepared By
-                        </Box>
-                        <Box display="flex" alignItems="center">
-                          <Checkbox
-                            color="secondary"
-                            checked={
-                              selectedCheckedBy?.employee_id ===
-                              user.employee_id
-                            }
-                            onChange={() => handleCheckedByChange(user)}
-                            disabled={
-                              selectedPreparedBy?.employee_id ===
-                              user.employee_id
-                            }
-                          />
-                          Check By
-                        </Box>
-                      </Box>
-                    </TableCell>
+
+                   <TableCell
+  sx={{
+    border: `1px solid ${borderColor}`,
+    textAlign: "center",
+    color: titleColor,
+    padding: "4px 6px",
+  }}
+>
+  <Box
+    display="flex"
+    justifyContent="center"
+    alignItems="center"
+    gap={2}
+  >
+    <Box display="flex" alignItems="center">
+      <Checkbox
+        size="small"
+        color="primary"
+        checked={
+          selectedPreparedBy?.employee_id === user.employee_id
+        }
+        onChange={() => handlePreparedByChange(user)}
+        disabled={
+          selectedCheckedBy?.employee_id === user.employee_id
+        }
+      />
+
+      <Typography fontSize="12px">
+        Prepared By
+      </Typography>
+    </Box>
+
+    <Box display="flex" alignItems="center">
+      <Checkbox
+        size="small"
+        color="secondary"
+        checked={
+          selectedCheckedBy?.employee_id === user.employee_id
+        }
+        onChange={() => handleCheckedByChange(user)}
+        disabled={
+          selectedPreparedBy?.employee_id === user.employee_id
+        }
+      />
+
+      <Typography fontSize="12px">
+        Checked By
+      </Typography>
+    </Box>
+  </Box>
+</TableCell>
                   </TableRow>
                 ))}
+
                 {paginatedRegistrars.length === 0 && (
                   <TableRow>
                     <TableCell
                       colSpan={5}
                       align="center"
-                      style={{
+                      sx={{
                         border: `1px solid ${borderColor}`,
                         color: titleColor,
+                        padding: "8px",
+                        fontSize: "12px",
                       }}
                     >
                       No registrar users found.
@@ -1306,6 +1463,7 @@ const TOR = () => {
           </Box>
         </Box>
       </Box>
+
       <Box
         style={{ width: "100%", display: "flex", justifyContent: "center" }}
         className="page-container"
@@ -1397,7 +1555,7 @@ const TOR = () => {
                       );
                     })()}
 
-                  <Typography style={{ fontSize: "12px" }}>
+                  <Typography style={{ fontFamily: "Arial", fontSize: "13px" }}>
                     {campusAddress}
                   </Typography>
                 </Box>
@@ -1746,9 +1904,10 @@ const TOR = () => {
                       {!studentData?.profile_image ? (
                         <Avatar
                           sx={{
-                            width: 200,
-                            height: 226,
-                            border: "3px solid maroon",
+                            width: 225,
+                            height: 225,
+                            mx: "auto",
+                            border: "1px solid black",
                             color: "maroon",
                             bgcolor: "transparent",
                           }}
@@ -1756,11 +1915,12 @@ const TOR = () => {
                         />
                       ) : (
                         <Avatar
-                          src={`${API_BASE_URL}/uploads/${studentData.profile_image}`}
+                          src={`${API_BASE_URL}/uploads/Student1by1/${studentData.profile_image}`}
                           sx={{
-                            width: 200,
-                            height: 246,
+                            width: 225,
+                            height: 225,
                             mx: "auto",
+                            border: "1px solid black"
                           }}
                           variant="square"
                         />
