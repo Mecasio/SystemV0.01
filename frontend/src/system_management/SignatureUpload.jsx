@@ -230,15 +230,14 @@ const SignatureUpload = () => {
       submitData.append("signature_name", formData.signature_name);
       submitData.append("created_by", employeeID);
 
-      // only append file if user selected a new one
-      if (signature) {
-        submitData.append("signature", signature);
-      }
-
       let res;
 
       // ✅ EDIT MODE
       if (editId) {
+        if (signature) {
+          submitData.append("signature", signature);
+        }
+
         res = await axios.put(
           `${API_BASE_URL}/api/signature/${editId}`,
           submitData,

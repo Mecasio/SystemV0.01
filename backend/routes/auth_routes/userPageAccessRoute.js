@@ -182,7 +182,7 @@ router.post("/api/page_access/:userId/:pageId", async (req, res) => {
     if (existing.length > 0) {
       await db3.query(
         `UPDATE page_access
-         SET page_privilege = 1, can_create = 1, can_edit = 1, can_delete = 1
+         SET page_privilege = 1, can_create = 0, can_edit = 0, can_delete = 0
          WHERE user_id = ? AND page_id = ?`,
         [userId, pageId],
       );
@@ -199,7 +199,7 @@ router.post("/api/page_access/:userId/:pageId", async (req, res) => {
 
     await db3.query(
       `INSERT INTO page_access (user_id, page_id, page_privilege, can_create, can_edit, can_delete)
-       VALUES (?, ?, 1, 1, 1, 1)`,
+       VALUES (?, ?, 1, 0, 0, 0)`,
       [userId, pageId],
     );
 
@@ -370,7 +370,7 @@ router.post("/api/page_access/grant-all", async (req, res) => {
       if (existing.length > 0) {
         await db3.query(
           `UPDATE page_access
-           SET page_privilege = 1, can_create = 1, can_edit = 1, can_delete = 1
+           SET page_privilege = 1, can_create = 0, can_edit = 0, can_delete = 0
            WHERE user_id = ? AND page_id = ?`,
           [userId, page.id],
         );
@@ -378,7 +378,7 @@ router.post("/api/page_access/grant-all", async (req, res) => {
         await db3.query(
           `INSERT INTO page_access
            (user_id, page_id, page_privilege, can_create, can_edit, can_delete)
-           VALUES (?, ?, 1, 1, 1, 1)`,
+           VALUES (?, ?, 1, 0, 0, 0)`,
           [userId, page.id],
         );
       }

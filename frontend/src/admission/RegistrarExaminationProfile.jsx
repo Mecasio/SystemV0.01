@@ -518,7 +518,13 @@ const ExaminationProfile = ({ personId }) => {
     try {
       const parsed = Array.isArray(value) ? value : JSON.parse(value);
       return parsed
-        .map((id) => Number(id))
+        .map((entry) =>
+          Number(
+            typeof entry === "object" && entry !== null
+              ? entry.page_id ?? entry.pageId ?? entry.id
+              : entry,
+          ),
+        )
         .filter((id) => Number.isInteger(id));
     } catch (error) {
       console.error("Failed to parse page access:", error);

@@ -177,10 +177,11 @@ const TOR = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const queryPersonId = queryParams.get("person_id");
-  const [registrars, setRegistrars] = useState([]);
+  const [signatures, setSignatures] = useState([]);
   const [selectedPreparedBy, setSelectedPreparedBy] = useState(null);
   const [selectedCheckedBy, setSelectedCheckedBy] = useState(null);
-  const [registrarPage, setRegistrarPage] = useState(0);
+  const [selectedRegistrar, setSelectedRegistrar] = useState(null);
+  const [signaturePage, setSignaturePage] = useState(0);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("email");
@@ -284,20 +285,7 @@ const TOR = () => {
   const [loading, setLoading] = useState(false);
 
   const pageId = 62;
-  const REGISTRARS_PER_PAGE = 5;
-  const parsePageIds = (value) => {
-    if (!value) return [];
-
-    try {
-      const parsed = Array.isArray(value) ? value : JSON.parse(value);
-      return parsed
-        .map((id) => Number(id))
-        .filter((id) => Number.isInteger(id));
-    } catch (error) {
-      console.error("Failed to parse page access:", error);
-      return [];
-    }
-  };
+  const SIGNATURES_PER_PAGE = 5;
 
   //Put this After putting the code of the past code
   useEffect(() => {
@@ -396,36 +384,18 @@ const TOR = () => {
   }, [searchQuery]);
 
   useEffect(() => {
-    const fetchRegistrars = async () => {
+    const fetchSignatures = async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/registrar-users`, {
-          params: { pageId },
-        });
-
-        const filteredRegistrars = (res.data.registrars || []).filter(
-          (user) => {
-            const accessTablePages = parsePageIds(user.access_page);
-            const assignedPageIds = Array.isArray(user.assigned_page_ids)
-              ? user.assigned_page_ids
-                .map((id) => Number(id))
-                .filter((id) => Number.isInteger(id))
-              : [];
-
-            return (
-              accessTablePages.includes(pageId) ||
-              assignedPageIds.includes(pageId)
-            );
-          },
-        );
-
-        setRegistrars(filteredRegistrars);
-        setRegistrarPage(0);
+        const res = await axios.get(`${API_BASE_URL}/api/signature`);
+        setSignatures(res.data?.success ? res.data.data || [] : []);
+        setSignaturePage(0);
       } catch (err) {
         console.error(err);
+        setSignatures([]);
       }
     };
-    fetchRegistrars();
-  }, [pageId]);
+    fetchSignatures();
+  }, []);
 
   useEffect(() => {
     fetchGradeConversionDic();
@@ -443,14 +413,19 @@ const TOR = () => {
     }
   };
 
-  const paginatedRegistrars = registrars.slice(
-    registrarPage * REGISTRARS_PER_PAGE,
-    registrarPage * REGISTRARS_PER_PAGE + REGISTRARS_PER_PAGE,
+  const paginatedSignatures = signatures.slice(
+    signaturePage * SIGNATURES_PER_PAGE,
+    signaturePage * SIGNATURES_PER_PAGE + SIGNATURES_PER_PAGE,
   );
-  const totalRegistrarPages = Math.max(
+  const totalSignaturePages = Math.max(
     1,
-    Math.ceil(registrars.length / REGISTRARS_PER_PAGE),
+    Math.ceil(signatures.length / SIGNATURES_PER_PAGE),
   );
+
+  const getSignatureImageSrc = (signature) =>
+    signature?.signature_image
+      ? `${API_BASE_URL}/uploads/${signature.signature_image}`
+      : "";
 
   const totalUnitPerSubject = (course_unit, lab_unit) => {
     const lec = Number(course_unit) || 0;
@@ -582,15 +557,33 @@ const TOR = () => {
     window.print();
   };
 
-  const handlePreparedByChange = (user) => {
+  const handlePreparedByChange = (signature) => {
     setSelectedPreparedBy((prev) =>
-      prev?.employee_id === user.employee_id ? null : user,
+      prev?.id === signature.id ? null : signature,
     );
   };
 
-  const handleCheckedByChange = (user) => {
+  const handleCheckedByChange = (signature) => {
     setSelectedCheckedBy((prev) =>
-      prev?.employee_id === user.employee_id ? null : user,
+      prev?.id === signature.id ? null : signature,
+    );
+  };
+
+  const handleRegistrarChange = (signature) => {
+    setSelectedRegistrar((prev) =>
+      prev?.id === signature.id ? null : signature,
+    );
+  };
+
+  const isSignatureSelectedForAnotherRole = (signature, currentRole) => {
+    const selections = {
+      prepared: selectedPreparedBy,
+      checked: selectedCheckedBy,
+      registrar: selectedRegistrar,
+    };
+
+    return Object.entries(selections).some(
+      ([role, selected]) => role !== currentRole && selected?.id === signature.id,
     );
   };
 
@@ -979,13 +972,13 @@ const TOR = () => {
             }}
           >
             <Typography fontSize="14px" fontWeight="bold" color="white">
-              Total Registrar Users: {registrars.length}
+              Total Signatures: {signatures.length}
             </Typography>
 
             <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
               <Button
-                onClick={() => setRegistrarPage(0)}
-                disabled={registrarPage === 0}
+                onClick={() => setSignaturePage(0)}
+                disabled={signaturePage === 0}
                 variant="outlined"
                 size="small"
                 sx={{
@@ -1010,9 +1003,9 @@ const TOR = () => {
 
               <Button
                 onClick={() =>
-                  setRegistrarPage((prev) => Math.max(prev - 1, 0))
+                  setSignaturePage((prev) => Math.max(prev - 1, 0))
                 }
-                disabled={registrarPage === 0}
+                disabled={signaturePage === 0}
                 variant="outlined"
                 size="small"
                 sx={{
@@ -1037,8 +1030,8 @@ const TOR = () => {
 
               <FormControl size="small" sx={{ minWidth: 90 }}>
                 <Select
-                  value={registrarPage + 1}
-                  onChange={(e) => setRegistrarPage(Number(e.target.value) - 1)}
+                  value={signaturePage + 1}
+                  onChange={(e) => setSignaturePage(Number(e.target.value) - 1)}
                   displayEmpty
                   sx={{
                     fontSize: "12px",
@@ -1068,7 +1061,7 @@ const TOR = () => {
                     },
                   }}
                 >
-                  {Array.from({ length: totalRegistrarPages }, (_, i) => (
+                  {Array.from({ length: totalSignaturePages }, (_, i) => (
                     <MenuItem key={i + 1} value={i + 1}>
                       Page {i + 1}
                     </MenuItem>
@@ -1077,17 +1070,17 @@ const TOR = () => {
               </FormControl>
 
               <Typography fontSize="11px" color="white">
-                of {totalRegistrarPages} page
-                {totalRegistrarPages > 1 ? "s" : ""}
+                of {totalSignaturePages} page
+                {totalSignaturePages > 1 ? "s" : ""}
               </Typography>
 
               <Button
                 onClick={() =>
-                  setRegistrarPage((prev) =>
-                    Math.min(prev + 1, totalRegistrarPages - 1),
+                  setSignaturePage((prev) =>
+                    Math.min(prev + 1, totalSignaturePages - 1),
                   )
                 }
-                disabled={registrarPage >= totalRegistrarPages - 1}
+                disabled={signaturePage >= totalSignaturePages - 1}
                 variant="outlined"
                 size="small"
                 sx={{
@@ -1111,8 +1104,8 @@ const TOR = () => {
               </Button>
 
               <Button
-                onClick={() => setRegistrarPage(totalRegistrarPages - 1)}
-                disabled={registrarPage >= totalRegistrarPages - 1}
+                onClick={() => setSignaturePage(totalSignaturePages - 1)}
+                disabled={signaturePage >= totalSignaturePages - 1}
                 variant="outlined"
                 size="small"
                 sx={{
@@ -1148,7 +1141,7 @@ const TOR = () => {
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  {["#", "Employee ID", "Fullname", "Role", "Action"].map((header) => (
+                  {["#", "Full Name", "Designation", "Prepared By", "Checked By", "Registrar"].map((header) => (
                     <TableCell
                       key={header}
                       sx={{
@@ -1167,8 +1160,8 @@ const TOR = () => {
               </TableHead>
 
               <TableBody>
-                {paginatedRegistrars.map((user, index) => (
-                  <TableRow key={user.employee_id}>
+                {paginatedSignatures.map((signature, index) => (
+                  <TableRow key={signature.id}>
                     <TableCell
                       sx={{
                         border: `1px solid ${borderColor}`,
@@ -1178,7 +1171,7 @@ const TOR = () => {
                         padding: "4px 8px",
                       }}
                     >
-                      {registrarPage * REGISTRARS_PER_PAGE + index + 1}
+                      {signaturePage * SIGNATURES_PER_PAGE + index + 1}
                     </TableCell>
 
                     <TableCell
@@ -1190,7 +1183,7 @@ const TOR = () => {
                         padding: "4px 8px",
                       }}
                     >
-                      {user.employee_id}
+                      {signature.full_name}
                     </TableCell>
 
                     <TableCell
@@ -1201,7 +1194,7 @@ const TOR = () => {
                         padding: "4px 8px",
                       }}
                     >
-                      {`${user.first_name} ${user.middle_name || ""} ${user.last_name}`}
+                      {signature.designation}
                     </TableCell>
 
                     <TableCell
@@ -1209,71 +1202,58 @@ const TOR = () => {
                         border: `1px solid ${borderColor}`,
                         textAlign: "center",
                         color: titleColor,
-                        fontSize: "12px",
-                        padding: "4px 8px",
+                        padding: "4px 6px",
                       }}
                     >
-                      {user.role}
+                      <Checkbox
+                        size="small"
+                        color="primary"
+                        checked={selectedPreparedBy?.id === signature.id}
+                        onChange={() => handlePreparedByChange(signature)}
+                        disabled={isSignatureSelectedForAnotherRole(signature, "prepared")}
+                      />
                     </TableCell>
 
-                   <TableCell
-  sx={{
-    border: `1px solid ${borderColor}`,
-    textAlign: "center",
-    color: titleColor,
-    padding: "4px 6px",
-  }}
->
-  <Box
-    display="flex"
-    justifyContent="center"
-    alignItems="center"
-    gap={2}
-  >
-    <Box display="flex" alignItems="center">
-      <Checkbox
-        size="small"
-        color="primary"
-        checked={
-          selectedPreparedBy?.employee_id === user.employee_id
-        }
-        onChange={() => handlePreparedByChange(user)}
-        disabled={
-          selectedCheckedBy?.employee_id === user.employee_id
-        }
-      />
+                    <TableCell
+                      sx={{
+                        border: `1px solid ${borderColor}`,
+                        textAlign: "center",
+                        color: titleColor,
+                        padding: "4px 6px",
+                      }}
+                    >
+                      <Checkbox
+                        size="small"
+                        color="secondary"
+                        checked={selectedCheckedBy?.id === signature.id}
+                        onChange={() => handleCheckedByChange(signature)}
+                        disabled={isSignatureSelectedForAnotherRole(signature, "checked")}
+                      />
+                    </TableCell>
 
-      <Typography fontSize="12px">
-        Prepared By
-      </Typography>
-    </Box>
-
-    <Box display="flex" alignItems="center">
-      <Checkbox
-        size="small"
-        color="secondary"
-        checked={
-          selectedCheckedBy?.employee_id === user.employee_id
-        }
-        onChange={() => handleCheckedByChange(user)}
-        disabled={
-          selectedPreparedBy?.employee_id === user.employee_id
-        }
-      />
-
-      <Typography fontSize="12px">
-        Checked By
-      </Typography>
-    </Box>
-  </Box>
-</TableCell>
+                    <TableCell
+                      sx={{
+                        border: `1px solid ${borderColor}`,
+                        textAlign: "center",
+                        color: titleColor,
+                        padding: "4px 6px",
+                      }}
+                    >
+                      <Checkbox
+                        size="small"
+                        color="success"
+                        checked={selectedRegistrar?.id === signature.id}
+                        onChange={() => handleRegistrarChange(signature)}
+                        disabled={isSignatureSelectedForAnotherRole(signature, "registrar")}
+                      />
+                    </TableCell>
                   </TableRow>
                 ))}
 
-                {paginatedRegistrars.length === 0 && (
+                {paginatedSignatures.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={5}
+                      colSpan={6}
                       align="center"
                       sx={{
                         border: `1px solid ${borderColor}`,
@@ -1282,7 +1262,7 @@ const TOR = () => {
                         fontSize: "12px",
                       }}
                     >
-                      No registrar users found.
+                      No signatures found.
                     </TableCell>
                   </TableRow>
                 )}
@@ -1304,13 +1284,13 @@ const TOR = () => {
             }}
           >
             <Typography fontSize="14px" fontWeight="bold" color="white">
-              Total Registrar Users: {registrars.length}
+              Total Signatures: {signatures.length}
             </Typography>
 
             <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
               <Button
-                onClick={() => setRegistrarPage(0)}
-                disabled={registrarPage === 0}
+                onClick={() => setSignaturePage(0)}
+                disabled={signaturePage === 0}
                 variant="outlined"
                 size="small"
                 sx={{
@@ -1335,9 +1315,9 @@ const TOR = () => {
 
               <Button
                 onClick={() =>
-                  setRegistrarPage((prev) => Math.max(prev - 1, 0))
+                  setSignaturePage((prev) => Math.max(prev - 1, 0))
                 }
-                disabled={registrarPage === 0}
+                disabled={signaturePage === 0}
                 variant="outlined"
                 size="small"
                 sx={{
@@ -1362,8 +1342,8 @@ const TOR = () => {
 
               <FormControl size="small" sx={{ minWidth: 90 }}>
                 <Select
-                  value={registrarPage + 1}
-                  onChange={(e) => setRegistrarPage(Number(e.target.value) - 1)}
+                  value={signaturePage + 1}
+                  onChange={(e) => setSignaturePage(Number(e.target.value) - 1)}
                   displayEmpty
                   sx={{
                     fontSize: "12px",
@@ -1393,7 +1373,7 @@ const TOR = () => {
                     },
                   }}
                 >
-                  {Array.from({ length: totalRegistrarPages }, (_, i) => (
+                  {Array.from({ length: totalSignaturePages }, (_, i) => (
                     <MenuItem key={i + 1} value={i + 1}>
                       Page {i + 1}
                     </MenuItem>
@@ -1402,17 +1382,17 @@ const TOR = () => {
               </FormControl>
 
               <Typography fontSize="11px" color="white">
-                of {totalRegistrarPages} page
-                {totalRegistrarPages > 1 ? "s" : ""}
+                of {totalSignaturePages} page
+                {totalSignaturePages > 1 ? "s" : ""}
               </Typography>
 
               <Button
                 onClick={() =>
-                  setRegistrarPage((prev) =>
-                    Math.min(prev + 1, totalRegistrarPages - 1),
+                  setSignaturePage((prev) =>
+                    Math.min(prev + 1, totalSignaturePages - 1),
                   )
                 }
-                disabled={registrarPage >= totalRegistrarPages - 1}
+                disabled={signaturePage >= totalSignaturePages - 1}
                 variant="outlined"
                 size="small"
                 sx={{
@@ -1436,8 +1416,8 @@ const TOR = () => {
               </Button>
 
               <Button
-                onClick={() => setRegistrarPage(totalRegistrarPages - 1)}
-                disabled={registrarPage >= totalRegistrarPages - 1}
+                onClick={() => setSignaturePage(totalSignaturePages - 1)}
+                disabled={signaturePage >= totalSignaturePages - 1}
                 variant="outlined"
                 size="small"
                 sx={{
@@ -2923,22 +2903,32 @@ const TOR = () => {
                               >
                                 PREPARED BY:
                               </span>
-                              <div style={{ marginTop: "2.3rem" }}>
+                              <div style={{ marginTop: "0.4rem", textAlign: "left" }}>
+                                {selectedPreparedBy?.signature_image && (
+                                  <img
+                                    src={getSignatureImageSrc(selectedPreparedBy)}
+                                    alt={selectedPreparedBy.signature_name || "Prepared by signature"}
+                                    style={{
+                                      width: "11rem",
+                                      height: "2.7rem",
+                                      objectFit: "contain",
+                                      display: "block",
+                                      margin: "0 0 -0.2rem",
+                                    }}
+                                  />
+                                )}
                                 <span
                                   style={{
-                                    fontSize: "24px",
+                                    display: "block",
+                                    fontSize: "20px",
                                     fontWeight: "500",
                                     letterSpacing: "-1px",
                                     wordSpacing: "3px",
+                                    whiteSpace: "nowrap",
                                   }}
                                 >
-                                  {selectedPreparedBy
-                                    ? `${selectedPreparedBy.first_name?.toUpperCase()} 
-                                            ${selectedPreparedBy.middle_name ? selectedPreparedBy.middle_name[0]?.toUpperCase() + "." : ""} 
-                                            ${selectedPreparedBy.last_name?.toUpperCase()}`
-                                    : ""}
+                                  {selectedPreparedBy?.full_name?.toUpperCase() || ""}
                                 </span>
-                                <span></span>
                               </div>
                             </td>
                             <td style={{ marginTop: "3px", width: "20rem" }}>
@@ -2953,22 +2943,32 @@ const TOR = () => {
                               >
                                 CHECKED BY:
                               </span>
-                              <div style={{ marginTop: "2.3rem" }}>
+                              <div style={{ marginTop: "0.4rem", textAlign: "left" }}>
+                                {selectedCheckedBy?.signature_image && (
+                                  <img
+                                    src={getSignatureImageSrc(selectedCheckedBy)}
+                                    alt={selectedCheckedBy.signature_name || "Checked by signature"}
+                                    style={{
+                                      width: "11rem",
+                                      height: "2.7rem",
+                                      objectFit: "contain",
+                                      display: "block",
+                                      margin: "0 0 -0.2rem",
+                                    }}
+                                  />
+                                )}
                                 <span
                                   style={{
-                                    fontSize: "24px",
+                                    display: "block",
+                                    fontSize: "20px",
                                     fontWeight: "500",
                                     letterSpacing: "-1px",
                                     wordSpacing: "3px",
+                                    whiteSpace: "nowrap",
                                   }}
                                 >
-                                  {selectedCheckedBy
-                                    ? `${selectedCheckedBy.first_name?.toUpperCase()} 
-                                        ${selectedCheckedBy.middle_name ? selectedCheckedBy.middle_name[0]?.toUpperCase() + "." : ""} 
-                                        ${selectedCheckedBy.last_name?.toUpperCase()}`
-                                    : ""}
+                                  {selectedCheckedBy?.full_name?.toUpperCase() || ""}
                                 </span>
-                                <span></span>
                               </div>
                             </td>
                             <td
@@ -2986,6 +2986,19 @@ const TOR = () => {
                                   textAlign: "center",
                                 }}
                               >
+                                {selectedRegistrar?.signature_image && (
+                                  <img
+                                    src={getSignatureImageSrc(selectedRegistrar)}
+                                    alt={selectedRegistrar.signature_name || "Registrar signature"}
+                                    style={{
+                                      width: "11rem",
+                                      height: "2.7rem",
+                                      objectFit: "contain",
+                                      display: "block",
+                                      margin: "0 auto -0.2rem",
+                                    }}
+                                  />
+                                )}
                                 <span
                                   style={{
                                     fontSize: "24px",
@@ -2993,17 +3006,16 @@ const TOR = () => {
                                     wordSpacing: "3px",
                                   }}
                                 >
-                                  JULIE ANN O. ESPIRITU, JD.
+                                  {selectedRegistrar?.full_name?.toUpperCase() || ""}
                                 </span>
+                                <hr />
                                 <span
                                   style={{
-                                    marginTop: "-0.8rem",
-                                    fontSize: "24px",
-                                    fontWeight: "500",
-                                    letterSpacing: "-2px",
+                                    fontSize: "18px",
+                                    letterSpacing: "-1px",
+                                    wordSpacing: "3px",
                                   }}
-                                >
-                                  REGISTRAR
+                                >REGISTRAR
                                 </span>
                               </div>
                             </td>

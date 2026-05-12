@@ -64,6 +64,37 @@ const parseAccessPages = (rawAccessPage) => {
   }
 };
 
+const parseAccessPermissions = (rawAccessPage) =>
+  parseAccessPages(rawAccessPage)
+    .map((entry) => {
+      if (typeof entry === "number" || typeof entry === "string") {
+        const pageId = Number(entry);
+        return Number.isNaN(pageId)
+          ? null
+          : {
+            page_id: pageId,
+            page_privilege: 1,
+            can_create: 0,
+            can_edit: 0,
+            can_delete: 0,
+          };
+      }
+
+      if (!entry || typeof entry !== "object") return null;
+
+      const pageId = Number(entry.page_id ?? entry.pageId ?? entry.id);
+      if (Number.isNaN(pageId)) return null;
+
+      return {
+        page_id: pageId,
+        page_privilege: Number(entry.page_privilege ?? entry.access ?? 1) === 1 ? 1 : 0,
+        can_create: Number(entry.can_create) === 1 ? 1 : 0,
+        can_edit: Number(entry.can_edit) === 1 ? 1 : 0,
+        can_delete: Number(entry.can_delete) === 1 ? 1 : 0,
+      };
+    })
+    .filter((permission) => permission && permission.page_privilege === 1);
+
 router.get("/get_employee", async (req, res) => {
   try {
     const [rows] = await db3.query(`
@@ -189,12 +220,19 @@ router.post("/register_registrar", upload.single("profile_picture"), async (req,
       return res.status(400).json({ message: "Invalid access level selected" });
     }
 
-    const pageIds = parseAccessPages(accessRows[0].access_page);
-    if (pageIds.length) {
-      const values = pageIds.map(pageId => [1, pageId, employee_id]);
+    const pagePermissions = parseAccessPermissions(accessRows[0].access_page);
+    if (pagePermissions.length) {
+      const values = pagePermissions.map((permission) => [
+        permission.page_privilege,
+        permission.page_id,
+        employee_id,
+        permission.can_create,
+        permission.can_edit,
+        permission.can_delete,
+      ]);
 
       await db3.query(
-        "INSERT INTO page_access (page_privilege, page_id, user_id) VALUES ?",
+        "INSERT INTO page_access (page_privilege, page_id, user_id, can_create, can_edit, can_delete) VALUES ?",
         [values]
       );
     }
@@ -333,16 +371,23 @@ router.put("/update_registrar/:id", upload.single("profile_picture"), async (req
       );
 
       if (accessRows.length) {
-        const pageIds = parseAccessPages(accessRows[0].access_page);
+        const pagePermissions = parseAccessPermissions(accessRows[0].access_page);
 
         await db3.query("DELETE FROM page_access WHERE user_id = ?", [
           newEmployeeId,
         ]);
 
-        if (pageIds.length) {
-          const values = pageIds.map((pageId) => [1, pageId, newEmployeeId]);
+        if (pagePermissions.length) {
+          const values = pagePermissions.map((permission) => [
+            permission.page_privilege,
+            permission.page_id,
+            newEmployeeId,
+            permission.can_create,
+            permission.can_edit,
+            permission.can_delete,
+          ]);
           await db3.query(
-            "INSERT INTO page_access (page_privilege, page_id, user_id) VALUES ?",
+            "INSERT INTO page_access (page_privilege, page_id, user_id, can_create, can_edit, can_delete) VALUES ?",
             [values]
           );
         }
